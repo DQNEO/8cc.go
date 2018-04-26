@@ -36,9 +36,46 @@ func ungetc(c byte, stdin *pseudoStdin) {
 
 const BUFLEN = 256
 
+const (
+	AST_OP_PLUS int = iota
+	AST_OP_MINUS
+	AST_INT
+	AST_STR
+)
+
+type Ast struct {
+	typ int
+	ival int
+	sval []byte
+	left *Ast
+	right *Ast
+}
+
 func _error(format string, args ...interface{}) {
 	fmt.Printf(format, args...)
 	os.Exit(1)
+}
+
+func make_ast_op(typ int, left *Ast, right *Ast) *Ast {
+	r := &Ast{}
+	r.typ = typ
+	r.left = left
+	r.right = right
+	return r
+}
+
+func make_ast_int(val int) *Ast {
+	r := &Ast{}
+	r.typ = AST_INT
+	r.ival = val
+	return r
+}
+
+func make_ast_str(str []byte) *Ast {
+	r := &Ast{}
+	r.typ = AST_STR
+	r.sval = str
+	return r
 }
 
 func skip_space() {
@@ -54,60 +91,54 @@ func skip_space() {
 		return
 	}
 }
-func read_number(n int) int {
+func read_number(n int) *Ast {
 	for {
-		c, err := getc(stdin)
-		if err != nil {
-			break
-		}
+		c, _ := getc(stdin)
 		if !unicode.IsDigit(rune(c)) {
 			ungetc(c, stdin)
-			return n
+			return make_ast_int(n)
 		}
 		n = n * 10 + int(c - byte('0'))
 	}
-	return n
 }
 
-func compile_expr2() {
-	for {
-		skip_space()
-		c, err := getc(stdin)
-		if err != nil {
-			fmt.Printf("ret\n")
-			os.Exit(0)
-		}
-		var op string
-		if c == '+' {
-			op = "add"
-		} else if c == '-' {
-			op = "sub"
-		} else {
-			_error("Operator expected, but got '%c'", c)
-		}
-		skip_space()
-		c, err = getc(stdin)
-		if !unicode.IsDigit(rune(c)) {
-			_error("Number expected, but got '%c", c)
-		}
-		fmt.Printf("%s $%d, %%rax\n\t", op, read_number(int(c - byte('0'))))
+
+
+func read_prim() *Ast {
+	c, err := getc(stdin)
+	if unicode.IsDigit(rune(c)) {
+		return read_number(int(c - '0'))
+	} else if c == '"' {
+		return read_string()
+	} else if err != nil {
+		_error("Unexpected EOF")
 	}
+	_error("Don't know how to handle '%c", c)
+	return nil
 }
 
-/*
- */
-func compile_expr(n int) {
-	n = read_number(n)
-	fmt.Printf(".text\n\t"+
-		".global intfn\n"+
-		"intfn:\n\t"+
-		"mov $%d, %%rax\n\t", n)
-	compile_expr2()
+func read_expr2(left *Ast) *Ast {
+	skip_space()
+	c,err := getc(stdin)
+	if err != nil {
+		return left
+	}
+	var op int
+	if c == '+' {
+		op = AST_OP_PLUS
+	} else if c == '-' {
+		op = AST_OP_MINUS
+	} else {
+		_error("Operator expected, but got '%c", c)
+	}
+	skip_space()
+	right := read_prim()
+	return read_expr2(make_ast_op(op, left, right))
 }
 
-func compile_string() {
-	var buf [BUFLEN]byte
-	var i = 0
+func read_string() *Ast {
+	buf := make([]byte, BUFLEN)
+	i := 0
 	for {
 		c, err := getc(stdin)
 		if err != nil {
@@ -122,38 +153,120 @@ func compile_string() {
 				_error("Unterminated \\")
 			}
 		}
-
 		buf[i] = c
 		i++
 		if i == BUFLEN - 1 {
-			_error("String too long");
+			_error("String too long")
 		}
 	}
+	buf[i] = 0
+	return make_ast_str(buf)
+}
+
+func read_expr() *Ast {
+	left := read_prim()
+	return read_expr2(left)
+}
+
+func print_quote(sval []byte) {
+	for _, c := range sval {
+		if c == byte(0) {
+			break
+		}
+		if c == '"' || c == '\\' {
+			fmt.Printf("\\")
+		}
+		fmt.Printf("%c", c)
+	}
+}
+
+func emit_string(ast *Ast) {
 	fmt.Printf("\t.data\n"+
 		".mydata:\n\t"+
-		".string \"%s\"\n\t"+
+		".string \"")
+	print_quote(ast.sval)
+	fmt.Printf("\"\n\t"+
 		".text\n\t"+
 		".global stringfn\n"+
 		"stringfn:\n\t"+
 		"lea .mydata(%%rip), %%rax\n\t"+
-		"ret\n", buf)
-	os.Exit(0)
+		"ret\n")
 }
 
-func compile() {
-	c,_ := getc(stdin)
-	if unicode.IsDigit(rune(c)) {
-		compile_expr(int(c - byte('0')))
-		return
-	} else if c == '"' {
-		compile_string()
+func emit_binop(ast *Ast) {
+	var op string
+	if ast.typ == AST_OP_PLUS {
+		op = "add"
+	} else if ast.typ == AST_OP_MINUS {
+		op = "sub"
 	} else {
-		_error("Don't know how to handle '%c'", c)
+		_error("invalid operand")
+	}
+	emit_intexpr(ast.left)
+	fmt.Printf("mov %%eax, %%ebx\n\t")
+	emit_intexpr(ast.right)
+	fmt.Printf("%s %%ebx, %%eax\n\t", op)
+}
+
+func ensure_intexpr(ast *Ast) {
+	if ast.typ != AST_OP_PLUS &&
+		ast.typ != AST_OP_MINUS &&
+			ast.typ != AST_INT {
+				_error("integer or binary operator expected")
+	}
+}
+
+func emit_intexpr(ast *Ast) {
+	ensure_intexpr(ast)
+	if ast.typ == AST_INT {
+		fmt.Printf("mov $%d, %%eax\n\t", ast.ival)
+	} else {
+		emit_binop(ast)
+	}
+}
+
+func print_ast(ast *Ast) {
+	switch ast.typ {
+	case AST_OP_PLUS:
+		fmt.Printf("(+ ")
+		print_ast(ast.left)
+		fmt.Printf(" ")
+		print_ast(ast.right)
+		fmt.Printf(")")
+	case AST_OP_MINUS:
+		fmt.Printf("(- ")
+		print_ast(ast.left)
+		fmt.Printf(" ")
+		print_ast(ast.right)
+		fmt.Printf(")")
+	case AST_INT:
+		fmt.Printf("%d", ast.ival)
+	case AST_STR:
+		fmt.Printf("%s", ast.sval)
+	default:
+		_error("should not reach here")
+	}
+}
+
+func compile(ast *Ast) {
+	if ast.typ == AST_STR {
+		emit_string(ast)
+	} else {
+		fmt.Printf(".text\n\t"+
+			".global intfn\n"+
+				"intfn:\n\t")
+		emit_intexpr(ast)
+		fmt.Printf("ret\n")
 	}
 }
 
 func main() {
 	stdin = newStdin()
-	compile()
+	ast := read_expr()
+	if len(os.Args) > 1 && os.Args[1] == "-a" {
+		print_ast(ast)
+	} else {
+		compile(ast)
+	}
 	return
 }

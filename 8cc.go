@@ -63,6 +63,23 @@ func skip_space() {
 		return
 	}
 }
+
+func priority(op byte) int {
+	switch op {
+	case '+':
+		return 1
+	case '-' :
+		return 1
+	case '*':
+		return 2
+	case '/':
+		return 2
+	default:
+		_error("Operator expected, but got '%c", op)
+		return 0
+	}
+}
+
 func read_number(n int) *Ast {
 	for {
 		c, _ := getc(stdin)
@@ -89,23 +106,23 @@ func read_prim() *Ast {
 	return nil
 }
 
-func read_expr2(left *Ast) *Ast {
+func read_expr2(prec int) *Ast {
+	ast := read_prim()
+	for {
 	skip_space()
-	c,err := getc(stdin)
+	op, err := getc(stdin)
 	if err != nil {
-		return left
+		return ast
 	}
-	var op byte
-	if c == '+' {
-		op = c
-	} else if c == '-' {
-		op = c
-	} else {
-		_error("Operator expected, but got '%c", c)
+	prec2 := priority(op)
+	if prec2 < prec {
+		ungetc(op, stdin)
+		return ast
 	}
 	skip_space()
-	right := read_prim()
-	return read_expr2(make_ast_op(op, left, right))
+	ast = make_ast_op(op, ast, read_expr2(prec2+1))
+	}
+	return ast
 }
 
 func read_string() *Ast {
@@ -136,8 +153,7 @@ func read_string() *Ast {
 }
 
 func read_expr() *Ast {
-	left := read_prim()
-	return read_expr2(left)
+	return read_expr2(0)
 }
 
 func print_quote(sval []byte) {
@@ -167,17 +183,31 @@ func emit_string(ast *Ast) {
 
 func emit_binop(ast *Ast) {
 	var op string
-	if ast.typ == '+' {
+	switch ast.typ {
+	case '+':
 		op = "add"
-	} else if ast.typ == '-' {
+	case '-':
 		op = "sub"
-	} else {
-		_error("invalid operand")
+	case '*':
+		op = "imul"
+	case '/':
+		break
+	default:
+		_error("invalid operator '%c", ast.typ)
 	}
+
 	emit_intexpr(ast.left)
-	fmt.Printf("mov %%eax, %%ebx\n\t")
+	fmt.Printf("push %%rax\n\t")
 	emit_intexpr(ast.right)
-	fmt.Printf("%s %%ebx, %%eax\n\t", op)
+	if ast.typ == '/' {
+		fmt.Printf("mov %%eax, %%ebx\n\t")
+		fmt.Printf("pop %%rax\n\t")
+		fmt.Printf("mov $0, %%edx\n\t")
+		fmt.Printf("idiv %%ebx\n\t")
+	} else {
+		fmt.Printf("pop %%rbx\n\t")
+		fmt.Printf("%s %%ebx, %%eax\n\t", op)
+	}
 }
 
 func ensure_intexpr(ast *Ast) {
@@ -185,6 +215,10 @@ func ensure_intexpr(ast *Ast) {
 	case '+' :
 		return
 	case '-' :
+		return
+	case '*' :
+		return
+	case '/' :
 		return
 	case AST_INT:
 		return

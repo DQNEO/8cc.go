@@ -181,10 +181,15 @@ func emit_binop(ast *Ast) {
 }
 
 func ensure_intexpr(ast *Ast) {
-	if ast.typ != '+' &&
-		ast.typ != '-' &&
-			ast.typ != AST_INT {
-				_error("integer or binary operator expected")
+	switch ast.typ {
+	case '+' :
+		return
+	case '-' :
+		return
+	case AST_INT:
+		return
+	default:
+		_error("integer or binary operator expected")
 	}
 }
 
@@ -199,24 +204,16 @@ func emit_intexpr(ast *Ast) {
 
 func print_ast(ast *Ast) {
 	switch ast.typ {
-	case '+':
-		fmt.Printf("(+ ")
-		print_ast(ast.left)
-		fmt.Printf(" ")
-		print_ast(ast.right)
-		fmt.Printf(")")
-	case '_':
-		fmt.Printf("(- ")
-		print_ast(ast.left)
-		fmt.Printf(" ")
-		print_ast(ast.right)
-		fmt.Printf(")")
 	case AST_INT:
 		fmt.Printf("%d", ast.ival)
 	case AST_STR:
 		fmt.Printf("%s", ast.sval)
 	default:
-		_error("should not reach here")
+		fmt.Printf("(%c ", ast.typ)
+		print_ast(ast.left)
+		fmt.Printf(" ")
+		print_ast(ast.right)
+		fmt.Printf(")")
 	}
 }
 

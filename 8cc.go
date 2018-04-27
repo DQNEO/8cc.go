@@ -37,14 +37,12 @@ func ungetc(c byte, stdin *pseudoStdin) {
 const BUFLEN = 256
 
 const (
-	AST_OP_PLUS int = iota
-	AST_OP_MINUS
-	AST_INT
+	AST_INT byte = iota
 	AST_STR
 )
 
 type Ast struct {
-	typ int
+	typ byte
 	ival int
 	sval []byte
 	left *Ast
@@ -56,7 +54,7 @@ func _error(format string, args ...interface{}) {
 	os.Exit(1)
 }
 
-func make_ast_op(typ int, left *Ast, right *Ast) *Ast {
+func make_ast_op(typ byte, left *Ast, right *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
 	r.left = left
@@ -123,11 +121,11 @@ func read_expr2(left *Ast) *Ast {
 	if err != nil {
 		return left
 	}
-	var op int
+	var op byte
 	if c == '+' {
-		op = AST_OP_PLUS
+		op = c
 	} else if c == '-' {
-		op = AST_OP_MINUS
+		op = c
 	} else {
 		_error("Operator expected, but got '%c", c)
 	}
@@ -195,9 +193,9 @@ func emit_string(ast *Ast) {
 
 func emit_binop(ast *Ast) {
 	var op string
-	if ast.typ == AST_OP_PLUS {
+	if ast.typ == '+' {
 		op = "add"
-	} else if ast.typ == AST_OP_MINUS {
+	} else if ast.typ == '-' {
 		op = "sub"
 	} else {
 		_error("invalid operand")
@@ -209,8 +207,8 @@ func emit_binop(ast *Ast) {
 }
 
 func ensure_intexpr(ast *Ast) {
-	if ast.typ != AST_OP_PLUS &&
-		ast.typ != AST_OP_MINUS &&
+	if ast.typ != '+' &&
+		ast.typ != '-' &&
 			ast.typ != AST_INT {
 				_error("integer or binary operator expected")
 	}
@@ -227,13 +225,13 @@ func emit_intexpr(ast *Ast) {
 
 func print_ast(ast *Ast) {
 	switch ast.typ {
-	case AST_OP_PLUS:
+	case '+':
 		fmt.Printf("(+ ")
 		print_ast(ast.left)
 		fmt.Printf(" ")
 		print_ast(ast.right)
 		fmt.Printf(")")
-	case AST_OP_MINUS:
+	case '_':
 		fmt.Printf("(- ")
 		print_ast(ast.left)
 		fmt.Printf(" ")

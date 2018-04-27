@@ -207,7 +207,7 @@ func print_ast(ast *Ast) {
 	case AST_INT:
 		fmt.Printf("%d", ast.ival)
 	case AST_STR:
-		fmt.Printf("%s", ast.sval)
+		print_quote(ast.sval)
 	default:
 		fmt.Printf("(%c ", ast.typ)
 		print_ast(ast.left)

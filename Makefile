@@ -1,8 +1,8 @@
 CFLAGS=-Wall
 
-8gg: 8cc.go
-	GOOS=linux GOARCH=amd64 go build -o 8gg 8cc.go
-	go build -o 8gg.local 8cc.go
+8gg: 8cc.go adapter.go
+	GOOS=linux GOARCH=amd64 go build -o 8gg 8cc.go adapter.go
+	go build -o 8gg.local 8cc.go adapter.go
 
 8cc: 8gg
 	cp 8gg 8cc

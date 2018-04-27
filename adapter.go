@@ -5,6 +5,7 @@ package main
 import (
 	"os"
 	"fmt"
+	"unicode"
 )
 
 
@@ -13,6 +14,11 @@ type pseudoStdin struct {
 	i int
 }
 
+var stdin *pseudoStdin
+
+func initStdin() {
+	stdin = newStdin()
+}
 
 func newStdin() *pseudoStdin {
 	s := &pseudoStdin{}
@@ -35,5 +41,14 @@ func ungetc(c byte, stdin *pseudoStdin) {
 	return
 }
 
+func isspace(c byte) bool {
+	return unicode.IsSpace(rune(c))
+}
 
+func isdigit(c byte) bool {
+	return unicode.IsDigit(rune(c))
+}
 
+func printf(format string, args... interface{}) {
+	fmt.Printf(format, args...)
+}

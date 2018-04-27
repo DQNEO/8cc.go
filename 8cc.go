@@ -1,12 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"os"
-	"unicode"
 )
-
-var stdin *pseudoStdin
 
 const BUFLEN = 256
 
@@ -24,7 +20,7 @@ type Ast struct {
 }
 
 func _error(format string, args ...interface{}) {
-	fmt.Printf(format, args...)
+	printf(format, args...)
 	os.Exit(1)
 }
 
@@ -56,7 +52,7 @@ func skip_space() {
 		if err != nil {
 			break
 		}
-		if unicode.IsSpace(rune(c)) {
+		if isspace(c) {
 			continue
 		}
 		ungetc(c, stdin)
@@ -83,19 +79,17 @@ func priority(op byte) int {
 func read_number(n int) *Ast {
 	for {
 		c, _ := getc(stdin)
-		if !unicode.IsDigit(rune(c)) {
+		if !isdigit(c) {
 			ungetc(c, stdin)
 			return make_ast_int(n)
 		}
-		n = n * 10 + int(c - byte('0'))
+		n = n * 10 + int(c - '0')
 	}
 }
 
-
-
 func read_prim() *Ast {
 	c, err := getc(stdin)
-	if unicode.IsDigit(rune(c)) {
+	if isdigit(c) {
 		return read_number(int(c - '0'))
 	} else if c == '"' {
 		return read_string()
@@ -162,18 +156,18 @@ func print_quote(sval []byte) {
 			break
 		}
 		if c == '"' || c == '\\' {
-			fmt.Printf("\\")
+			printf("\\")
 		}
-		fmt.Printf("%c", c)
+		printf("%c", c)
 	}
 }
 
 func emit_string(ast *Ast) {
-	fmt.Printf("\t.data\n"+
+	printf("\t.data\n"+
 		".mydata:\n\t"+
 		".string \"")
 	print_quote(ast.sval)
-	fmt.Printf("\"\n\t"+
+	printf("\"\n\t"+
 		".text\n\t"+
 		".global stringfn\n"+
 		"stringfn:\n\t"+
@@ -197,16 +191,16 @@ func emit_binop(ast *Ast) {
 	}
 
 	emit_intexpr(ast.left)
-	fmt.Printf("push %%rax\n\t")
+	printf("push %%rax\n\t")
 	emit_intexpr(ast.right)
 	if ast.typ == '/' {
-		fmt.Printf("mov %%eax, %%ebx\n\t")
-		fmt.Printf("pop %%rax\n\t")
-		fmt.Printf("mov $0, %%edx\n\t")
-		fmt.Printf("idiv %%ebx\n\t")
+		printf("mov %%eax, %%ebx\n\t")
+		printf("pop %%rax\n\t")
+		printf("mov $0, %%edx\n\t")
+		printf("idiv %%ebx\n\t")
 	} else {
-		fmt.Printf("pop %%rbx\n\t")
-		fmt.Printf("%s %%ebx, %%eax\n\t", op)
+		printf("pop %%rbx\n\t")
+		printf("%s %%ebx, %%eax\n\t", op)
 	}
 }
 
@@ -230,7 +224,7 @@ func ensure_intexpr(ast *Ast) {
 func emit_intexpr(ast *Ast) {
 	ensure_intexpr(ast)
 	if ast.typ == AST_INT {
-		fmt.Printf("mov $%d, %%eax\n\t", ast.ival)
+		printf("mov $%d, %%eax\n\t", ast.ival)
 	} else {
 		emit_binop(ast)
 	}
@@ -239,15 +233,15 @@ func emit_intexpr(ast *Ast) {
 func print_ast(ast *Ast) {
 	switch ast.typ {
 	case AST_INT:
-		fmt.Printf("%d", ast.ival)
+		printf("%d", ast.ival)
 	case AST_STR:
 		print_quote(ast.sval)
 	default:
-		fmt.Printf("(%c ", ast.typ)
+		printf("(%c ", ast.typ)
 		print_ast(ast.left)
-		fmt.Printf(" ")
+		printf(" ")
 		print_ast(ast.right)
-		fmt.Printf(")")
+		printf(")")
 	}
 }
 
@@ -255,16 +249,16 @@ func compile(ast *Ast) {
 	if ast.typ == AST_STR {
 		emit_string(ast)
 	} else {
-		fmt.Printf(".text\n\t"+
+		printf(".text\n\t"+
 			".global intfn\n"+
 				"intfn:\n\t")
 		emit_intexpr(ast)
-		fmt.Printf("ret\n")
+		printf("ret\n")
 	}
 }
 
 func main() {
-	stdin = newStdin()
+	initStdin()
 	ast := read_expr()
 	if len(os.Args) > 1 && os.Args[1] == "-a" {
 		print_ast(ast)

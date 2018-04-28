@@ -49,6 +49,11 @@ func isdigit(c byte) bool {
 	return unicode.IsDigit(rune(c))
 }
 
+func isalpha(c byte) bool {
+	return  byte('a') <= c && c <= byte('z')
+}
+
+
 func printf(format string, args... interface{}) {
 	fmt.Printf(format, args...)
 }

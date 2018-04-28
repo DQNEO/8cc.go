@@ -120,10 +120,6 @@ func read_number(n int) *Ast {
 	}
 }
 
-func isalpha(c byte) bool {
-	return  byte('a') <= c && c <= byte('z')
-}
-
 func read_symbol(c byte) *Ast {
 	buf := make([]byte, BUFLEN)
 	buf[0] = c

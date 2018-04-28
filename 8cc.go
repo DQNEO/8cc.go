@@ -8,16 +8,25 @@ const BUFLEN = 256
 
 const (
 	AST_INT byte = iota
-	AST_STR
+	AST_SYM
 )
+
+type Var struct {
+	name string
+	pos int
+	next *Var
+}
 
 type Ast struct {
 	typ byte
 	ival int
 	sval []byte
+	variable *Var
 	left *Ast
 	right *Ast
 }
+
+var vars *Var
 
 func _error(format string, args ...interface{}) {
 	printf(format, args...)
@@ -39,11 +48,34 @@ func make_ast_int(val int) *Ast {
 	return r
 }
 
-func make_ast_str(str []byte) *Ast {
+func make_ast_sym(v *Var) *Ast {
 	r := &Ast{}
-	r.typ = AST_STR
-	r.sval = str
+	r.typ = AST_SYM
+	r.variable = v
 	return r
+}
+
+func find_var(name string) *Var {
+	v := vars
+	for ;v != nil; v = v.next {
+		if v.name == name {
+			return v
+		}
+	}
+	return nil
+}
+
+func make_var(name string) *Var {
+	v := &Var{}
+	v.name = name
+	if vars == nil {
+		v.pos = 1
+	} else {
+		v.pos = vars.pos + 1
+	}
+	v.next = vars
+	vars = v
+	return v
 }
 
 func skip_space() {
@@ -62,17 +94,18 @@ func skip_space() {
 
 func priority(op byte) int {
 	switch op {
+	case '=':
+		return 1
 	case '+':
-		return 1
+		return 2
 	case '-' :
-		return 1
+		return 2
 	case '*':
-		return 2
+		return 3
 	case '/':
-		return 2
+		return 3
 	default:
-		_error("Operator expected, but got '%c", op)
-		return 0
+		return -1
 	}
 }
 
@@ -87,20 +120,49 @@ func read_number(n int) *Ast {
 	}
 }
 
+func isalpha(c byte) bool {
+	return  byte('a') <= c && c <= byte('z')
+}
+
+func read_symbol(c byte) *Ast {
+	buf := make([]byte, BUFLEN)
+	buf[0] = c
+	i := 1
+	for {
+		c, _ := getc(stdin)
+		if (!isalpha(c)) {
+			ungetc(c, stdin)
+			break
+		}
+		buf[i] = c
+		i++
+		if i == (BUFLEN -1) {
+			_error("Symbol too long")
+		}
+	}
+	buf[i] = 0;
+	v := find_var(string(buf))
+	if v == nil {
+		v = make_var(string(buf))
+	}
+	return make_ast_sym(v)
+}
+
 func read_prim() *Ast {
 	c, err := getc(stdin)
 	if isdigit(c) {
 		return read_number(int(c - '0'))
-	} else if c == '"' {
-		return read_string()
+	} else if isalpha(c) {
+		return read_symbol(c)
 	} else if err != nil {
-		_error("Unexpected EOF")
+		return nil
 	}
-	_error("Don't know how to handle '%c", c)
+	_error("Don't know how to handle '%c'", c)
 	return nil
 }
 
 func read_expr2(prec int) *Ast {
+	skip_space()
 	ast := read_prim()
 	for {
 	skip_space()
@@ -119,35 +181,17 @@ func read_expr2(prec int) *Ast {
 	return ast
 }
 
-func read_string() *Ast {
-	buf := make([]byte, BUFLEN)
-	i := 0
-	for {
-		c, err := getc(stdin)
-		if err != nil {
-			_error("Unterminated string")
-		}
-		if c == '"' {
-			break
-		}
-		if c == '\\' {
-			c, err = getc(stdin)
-			if err != nil {
-				_error("Unterminated \\")
-			}
-		}
-		buf[i] = c
-		i++
-		if i == BUFLEN - 1 {
-			_error("String too long")
-		}
-	}
-	buf[i] = 0
-	return make_ast_str(buf)
-}
-
 func read_expr() *Ast {
-	return read_expr2(0)
+	r := read_expr2(0)
+	if r == nil {
+		return nil
+	}
+	skip_space()
+	c, _ := getc(stdin)
+	if c != ';' {
+		_error("Unterminated expression")
+	}
+	return r
 }
 
 func print_quote(sval []byte) {
@@ -176,6 +220,15 @@ func emit_string(ast *Ast) {
 }
 
 func emit_binop(ast *Ast) {
+	if ast.typ == '=' {
+		emit_expr(ast.right)
+		if ast.left.typ != AST_SYM {
+			_error("Symbol expected")
+		}
+		printf("mov %%eax, -%d(%%rbp)\n\t", ast.left.variable.pos*4)
+		return
+	}
+
 	var op string
 	switch ast.typ {
 	case '+':
@@ -190,9 +243,9 @@ func emit_binop(ast *Ast) {
 		_error("invalid operator '%c", ast.typ)
 	}
 
-	emit_intexpr(ast.left)
+	emit_expr(ast.left)
 	printf("push %%rax\n\t")
-	emit_intexpr(ast.right)
+	emit_expr(ast.right)
 	if ast.typ == '/' {
 		printf("mov %%eax, %%ebx\n\t")
 		printf("pop %%rax\n\t")
@@ -204,28 +257,13 @@ func emit_binop(ast *Ast) {
 	}
 }
 
-func ensure_intexpr(ast *Ast) {
+func emit_expr(ast *Ast) {
 	switch ast.typ {
-	case '+' :
-		return
-	case '-' :
-		return
-	case '*' :
-		return
-	case '/' :
-		return
 	case AST_INT:
-		return
-	default:
-		_error("integer or binary operator expected")
-	}
-}
-
-func emit_intexpr(ast *Ast) {
-	ensure_intexpr(ast)
-	if ast.typ == AST_INT {
 		printf("mov $%d, %%eax\n\t", ast.ival)
-	} else {
+	case AST_SYM:
+		printf("mov -%d(%%rbp), %%eax\n\t", ast.variable.pos*4)
+	default:
 		emit_binop(ast)
 	}
 }
@@ -234,8 +272,8 @@ func print_ast(ast *Ast) {
 	switch ast.typ {
 	case AST_INT:
 		printf("%d", ast.ival)
-	case AST_STR:
-		print_quote(ast.sval)
+	case AST_SYM:
+		printf("%s", ast.variable.name)
 	default:
 		printf("(%c ", ast.typ)
 		print_ast(ast.left)
@@ -245,25 +283,28 @@ func print_ast(ast *Ast) {
 	}
 }
 
-func compile(ast *Ast) {
-	if ast.typ == AST_STR {
-		emit_string(ast)
-	} else {
-		printf(".text\n\t"+
-			".global intfn\n"+
-				"intfn:\n\t")
-		emit_intexpr(ast)
-		printf("ret\n")
-	}
-}
-
 func main() {
 	initStdin()
-	ast := read_expr()
-	if len(os.Args) > 1 && os.Args[1] == "-a" {
-		print_ast(ast)
-	} else {
-		compile(ast)
+	wantast := (len(os.Args) > 1 && os.Args[1] == "-a")
+	if !wantast {
+		printf(".text\n\t"+
+			".global mymain\n"+
+			"mymain:\n\t")
+	}
+	for {
+		ast := read_expr()
+		if ast == nil {
+			break
+		}
+		if wantast {
+			print_ast(ast)
+		} else {
+ 			emit_expr(ast)
+		}
+	}
+
+	if !wantast {
+		printf("ret\n")
 	}
 	return
 }

@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 
 if [[ $MODE == 'c' ]]; then
     gcc -o 8cc 8cc.c

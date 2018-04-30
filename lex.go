@@ -29,3 +29,10 @@ func skip_space() {
 		return
 	}
 }
+
+func is_punct(ch *char, c byte) bool {
+	if ch == nil {
+		_error("Token is null")
+	}
+	return ch.c == c
+}

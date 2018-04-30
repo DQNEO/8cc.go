@@ -206,16 +206,20 @@ func read_prim() *Ast {
 	if ch == nil {
 		return nil
 	}
-	if ch.typ == TTYPE_INT {
+	switch ch.typ {
+	case TTYPE_INT:
 		return read_number(int(ch.c - '0'))
-	} else if ch.typ == TTYPE_CHAR {
+	case TTYPE_CHAR:
 		return read_char()
-	} else if ch.typ == TTYPE_STRING {
+	case TTYPE_STRING:
 		return read_string()
-	} else if ch.typ == TTYPE_IDENT {
+	case TTYPE_IDENT:
 		return read_ident_or_func(ch.c)
+	case TTYPE_PUNCT:
+		_error("unexpected character: '%c'", ch.c)
+	default:
+		_error("Don't know how to handle '%c'", ch.c)
 	}
-	_error("Don't know how to handle '%c'", ch.c)
 	return nil
 }
 

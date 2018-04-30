@@ -5,6 +5,11 @@ type char struct {
 	typ int
 }
 
+func skip_space_read_ch() *char {
+	skip_space()
+	return read_ch()
+}
+
 func read_ch() *char {
 	c,err := getc(stdin)
 	if err != nil {

@@ -160,8 +160,7 @@ func read_func_args(fname []byte) *Ast {
 	i := 0
 	nargs := 0
 	for ;i< MAX_ARGS; i++ {
-		skip_space()
-		ch := read_ch()
+		ch := skip_space_read_ch()
 		if is_punct(ch, ')') {
 			break
 		}
@@ -186,8 +185,7 @@ func read_func_args(fname []byte) *Ast {
 
 func read_ident_or_func(c byte) *Ast {
 	name := read_ident(c)
-	skip_space()
-	ch := read_ch()
+	ch := skip_space_read_ch()
 	if is_punct(ch, '(') {
 		return read_func_args(name)
 	}
@@ -202,7 +200,7 @@ func read_ident_or_func(c byte) *Ast {
 }
 
 func read_prim() *Ast {
-	ch := read_ch()
+	ch := skip_space_read_ch()
 	if ch == nil {
 		return nil
 	}
@@ -224,11 +222,9 @@ func read_prim() *Ast {
 }
 
 func read_expr2(prec int) *Ast {
-	skip_space()
 	ast := read_prim()
 	for {
-	skip_space()
-	op := read_ch()
+	op := skip_space_read_ch()
 	if op == nil {
 		return ast
 	}
@@ -248,8 +244,7 @@ func read_expr() *Ast {
 	if r == nil {
 		return nil
 	}
-	skip_space()
-	ch := read_ch()
+	ch := skip_space_read_ch()
 	if !is_punct(ch, ';') {
 		_error("Unterminated expression [%c]", ch.c)
 	}

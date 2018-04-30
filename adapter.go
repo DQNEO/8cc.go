@@ -53,6 +53,9 @@ func isalpha(c byte) bool {
 	return (byte('a') <= c && c <= byte('z')) || (byte('A') <= c && c <= byte('Z'))
 }
 
+func isalnum(c byte) bool {
+	return isalpha(c) || byte('0') <= c && c <= byte('9')
+}
 
 func printf(format string, args... interface{}) {
 	fmt.Printf(format, args...)

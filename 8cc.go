@@ -129,20 +129,6 @@ func find_var(name []byte) *Ast {
 	return nil
 }
 
-func skip_space() {
-	for {
-		c, err := getc(stdin)
-		if err != nil {
-			break
-		}
-		if isspace(c) {
-			continue
-		}
-		ungetc(c, stdin)
-		return
-	}
-}
-
 func priority(op byte) int {
 	switch op {
 	case '=':
@@ -162,9 +148,9 @@ func priority(op byte) int {
 
 func read_number(n int) *Ast {
 	for {
-		c, _ := getc(stdin)
+		c, _ := read_c()
 		if !isdigit(c) {
-			ungetc(c, stdin)
+			unget_c(c)
 			return make_ast_int(n)
 		}
 		n = n * 10 + int(c - '0')
@@ -176,9 +162,9 @@ func read_ident(c byte) []byte {
 	buf[0] = c
 	i := 1
 	for {
-		c, _ := getc(stdin)
+		c, _ := read_c()
 		if (!isalnum(c)) {
-			ungetc(c, stdin)
+			unget_c(c)
 			break
 		}
 		buf[i] = c
@@ -197,14 +183,14 @@ func read_func_args(fname []byte) *Ast {
 	nargs := 0
 	for ;i< MAX_ARGS; i++ {
 		skip_space()
-		c, _ := getc(stdin)
+		c, _ := read_c()
 		if c == ')' {
 			break
 		}
-		ungetc(c, stdin)
+		unget_c(c)
 		args[i] = read_expr2(0)
 		nargs++
-		c, _ = getc(stdin)
+		c, _ = read_c()
 		if c == ')' {
 			break
 		}
@@ -223,11 +209,11 @@ func read_func_args(fname []byte) *Ast {
 func read_ident_or_func(c byte) *Ast {
 	name := read_ident(c)
 	skip_space()
-	c, _ = getc(stdin)
+	c, _ = read_c()
 	if c == '(' {
 		return read_func_args(name)
 	}
-	ungetc(c, stdin)
+	unget_c(c)
 
 	v := find_var(name)
 	if v != nil {
@@ -238,7 +224,7 @@ func read_ident_or_func(c byte) *Ast {
 }
 
 func read_prim() *Ast {
-	c, err := getc(stdin)
+	c, err := read_c()
 	if isdigit(c) {
 		return read_number(int(c - '0'))
 	} else if c == '\'' {
@@ -255,18 +241,18 @@ func read_prim() *Ast {
 }
 
 func read_char() *Ast {
-	c, err := getc(stdin)
+	c, err := read_c()
 	if err != nil {
 		_error("Unterminated char")
 	}
 	if c == '\\' {
-		c, err = getc(stdin)
+		c, err = read_c()
 		if err != nil {
 			_error("Unterminated char")
 		}
 	}
 
-	c2, err := getc(stdin)
+	c2, err := read_c()
 	if err != nil {
 		_error("Unterminated char")
 	}
@@ -281,7 +267,7 @@ func read_string() *Ast {
 	buf := make([]byte, BUFLEN)
 	i := 0
 	for {
-		c,err := getc(stdin)
+		c,err := read_c()
 		if err != nil {
 			_error("Unterminated string")
 		}
@@ -289,7 +275,7 @@ func read_string() *Ast {
 			break
 		}
 		if c == '\\' {
-			c,err = getc(stdin)
+			c,err = read_c()
 			if err != nil {
 				_error("Unterminated \\")
 			}
@@ -309,13 +295,13 @@ func read_expr2(prec int) *Ast {
 	ast := read_prim()
 	for {
 	skip_space()
-	op, err := getc(stdin)
+	op, err := read_c()
 	if err != nil {
 		return ast
 	}
 	prec2 := priority(op)
 	if prec2 < prec {
-		ungetc(op, stdin)
+		unget_c(op)
 		return ast
 	}
 	skip_space()
@@ -330,7 +316,7 @@ func read_expr() *Ast {
 		return nil
 	}
 	skip_space()
-	c, _ := getc(stdin)
+	c, _ := read_c()
 	if c != ';' {
 		_error("Unterminated expression [%c]", c)
 	}

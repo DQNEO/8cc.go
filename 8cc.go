@@ -6,10 +6,12 @@ import (
 )
 
 const BUFLEN = 256
+const MAX_ARGS = 6
 
 const (
 	AST_INT byte = iota
 	AST_SYM
+	AST_FUNCALL
 )
 
 type Var struct {
@@ -25,9 +27,15 @@ type Ast struct {
 	variable *Var
 	left *Ast
 	right *Ast
+	funcall struct {
+		fname string
+		nargs int
+		args []*Ast
+	}
 }
 
 var vars *Var
+var REGS = []string{"rdi","rsi","rdx", "rcx", "r8", "r9"}
 
 func _error(format string, args ...interface{}) {
 	panic(fmt.Sprintf(format, args...))
@@ -56,9 +64,17 @@ func make_ast_sym(v *Var) *Ast {
 	return r
 }
 
+func make_ast_funcall(fname string , nargs int, args []*Ast) *Ast {
+	r := &Ast{}
+	r.typ = AST_FUNCALL
+	r.funcall.fname = fname
+	r.funcall.nargs = nargs
+	r.funcall.args = args
+	return r
+}
+
 func find_var(name string) *Var {
-	v := vars
-	for ;v != nil; v = v.next {
+	for v := vars;v != nil; v = v.next {
 		if v.name == name {
 			return v
 		}
@@ -121,26 +137,67 @@ func read_number(n int) *Ast {
 	}
 }
 
-func read_symbol(c byte) *Ast {
+func read_ident(c byte) []byte {
 	buf := make([]byte, BUFLEN)
 	buf[0] = c
 	i := 1
 	for {
 		c, _ := getc(stdin)
-		if (!isalpha(c)) {
+		if (!isalnum(c)) {
 			ungetc(c, stdin)
 			break
 		}
 		buf[i] = c
 		i++
 		if i == (BUFLEN -1) {
-			_error("Symbol too long")
+			_error("Identifier too long")
 		}
 	}
-	buf[i] = 0;
-	v := find_var(string(buf))
+	//buf[i] = 0;
+	return buf
+}
+
+func read_func_args(fname []byte) *Ast {
+	args := make([]*Ast, MAX_ARGS+1)
+	i := 0
+	nargs := 0
+	for ;i< MAX_ARGS; i++ {
+		skip_space()
+		c, _ := getc(stdin)
+		if c == ')' {
+			break
+		}
+		ungetc(c, stdin)
+		args[i] = read_expr2(0)
+		nargs++
+		c, _ = getc(stdin)
+		if c == ')' {
+			break
+		}
+		if c == ',' {
+			skip_space()
+		} else {
+			_error("Unexpected character: '%c", c)
+		}
+	}
+	if i == MAX_ARGS {
+		_error("Too many arguments: %s", fname)
+	}
+	return make_ast_funcall(string(fname), nargs, args)
+}
+
+func read_ident_or_func(c byte) *Ast {
+	name := read_ident(c)
+	skip_space()
+	c, _ = getc(stdin)
+	if c == '(' {
+		return read_func_args(name)
+	}
+	ungetc(c, stdin)
+
+	v := find_var(string(name))
 	if v == nil {
-		v = make_var(string(buf))
+		v = make_var(string(name))
 	}
 	return make_ast_sym(v)
 }
@@ -150,7 +207,7 @@ func read_prim() *Ast {
 	if isdigit(c) {
 		return read_number(int(c - '0'))
 	} else if isalpha(c) {
-		return read_symbol(c)
+		return read_ident_or_func(c)
 	} else if err != nil {
 		return nil
 	}
@@ -186,7 +243,7 @@ func read_expr() *Ast {
 	skip_space()
 	c, _ := getc(stdin)
 	if c != ';' {
-		_error("Unterminated expression")
+		_error("Unterminated expression [%c]", c)
 	}
 	return r
 }
@@ -260,6 +317,22 @@ func emit_expr(ast *Ast) {
 		printf("mov $%d, %%eax\n\t", ast.ival)
 	case AST_SYM:
 		printf("mov -%d(%%rbp), %%eax\n\t", ast.variable.pos*4)
+	case AST_FUNCALL:
+		for i := 0; i < ast.funcall.nargs; i++ {
+			printf("push %%%s\n\t" , REGS[i])
+		}
+		for i := 0; i < ast.funcall.nargs; i++ {
+			emit_expr(ast.funcall.args[i])
+			printf("push %%rax\n\t")
+		}
+		for i := ast.funcall.nargs -1;i >= 0;i-- {
+			printf("pop %%%s\n\t", REGS[i])
+		}
+		printf("mov $0, %%eax\n\t")
+		printf("call %s\n\t", ast.funcall.fname)
+		for i := ast.funcall.nargs -1;i >= 0;i-- {
+			printf("pop %%%s\n\t", REGS[i])
+		}
 	default:
 		emit_binop(ast)
 	}
@@ -271,6 +344,15 @@ func print_ast(ast *Ast) {
 		printf("%d", ast.ival)
 	case AST_SYM:
 		printf("%s", ast.variable.name)
+	case AST_FUNCALL:
+		printf("%s(", ast.funcall.fname)
+		for i:=0; ast.funcall.args[i] != nil;i++ {
+			print_ast(ast.funcall.args[i])
+			if ast.funcall.args[i+1] != nil{
+				printf(",")
+			}
+		}
+		printf(")")
 	default:
 		printf("(%c ", ast.typ)
 		print_ast(ast.left)

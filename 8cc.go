@@ -11,30 +11,34 @@ const MAX_ARGS = 6
 
 const (
 	AST_INT byte = iota
-	AST_SYM
+	AST_VAR
 	AST_STR
 	AST_FUNCALL
 )
 
-type Var struct {
-	name []byte
-	pos int
-	next *Var
-}
-
 type Ast struct {
 	typ byte
+	// want to be "union"
+	// Integer
 	ival int
+	// String
 	str struct {
 		val  []byte
 		id   int
 		next *Ast
 	}
-	variable *Var
+	// Variable
+	variable struct {
+		name []byte
+		pos int
+		next *Ast
+	}
+	// Binary operator
 	op struct {
 		left *Ast
 		right *Ast
 	}
+	// Function call
 	funcall struct {
 		fname []byte
 		nargs int
@@ -42,7 +46,7 @@ type Ast struct {
 	}
 }
 
-var vars *Var
+var vars *Ast
 var strings *Ast
 var REGS = []string{"rdi","rsi","rdx", "rcx", "r8", "r9"}
 
@@ -66,10 +70,17 @@ func make_ast_int(val int) *Ast {
 	return r
 }
 
-func make_ast_sym(v *Var) *Ast {
+func make_ast_var(vname []byte) *Ast {
 	r := &Ast{}
-	r.typ = AST_SYM
-	r.variable = v
+	r.typ = AST_VAR
+	r.variable.name = vname
+	if vars == nil {
+		r.variable.pos = 1
+	} else {
+		r.variable.pos = vars.variable.pos + 1
+	}
+	r.variable.next = vars
+	vars = r
 	return r
 }
 
@@ -99,26 +110,13 @@ func make_ast_funcall(fname []byte , nargs int, args []*Ast) *Ast {
 	return r
 }
 
-func find_var(name []byte) *Var {
-	for v := vars;v != nil; v = v.next {
-		if strcmp(v.name, name) == 0 {
+func find_var(name []byte) *Ast {
+	for v := vars;v != nil; v = v.variable.next {
+		if strcmp(name, v.variable.name) == 0 {
 			return v
 		}
 	}
 	return nil
-}
-
-func make_var(name []byte) *Var {
-	v := &Var{}
-	v.name = name
-	if vars == nil {
-		v.pos = 1
-	} else {
-		v.pos = vars.pos + 1
-	}
-	v.next = vars
-	vars = v
-	return v
 }
 
 func skip_space() {
@@ -222,10 +220,11 @@ func read_ident_or_func(c byte) *Ast {
 	ungetc(c, stdin)
 
 	v := find_var(name)
-	if v == nil {
-		v = make_var(name)
+	if v != nil {
+		return v
+	} else {
+		return make_ast_var(name)
 	}
-	return make_ast_sym(v)
 }
 
 func read_prim() *Ast {
@@ -318,7 +317,7 @@ func print_quote(sval []byte) {
 func emit_binop(ast *Ast) {
 	if ast.typ == '=' {
 		emit_expr(ast.op.right)
-		if ast.op.left.typ != AST_SYM {
+		if ast.op.left.typ != AST_VAR {
 			_error("Symbol expected")
 		}
 		printf("mov %%eax, -%d(%%rbp)\n\t", ast.op.left.variable.pos*4)
@@ -357,7 +356,7 @@ func emit_expr(ast *Ast) {
 	switch ast.typ {
 	case AST_INT:
 		printf("mov $%d, %%eax\n\t", ast.ival)
-	case AST_SYM:
+	case AST_VAR:
 		printf("mov -%d(%%rbp), %%eax\n\t", ast.variable.pos*4)
 	case AST_STR:
 		printf("lea .s%d(%%rip), %%rax\n\t", ast.str.id)
@@ -386,7 +385,7 @@ func print_ast(ast *Ast) {
 	switch ast.typ {
 	case AST_INT:
 		printf("%d", ast.ival)
-	case AST_SYM:
+	case AST_VAR:
 		printf("%s", bytes2string(ast.variable.name))
 	case AST_STR:
 		printf("\"")

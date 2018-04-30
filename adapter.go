@@ -50,7 +50,7 @@ func isdigit(c byte) bool {
 }
 
 func isalpha(c byte) bool {
-	return  byte('a') <= c && c <= byte('z')
+	return (byte('a') <= c && c <= byte('z')) || (byte('A') <= c && c <= byte('Z'))
 }
 
 

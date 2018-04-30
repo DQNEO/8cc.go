@@ -11,6 +11,7 @@ const MAX_ARGS = 6
 
 const (
 	AST_INT byte = iota
+	AST_CHAR
 	AST_VAR
 	AST_STR
 	AST_FUNCALL
@@ -21,6 +22,8 @@ type Ast struct {
 	// want to be "union"
 	// Integer
 	ival int
+	// Char
+	c byte
 	// String
 	str struct {
 		val  []byte
@@ -81,6 +84,13 @@ func make_ast_var(vname []byte) *Ast {
 	}
 	r.variable.next = vars
 	vars = r
+	return r
+}
+
+func make_ast_char(c byte) *Ast {
+	r := &Ast{}
+	r.typ = AST_CHAR
+	r.c = c
 	return r
 }
 
@@ -231,6 +241,8 @@ func read_prim() *Ast {
 	c, err := getc(stdin)
 	if isdigit(c) {
 		return read_number(int(c - '0'))
+	} else if c == '\'' {
+		return read_char()
 	} else if c == '"' {
 		return read_string()
 	} else if isalpha(c) {
@@ -240,6 +252,29 @@ func read_prim() *Ast {
 	}
 	_error("Don't know how to handle '%c'", c)
 	return nil
+}
+
+func read_char() *Ast {
+	c, err := getc(stdin)
+	if err != nil {
+		_error("Unterminated char")
+	}
+	if c == '\\' {
+		c, err = getc(stdin)
+		if err != nil {
+			_error("Unterminated char")
+		}
+	}
+
+	c2, err := getc(stdin)
+	if err != nil {
+		_error("Unterminated char")
+	}
+	if c2 != '\'' {
+		_error("Malformed char constant")
+	}
+
+	return make_ast_char(c)
 }
 
 func read_string() *Ast {
@@ -360,6 +395,8 @@ func emit_expr(ast *Ast) {
 		printf("mov -%d(%%rbp), %%eax\n\t", ast.variable.pos*4)
 	case AST_STR:
 		printf("lea .s%d(%%rip), %%rax\n\t", ast.str.id)
+	case AST_CHAR:
+		printf("mov $%d, %%eax\n\t", ast.c)
 	case AST_FUNCALL:
 		for i := 0; i < ast.funcall.nargs; i++ {
 			printf("push %%%s\n\t" , REGS[i])
@@ -387,6 +424,8 @@ func print_ast(ast *Ast) {
 		printf("%d", ast.ival)
 	case AST_VAR:
 		printf("%s", bytes2string(ast.variable.name))
+	case AST_CHAR:
+		printf("'%c'", ast.c)
 	case AST_STR:
 		printf("\"")
 		print_quote(ast.str.val)

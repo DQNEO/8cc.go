@@ -57,6 +57,14 @@ func isalnum(c byte) bool {
 	return isalpha(c) || byte('0') <= c && c <= byte('9')
 }
 
+func strcmp(a []byte, b []byte) int {
+	if string(a) == string(b) {
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
 func printf(format string, args... interface{}) {
 	fmt.Printf(format, args...)
 }

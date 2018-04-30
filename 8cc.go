@@ -15,7 +15,7 @@ const (
 )
 
 type Var struct {
-	name string
+	name []byte
 	pos int
 	next *Var
 }
@@ -30,7 +30,7 @@ type Ast struct {
 		right *Ast
 	}
 	funcall struct {
-		fname string
+		fname []byte
 		nargs int
 		args []*Ast
 	}
@@ -66,7 +66,7 @@ func make_ast_sym(v *Var) *Ast {
 	return r
 }
 
-func make_ast_funcall(fname string , nargs int, args []*Ast) *Ast {
+func make_ast_funcall(fname []byte , nargs int, args []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNCALL
 	r.funcall.fname = fname
@@ -75,16 +75,16 @@ func make_ast_funcall(fname string , nargs int, args []*Ast) *Ast {
 	return r
 }
 
-func find_var(name string) *Var {
+func find_var(name []byte) *Var {
 	for v := vars;v != nil; v = v.next {
-		if v.name == name {
+		if strcmp(v.name, name) == 0 {
 			return v
 		}
 	}
 	return nil
 }
 
-func make_var(name string) *Var {
+func make_var(name []byte) *Var {
 	v := &Var{}
 	v.name = name
 	if vars == nil {
@@ -155,7 +155,7 @@ func read_ident(c byte) []byte {
 			_error("Identifier too long")
 		}
 	}
-	//buf[i] = 0;
+	buf[i] = 0;
 	return buf
 }
 
@@ -185,7 +185,7 @@ func read_func_args(fname []byte) *Ast {
 	if i == MAX_ARGS {
 		_error("Too many arguments: %s", fname)
 	}
-	return make_ast_funcall(string(fname), nargs, args)
+	return make_ast_funcall(fname, nargs, args)
 }
 
 func read_ident_or_func(c byte) *Ast {
@@ -197,9 +197,9 @@ func read_ident_or_func(c byte) *Ast {
 	}
 	ungetc(c, stdin)
 
-	v := find_var(string(name))
+	v := find_var(name)
 	if v == nil {
-		v = make_var(string(name))
+		v = make_var(name)
 	}
 	return make_ast_sym(v)
 }

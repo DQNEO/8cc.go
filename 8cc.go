@@ -6,11 +6,13 @@ import (
 )
 
 const BUFLEN = 256
+const EXPR_LEN = 100
 const MAX_ARGS = 6
 
 const (
 	AST_INT byte = iota
 	AST_SYM
+	AST_STR
 	AST_FUNCALL
 )
 
@@ -23,7 +25,11 @@ type Var struct {
 type Ast struct {
 	typ byte
 	ival int
-	sval []byte
+	str struct {
+		val  []byte
+		id   int
+		next *Ast
+	}
 	variable *Var
 	op struct {
 		left *Ast
@@ -37,6 +43,7 @@ type Ast struct {
 }
 
 var vars *Var
+var strings *Ast
 var REGS = []string{"rdi","rsi","rdx", "rcx", "r8", "r9"}
 
 func _error(format string, args ...interface{}) {
@@ -63,6 +70,23 @@ func make_ast_sym(v *Var) *Ast {
 	r := &Ast{}
 	r.typ = AST_SYM
 	r.variable = v
+	return r
+}
+
+func make_ast_str(str []byte) *Ast{
+	r := &Ast{}
+	r.typ = AST_STR
+	r.str.val = str
+
+	if strings == nil {
+		r.str.id = 0
+		r.str.next = nil
+	} else {
+		r.str.id = strings.str.id + 1
+		r.str.next = strings
+	}
+
+	strings = r
 	return r
 }
 
@@ -208,6 +232,8 @@ func read_prim() *Ast {
 	c, err := getc(stdin)
 	if isdigit(c) {
 		return read_number(int(c - '0'))
+	} else if c == '"' {
+		return read_string()
 	} else if isalpha(c) {
 		return read_ident_or_func(c)
 	} else if err != nil {
@@ -215,6 +241,33 @@ func read_prim() *Ast {
 	}
 	_error("Don't know how to handle '%c'", c)
 	return nil
+}
+
+func read_string() *Ast {
+	buf := make([]byte, BUFLEN)
+	i := 0
+	for {
+		c,err := getc(stdin)
+		if err != nil {
+			_error("Unterminated string")
+		}
+		if c == '"' {
+			break
+		}
+		if c == '\\' {
+			c,err = getc(stdin)
+			if err != nil {
+				_error("Unterminated \\")
+			}
+		}
+		buf[i] = c
+		i++
+		if i == BUFLEN - 1 {
+			_error("String too long")
+		}
+	}
+	buf[i] = 0
+	return make_ast_str(buf)
 }
 
 func read_expr2(prec int) *Ast {
@@ -262,19 +315,6 @@ func print_quote(sval []byte) {
 	}
 }
 
-func emit_string(ast *Ast) {
-	printf("\t.data\n"+
-		".mydata:\n\t"+
-		".string \"")
-	print_quote(ast.sval)
-	printf("\"\n\t"+
-		".text\n\t"+
-		".global stringfn\n"+
-		"stringfn:\n\t"+
-		"lea .mydata(%%rip), %%rax\n\t"+
-		"ret\n")
-}
-
 func emit_binop(ast *Ast) {
 	if ast.typ == '=' {
 		emit_expr(ast.op.right)
@@ -319,6 +359,8 @@ func emit_expr(ast *Ast) {
 		printf("mov $%d, %%eax\n\t", ast.ival)
 	case AST_SYM:
 		printf("mov -%d(%%rbp), %%eax\n\t", ast.variable.pos*4)
+	case AST_STR:
+		printf("lea .s%d(%%rip), %%rax\n\t", ast.str.id)
 	case AST_FUNCALL:
 		for i := 0; i < ast.funcall.nargs; i++ {
 			printf("push %%%s\n\t" , REGS[i])
@@ -346,6 +388,10 @@ func print_ast(ast *Ast) {
 		printf("%d", ast.ival)
 	case AST_SYM:
 		printf("%s", ast.variable.name)
+	case AST_STR:
+		printf("\"")
+		print_quote(ast.str.val)
+		printf("\"")
 	case AST_FUNCALL:
 		printf("%s(", ast.funcall.fname)
 		for i:=0; ast.funcall.args[i] != nil;i++ {
@@ -364,23 +410,45 @@ func print_ast(ast *Ast) {
 	}
 }
 
+
+func emit_data_section() {
+	if strings == nil {
+		return
+	}
+	printf("\t.data\n")
+	for p := strings; p != nil; p = p.str.next {
+		printf(".s%d:\n\t", p.str.id)
+		printf(".string \"")
+		print_quote(p.str.val)
+		printf("\"\n")
+	}
+	printf("\t")
+
+}
 func main() {
 	initStdin()
 	wantast := (len(os.Args) > 1 && os.Args[1] == "-a")
+	var exprs [EXPR_LEN]*Ast
+	var i int
+	for i = 0; i < EXPR_LEN; i++ {
+		t := read_expr()
+		if t == nil {
+			break
+		}
+		exprs[i] = t
+	}
+	nexpr := i
 	if !wantast {
+		emit_data_section()
 		printf(".text\n\t"+
 			".global mymain\n"+
 			"mymain:\n\t")
 	}
-	for {
-		ast := read_expr()
-		if ast == nil {
-			break
-		}
+	for i = 0; i < nexpr; i++ {
 		if wantast {
-			print_ast(ast)
+			print_ast(exprs[i])
 		} else {
- 			emit_expr(ast)
+ 			emit_expr(exprs[i])
 		}
 	}
 

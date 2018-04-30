@@ -8,7 +8,7 @@ function compile {
   fi
   gcc -o tmp.out driver.c tmp.s
   if [ $? -ne 0 ]; then
-    echo "GCC failed"
+    echo "GCC failed for $1"
     exit
   fi
 }

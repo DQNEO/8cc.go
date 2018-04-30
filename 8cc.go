@@ -148,12 +148,12 @@ func priority(op byte) int {
 
 func read_number(n int) *Ast {
 	for {
-		c, _ := read_c()
-		if !isdigit(c) {
-			unget_c(c)
+		ch := read_ch()
+		if !isdigit(ch.c) {
+			unget_ch(ch)
 			return make_ast_int(n)
 		}
-		n = n * 10 + int(c - '0')
+		n = n * 10 + int(ch.c - '0')
 	}
 }
 
@@ -162,12 +162,12 @@ func read_ident(c byte) []byte {
 	buf[0] = c
 	i := 1
 	for {
-		c, _ := read_c()
-		if (!isalnum(c)) {
-			unget_c(c)
+		ch := read_ch()
+		if (!isalnum(ch.c)) {
+			unget_ch(ch)
 			break
 		}
-		buf[i] = c
+		buf[i] = ch.c
 		i++
 		if i == (BUFLEN -1) {
 			_error("Identifier too long")
@@ -183,21 +183,21 @@ func read_func_args(fname []byte) *Ast {
 	nargs := 0
 	for ;i< MAX_ARGS; i++ {
 		skip_space()
-		c, _ := read_c()
-		if c == ')' {
+		ch := read_ch()
+		if ch.c == ')' {
 			break
 		}
-		unget_c(c)
+		unget_ch(ch)
 		args[i] = read_expr2(0)
 		nargs++
-		c, _ = read_c()
-		if c == ')' {
+		ch = read_ch()
+		if ch.c == ')' {
 			break
 		}
-		if c == ',' {
+		if ch.c == ',' {
 			skip_space()
 		} else {
-			_error("Unexpected character: '%c", c)
+			_error("Unexpected character: '%c", ch.c)
 		}
 	}
 	if i == MAX_ARGS {
@@ -209,11 +209,11 @@ func read_func_args(fname []byte) *Ast {
 func read_ident_or_func(c byte) *Ast {
 	name := read_ident(c)
 	skip_space()
-	c, _ = read_c()
-	if c == '(' {
+	ch := read_ch()
+	if ch.c == '(' {
 		return read_func_args(name)
 	}
-	unget_c(c)
+	unget_ch(ch)
 
 	v := find_var(name)
 	if v != nil {
@@ -224,63 +224,64 @@ func read_ident_or_func(c byte) *Ast {
 }
 
 func read_prim() *Ast {
-	c, err := read_c()
-	if isdigit(c) {
-		return read_number(int(c - '0'))
-	} else if c == '\'' {
-		return read_char()
-	} else if c == '"' {
-		return read_string()
-	} else if isalpha(c) {
-		return read_ident_or_func(c)
-	} else if err != nil {
+	ch := read_ch()
+	if ch == nil {
 		return nil
 	}
-	_error("Don't know how to handle '%c'", c)
+	if isdigit(ch.c) {
+		return read_number(int(ch.c - '0'))
+	} else if ch.c == '\'' {
+		return read_char()
+	} else if ch.c == '"' {
+		return read_string()
+	} else if isalpha(ch.c) {
+		return read_ident_or_func(ch.c)
+	}
+	_error("Don't know how to handle '%c'", ch.c)
 	return nil
 }
 
 func read_char() *Ast {
-	c, err := read_c()
-	if err != nil {
+	ch := read_ch()
+	if ch == nil {
 		_error("Unterminated char")
 	}
-	if c == '\\' {
-		c, err = read_c()
-		if err != nil {
+	if ch.c == '\\' {
+		ch = read_ch()
+		if ch == nil {
 			_error("Unterminated char")
 		}
 	}
 
-	c2, err := read_c()
-	if err != nil {
+	ch2 := read_ch()
+	if ch2 == nil {
 		_error("Unterminated char")
 	}
-	if c2 != '\'' {
+	if ch2.c != '\'' {
 		_error("Malformed char constant")
 	}
 
-	return make_ast_char(c)
+	return make_ast_char(ch.c)
 }
 
 func read_string() *Ast {
 	buf := make([]byte, BUFLEN)
 	i := 0
 	for {
-		c,err := read_c()
-		if err != nil {
+		ch := read_ch()
+		if ch == nil {
 			_error("Unterminated string")
 		}
-		if c == '"' {
+		if ch.c == '"' {
 			break
 		}
-		if c == '\\' {
-			c,err = read_c()
-			if err != nil {
+		if ch.c == '\\' {
+			ch = read_ch()
+			if ch == nil {
 				_error("Unterminated \\")
 			}
 		}
-		buf[i] = c
+		buf[i] = ch.c
 		i++
 		if i == BUFLEN - 1 {
 			_error("String too long")
@@ -295,17 +296,17 @@ func read_expr2(prec int) *Ast {
 	ast := read_prim()
 	for {
 	skip_space()
-	op, err := read_c()
-	if err != nil {
+	op := read_ch()
+	if op == nil {
 		return ast
 	}
-	prec2 := priority(op)
+	prec2 := priority(op.c)
 	if prec2 < prec {
-		unget_c(op)
+		unget_ch(op)
 		return ast
 	}
 	skip_space()
-	ast = make_ast_op(op, ast, read_expr2(prec2+1))
+	ast = make_ast_op(op.c, ast, read_expr2(prec2+1))
 	}
 	return ast
 }
@@ -316,9 +317,9 @@ func read_expr() *Ast {
 		return nil
 	}
 	skip_space()
-	c, _ := read_c()
-	if c != ';' {
-		_error("Unterminated expression [%c]", c)
+	ch := read_ch()
+	if ch.c != ';' {
+		_error("Unterminated expression [%c]", ch.c)
 	}
 	return r
 }

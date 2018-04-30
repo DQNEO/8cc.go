@@ -1,11 +1,19 @@
 package main
 
-func read_c() (byte, error) {
-	return getc(stdin)
+type char struct {
+	c byte
 }
 
-func unget_c(c byte) {
-	ungetc(c, stdin)
+func read_ch() *char {
+	c,err := getc(stdin)
+	if err != nil {
+		return nil
+	}
+	return &char{c:c}
+}
+
+func unget_ch(c *char) {
+	ungetc(c.c, stdin)
 }
 
 func skip_space() {

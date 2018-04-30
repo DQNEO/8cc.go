@@ -25,8 +25,10 @@ type Ast struct {
 	ival int
 	sval []byte
 	variable *Var
-	left *Ast
-	right *Ast
+	op struct {
+		left *Ast
+		right *Ast
+	}
 	funcall struct {
 		fname string
 		nargs int
@@ -45,8 +47,8 @@ func _error(format string, args ...interface{}) {
 func make_ast_op(typ byte, left *Ast, right *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
-	r.left = left
-	r.right = right
+	r.op.left = left
+	r.op.right = right
 	return r
 }
 
@@ -275,11 +277,11 @@ func emit_string(ast *Ast) {
 
 func emit_binop(ast *Ast) {
 	if ast.typ == '=' {
-		emit_expr(ast.right)
-		if ast.left.typ != AST_SYM {
+		emit_expr(ast.op.right)
+		if ast.op.left.typ != AST_SYM {
 			_error("Symbol expected")
 		}
-		printf("mov %%eax, -%d(%%rbp)\n\t", ast.left.variable.pos*4)
+		printf("mov %%eax, -%d(%%rbp)\n\t", ast.op.left.variable.pos*4)
 		return
 	}
 
@@ -297,9 +299,9 @@ func emit_binop(ast *Ast) {
 		_error("invalid operator '%c", ast.typ)
 	}
 
-	emit_expr(ast.left)
+	emit_expr(ast.op.left)
 	printf("push %%rax\n\t")
-	emit_expr(ast.right)
+	emit_expr(ast.op.right)
 	if ast.typ == '/' {
 		printf("mov %%eax, %%ebx\n\t")
 		printf("pop %%rax\n\t")
@@ -355,9 +357,9 @@ func print_ast(ast *Ast) {
 		printf(")")
 	default:
 		printf("(%c ", ast.typ)
-		print_ast(ast.left)
+		print_ast(ast.op.left)
 		printf(" ")
-		print_ast(ast.right)
+		print_ast(ast.op.right)
 		printf(")")
 	}
 }

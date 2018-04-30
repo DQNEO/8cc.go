@@ -373,7 +373,7 @@ func emit_expr(ast *Ast) {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 		printf("mov $0, %%eax\n\t")
-		printf("call %s\n\t", ast.funcall.fname)
+		printf("call %s\n\t", bytes2string(ast.funcall.fname))
 		for i := ast.funcall.nargs -1;i >= 0;i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
@@ -387,13 +387,13 @@ func print_ast(ast *Ast) {
 	case AST_INT:
 		printf("%d", ast.ival)
 	case AST_SYM:
-		printf("%s", ast.variable.name)
+		printf("%s", bytes2string(ast.variable.name))
 	case AST_STR:
 		printf("\"")
 		print_quote(ast.str.val)
 		printf("\"")
 	case AST_FUNCALL:
-		printf("%s(", ast.funcall.fname)
+		printf("%s(", bytes2string(ast.funcall.fname))
 		for i:=0; ast.funcall.args[i] != nil;i++ {
 			print_ast(ast.funcall.args[i])
 			if ast.funcall.args[i+1] != nil{

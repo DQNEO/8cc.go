@@ -65,6 +65,18 @@ func strcmp(a []byte, b []byte) int {
 	}
 }
 
+func bytes2string(b []byte) string {
+	i := 0
+	for  {
+		if b[i] == byte(0) {
+			break
+		}
+		i++
+	}
+	subb := b[0:i]
+	return string(subb)
+}
+
 func printf(format string, args... interface{}) {
 	fmt.Printf(format, args...)
 }

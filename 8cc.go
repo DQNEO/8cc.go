@@ -17,6 +17,14 @@ const (
 	AST_FUNCALL
 )
 
+const (
+	TTYPE_IDENT int = iota
+	TTYPE_PUNCT
+	TTYPE_INT
+	TTYPE_CHAR
+	TTYPE_STRING
+	)
+
 type Ast struct {
 	typ byte
 	// want to be "union"
@@ -198,13 +206,13 @@ func read_prim() *Ast {
 	if ch == nil {
 		return nil
 	}
-	if isdigit(ch.c) {
+	if ch.typ == TTYPE_INT {
 		return read_number(int(ch.c - '0'))
-	} else if ch.c == '\'' {
+	} else if ch.typ == TTYPE_CHAR {
 		return read_char()
-	} else if ch.c == '"' {
+	} else if ch.typ == TTYPE_STRING {
 		return read_string()
-	} else if isalpha(ch.c) {
+	} else if ch.typ == TTYPE_IDENT {
 		return read_ident_or_func(ch.c)
 	}
 	_error("Don't know how to handle '%c'", ch.c)

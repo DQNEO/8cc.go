@@ -2,6 +2,7 @@ package main
 
 type char struct {
 	c byte
+	typ int
 }
 
 func read_ch() *char {
@@ -9,7 +10,27 @@ func read_ch() *char {
 	if err != nil {
 		return nil
 	}
-	return &char{c:c}
+	ch := &char{c:c}
+	// TODO use switch syntax
+	if '0' <= c && c <= '9' {
+		ch.typ = TTYPE_INT
+	}
+	if c == '"' {
+		ch.typ = TTYPE_STRING
+	}
+	if c == '\'' {
+		ch.typ = TTYPE_CHAR
+	}
+	if ('a'<= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_' {
+		ch.typ = TTYPE_IDENT
+	}
+	if c == '/' || c == '=' || c == '*' ||
+		c == '+' || c == '-' || c == '(' ||
+			c == ')' || c == ',' || c == ';' {
+		ch.typ = TTYPE_PUNCT
+	}
+
+	return ch
 }
 
 func unget_ch(c *char) {

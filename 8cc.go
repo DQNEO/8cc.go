@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"fmt"
 )
 
 const BUFLEN = 256
@@ -29,7 +30,7 @@ type Ast struct {
 var vars *Var
 
 func _error(format string, args ...interface{}) {
-	printf(format, args...)
+	panic(fmt.Sprintf(format, args...))
 	os.Exit(1)
 }
 

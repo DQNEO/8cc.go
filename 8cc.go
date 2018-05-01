@@ -174,7 +174,7 @@ func read_func_args(fname []byte) *Ast {
 		if is_punctchar(ch, ')') {
 			break
 		}
-		unget_ch(ch)
+		ungetc(ch.c, stdin)
 		args[i] = read_expr2(0)
 		nargs++
 		ch = skip_space_read_ch()
@@ -196,7 +196,7 @@ func read_ident_or_func(name []byte) *Ast {
 	if is_punctchar(ch, '(') {
 		return read_func_args(name)
 	}
-	unget_ch(ch)
+	ungetc(ch.c, stdin)
 
 	v := find_var(name)
 	if v != nil {
@@ -240,7 +240,7 @@ func read_expr2(prec int) *Ast {
 	}
 	prec2 := priority(op.c)
 	if prec2 < prec {
-		unget_ch(op)
+		ungetc(op.c, stdin)
 		return ast
 	}
 	skip_space()

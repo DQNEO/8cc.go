@@ -5,14 +5,7 @@ type char struct {
 	typ int
 }
 
-var ungotten *char
-
 func skip_space_read_ch() *char {
-	if ungotten != nil {
-		ret := ungotten
-		ungotten = nil
-		return ret
-	}
 	skip_space()
 	return read_ch()
 }
@@ -66,13 +59,6 @@ func read_ch() *char {
 	}
 
 	return ch
-}
-
-func unget_ch(c *char) {
-	if ungotten != nil {
-		_error("Push back buffer is already full");
-	}
-	ungotten = c
 }
 
 func skip_space() {
@@ -135,7 +121,7 @@ func read_number(n int) *Token {
 	for {
 		ch := skip_space_read_ch()
 		if !isdigit(ch.c) {
-			unget_ch(ch)
+			ungetc(ch.c ,stdin)
 			return make_int(n)
 		}
 		n = n * 10 + int(ch.c - '0')
@@ -149,7 +135,7 @@ func read_ident(c byte) *Token {
 	for {
 		ch := skip_space_read_ch()
 		if (!isalnum(ch.c)) {
-			unget_ch(ch)
+			ungetc(ch.c ,stdin)
 			break
 		}
 		buf[i] = ch.c

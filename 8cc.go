@@ -206,31 +206,50 @@ func read_ident_or_func(name []byte) *Ast {
 	}
 }
 
-
-func read_prim() *Ast {
+func _read_token() *Token {
+	var tk *Token
 	ch := skip_space_read_ch()
 	if ch == nil {
 		return nil
 	}
 	switch ch.typ {
 	case TTYPE_IDENT:
-		tk := read_ident(ch.c)
-		return read_ident_or_func(tk.v.sval)
+		tk = read_ident(ch.c)
 	case TTYPE_INT:
-		tk := read_number(int(ch.c - '0'))
-		return make_ast_int(tk.v.ival)
+		tk = read_number(int(ch.c - '0'))
 	case TTYPE_CHAR:
-		tk := read_char()
-		return make_ast_char(tk.v.c)
+		tk = read_char()
 	case TTYPE_STRING:
-		tk := read_string()
-		return make_ast_str(tk.v.sval)
+		tk = read_string()
 	case TTYPE_PUNCT:
-		tk := make_punct(ch.c)
-		_error("unexpected character: '%c'", tk.v.c)
+		tk = make_punct(ch.c)
 	default:
 		_error("Don't know how to handle '%c'", ch.c)
 	}
+	return tk
+}
+
+func read_prim() *Ast {
+	tk := _read_token()
+	if tk == nil {
+		return nil
+	}
+
+	switch tk.typ {
+	case TTYPE_IDENT:
+		return read_ident_or_func(tk.v.sval)
+	case TTYPE_INT:
+		return make_ast_int(tk.v.ival)
+	case TTYPE_CHAR:
+		return make_ast_char(tk.v.c)
+	case TTYPE_STRING:
+		return make_ast_str(tk.v.sval)
+	case TTYPE_PUNCT:
+		_error("unexpected character: '%c'", tk.v.c)
+	default:
+		_error("Don't know how to handle '%d'", tk.typ)
+	}
+
 	return nil
 }
 

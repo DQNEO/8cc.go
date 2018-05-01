@@ -5,7 +5,6 @@ import (
 	"fmt"
 )
 
-const BUFLEN = 256
 const EXPR_LEN = 100
 const MAX_ARGS = 6
 

@@ -1,5 +1,7 @@
 package main
 
+const BUFLEN = 256
+
 const (
 	TTYPE_IDENT int = iota
 	TTYPE_PUNCT
@@ -20,55 +22,25 @@ type Token struct {
 
 var ungotten *Token
 
-func read_token_init() *Token {
-	skip_space()
-	c,err := getc(stdin)
-	if err != nil {
-		// EOF
-		return nil
-	}
-
-	// TODO use switch syntax
-	if '0' <= c && c <= '9' {
-		return read_number(int(c - '0'))
-	}
-	if c == '"' {
-		return read_string()
-	}
-	if c == '\'' {
-		return read_char()
-	}
-	if ('a'<= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_' {
-		return read_ident(c)
-	}
-	if c == '/' || c == '=' || c == '*' ||
-		c == '+' || c == '-' || c == '(' ||
-		c == ')' || c == ',' || c == ';' {
-		return make_punct(c)
-	}
-	_error("Don't know how to handle '%c'", c)
-	return nil
+func make_ident(s []byte) *Token {
+	r := &Token{}
+	r.typ = TTYPE_IDENT
+	r.v.sval = s
+	return r
 }
 
-func skip_space() {
-	for {
-		c, err := getc(stdin)
-		if err != nil {
-			break
-		}
-		if isspace(c) {
-			continue
-		}
-		ungetc(c, stdin)
-		return
-	}
+func make_string(s []byte) *Token {
+	r := &Token{}
+	r.typ = TTYPE_STRING
+	r.v.sval = s
+	return r
 }
 
-func is_punct(tok *Token, c byte) bool {
-	if tok == nil {
-		_error("Token is null")
-	}
-	return tok.typ == TTYPE_PUNCT && tok.v.c == c
+func make_punct(c byte) *Token {
+	r := &Token{}
+	r.typ = TTYPE_PUNCT
+	r.v.c = c
+	return r
 }
 
 func make_int(n int) *Token {
@@ -85,27 +57,20 @@ func make_char(c byte) *Token {
 	return r
 }
 
-
-func make_punct(c byte) *Token {
-	r := &Token{}
-	r.typ = TTYPE_PUNCT
-	r.v.c = c
-	return r
+func skip_space() {
+	for {
+		c, err := getc(stdin)
+		if err != nil {
+			break
+		}
+		if isspace(c) {
+			continue
+		}
+		ungetc(c, stdin)
+		return
+	}
 }
 
-func make_string(s []byte) *Token {
-	r := &Token{}
-	r.typ = TTYPE_STRING
-	r.v.sval = s
-	return r
-}
-
-func make_ident(s []byte) *Token {
-	r := &Token{}
-	r.typ = TTYPE_IDENT
-	r.v.sval = s
-	return r
-}
 func read_number(n int) *Token {
 	for {
 		c,_ := getc(stdin)
@@ -115,26 +80,6 @@ func read_number(n int) *Token {
 		}
 		n = n * 10 + int(c - '0')
 	}
-}
-
-func read_ident(c byte) *Token {
-	buf := make([]byte, BUFLEN)
-	buf[0] = c
-	i := 1
-	for {
-		c,_ := getc(stdin)
-		if (!isalnum(c)) {
-			ungetc(c ,stdin)
-			break
-		}
-		buf[i] = c
-		i++
-		if i == (BUFLEN -1) {
-			_error("Identifier too long")
-		}
-	}
-	buf[i] = 0;
-	return make_ident(buf)
 }
 
 
@@ -187,6 +132,67 @@ func read_string() *Token {
 	buf[i] = 0
 	return make_string(buf)
 }
+
+
+func read_ident(c byte) *Token {
+	buf := make([]byte, BUFLEN)
+	buf[0] = c
+	i := 1
+	for {
+		c,_ := getc(stdin)
+		if (!isalnum(c)) {
+			ungetc(c ,stdin)
+			break
+		}
+		buf[i] = c
+		i++
+		if i == (BUFLEN -1) {
+			_error("Identifier too long")
+		}
+	}
+	buf[i] = 0;
+	return make_ident(buf)
+}
+
+func read_token_init() *Token {
+	skip_space()
+	c,err := getc(stdin)
+	if err != nil {
+		// EOF
+		return nil
+	}
+
+	// TODO use switch syntax
+	if '0' <= c && c <= '9' {
+		return read_number(int(c - '0'))
+	}
+	if c == '"' {
+		return read_string()
+	}
+	if c == '\'' {
+		return read_char()
+	}
+	if ('a'<= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_' {
+		return read_ident(c)
+	}
+	if c == '/' || c == '=' || c == '*' ||
+		c == '+' || c == '-' || c == '(' ||
+		c == ')' || c == ',' || c == ';' {
+		return make_punct(c)
+	}
+	_error("Don't know how to handle '%c'", c)
+	return nil
+}
+
+
+func is_punct(tok *Token, c byte) bool {
+	if tok == nil {
+		_error("Token is null")
+	}
+	return tok.typ == TTYPE_PUNCT && tok.v.c == c
+}
+
+
 
 func unget_token(tok *Token) {
 	if ungotten != nil {

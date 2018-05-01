@@ -155,7 +155,7 @@ func read_func_args(fname []byte) *Ast {
 			break
 		}
 		unget_token(tok)
-		args[i] = read_expr2(0)
+		args[i] = read_expr(0)
 		nargs++
 		tok = read_token()
 		if is_punct(tok, ')') {
@@ -209,7 +209,7 @@ func read_prim() *Ast {
 	return nil
 }
 
-func read_expr2(prec int) *Ast {
+func read_expr(prec int) *Ast {
 	ast := read_prim()
 	for {
 		op := read_token()
@@ -221,13 +221,14 @@ func read_expr2(prec int) *Ast {
 			unget_token(op)
 			return ast
 		}
+
 		ast = make_ast_op(op.v.punct, ast, read_expr(prec2+1))
 	}
 	return ast
 }
 
-func read_expr() *Ast {
-	r := read_expr2(0)
+func read_decl_or_stmt() *Ast {
+	r := read_expr(0)
 	if r == nil {
 		return nil
 	}
@@ -369,7 +370,7 @@ func main() {
 	var exprs [EXPR_LEN]*Ast
 	var i int
 	for i = 0; i < EXPR_LEN; i++ {
-		t := read_expr()
+		t := read_decl_or_stmt()
 		if t == nil {
 			break
 		}

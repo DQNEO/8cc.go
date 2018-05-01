@@ -65,7 +65,7 @@ func is_punct(ch *char, c byte) bool {
 
 func read_number(n int) *Ast {
 	for {
-		ch := read_ch()
+		ch := skip_space_read_ch()
 		if !isdigit(ch.c) {
 			unget_ch(ch)
 			return make_ast_int(n)
@@ -79,7 +79,7 @@ func read_ident(c byte) []byte {
 	buf[0] = c
 	i := 1
 	for {
-		ch := read_ch()
+		ch := skip_space_read_ch()
 		if (!isalnum(ch.c)) {
 			unget_ch(ch)
 			break

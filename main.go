@@ -5,7 +5,6 @@ import (
 	"fmt"
 )
 
-const BUFLEN = 256
 const EXPR_LEN = 100
 const MAX_ARGS = 6
 
@@ -16,6 +15,7 @@ const (
 	AST_STR
 	AST_FUNCALL
 )
+
 
 type Ast struct {
 	typ byte
@@ -94,7 +94,7 @@ func make_ast_char(c byte) *Ast {
 	return r
 }
 
-func make_ast_str(str []byte) *Ast{
+func make_ast_string(str []byte) *Ast{
 	r := &Ast{}
 	r.typ = AST_STR
 	r.str.val = str
@@ -129,20 +129,6 @@ func find_var(name []byte) *Ast {
 	return nil
 }
 
-func skip_space() {
-	for {
-		c, err := getc(stdin)
-		if err != nil {
-			break
-		}
-		if isspace(c) {
-			continue
-		}
-		ungetc(c, stdin)
-		return
-	}
-}
-
 func priority(op byte) int {
 	switch op {
 	case '=':
@@ -160,58 +146,25 @@ func priority(op byte) int {
 	}
 }
 
-func read_number(n int) *Ast {
-	for {
-		c, _ := getc(stdin)
-		if !isdigit(c) {
-			ungetc(c, stdin)
-			return make_ast_int(n)
-		}
-		n = n * 10 + int(c - '0')
-	}
-}
-
-func read_ident(c byte) []byte {
-	buf := make([]byte, BUFLEN)
-	buf[0] = c
-	i := 1
-	for {
-		c, _ := getc(stdin)
-		if (!isalnum(c)) {
-			ungetc(c, stdin)
-			break
-		}
-		buf[i] = c
-		i++
-		if i == (BUFLEN -1) {
-			_error("Identifier too long")
-		}
-	}
-	buf[i] = 0;
-	return buf
-}
 
 func read_func_args(fname []byte) *Ast {
 	args := make([]*Ast, MAX_ARGS+1)
 	i := 0
 	nargs := 0
 	for ;i< MAX_ARGS; i++ {
-		skip_space()
-		c, _ := getc(stdin)
-		if c == ')' {
+		tok := read_token()
+		if is_punct(tok, ')') {
 			break
 		}
-		ungetc(c, stdin)
+		unget_token(tok)
 		args[i] = read_expr2(0)
 		nargs++
-		c, _ = getc(stdin)
-		if c == ')' {
+		tok = read_token()
+		if is_punct(tok, ')') {
 			break
 		}
-		if c == ',' {
-			skip_space()
-		} else {
-			_error("Unexpected character: '%c", c)
+		if !is_punct(tok, ',') {
+			_error("Unexpected token: '%s'", token_to_string(tok))
 		}
 	}
 	if i == MAX_ARGS {
@@ -220,14 +173,12 @@ func read_func_args(fname []byte) *Ast {
 	return make_ast_funcall(fname, nargs, args)
 }
 
-func read_ident_or_func(c byte) *Ast {
-	name := read_ident(c)
-	skip_space()
-	c, _ = getc(stdin)
-	if c == '(' {
+func read_ident_or_func(name []byte) *Ast {
+	ch := read_token()
+	if is_punct(ch, '(') {
 		return read_func_args(name)
 	}
-	ungetc(c, stdin)
+	unget_token(ch)
 
 	v := find_var(name)
 	if v != nil {
@@ -237,89 +188,44 @@ func read_ident_or_func(c byte) *Ast {
 	}
 }
 
+
 func read_prim() *Ast {
-	c, err := getc(stdin)
-	if isdigit(c) {
-		return read_number(int(c - '0'))
-	} else if c == '\'' {
-		return read_char()
-	} else if c == '"' {
-		return read_string()
-	} else if isalpha(c) {
-		return read_ident_or_func(c)
-	} else if err != nil {
+	tk := read_token()
+	if tk == nil {
 		return nil
 	}
-	_error("Don't know how to handle '%c'", c)
+	switch tk.typ {
+	case TTYPE_IDENT:
+		return read_ident_or_func(tk.v.sval)
+	case TTYPE_INT:
+		return make_ast_int(tk.v.ival)
+	case TTYPE_CHAR:
+		return make_ast_char(tk.v.c)
+	case TTYPE_STRING:
+		return make_ast_string(tk.v.sval)
+	case TTYPE_PUNCT:
+		_error("unexpected character: '%c'", tk.v.c)
+	default:
+		_error("Don't know how to handle '%d'", tk.typ)
+	}
+
 	return nil
 }
 
-func read_char() *Ast {
-	c, err := getc(stdin)
-	if err != nil {
-		_error("Unterminated char")
-	}
-	if c == '\\' {
-		c, err = getc(stdin)
-		if err != nil {
-			_error("Unterminated char")
-		}
-	}
-
-	c2, err := getc(stdin)
-	if err != nil {
-		_error("Unterminated char")
-	}
-	if c2 != '\'' {
-		_error("Malformed char constant")
-	}
-
-	return make_ast_char(c)
-}
-
-func read_string() *Ast {
-	buf := make([]byte, BUFLEN)
-	i := 0
-	for {
-		c,err := getc(stdin)
-		if err != nil {
-			_error("Unterminated string")
-		}
-		if c == '"' {
-			break
-		}
-		if c == '\\' {
-			c,err = getc(stdin)
-			if err != nil {
-				_error("Unterminated \\")
-			}
-		}
-		buf[i] = c
-		i++
-		if i == BUFLEN - 1 {
-			_error("String too long")
-		}
-	}
-	buf[i] = 0
-	return make_ast_str(buf)
-}
-
 func read_expr2(prec int) *Ast {
-	skip_space()
 	ast := read_prim()
 	for {
-	skip_space()
-	op, err := getc(stdin)
-	if err != nil {
+	op := read_token()
+	if op == nil {
 		return ast
 	}
-	prec2 := priority(op)
+	prec2 := priority(op.v.c)
 	if prec2 < prec {
-		ungetc(op, stdin)
+		ungetc(op.v.c, stdin)
 		return ast
 	}
 	skip_space()
-	ast = make_ast_op(op, ast, read_expr2(prec2+1))
+	ast = make_ast_op(op.v.c, ast, read_expr2(prec2+1))
 	}
 	return ast
 }
@@ -329,10 +235,9 @@ func read_expr() *Ast {
 	if r == nil {
 		return nil
 	}
-	skip_space()
-	c, _ := getc(stdin)
-	if c != ';' {
-		_error("Unterminated expression [%c]", c)
+	tok := read_token()
+	if !is_punct(tok, ';') {
+		_error("Unterminated expression %s", token_to_string(tok))
 	}
 	return r
 }

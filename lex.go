@@ -1,5 +1,9 @@
 package main
 
+import (
+	"strconv"
+)
+
 const BUFLEN = 256
 
 const (
@@ -185,6 +189,22 @@ func read_token_init() *Token {
 	return nil
 }
 
+func token_to_string(tok *Token) []byte {
+	switch tok.typ {
+	case TTYPE_IDENT:
+		return tok.v.sval
+	case TTYPE_PUNCT:
+		return []byte{tok.v.punct, 0}
+	case TTYPE_CHAR:
+		return []byte{tok.v.c, 0}
+	case TTYPE_INT:
+		return []byte(strconv.Itoa(tok.v.ival))
+	case TTYPE_STRING:
+		return tok.v.sval
+	default:
+		_error("internal error: unknown token type: %d", tok.typ);
+	}
+}
 
 func is_punct(tok *Token, c byte) bool {
 	if tok == nil {

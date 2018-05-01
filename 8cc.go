@@ -94,7 +94,7 @@ func make_ast_char(c byte) *Ast {
 	return r
 }
 
-func make_ast_str(str []byte) *Ast{
+func make_ast_string(str []byte) *Ast{
 	r := &Ast{}
 	r.typ = AST_STR
 	r.str.val = str
@@ -164,7 +164,7 @@ func read_func_args(fname []byte) *Ast {
 			break
 		}
 		if !is_punct(tok, ',') {
-			_error("Unexpected token: '%v", tok)
+			_error("Unexpected token: '%s'", token_to_string(tok))
 		}
 	}
 	if i == MAX_ARGS {
@@ -202,7 +202,7 @@ func read_prim() *Ast {
 	case TTYPE_CHAR:
 		return make_ast_char(tk.v.c)
 	case TTYPE_STRING:
-		return make_ast_str(tk.v.sval)
+		return make_ast_string(tk.v.sval)
 	case TTYPE_PUNCT:
 		_error("unexpected character: '%c'", tk.v.c)
 	default:
@@ -235,9 +235,9 @@ func read_expr() *Ast {
 	if r == nil {
 		return nil
 	}
-	ch := read_token()
-	if !is_punct(ch, ';') {
-		_error("Unterminated expression [%c]", ch.v.c)
+	tok := read_token()
+	if !is_punct(tok, ';') {
+		_error("Unterminated expression %s", token_to_string(tok))
 	}
 	return r
 }

@@ -230,5 +230,5 @@ func read_token() *Token {
 		return tok
 	}
 
-	return read_token_init();
+	return read_token_init()
 }

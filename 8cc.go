@@ -167,8 +167,7 @@ func read_func_args(fname []byte) *Ast {
 		unget_ch(ch)
 		args[i] = read_expr2(0)
 		nargs++
-		skip_space()
-		ch = read_ch()
+		ch = skip_space_read_ch()
 		if is_punct(ch, ')') {
 			break
 		}

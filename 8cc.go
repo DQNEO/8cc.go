@@ -206,6 +206,7 @@ func read_ident_or_func(name []byte) *Ast {
 	}
 }
 
+
 func read_prim() *Ast {
 	ch := skip_space_read_ch()
 	if ch == nil {
@@ -225,7 +226,8 @@ func read_prim() *Ast {
 		tk := read_string()
 		return make_ast_str(tk.v.sval)
 	case TTYPE_PUNCT:
-		_error("unexpected character: '%c'", ch.c)
+		tk := make_punct(ch.c)
+		_error("unexpected character: '%c'", tk.v.c)
 	default:
 		_error("Don't know how to handle '%c'", ch.c)
 	}

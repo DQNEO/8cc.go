@@ -87,6 +87,14 @@ func make_char(c byte) *Token {
 	return r
 }
 
+
+func make_punct(c byte) *Token {
+	r := &Token{}
+	r.typ = TTYPE_PUNCT
+	r.v.c = c
+	return r
+}
+
 func make_string(s []byte) *Token {
 	r := &Token{}
 	r.typ = TTYPE_STRING

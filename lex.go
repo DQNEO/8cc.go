@@ -29,17 +29,17 @@ func make_ident(s []byte) *Token {
 	return r
 }
 
-func make_string(s []byte) *Token {
+func make_strtok(s []byte) *Token {
 	r := &Token{}
 	r.typ = TTYPE_STRING
 	r.v.sval = s
 	return r
 }
 
-func make_punct(c byte) *Token {
+func make_punct(punct byte) *Token {
 	r := &Token{}
 	r.typ = TTYPE_PUNCT
-	r.v.c = c
+	r.v.c = punct
 	return r
 }
 
@@ -130,7 +130,7 @@ func read_string() *Token {
 		}
 	}
 	buf[i] = 0
-	return make_string(buf)
+	return make_strtok(buf)
 }
 
 

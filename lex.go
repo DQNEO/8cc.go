@@ -16,11 +16,11 @@ const (
 
 type Token struct {
 	typ int
-	v struct { // wanna be Union
-		ival int
-		sval []byte
+	v   struct { // wanna be Union
+		ival  int
+		sval  []byte
 		punct byte
-		c byte
+		c     byte
 	}
 }
 
@@ -78,29 +78,28 @@ func skip_space() {
 func read_number(c byte) *Token {
 	n := int(c - '0')
 	for {
-		c,_ := getc(stdin)
+		c, _ := getc(stdin)
 		if !isdigit(c) {
-			ungetc(c ,stdin)
+			ungetc(c, stdin)
 			return make_int(n)
 		}
-		n = n * 10 + int(c - '0')
+		n = n*10 + int(c-'0')
 	}
 }
 
-
 func read_char() *Token {
-	c,err := getc(stdin)
+	c, err := getc(stdin)
 	if err != nil {
 		_error("Unterminated char")
 	}
 	if c == '\\' {
-		c,err = getc(stdin)
+		c, err = getc(stdin)
 		if err != nil {
 			_error("Unterminated char")
 		}
 	}
 
-	c2,err := getc(stdin)
+	c2, err := getc(stdin)
 	if err != nil {
 		_error("Unterminated char")
 	}
@@ -115,7 +114,7 @@ func read_string() *Token {
 	buf := make([]byte, BUFLEN)
 	i := 0
 	for {
-		c,err := getc(stdin)
+		c, err := getc(stdin)
 		if err != nil {
 			_error("Unterminated string")
 		}
@@ -123,14 +122,14 @@ func read_string() *Token {
 			break
 		}
 		if c == '\\' {
-			c,err = getc(stdin)
+			c, err = getc(stdin)
 			if err != nil {
 				_error("Unterminated \\")
 			}
 		}
 		buf[i] = c
 		i++
-		if i == BUFLEN - 1 {
+		if i == BUFLEN-1 {
 			_error("String too long")
 		}
 	}
@@ -138,30 +137,29 @@ func read_string() *Token {
 	return make_strtok(buf)
 }
 
-
 func read_ident(c byte) *Token {
 	buf := make([]byte, BUFLEN)
 	buf[0] = c
 	i := 1
 	for {
-		c2,_ := getc(stdin)
-		if (!isalnum(c2)) {
-			ungetc(c2,stdin)
+		c2, _ := getc(stdin)
+		if !isalnum(c2) {
+			ungetc(c2, stdin)
 			break
 		}
 		buf[i] = c2
 		i++
-		if i == (BUFLEN -1) {
+		if i == (BUFLEN - 1) {
 			_error("Identifier too long")
 		}
 	}
-	buf[i] = 0;
+	buf[i] = 0
 	return make_ident(buf)
 }
 
 func read_token_init() *Token {
 	skip_space()
-	c,err := getc(stdin)
+	c, err := getc(stdin)
 	if err != nil {
 		// EOF
 		return nil
@@ -177,7 +175,7 @@ func read_token_init() *Token {
 	if c == '\'' {
 		return read_char()
 	}
-	if ('a'<= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_' {
+	if ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_' {
 		return read_ident(c)
 	}
 	if c == '/' || c == '=' || c == '*' ||
@@ -202,7 +200,7 @@ func token_to_string(tok *Token) []byte {
 	case TTYPE_STRING:
 		return tok.v.sval
 	default:
-		_error("internal error: unknown token type: %d", tok.typ);
+		_error("internal error: unknown token type: %d", tok.typ)
 	}
 	return nil
 }
@@ -213,8 +211,6 @@ func is_punct(tok *Token, c byte) bool {
 	}
 	return tok.typ == TTYPE_PUNCT && tok.v.c == c
 }
-
-
 
 func unget_token(tok *Token) {
 	if ungotten != nil {

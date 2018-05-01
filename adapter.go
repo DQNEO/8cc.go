@@ -3,15 +3,14 @@ package main
 // emulates some C functions
 
 import (
-	"os"
 	"fmt"
+	"os"
 	"unicode"
 )
 
-
 type pseudoStdin struct {
 	buf []byte
-	i int
+	i   int
 }
 
 var stdin *pseudoStdin
@@ -33,7 +32,7 @@ func getc(stdin *pseudoStdin) (byte, error) {
 		return b, fmt.Errorf("EOL")
 	}
 	stdin.i++
-	return b,nil
+	return b, nil
 }
 
 func ungetc(c byte, stdin *pseudoStdin) {
@@ -59,15 +58,15 @@ func isalnum(c byte) bool {
 
 func strcmp(a []byte, b []byte) int {
 	if string(a) == string(b) {
-		return 0;
+		return 0
 	} else {
-		return 1;
+		return 1
 	}
 }
 
 func bytes2string(b []byte) string {
 	i := 0
-	for  {
+	for {
 		if b[i] == byte(0) {
 			break
 		}
@@ -77,6 +76,6 @@ func bytes2string(b []byte) string {
 	return string(subb)
 }
 
-func printf(format string, args... interface{}) {
+func printf(format string, args ...interface{}) {
 	fmt.Printf(format, args...)
 }

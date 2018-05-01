@@ -1,8 +1,8 @@
 package main
 
 import (
-	"os"
 	"fmt"
+	"os"
 )
 
 const EXPR_LEN = 100
@@ -15,7 +15,6 @@ const (
 	AST_STR
 	AST_FUNCALL
 )
-
 
 type Ast struct {
 	typ byte
@@ -33,25 +32,25 @@ type Ast struct {
 	// Variable
 	variable struct {
 		name []byte
-		pos int
+		pos  int
 		next *Ast
 	}
 	// Binary operator
 	op struct {
-		left *Ast
+		left  *Ast
 		right *Ast
 	}
 	// Function call
 	funcall struct {
 		fname []byte
 		nargs int
-		args []*Ast
+		args  []*Ast
 	}
 }
 
 var vars *Ast
 var strings *Ast
-var REGS = []string{"rdi","rsi","rdx", "rcx", "r8", "r9"}
+var REGS = []string{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}
 
 func _error(format string, args ...interface{}) {
 	panic(fmt.Sprintf(format, args...))
@@ -94,7 +93,7 @@ func make_ast_char(c byte) *Ast {
 	return r
 }
 
-func make_ast_string(str []byte) *Ast{
+func make_ast_string(str []byte) *Ast {
 	r := &Ast{}
 	r.typ = AST_STR
 	r.str.val = str
@@ -111,7 +110,7 @@ func make_ast_string(str []byte) *Ast{
 	return r
 }
 
-func make_ast_funcall(fname []byte , nargs int, args []*Ast) *Ast {
+func make_ast_funcall(fname []byte, nargs int, args []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNCALL
 	r.funcall.fname = fname
@@ -121,7 +120,7 @@ func make_ast_funcall(fname []byte , nargs int, args []*Ast) *Ast {
 }
 
 func find_var(name []byte) *Ast {
-	for v := vars;v != nil; v = v.variable.next {
+	for v := vars; v != nil; v = v.variable.next {
 		if strcmp(name, v.variable.name) == 0 {
 			return v
 		}
@@ -135,7 +134,7 @@ func priority(op byte) int {
 		return 1
 	case '+':
 		return 2
-	case '-' :
+	case '-':
 		return 2
 	case '*':
 		return 3
@@ -146,12 +145,11 @@ func priority(op byte) int {
 	}
 }
 
-
 func read_func_args(fname []byte) *Ast {
 	args := make([]*Ast, MAX_ARGS+1)
 	i := 0
 	nargs := 0
-	for ;i< MAX_ARGS; i++ {
+	for ; i < MAX_ARGS; i++ {
 		tok := read_token()
 		if is_punct(tok, ')') {
 			break
@@ -188,7 +186,6 @@ func read_ident_or_func(name []byte) *Ast {
 	}
 }
 
-
 func read_prim() *Ast {
 	tk := read_token()
 	if tk == nil {
@@ -215,17 +212,17 @@ func read_prim() *Ast {
 func read_expr2(prec int) *Ast {
 	ast := read_prim()
 	for {
-	op := read_token()
-	if op == nil {
-		return ast
-	}
-	prec2 := priority(op.v.c)
-	if prec2 < prec {
-		ungetc(op.v.c, stdin)
-		return ast
-	}
-	skip_space()
-	ast = make_ast_op(op.v.c, ast, read_expr2(prec2+1))
+		op := read_token()
+		if op == nil {
+			return ast
+		}
+		prec2 := priority(op.v.c)
+		if prec2 < prec {
+			ungetc(op.v.c, stdin)
+			return ast
+		}
+		skip_space()
+		ast = make_ast_op(op.v.c, ast, read_expr2(prec2+1))
 	}
 	return ast
 }
@@ -304,18 +301,18 @@ func emit_expr(ast *Ast) {
 		printf("mov $%d, %%eax\n\t", ast.c)
 	case AST_FUNCALL:
 		for i := 0; i < ast.funcall.nargs; i++ {
-			printf("push %%%s\n\t" , REGS[i])
+			printf("push %%%s\n\t", REGS[i])
 		}
 		for i := 0; i < ast.funcall.nargs; i++ {
 			emit_expr(ast.funcall.args[i])
 			printf("push %%rax\n\t")
 		}
-		for i := ast.funcall.nargs -1;i >= 0;i-- {
+		for i := ast.funcall.nargs - 1; i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 		printf("mov $0, %%eax\n\t")
 		printf("call %s\n\t", bytes2string(ast.funcall.fname))
-		for i := ast.funcall.nargs -1;i >= 0;i-- {
+		for i := ast.funcall.nargs - 1; i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 	default:
@@ -337,9 +334,9 @@ func print_ast(ast *Ast) {
 		printf("\"")
 	case AST_FUNCALL:
 		printf("%s(", bytes2string(ast.funcall.fname))
-		for i:=0; ast.funcall.args[i] != nil;i++ {
+		for i := 0; ast.funcall.args[i] != nil; i++ {
 			print_ast(ast.funcall.args[i])
-			if ast.funcall.args[i+1] != nil{
+			if ast.funcall.args[i+1] != nil {
 				printf(",")
 			}
 		}
@@ -352,7 +349,6 @@ func print_ast(ast *Ast) {
 		printf(")")
 	}
 }
-
 
 func emit_data_section() {
 	if strings == nil {
@@ -383,15 +379,15 @@ func main() {
 	nexpr := i
 	if !wantast {
 		emit_data_section()
-		printf(".text\n\t"+
-			".global mymain\n"+
+		printf(".text\n\t" +
+			".global mymain\n" +
 			"mymain:\n\t")
 	}
 	for i = 0; i < nexpr; i++ {
 		if wantast {
 			print_ast(exprs[i])
 		} else {
- 			emit_expr(exprs[i])
+			emit_expr(exprs[i])
 		}
 	}
 

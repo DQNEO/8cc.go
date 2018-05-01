@@ -5,7 +5,14 @@ type char struct {
 	typ int
 }
 
+var ungotten *char
+
 func skip_space_read_ch() *char {
+	if ungotten != nil {
+		ret := ungotten
+		ungotten = nil
+		return ret
+	}
 	skip_space()
 	return read_ch()
 }
@@ -39,7 +46,10 @@ func read_ch() *char {
 }
 
 func unget_ch(c *char) {
-	ungetc(c.c, stdin)
+	if ungotten != nil {
+		_error("Push back buffer is already full");
+	}
+	ungotten = c
 }
 
 func skip_space() {

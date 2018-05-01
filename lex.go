@@ -66,7 +66,7 @@ func skip_space() {
 	}
 }
 
-func is_punct(ch *char, c byte) bool {
+func is_punctchar(ch *char, c byte) bool {
 	if ch == nil {
 		_error("Token is null")
 	}

@@ -171,17 +171,17 @@ func read_func_args(fname []byte) *Ast {
 	nargs := 0
 	for ;i< MAX_ARGS; i++ {
 		ch := skip_space_read_ch()
-		if is_punct(ch, ')') {
+		if is_punctchar(ch, ')') {
 			break
 		}
 		unget_ch(ch)
 		args[i] = read_expr2(0)
 		nargs++
 		ch = skip_space_read_ch()
-		if is_punct(ch, ')') {
+		if is_punctchar(ch, ')') {
 			break
 		}
-		if !is_punct(ch, ',') {
+		if !is_punctchar(ch, ',') {
 			_error("Unexpected character: '%c", ch.c)
 		}
 	}
@@ -193,7 +193,7 @@ func read_func_args(fname []byte) *Ast {
 
 func read_ident_or_func(name []byte) *Ast {
 	ch := skip_space_read_ch()
-	if is_punct(ch, '(') {
+	if is_punctchar(ch, '(') {
 		return read_func_args(name)
 	}
 	unget_ch(ch)
@@ -256,7 +256,7 @@ func read_expr() *Ast {
 		return nil
 	}
 	ch := skip_space_read_ch()
-	if !is_punct(ch, ';') {
+	if !is_punctchar(ch, ';') {
 		_error("Unterminated expression [%c]", ch.c)
 	}
 	return r

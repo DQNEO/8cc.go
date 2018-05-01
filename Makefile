@@ -8,7 +8,7 @@ OBJS=main.o lex.o string.o
 
 clean:
 	rm -f 8cc *.o tmp.*
-	rm -f 8gg
+	rm -f 8gg.*
 
 8gg: main.go adapter.go
 	GOOS=linux  GOARCH=amd64 go build -o 8gg.linux main.go lex.go adapter.go

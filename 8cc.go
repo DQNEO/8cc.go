@@ -170,19 +170,19 @@ func read_func_args(fname []byte) *Ast {
 	i := 0
 	nargs := 0
 	for ;i< MAX_ARGS; i++ {
-		ch := skip_space_read_ch()
-		if is_punctchar(ch, ')') {
+		tok := read_token()
+		if is_punct(tok, ')') {
 			break
 		}
-		ungetc(ch.c, stdin)
+		unget_token(tok)
 		args[i] = read_expr2(0)
 		nargs++
-		ch = skip_space_read_ch()
-		if is_punctchar(ch, ')') {
+		tok = read_token()
+		if is_punct(tok, ')') {
 			break
 		}
-		if !is_punctchar(ch, ',') {
-			_error("Unexpected character: '%c", ch.c)
+		if !is_punct(tok, ',') {
+			_error("Unexpected token: '%v", tok)
 		}
 	}
 	if i == MAX_ARGS {
@@ -192,11 +192,11 @@ func read_func_args(fname []byte) *Ast {
 }
 
 func read_ident_or_func(name []byte) *Ast {
-	ch := skip_space_read_ch()
-	if is_punctchar(ch, '(') {
+	ch := read_token()
+	if is_punct(ch, '(') {
 		return read_func_args(name)
 	}
-	ungetc(ch.c, stdin)
+	unget_token(ch)
 
 	v := find_var(name)
 	if v != nil {
@@ -208,11 +208,10 @@ func read_ident_or_func(name []byte) *Ast {
 
 
 func read_prim() *Ast {
-	tk := _read_token()
+	tk := read_token()
 	if tk == nil {
 		return nil
 	}
-
 	switch tk.typ {
 	case TTYPE_IDENT:
 		return read_ident_or_func(tk.v.sval)
@@ -234,17 +233,17 @@ func read_prim() *Ast {
 func read_expr2(prec int) *Ast {
 	ast := read_prim()
 	for {
-	op := skip_space_read_ch()
+	op := read_token()
 	if op == nil {
 		return ast
 	}
-	prec2 := priority(op.c)
+	prec2 := priority(op.v.c)
 	if prec2 < prec {
-		ungetc(op.c, stdin)
+		ungetc(op.v.c, stdin)
 		return ast
 	}
 	skip_space()
-	ast = make_ast_op(op.c, ast, read_expr2(prec2+1))
+	ast = make_ast_op(op.v.c, ast, read_expr2(prec2+1))
 	}
 	return ast
 }
@@ -254,9 +253,9 @@ func read_expr() *Ast {
 	if r == nil {
 		return nil
 	}
-	ch := skip_space_read_ch()
-	if !is_punctchar(ch, ';') {
-		_error("Unterminated expression [%c]", ch.c)
+	ch := read_token()
+	if !is_punct(ch, ';') {
+		_error("Unterminated expression [%c]", ch.v.c)
 	}
 	return r
 }

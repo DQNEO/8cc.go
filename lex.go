@@ -1,64 +1,35 @@
 package main
 
-type char struct {
-	c byte
-	typ int
-}
+var ungotten *Token
 
-func skip_space_read_ch() *char {
+func read_token_init() *Token {
 	skip_space()
-	return read_ch()
-}
-
-func _read_token() *Token {
-	var tk *Token
-	ch := skip_space_read_ch()
-	if ch == nil {
-		return nil
-	}
-	switch ch.typ {
-	case TTYPE_IDENT:
-		tk = read_ident(ch.c)
-	case TTYPE_INT:
-		tk = read_number(int(ch.c - '0'))
-	case TTYPE_CHAR:
-		tk = read_char()
-	case TTYPE_STRING:
-		tk = read_string()
-	case TTYPE_PUNCT:
-		tk = make_punct(ch.c)
-	default:
-		_error("Don't know how to handle '%c'", ch.c)
-	}
-	return tk
-}
-
-func read_ch() *char {
 	c,err := getc(stdin)
 	if err != nil {
+		// EOF
 		return nil
 	}
-	ch := &char{c:c}
+
 	// TODO use switch syntax
 	if '0' <= c && c <= '9' {
-		ch.typ = TTYPE_INT
+		return read_number(int(c - '0'))
 	}
 	if c == '"' {
-		ch.typ = TTYPE_STRING
+		return read_string()
 	}
 	if c == '\'' {
-		ch.typ = TTYPE_CHAR
+		return read_char()
 	}
 	if ('a'<= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_' {
-		ch.typ = TTYPE_IDENT
+		return read_ident(c)
 	}
 	if c == '/' || c == '=' || c == '*' ||
 		c == '+' || c == '-' || c == '(' ||
-			c == ')' || c == ',' || c == ';' {
-		ch.typ = TTYPE_PUNCT
+		c == ')' || c == ',' || c == ';' {
+		return make_punct(c)
 	}
-
-	return ch
+	_error("Don't know how to handle '%c'", c)
+	return nil
 }
 
 func skip_space() {
@@ -75,11 +46,11 @@ func skip_space() {
 	}
 }
 
-func is_punctchar(ch *char, c byte) bool {
-	if ch == nil {
+func is_punct(tok *Token, c byte) bool {
+	if tok == nil {
 		_error("Token is null")
 	}
-	return ch.c == c
+	return tok.typ == TTYPE_PUNCT && tok.v.c == c
 }
 
 func make_int(n int) *Token {
@@ -119,12 +90,12 @@ func make_ident(s []byte) *Token {
 }
 func read_number(n int) *Token {
 	for {
-		ch := skip_space_read_ch()
-		if !isdigit(ch.c) {
-			ungetc(ch.c ,stdin)
+		c,_ := getc(stdin)
+		if !isdigit(c) {
+			ungetc(c ,stdin)
 			return make_int(n)
 		}
-		n = n * 10 + int(ch.c - '0')
+		n = n * 10 + int(c - '0')
 	}
 }
 
@@ -133,12 +104,12 @@ func read_ident(c byte) *Token {
 	buf[0] = c
 	i := 1
 	for {
-		ch := skip_space_read_ch()
-		if (!isalnum(ch.c)) {
-			ungetc(ch.c ,stdin)
+		c,_ := getc(stdin)
+		if (!isalnum(c)) {
+			ungetc(c ,stdin)
 			break
 		}
-		buf[i] = ch.c
+		buf[i] = c
 		i++
 		if i == (BUFLEN -1) {
 			_error("Identifier too long")
@@ -150,46 +121,46 @@ func read_ident(c byte) *Token {
 
 
 func read_char() *Token {
-	ch := read_ch()
-	if ch == nil {
+	c,err := getc(stdin)
+	if err != nil {
 		_error("Unterminated char")
 	}
-	if ch.c == '\\' {
-		ch = read_ch()
-		if ch == nil {
+	if c == '\\' {
+		c,err = getc(stdin)
+		if err != nil {
 			_error("Unterminated char")
 		}
 	}
 
-	ch2 := read_ch()
-	if ch2 == nil {
+	c2,err := getc(stdin)
+	if err != nil {
 		_error("Unterminated char")
 	}
-	if ch2.c != '\'' {
+	if c2 != '\'' {
 		_error("Malformed char constant")
 	}
 
-	return make_char(ch.c)
+	return make_char(c)
 }
 
 func read_string() *Token {
 	buf := make([]byte, BUFLEN)
 	i := 0
 	for {
-		ch := read_ch()
-		if ch == nil {
+		c,err := getc(stdin)
+		if err != nil {
 			_error("Unterminated string")
 		}
-		if ch.c == '"' {
+		if c == '"' {
 			break
 		}
-		if ch.c == '\\' {
-			ch = read_ch()
-			if ch == nil {
+		if c == '\\' {
+			c,err = getc(stdin)
+			if err != nil {
 				_error("Unterminated \\")
 			}
 		}
-		buf[i] = ch.c
+		buf[i] = c
 		i++
 		if i == BUFLEN - 1 {
 			_error("String too long")
@@ -197,4 +168,21 @@ func read_string() *Token {
 	}
 	buf[i] = 0
 	return make_string(buf)
+}
+
+func unget_token(tok *Token) {
+	if ungotten != nil {
+		_error("Push back buffer is already full")
+	}
+	ungotten = tok
+}
+
+func read_token() *Token {
+	if ungotten != nil {
+		tok := ungotten
+		ungotten = nil
+		return tok
+	}
+
+	return read_token_init();
 }

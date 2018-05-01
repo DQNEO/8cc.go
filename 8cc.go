@@ -181,8 +181,7 @@ func read_func_args(fname []byte) *Ast {
 		if is_punct(ch, ')') {
 			break
 		}
-		if is_punct(ch, ',') {
-		} else {
+		if !is_punct(ch, ',') {
 			_error("Unexpected character: '%c", ch.c)
 		}
 	}

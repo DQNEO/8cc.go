@@ -17,6 +17,29 @@ func skip_space_read_ch() *char {
 	return read_ch()
 }
 
+func _read_token() *Token {
+	var tk *Token
+	ch := skip_space_read_ch()
+	if ch == nil {
+		return nil
+	}
+	switch ch.typ {
+	case TTYPE_IDENT:
+		tk = read_ident(ch.c)
+	case TTYPE_INT:
+		tk = read_number(int(ch.c - '0'))
+	case TTYPE_CHAR:
+		tk = read_char()
+	case TTYPE_STRING:
+		tk = read_string()
+	case TTYPE_PUNCT:
+		tk = make_punct(ch.c)
+	default:
+		_error("Don't know how to handle '%c'", ch.c)
+	}
+	return tk
+}
+
 func read_ch() *char {
 	c,err := getc(stdin)
 	if err != nil {

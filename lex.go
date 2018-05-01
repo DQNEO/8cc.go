@@ -71,7 +71,8 @@ func skip_space() {
 	}
 }
 
-func read_number(n int) *Token {
+func read_number(c byte) *Token {
+	n := int(c - '0')
 	for {
 		c,_ := getc(stdin)
 		if !isdigit(c) {
@@ -164,7 +165,7 @@ func read_token_init() *Token {
 
 	// TODO use switch syntax
 	if '0' <= c && c <= '9' {
-		return read_number(int(c - '0'))
+		return read_number(c)
 	}
 	if c == '"' {
 		return read_string()

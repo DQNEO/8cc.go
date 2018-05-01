@@ -204,6 +204,7 @@ func token_to_string(tok *Token) []byte {
 	default:
 		_error("internal error: unknown token type: %d", tok.typ);
 	}
+	return nil
 }
 
 func is_punct(tok *Token, c byte) bool {

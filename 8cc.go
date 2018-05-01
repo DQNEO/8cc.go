@@ -25,6 +25,16 @@ const (
 	TTYPE_STRING
 	)
 
+type Token struct {
+	typ int
+	v struct { // wanna be Union
+		ival int
+		sval []byte
+		punct byte
+		c byte
+	}
+}
+
 type Ast struct {
 	typ byte
 	// want to be "union"
@@ -183,8 +193,7 @@ func read_func_args(fname []byte) *Ast {
 	return make_ast_funcall(fname, nargs, args)
 }
 
-func read_ident_or_func(c byte) *Ast {
-	name := read_ident(c)
+func read_ident_or_func(name []byte) *Ast {
 	ch := skip_space_read_ch()
 	if is_punct(ch, '(') {
 		return read_func_args(name)
@@ -205,14 +214,18 @@ func read_prim() *Ast {
 		return nil
 	}
 	switch ch.typ {
-	case TTYPE_INT:
-		return read_number(int(ch.c - '0'))
-	case TTYPE_CHAR:
-		return read_char()
-	case TTYPE_STRING:
-		return read_string()
 	case TTYPE_IDENT:
-		return read_ident_or_func(ch.c)
+		tk := read_ident(ch.c)
+		return read_ident_or_func(tk.v.sval)
+	case TTYPE_INT:
+		tk := read_number(int(ch.c - '0'))
+		return make_ast_int(tk.v.ival)
+	case TTYPE_CHAR:
+		tk := read_char()
+		return make_ast_char(tk.v.c)
+	case TTYPE_STRING:
+		tk := read_string()
+		return make_ast_str(tk.v.sval)
 	case TTYPE_PUNCT:
 		_error("unexpected character: '%c'", ch.c)
 	default:

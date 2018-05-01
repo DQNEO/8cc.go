@@ -73,18 +73,45 @@ func is_punct(ch *char, c byte) bool {
 	return ch.c == c
 }
 
-func read_number(n int) *Ast {
+func make_int(n int) *Token {
+	r := &Token{}
+	r.typ = TTYPE_INT
+	r.v.ival = n
+	return r
+}
+
+func make_char(c byte) *Token {
+	r := &Token{}
+	r.typ = TTYPE_CHAR
+	r.v.c = c
+	return r
+}
+
+func make_string(s []byte) *Token {
+	r := &Token{}
+	r.typ = TTYPE_STRING
+	r.v.sval = s
+	return r
+}
+
+func make_ident(s []byte) *Token {
+	r := &Token{}
+	r.typ = TTYPE_IDENT
+	r.v.sval = s
+	return r
+}
+func read_number(n int) *Token {
 	for {
 		ch := skip_space_read_ch()
 		if !isdigit(ch.c) {
 			unget_ch(ch)
-			return make_ast_int(n)
+			return make_int(n)
 		}
 		n = n * 10 + int(ch.c - '0')
 	}
 }
 
-func read_ident(c byte) []byte {
+func read_ident(c byte) *Token {
 	buf := make([]byte, BUFLEN)
 	buf[0] = c
 	i := 1
@@ -101,11 +128,11 @@ func read_ident(c byte) []byte {
 		}
 	}
 	buf[i] = 0;
-	return buf
+	return make_ident(buf)
 }
 
 
-func read_char() *Ast {
+func read_char() *Token {
 	ch := read_ch()
 	if ch == nil {
 		_error("Unterminated char")
@@ -125,10 +152,10 @@ func read_char() *Ast {
 		_error("Malformed char constant")
 	}
 
-	return make_ast_char(ch.c)
+	return make_char(ch.c)
 }
 
-func read_string() *Ast {
+func read_string() *Token {
 	buf := make([]byte, BUFLEN)
 	i := 0
 	for {
@@ -152,5 +179,5 @@ func read_string() *Ast {
 		}
 	}
 	buf[i] = 0
-	return make_ast_str(buf)
+	return make_string(buf)
 }

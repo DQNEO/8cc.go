@@ -71,9 +71,10 @@ func _error(format string, args ...interface{}) {
 	os.Exit(1)
 }
 
-func make_ast_op(typ byte, left *Ast, right *Ast) *Ast {
+func make_ast_op(typ byte, ctype int, left *Ast, right *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
+	r.ctype = ctype
 	r.op.left = left
 	r.op.right = right
 	return r
@@ -82,6 +83,7 @@ func make_ast_op(typ byte, left *Ast, right *Ast) *Ast {
 func make_ast_int(val int) *Ast {
 	r := &Ast{}
 	r.typ = AST_INT
+	r.ctype = CTYPE_INT
 	r.ival = val
 	return r
 }
@@ -104,6 +106,7 @@ func make_ast_var(ctype int, vname []byte) *Ast {
 func make_ast_char(c byte) *Ast {
 	r := &Ast{}
 	r.typ = AST_CHAR
+	r.ctype = CTYPE_CHAR
 	r.c = c
 	return r
 }
@@ -111,6 +114,7 @@ func make_ast_char(c byte) *Ast {
 func make_ast_string(str []byte) *Ast {
 	r := &Ast{}
 	r.typ = AST_STR
+	r.ctype = CTYPE_STR
 	r.str.val = str
 
 	if strings == nil {
@@ -128,6 +132,7 @@ func make_ast_string(str []byte) *Ast {
 func make_ast_funcall(fname []byte, nargs int, args []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNCALL
+	r.ctype = CTYPE_INT // WHY??
 	r.funcall.fname = fname
 	r.funcall.nargs = nargs
 	r.funcall.args = args
@@ -137,6 +142,7 @@ func make_ast_funcall(fname []byte, nargs int, args []*Ast) *Ast {
 func make_ast_decl(variable *Ast, init *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_DECL
+	// NO CTYPE ? WHY??
 	r.decl.decl_var = variable
 	r.decl.decl_init = init
 	return r
@@ -241,6 +247,50 @@ func ensure_lvalue(ast *Ast) {
 	}
 }
 
+func result_type(op byte, a *Ast, b *Ast) int {
+	var x, y *Ast
+	if a.ctype > b.ctype {
+		x, y = b, a
+	} else {
+		x, y = a, b
+	}
+	var errmsg string
+	default_err := "incompatible operands: %s and %s for %c"
+	internal_err := "internal error"
+	switch x.ctype {
+	case CTYPE_VOID:
+		errmsg = default_err
+	case CTYPE_INT:
+		switch y.ctype {
+		case CTYPE_INT:
+			return CTYPE_INT
+		case CTYPE_CHAR:
+			return CTYPE_INT
+		case CTYPE_STR:
+			errmsg = default_err
+		default:
+			errmsg = internal_err
+		}
+	case CTYPE_CHAR:
+		switch y.ctype {
+		case CTYPE_CHAR:
+			return CTYPE_INT
+		case CTYPE_STR:
+			errmsg = default_err
+		}
+	case CTYPE_STR:
+		errmsg = default_err
+	default:
+		errmsg = internal_err
+	}
+
+	if errmsg != "" {
+		_error(errmsg,
+			ast_to_string(a), ast_to_string(b), op)
+	}
+	return -1
+}
+
 func read_expr(prec int) *Ast {
 	ast := read_prim()
 	if ast == nil {
@@ -269,7 +319,8 @@ func read_expr(prec int) *Ast {
 			prec_incr = 1
 		}
 		rest := read_expr(prec2 + prec_incr)
-		ast = make_ast_op(tok.v.punct, ast, rest)
+		ctype := result_type(tok.v.punct, ast, rest)
+		ast = make_ast_op(tok.v.punct, ctype, ast, rest)
 	}
 	return ast
 }
@@ -446,7 +497,7 @@ func ast_to_string_int(ast *Ast) string {
 	case AST_STR:
 		return fmt.Sprintf("\"%s\"", quote(ast.str.val))
 	case AST_FUNCALL:
-		s:= fmt.Sprintf("%s(", bytes2string(ast.funcall.fname))
+		s := fmt.Sprintf("%s(", bytes2string(ast.funcall.fname))
 		for i := 0; ast.funcall.args[i] != nil; i++ {
 			s += ast_to_string_int(ast.funcall.args[i])
 			if ast.funcall.args[i+1] != nil {
@@ -470,7 +521,6 @@ func ast_to_string_int(ast *Ast) string {
 func ast_to_string(ast *Ast) string {
 	return ast_to_string_int(ast)
 }
-
 
 func emit_data_section() {
 	if strings == nil {

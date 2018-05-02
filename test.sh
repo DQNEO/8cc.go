@@ -90,6 +90,6 @@ testfail '1+;'
 testfail '1=2;'
 
 # Incompatible type
-#testfail '"a"+1;'
+testfail '"a"+1;'
 
 echo "All tests passed"

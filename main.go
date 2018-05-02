@@ -449,12 +449,12 @@ func emit_expr(ast *Ast) {
 	switch ast.typ {
 	case AST_INT:
 		printf("mov $%d, %%eax\n\t", ast.ival)
-	case AST_VAR:
-		printf("mov -%d(%%rbp), %%eax\n\t", ast.variable.pos*4)
-	case AST_STR:
-		printf("lea .s%d(%%rip), %%rax\n\t", ast.str.id)
 	case AST_CHAR:
 		printf("mov $%d, %%eax\n\t", ast.c)
+	case AST_STR:
+		printf("lea .s%d(%%rip), %%rax\n\t", ast.str.id)
+	case AST_VAR:
+		printf("mov -%d(%%rbp), %%eax\n\t", ast.variable.pos*4)
 	case AST_FUNCALL:
 		for i := 0; i < ast.funcall.nargs; i++ {
 			printf("push %%%s\n\t", REGS[i])
@@ -499,12 +499,12 @@ func ast_to_string_int(ast *Ast) string {
 	switch ast.typ {
 	case AST_INT:
 		return fmt.Sprintf("%d", ast.ival)
-	case AST_VAR:
-		return fmt.Sprintf("%s", bytes2string(ast.variable.name))
 	case AST_CHAR:
 		return fmt.Sprintf("'%c'", ast.c)
 	case AST_STR:
 		return fmt.Sprintf("\"%s\"", quote(ast.str.val))
+	case AST_VAR:
+		return fmt.Sprintf("%s", bytes2string(ast.variable.name))
 	case AST_FUNCALL:
 		s := fmt.Sprintf("%s(", bytes2string(ast.funcall.fname))
 		for i := 0; ast.funcall.args[i] != nil; i++ {

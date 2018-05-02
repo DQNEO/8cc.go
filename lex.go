@@ -219,6 +219,12 @@ func unget_token(tok *Token) {
 	ungotten = tok
 }
 
+func peek_token() *Token {
+	tok := read_token()
+	unget_token(tok)
+	return tok
+}
+
 func read_token() *Token {
 	if ungotten != nil {
 		tok := ungotten

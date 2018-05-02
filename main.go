@@ -14,10 +14,19 @@ const (
 	AST_VAR
 	AST_STR
 	AST_FUNCALL
+	AST_DECL
+)
+
+const (
+	CTYPE_VOID int = iota
+	CTYPE_INT
+	CTYPE_CHAR
+	CTYPE_STR
 )
 
 type Ast struct {
 	typ byte
+	ctype int
 	// want to be "union"
 	// Integer
 	ival int
@@ -46,6 +55,11 @@ type Ast struct {
 		nargs int
 		args  []*Ast
 	}
+	// Declaration
+	decl struct {
+		decl_var  *Ast
+		decl_init *Ast
+	}
 }
 
 var vars *Ast
@@ -72,9 +86,10 @@ func make_ast_int(val int) *Ast {
 	return r
 }
 
-func make_ast_var(vname []byte) *Ast {
+func make_ast_var(ctype int, vname []byte) *Ast {
 	r := &Ast{}
 	r.typ = AST_VAR
+	r.ctype = ctype
 	r.variable.name = vname
 	if vars == nil {
 		r.variable.pos = 1
@@ -116,6 +131,14 @@ func make_ast_funcall(fname []byte, nargs int, args []*Ast) *Ast {
 	r.funcall.fname = fname
 	r.funcall.nargs = nargs
 	r.funcall.args = args
+	return r
+}
+
+func make_ast_decl(variable *Ast, init *Ast) *Ast {
+	r := &Ast{}
+	r.typ = AST_DECL
+	r.decl.decl_var = variable
+	r.decl.decl_init = init
 	return r
 }
 
@@ -179,11 +202,10 @@ func read_ident_or_func(name []byte) *Ast {
 	unget_token(ch)
 
 	v := find_var(name)
-	if v != nil {
-		return v
-	} else {
-		return make_ast_var(name)
+	if v == nil {
+		_error("Undefined varaible: %s", name);
 	}
+	return v
 }
 
 func read_prim() *Ast {
@@ -209,6 +231,12 @@ func read_prim() *Ast {
 	return nil
 }
 
+func ensure_lvalue(ast *Ast) {
+	if ast.typ != AST_VAR {
+		_error("variable expected")
+	}
+}
+
 func read_expr(prec int) *Ast {
 	ast := read_prim()
 	for {
@@ -222,19 +250,69 @@ func read_expr(prec int) *Ast {
 			return ast
 		}
 
+		if (is_punct(op, '=')) {
+			ensure_lvalue(ast)
+		}
 		ast = make_ast_op(op.v.punct, ast, read_expr(prec2+1))
 	}
 	return ast
 }
 
+func get_ctype(tok *Token) int {
+	if tok.typ != TTYPE_IDENT {
+		return -1
+	}
+	if strcmp(tok.v.sval, []byte{'i','n','t',0}) == 0 {
+		return CTYPE_INT
+	}
+	if strcmp(tok.v.sval, []byte{'c','h','a','r', 0}) == 0 {
+		return CTYPE_CHAR
+	}
+	if strcmp(tok.v.sval, []byte{'s','t','r','i','n','g',0}) == 0 {
+		return CTYPE_STR
+	}
+	return -1
+}
+
+func is_type_keyword(tok *Token) bool {
+	return get_ctype(tok) != -1
+}
+
+func expect(punct byte) {
+	tok := read_token()
+	if !is_punct(tok, punct) {
+		_error("%punct expected but got %s", punct, token_to_string(tok))
+	}
+}
+
+
+func read_decl() *Ast {
+	ctype := get_ctype(read_token())
+	name := read_token()
+	if name.typ != TTYPE_IDENT {
+		_error("Identifier expected, but got %s", token_to_string(name))
+	}
+	variable := make_ast_var(ctype, name.v.sval)
+	expect('=')
+	init := read_expr(0)
+	return make_ast_decl(variable, init)
+}
+
 func read_decl_or_stmt() *Ast {
-	r := read_expr(0)
-	if r == nil {
+	tok := peek_token()
+	if tok == nil {
 		return nil
 	}
-	tok := read_token()
-	if !is_punct(tok, ';') {
-		_error("Unterminated expression %s", token_to_string(tok))
+	var r *Ast
+	if is_type_keyword(tok) {
+		r = read_decl()
+	} else {
+		r = read_expr(0)
+	}
+	// should use expect(';')
+	tok2 := read_token()
+	if !is_punct(tok2, ';') {
+		_error("Unterminated expression %s", token_to_string(tok2))
 	}
 	return r
 }
@@ -251,13 +329,14 @@ func print_quote(sval []byte) {
 	}
 }
 
+func emit_assign(variable *Ast, value *Ast) {
+	emit_expr(value)
+	printf("mov %%eax, -%d(%%rbp)\n\t", variable.variable.pos * 4)
+}
+
 func emit_binop(ast *Ast) {
 	if ast.typ == '=' {
-		emit_expr(ast.op.right)
-		if ast.op.left.typ != AST_VAR {
-			_error("Symbol expected")
-		}
-		printf("mov %%eax, -%d(%%rbp)\n\t", ast.op.left.variable.pos*4)
+		emit_assign(ast.op.left, ast.op.right)
 		return
 	}
 
@@ -315,9 +394,28 @@ func emit_expr(ast *Ast) {
 		for i := ast.funcall.nargs - 1; i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
+	case AST_DECL:
+		emit_assign(ast.decl.decl_var, ast.decl.decl_init)
 	default:
 		emit_binop(ast)
 	}
+}
+
+func ctype_to_string(ctype int) string {
+	switch ctype {
+	case CTYPE_VOID:
+		return "void"
+	case CTYPE_INT:
+		return "int"
+	case CTYPE_CHAR:
+		return "char"
+	case CTYPE_STR:
+		return "string"
+	default:
+		_error("Unknown ctype: %d", ctype)
+	}
+
+	return ""
 }
 
 func print_ast(ast *Ast) {
@@ -340,6 +438,12 @@ func print_ast(ast *Ast) {
 				printf(",")
 			}
 		}
+		printf(")")
+	case AST_DECL:
+		printf("(decl %s %s ",
+			ctype_to_string(ast.decl.decl_var.ctype),
+				ast.decl.decl_var.variable.name)
+		print_ast(ast.decl.decl_init)
 		printf(")")
 	default:
 		printf("(%c ", ast.typ)

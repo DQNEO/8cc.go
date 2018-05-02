@@ -24,6 +24,7 @@ const (
 	CTYPE_STR
 )
 
+const CTYPE_NULL CtypeInt = -1
 type CtypeInt int
 
 type Ast struct {
@@ -144,7 +145,7 @@ func make_ast_funcall(fname []byte, nargs int, args []*Ast) *Ast {
 func make_ast_decl(variable *Ast, init *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_DECL
-	// NO CTYPE ? WHY??
+	r.ctype = CTYPE_NULL
 	r.decl.decl_var = variable
 	r.decl.decl_init = init
 	return r
@@ -249,21 +250,21 @@ func ensure_lvalue(ast *Ast) {
 	}
 }
 
-func result_type(op byte, a *Ast, b *Ast) CtypeInt {
-	var x, y *Ast
-	if a.ctype > b.ctype {
+var errmsg string
+func result_type_int(a CtypeInt, b CtypeInt) CtypeInt {
+	var x, y CtypeInt
+	if a > b  {
 		x, y = b, a
 	} else {
 		x, y = a, b
 	}
-	var errmsg string
 	default_err := "incompatible operands: %s and %s for %c"
 	internal_err := "internal error"
-	switch x.ctype {
+	switch x {
 	case CTYPE_VOID:
 		errmsg = default_err
 	case CTYPE_INT:
-		switch y.ctype {
+		switch y {
 		case CTYPE_INT:
 			return CTYPE_INT
 		case CTYPE_CHAR:
@@ -274,7 +275,7 @@ func result_type(op byte, a *Ast, b *Ast) CtypeInt {
 			errmsg = internal_err
 		}
 	case CTYPE_CHAR:
-		switch y.ctype {
+		switch y {
 		case CTYPE_CHAR:
 			return CTYPE_INT
 		case CTYPE_STR:
@@ -286,11 +287,17 @@ func result_type(op byte, a *Ast, b *Ast) CtypeInt {
 		errmsg = internal_err
 	}
 
+	return CTYPE_NULL
+}
+
+func result_type(op byte, a *Ast, b *Ast) CtypeInt {
+	errmsg = ""
+	ret := result_type_int(a.ctype, b.ctype)
 	if errmsg != "" {
 		_error(errmsg,
 			ast_to_string(a), ast_to_string(b), op)
 	}
-	return -1
+	return ret
 }
 
 func read_expr(prec int) *Ast {
@@ -329,7 +336,7 @@ func read_expr(prec int) *Ast {
 
 func get_ctype(tok *Token) CtypeInt {
 	if tok.typ != TTYPE_IDENT {
-		return -1
+		return CTYPE_NULL
 	}
 	if strcmp(tok.v.sval, []byte{'i', 'n', 't', 0}) == 0 {
 		return CTYPE_INT
@@ -340,11 +347,11 @@ func get_ctype(tok *Token) CtypeInt {
 	if strcmp(tok.v.sval, []byte{'s', 't', 'r', 'i', 'n', 'g', 0}) == 0 {
 		return CTYPE_STR
 	}
-	return -1
+	return CTYPE_NULL
 }
 
 func is_type_keyword(tok *Token) bool {
-	return get_ctype(tok) != -1
+	return get_ctype(tok) != CTYPE_NULL
 }
 
 func expect(punct byte) {

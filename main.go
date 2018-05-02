@@ -9,10 +9,8 @@ const EXPR_LEN = 100
 const MAX_ARGS = 6
 
 const (
-	AST_INT byte = iota
-	AST_CHAR
+	AST_LITERAL byte = iota
 	AST_VAR
-	AST_STR
 	AST_FUNCALL
 	AST_DECL
 )
@@ -85,7 +83,7 @@ func make_ast_op(typ byte, ctype CtypeInt, left *Ast, right *Ast) *Ast {
 
 func make_ast_int(val int) *Ast {
 	r := &Ast{}
-	r.typ = AST_INT
+	r.typ = AST_LITERAL
 	r.ctype = CTYPE_INT
 	r.ival = val
 	return r
@@ -108,7 +106,7 @@ func make_ast_var(ctype CtypeInt, vname []byte) *Ast {
 
 func make_ast_char(c byte) *Ast {
 	r := &Ast{}
-	r.typ = AST_CHAR
+	r.typ = AST_LITERAL
 	r.ctype = CTYPE_CHAR
 	r.c = c
 	return r
@@ -116,7 +114,7 @@ func make_ast_char(c byte) *Ast {
 
 func make_ast_string(str []byte) *Ast {
 	r := &Ast{}
-	r.typ = AST_STR
+	r.typ = AST_LITERAL
 	r.ctype = CTYPE_STR
 	r.str.val = str
 
@@ -447,12 +445,17 @@ func emit_binop(ast *Ast) {
 
 func emit_expr(ast *Ast) {
 	switch ast.typ {
-	case AST_INT:
-		printf("mov $%d, %%eax\n\t", ast.ival)
-	case AST_CHAR:
-		printf("mov $%d, %%eax\n\t", ast.c)
-	case AST_STR:
-		printf("lea .s%d(%%rip), %%rax\n\t", ast.str.id)
+	case AST_LITERAL:
+		switch ast.ctype {
+		case CTYPE_INT:
+			printf("mov $%d, %%eax\n\t", ast.ival)
+		case CTYPE_CHAR:
+			printf("mov $%d, %%eax\n\t", ast.c)
+		case CTYPE_STR:
+			printf("lea .s%d(%%rip), %%rax\n\t", ast.str.id)
+		default:
+			_error("internal error")
+		}
 	case AST_VAR:
 		printf("mov -%d(%%rbp), %%eax\n\t", ast.variable.pos*4)
 	case AST_FUNCALL:
@@ -497,12 +500,18 @@ func ctype_to_string(ctype CtypeInt) string {
 
 func ast_to_string_int(ast *Ast) string {
 	switch ast.typ {
-	case AST_INT:
-		return fmt.Sprintf("%d", ast.ival)
-	case AST_CHAR:
-		return fmt.Sprintf("'%c'", ast.c)
-	case AST_STR:
-		return fmt.Sprintf("\"%s\"", quote(ast.str.val))
+	case AST_LITERAL:
+		switch ast.ctype {
+		case CTYPE_INT:
+			return fmt.Sprintf("%d", ast.ival)
+		case CTYPE_CHAR:
+			return fmt.Sprintf("'%c'", ast.c)
+		case CTYPE_STR:
+			return fmt.Sprintf("\"%s\"", quote(ast.str.val))
+		default:
+			_error("internal error")
+			return ""
+		}
 	case AST_VAR:
 		return fmt.Sprintf("%s", bytes2string(ast.variable.name))
 	case AST_FUNCALL:

@@ -61,18 +61,20 @@ func make_char(c byte) *Token {
 	return r
 }
 
-func skip_space() {
+func getc_nonspace() (byte, error) {
+	var c byte
+	var err error
 	for {
-		c, err := getc(stdin)
+		c, err = getc(stdin)
 		if err != nil {
 			break
 		}
-		if isspace(c) {
+		if isspace(c) || c == byte('\n') || c == byte('\r') {
 			continue
 		}
-		ungetc(c, stdin)
-		return
+		return c,nil
 	}
+	return 0,err
 }
 
 func read_number(c byte) *Token {
@@ -158,8 +160,7 @@ func read_ident(c byte) *Token {
 }
 
 func read_token_init() *Token {
-	skip_space()
-	c, err := getc(stdin)
+	c, err := getc_nonspace()
 	if err != nil {
 		// EOF
 		return nil

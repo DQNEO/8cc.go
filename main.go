@@ -151,6 +151,10 @@ func find_var(name []byte) *Ast {
 	return nil
 }
 
+func is_right_assoc(op byte) bool {
+	return op == '='
+}
+
 func priority(op byte) int {
 	switch op {
 	case '=':
@@ -257,7 +261,14 @@ func read_expr(prec int) *Ast {
 		if is_punct(tok, '=') {
 			ensure_lvalue(ast)
 		}
-		rest := read_expr(prec2+1)
+
+		var prec_incr int
+		if is_right_assoc(tok.v.punct) {
+			prec_incr = 0
+		} else {
+			prec_incr = 1
+		}
+		rest := read_expr(prec2 + prec_incr)
 		ast = make_ast_op(tok.v.punct, ast, rest)
 	}
 	return ast

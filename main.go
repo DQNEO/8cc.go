@@ -73,7 +73,7 @@ func _error(format string, args ...interface{}) {
 	os.Exit(1)
 }
 
-func make_ast_op(typ byte, ctype CtypeInt, left *Ast, right *Ast) *Ast {
+func make_ast_binop(typ byte, ctype CtypeInt, left *Ast, right *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
 	r.ctype = ctype
@@ -329,7 +329,7 @@ func read_expr(prec int) *Ast {
 		}
 		rest := read_expr(prec2 + prec_incr)
 		ctype := result_type(tok.v.punct, ast, rest)
-		ast = make_ast_op(tok.v.punct, ctype, ast, rest)
+		ast = make_ast_binop(tok.v.punct, ctype, ast, rest)
 	}
 	return ast
 }

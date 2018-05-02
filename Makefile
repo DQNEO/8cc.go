@@ -1,10 +1,20 @@
 CFLAGS=-Wall -std=gnu99 -g
-OBJS=main.o lex.o string.o
+OBJS=lex.o string.o util.o
 
-#8cc: $(OBJS) 8gg
-#	$(CC) $(CFLAGS) -o $@ $(OBJS)
+
+$(OBJS) unittest.o main.o: 8cc.h
+
+#8cc: 8cc.h main.o $(OBJS)
+#	$(CC) $(CFLAGS) -o $@ main.o $(OBJS)
 8cc: 8gg
 	./build-hook.sh
+
+unittest: 8cc.h unittest.o $(OBJS)
+	$(CC) $(CFLAGS) -o $@ unittest.o $(OBJS)
+
+test: unittest
+	./unittest
+	./test.sh
 
 clean:
 	rm -f 8cc *.o tmp.*

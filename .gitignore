@@ -1,6 +1,6 @@
-8gg
+8gg.linux
+8gg.mac
 8cc
 *.o
 tmp.*
-8gg.linux
-8gg.mac
+unittest

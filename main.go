@@ -320,16 +320,18 @@ func read_decl_or_stmt() *Ast {
 	return r
 }
 
-func print_quote(sval []byte) {
+func quote(sval []byte) string {
+	var s string
 	for _, c := range sval {
 		if c == byte(0) {
 			break
 		}
 		if c == '"' || c == '\\' {
-			printf("\\")
+			s += "\\"
 		}
-		printf("%c", c)
+		s += fmt.Sprintf("%c", c)
 	}
+	return s
 }
 
 func emit_assign(variable *Ast, value *Ast) {
@@ -421,41 +423,40 @@ func ctype_to_string(ctype int) string {
 	return ""
 }
 
-func print_ast(ast *Ast) {
+func ast_to_string_int(ast *Ast) string {
 	switch ast.typ {
 	case AST_INT:
-		printf("%d", ast.ival)
+		return fmt.Sprintf("%d", ast.ival)
 	case AST_VAR:
-		printf("%s", bytes2string(ast.variable.name))
+		return fmt.Sprintf("%s", bytes2string(ast.variable.name))
 	case AST_CHAR:
-		printf("'%c'", ast.c)
+		return fmt.Sprintf("'%c'", ast.c)
 	case AST_STR:
-		printf("\"")
-		print_quote(ast.str.val)
-		printf("\"")
+		return fmt.Sprintf("\"%s\"", quote(ast.str.val))
 	case AST_FUNCALL:
-		printf("%s(", bytes2string(ast.funcall.fname))
+		s:= fmt.Sprintf("%s(", bytes2string(ast.funcall.fname))
 		for i := 0; ast.funcall.args[i] != nil; i++ {
-			print_ast(ast.funcall.args[i])
+			s += ast_to_string_int(ast.funcall.args[i])
 			if ast.funcall.args[i+1] != nil {
-				printf(",")
+				s += ","
 			}
 		}
-		printf(")")
+		s += ")"
+		return s
 	case AST_DECL:
-		printf("(decl %s %s ",
+		return fmt.Sprintf("(decl %s %s %s)",
 			ctype_to_string(ast.decl.decl_var.ctype),
-			bytes2string(ast.decl.decl_var.variable.name))
-		print_ast(ast.decl.decl_init)
-		printf(")")
+			bytes2string(ast.decl.decl_var.variable.name),
+			ast_to_string_int(ast.decl.decl_init))
 	default:
-		printf("(%c ", ast.typ)
-		print_ast(ast.op.left)
-		printf(" ")
-		print_ast(ast.op.right)
-		printf(")")
+		return fmt.Sprintf("(%c %s %s)", ast.typ, ast_to_string_int(ast.op.left), ast_to_string_int(ast.op.right))
 	}
 }
+
+func ast_to_string(ast *Ast) string {
+	return ast_to_string_int(ast)
+}
+
 
 func emit_data_section() {
 	if strings == nil {
@@ -464,9 +465,7 @@ func emit_data_section() {
 	printf("\t.data\n")
 	for p := strings; p != nil; p = p.str.next {
 		printf(".s%d:\n\t", p.str.id)
-		printf(".string \"")
-		print_quote(p.str.val)
-		printf("\"\n")
+		printf(".string \"%s\"\n", quote(p.str.val))
 	}
 	printf("\t")
 
@@ -492,7 +491,7 @@ func main() {
 	}
 	for i = 0; i < nexpr; i++ {
 		if wantast {
-			print_ast(exprs[i])
+			printf("%s", ast_to_string(exprs[i]))
 		} else {
 			emit_expr(exprs[i])
 		}

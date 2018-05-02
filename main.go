@@ -461,7 +461,9 @@ func ast_to_string_int(ast *Ast) string {
 			bytes2string(ast.decl.decl_var.variable.name),
 			ast_to_string_int(ast.decl.decl_init))
 	default:
-		return fmt.Sprintf("(%c %s %s)", ast.typ, ast_to_string_int(ast.op.left), ast_to_string_int(ast.op.right))
+		left := ast_to_string_int(ast.op.left)
+		right := ast_to_string_int(ast.op.right)
+		return fmt.Sprintf("(%c %s %s)", ast.typ, left, right)
 	}
 }
 

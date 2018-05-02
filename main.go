@@ -23,6 +23,7 @@ const (
 )
 
 const CTYPE_NULL CtypeInt = -1
+
 type CtypeInt int
 
 type Ast struct {
@@ -249,9 +250,10 @@ func ensure_lvalue(ast *Ast) {
 }
 
 var errmsg string
+
 func result_type_int(a CtypeInt, b CtypeInt) CtypeInt {
 	var x, y CtypeInt
-	if a > b  {
+	if a > b {
 		x, y = b, a
 	} else {
 		x, y = a, b
@@ -573,7 +575,7 @@ func main() {
 			"push %%rbp\n\t" +
 			"mov %%rsp, %%rbp\n\t")
 		if vars != nil {
-			printf("sub $%d, %%rsp\n\t", vars.variable.pos * 8)
+			printf("sub $%d, %%rsp\n\t", vars.variable.pos*8)
 		}
 	}
 	for i = 0; i < nexpr; i++ {
@@ -585,7 +587,7 @@ func main() {
 	}
 
 	if !wantast {
-		printf("leave\n\t"+
+		printf("leave\n\t" +
 			"ret\n")
 	}
 	return

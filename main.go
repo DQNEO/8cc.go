@@ -257,7 +257,8 @@ func read_expr(prec int) *Ast {
 		if is_punct(tok, '=') {
 			ensure_lvalue(ast)
 		}
-		ast = make_ast_op(tok.v.punct, ast, read_expr(prec2+1))
+		rest := read_expr(prec2+1)
+		ast = make_ast_op(tok.v.punct, ast, rest)
 	}
 	return ast
 }

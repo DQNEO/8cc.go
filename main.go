@@ -216,13 +216,12 @@ func read_expr2(prec int) *Ast {
 		if op == nil {
 			return ast
 		}
-		prec2 := priority(op.v.c)
+		prec2 := priority(op.v.punct)
 		if prec2 < prec {
-			ungetc(op.v.c, stdin)
+			unget_token(op)
 			return ast
 		}
-		skip_space()
-		ast = make_ast_op(op.v.c, ast, read_expr2(prec2+1))
+		ast = make_ast_op(op.v.punct, ast, read_expr(prec2+1))
 	}
 	return ast
 }

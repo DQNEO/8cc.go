@@ -43,7 +43,7 @@ func make_strtok(s []byte) *Token {
 func make_punct(punct byte) *Token {
 	r := &Token{}
 	r.typ = TTYPE_PUNCT
-	r.v.c = punct
+	r.v.punct = punct
 	return r
 }
 
@@ -209,7 +209,7 @@ func is_punct(tok *Token, c byte) bool {
 	if tok == nil {
 		_error("Token is null")
 	}
-	return tok.typ == TTYPE_PUNCT && tok.v.c == c
+	return tok.typ == TTYPE_PUNCT && tok.v.punct == c
 }
 
 func unget_token(tok *Token) {

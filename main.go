@@ -239,21 +239,25 @@ func ensure_lvalue(ast *Ast) {
 
 func read_expr(prec int) *Ast {
 	ast := read_prim()
+	if ast == nil {
+		return nil
+	}
 	for {
-		op := read_token()
-		if op == nil {
+		tok := read_token()
+		if tok.typ != TTYPE_PUNCT {
+			unget_token(tok)
 			return ast
 		}
-		prec2 := priority(op.v.punct)
-		if prec2 < prec {
-			unget_token(op)
+		prec2 := priority(tok.v.punct)
+		if prec2 < 0 || prec2 < prec {
+			unget_token(tok)
 			return ast
 		}
 
-		if (is_punct(op, '=')) {
+		if (is_punct(tok, '=')) {
 			ensure_lvalue(ast)
 		}
-		ast = make_ast_op(op.v.punct, ast, read_expr(prec2+1))
+		ast = make_ast_op(tok.v.punct, ast, read_expr(prec2+1))
 	}
 	return ast
 }

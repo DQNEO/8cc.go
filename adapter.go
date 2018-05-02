@@ -57,11 +57,15 @@ func isalnum(c byte) bool {
 }
 
 func strcmp(a []byte, b []byte) int {
-	if string(a) == string(b) {
-		return 0
-	} else {
-		return 1
+	for i:= 0;i < len(a);i++ {
+		if a[i] != b[i] {
+			return -1
+		}
+		if a[i] == 0 {
+			break
+		}
 	}
+	return 0
 }
 
 func bytes2string(b []byte) string {

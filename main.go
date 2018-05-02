@@ -300,8 +300,16 @@ func result_type(op byte, a *Ast, b *Ast) CtypeInt {
 	return ret
 }
 
+func read_unary_expr() *Ast {
+	tok := read_token()
+	// do something
+	// return on some condition
+	unget_token(tok)
+	return read_prim()
+}
+
 func read_expr(prec int) *Ast {
-	ast := read_prim()
+	ast := read_unary_expr()
 	if ast == nil {
 		return nil
 	}

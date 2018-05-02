@@ -72,9 +72,9 @@ func getc_nonspace() (byte, error) {
 		if isspace(c) || c == byte('\n') || c == byte('\r') {
 			continue
 		}
-		return c,nil
+		return c, nil
 	}
-	return 0,err
+	return 0, err
 }
 
 func read_number(c byte) *Token {

@@ -25,7 +25,7 @@ const (
 )
 
 type Ast struct {
-	typ byte
+	typ   byte
 	ctype int
 	// want to be "union"
 	// Integer
@@ -203,7 +203,7 @@ func read_ident_or_func(name []byte) *Ast {
 
 	v := find_var(name)
 	if v == nil {
-		_error("Undefined varaible: %s", name);
+		_error("Undefined varaible: %s", name)
 	}
 	return v
 }
@@ -254,7 +254,7 @@ func read_expr(prec int) *Ast {
 			return ast
 		}
 
-		if (is_punct(tok, '=')) {
+		if is_punct(tok, '=') {
 			ensure_lvalue(ast)
 		}
 		ast = make_ast_op(tok.v.punct, ast, read_expr(prec2+1))
@@ -266,13 +266,13 @@ func get_ctype(tok *Token) int {
 	if tok.typ != TTYPE_IDENT {
 		return -1
 	}
-	if strcmp(tok.v.sval, []byte{'i','n','t',0}) == 0 {
+	if strcmp(tok.v.sval, []byte{'i', 'n', 't', 0}) == 0 {
 		return CTYPE_INT
 	}
-	if strcmp(tok.v.sval, []byte{'c','h','a','r', 0}) == 0 {
+	if strcmp(tok.v.sval, []byte{'c', 'h', 'a', 'r', 0}) == 0 {
 		return CTYPE_CHAR
 	}
-	if strcmp(tok.v.sval, []byte{'s','t','r','i','n','g',0}) == 0 {
+	if strcmp(tok.v.sval, []byte{'s', 't', 'r', 'i', 'n', 'g', 0}) == 0 {
 		return CTYPE_STR
 	}
 	return -1
@@ -288,7 +288,6 @@ func expect(punct byte) {
 		_error("%punct expected but got %s", punct, token_to_string(tok))
 	}
 }
-
 
 func read_decl() *Ast {
 	ctype := get_ctype(read_token())
@@ -335,7 +334,7 @@ func print_quote(sval []byte) {
 
 func emit_assign(variable *Ast, value *Ast) {
 	emit_expr(value)
-	printf("mov %%eax, -%d(%%rbp)\n\t", variable.variable.pos * 4)
+	printf("mov %%eax, -%d(%%rbp)\n\t", variable.variable.pos*4)
 }
 
 func emit_binop(ast *Ast) {

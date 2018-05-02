@@ -446,7 +446,7 @@ func print_ast(ast *Ast) {
 	case AST_DECL:
 		printf("(decl %s %s ",
 			ctype_to_string(ast.decl.decl_var.ctype),
-				ast.decl.decl_var.variable.name)
+			bytes2string(ast.decl.decl_var.variable.name))
 		print_ast(ast.decl.decl_init)
 		printf(")")
 	default:

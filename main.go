@@ -18,15 +18,17 @@ const (
 )
 
 const (
-	CTYPE_VOID int = iota
+	CTYPE_VOID CtypeInt = iota
 	CTYPE_INT
 	CTYPE_CHAR
 	CTYPE_STR
 )
 
+type CtypeInt int
+
 type Ast struct {
 	typ   byte
-	ctype int
+	ctype CtypeInt
 	// want to be "union"
 	// Integer
 	ival int
@@ -71,7 +73,7 @@ func _error(format string, args ...interface{}) {
 	os.Exit(1)
 }
 
-func make_ast_op(typ byte, ctype int, left *Ast, right *Ast) *Ast {
+func make_ast_op(typ byte, ctype CtypeInt, left *Ast, right *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
 	r.ctype = ctype
@@ -88,7 +90,7 @@ func make_ast_int(val int) *Ast {
 	return r
 }
 
-func make_ast_var(ctype int, vname []byte) *Ast {
+func make_ast_var(ctype CtypeInt, vname []byte) *Ast {
 	r := &Ast{}
 	r.typ = AST_VAR
 	r.ctype = ctype
@@ -247,7 +249,7 @@ func ensure_lvalue(ast *Ast) {
 	}
 }
 
-func result_type(op byte, a *Ast, b *Ast) int {
+func result_type(op byte, a *Ast, b *Ast) CtypeInt {
 	var x, y *Ast
 	if a.ctype > b.ctype {
 		x, y = b, a
@@ -325,7 +327,7 @@ func read_expr(prec int) *Ast {
 	return ast
 }
 
-func get_ctype(tok *Token) int {
+func get_ctype(tok *Token) CtypeInt {
 	if tok.typ != TTYPE_IDENT {
 		return -1
 	}
@@ -469,7 +471,7 @@ func emit_expr(ast *Ast) {
 	}
 }
 
-func ctype_to_string(ctype int) string {
+func ctype_to_string(ctype CtypeInt) string {
 	switch ctype {
 	case CTYPE_VOID:
 		return "void"

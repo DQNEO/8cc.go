@@ -406,7 +406,7 @@ func quote(sval []byte) string {
 
 func emit_assign(variable *Ast, value *Ast) {
 	emit_expr(value)
-	printf("mov %%eax, -%d(%%rbp)\n\t", variable.variable.pos*4)
+	printf("mov %%rax, -%d(%%rbp)\n\t", variable.variable.pos*8)
 }
 
 func emit_binop(ast *Ast) {
@@ -433,13 +433,13 @@ func emit_binop(ast *Ast) {
 	printf("push %%rax\n\t")
 	emit_expr(ast.op.right)
 	if ast.typ == '/' {
-		printf("mov %%eax, %%ebx\n\t")
+		printf("mov %%rax, %%rbx\n\t")
 		printf("pop %%rax\n\t")
 		printf("mov $0, %%edx\n\t")
-		printf("idiv %%ebx\n\t")
+		printf("idiv %%rbx\n\t")
 	} else {
 		printf("pop %%rbx\n\t")
-		printf("%s %%ebx, %%eax\n\t", op)
+		printf("%s %%rbx, %%rax\n\t", op)
 	}
 }
 
@@ -448,16 +448,16 @@ func emit_expr(ast *Ast) {
 	case AST_LITERAL:
 		switch ast.ctype {
 		case CTYPE_INT:
-			printf("mov $%d, %%eax\n\t", ast.ival)
+			printf("mov $%d, %%rax\n\t", ast.ival)
 		case CTYPE_CHAR:
-			printf("mov $%d, %%eax\n\t", ast.c)
+			printf("mov $%d, %%rax\n\t", ast.c)
 		case CTYPE_STR:
 			printf("lea .s%d(%%rip), %%rax\n\t", ast.str.id)
 		default:
 			_error("internal error")
 		}
 	case AST_VAR:
-		printf("mov -%d(%%rbp), %%eax\n\t", ast.variable.pos*4)
+		printf("mov -%d(%%rbp), %%rax\n\t", ast.variable.pos*8)
 	case AST_FUNCALL:
 		for i := 0; i < ast.funcall.nargs; i++ {
 			printf("push %%%s\n\t", REGS[i])
@@ -469,7 +469,7 @@ func emit_expr(ast *Ast) {
 		for i := ast.funcall.nargs - 1; i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
-		printf("mov $0, %%eax\n\t")
+		printf("mov $0, %%rax\n\t")
 		printf("call %s\n\t", bytes2string(ast.funcall.fname))
 		for i := ast.funcall.nargs - 1; i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
@@ -569,7 +569,12 @@ func main() {
 		emit_data_section()
 		printf(".text\n\t" +
 			".global mymain\n" +
-			"mymain:\n\t")
+			"mymain:\n\t" +
+			"push %%rbp\n\t" +
+			"mov %%rsp, %%rbp\n\t")
+		if vars != nil {
+			printf("sub $%d, %%rsp\n\t", vars.variable.pos * 8)
+		}
 	}
 	for i = 0; i < nexpr; i++ {
 		if wantast {
@@ -580,7 +585,8 @@ func main() {
 	}
 
 	if !wantast {
-		printf("ret\n")
+		printf("leave\n\t"+
+			"ret\n")
 	}
 	return
 }

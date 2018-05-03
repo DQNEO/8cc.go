@@ -13,6 +13,7 @@ const (
 	AST_VAR
 	AST_FUNCALL
 	AST_DECL
+	AST_ADDR
 )
 
 const (
@@ -20,6 +21,7 @@ const (
 	CTYPE_INT
 	CTYPE_CHAR
 	CTYPE_STR
+	CTYPE_P_TO_INT
 )
 
 const CTYPE_NULL CtypeInt = -1
@@ -62,6 +64,8 @@ type Ast struct {
 		decl_var  *Ast
 		decl_init *Ast
 	}
+	// Address
+	operand *Ast
 }
 
 var vars *Ast
@@ -71,6 +75,14 @@ var REGS = []string{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}
 func _error(format string, args ...interface{}) {
 	panic(fmt.Sprintf(format, args...))
 	os.Exit(1)
+}
+
+func make_ast_uop(typ byte, ctype CtypeInt, operand *Ast) *Ast {
+	r := &Ast{}
+	r.typ = typ
+	r.ctype = ctype
+	r.operand = operand
+	return r
 }
 
 func make_ast_binop(typ byte, ctype CtypeInt, left *Ast, right *Ast) *Ast {
@@ -302,6 +314,11 @@ func result_type(op byte, a *Ast, b *Ast) CtypeInt {
 
 func read_unary_expr() *Ast {
 	tok := read_token()
+	if is_punct(tok, '&') {
+		operand := read_unary_expr()
+		ensure_lvalue(operand)
+		return make_ast_uop(AST_ADDR, CTYPE_P_TO_INT, operand)
+	}
 	// do something
 	// return on some condition
 	unget_token(tok)
@@ -371,11 +388,17 @@ func expect(punct byte) {
 
 func read_decl() *Ast {
 	ctype := get_ctype(read_token())
-	name := read_token()
-	if name.typ != TTYPE_IDENT {
-		_error("Identifier expected, but got %s", token_to_string(name))
+	tok := read_token()
+	if is_punct(tok, '*') {
+		// pointer
+		ctype = CTYPE_P_TO_INT // @FIXME
+		tok = read_token()
 	}
-	variable := make_ast_var(ctype, name.v.sval)
+
+	if tok.typ != TTYPE_IDENT {
+		_error("Identifier expected, but got %s", token_to_string(tok))
+	}
+	variable := make_ast_var(ctype, tok.v.sval)
 	expect('=')
 	init := read_expr(0)
 	return make_ast_decl(variable, init)
@@ -486,6 +509,8 @@ func emit_expr(ast *Ast) {
 		}
 	case AST_DECL:
 		emit_assign(ast.decl.decl_var, ast.decl.decl_init)
+	case AST_ADDR:
+		printf("lea -%d(%%rbp), %%rax\n\t" ,ast.operand.variable.pos * 8)
 	default:
 		emit_binop(ast)
 	}
@@ -501,6 +526,8 @@ func ctype_to_string(ctype CtypeInt) string {
 		return "char"
 	case CTYPE_STR:
 		return "string"
+	case CTYPE_P_TO_INT:
+		return "int*"
 	default:
 		_error("Unknown ctype: %d", ctype)
 	}
@@ -539,6 +566,8 @@ func ast_to_string_int(ast *Ast) string {
 			ctype_to_string(ast.decl.decl_var.ctype),
 			bytes2string(ast.decl.decl_var.variable.name),
 			ast_to_string_int(ast.decl.decl_init))
+	case AST_ADDR:
+		return fmt.Sprintf("(& %s)", ast_to_string(ast.operand))
 	default:
 		left := ast_to_string_int(ast.op.left)
 		right := ast_to_string_int(ast.op.right)

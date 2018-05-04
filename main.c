@@ -66,8 +66,8 @@ typedef struct Ast {
     };
     // Declaration
     struct {
-      struct Ast *decl_var;
-      struct Ast *decl_init;
+      struct Ast *declvar;
+      struct Ast *declinit;
     };
   };
 } Ast;
@@ -159,8 +159,8 @@ static Ast *make_ast_decl(Ast *var, Ast *init) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_DECL;
   r->ctype = NULL;
-  r->decl_var = var;
-  r->decl_init = init;
+  r->declvar = var;
+  r->declinit = init;
   return r;
 }
 
@@ -490,7 +490,7 @@ static void emit_expr(Ast *ast) {
         printf("pop %%%s\n\t", REGS[i]);
       break;
     case AST_DECL:
-      emit_assign(ast->decl_var, ast->decl_init);
+      emit_assign(ast->declvar, ast->declinit);
       return;
     case AST_ADDR:
       assert(ast->operand->type == AST_VAR);
@@ -578,9 +578,9 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       break;
     case AST_DECL:
       string_appendf(buf, "(decl %s %s %s)",
-                     ctype_to_string(ast->decl_var->ctype),
-                     ast->decl_var->vname,
-                     ast_to_string(ast->decl_init));
+                     ctype_to_string(ast->declvar->ctype),
+                     ast->declvar->vname,
+                     ast_to_string(ast->declinit));
       break;
     case AST_ADDR:
       string_appendf(buf, "(& %s)", ast_to_string(ast->operand));

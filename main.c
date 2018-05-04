@@ -248,13 +248,13 @@ static Ast *read_prim(void) {
 #define swap(a, b)                              \
   { typeof(a) tmp = b; b = a; a = tmp; }
 
-static Ctype *result_type_int(jmp_buf *jmpbuf, Ctype *a, Ctype *b) {
+static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
   if (a->type == CTYPE_PTR) {
     if (b->type != CTYPE_PTR)
       goto err;
     Ctype *r = malloc(sizeof(Ctype));
     r->type = CTYPE_PTR;
-    r->ptr = result_type_int(jmpbuf, a->ptr, b->ptr);
+    r->ptr = result_type_int(jmpbuf, op, a->ptr, b->ptr);
     return r;
   }
   if (a->type > b->type)
@@ -291,7 +291,7 @@ err:
 static Ctype *result_type(char op, Ast *a, Ast *b) {
   jmp_buf jmpbuf;
   if (setjmp(jmpbuf) == 0)
-    return result_type_int(&jmpbuf, a->ctype, b->ctype);
+    return result_type_int(&jmpbuf, op, a->ctype, b->ctype);
   error("incompatible operands: %c: <%s> and <%s>",
         op, ast_to_string(a), ast_to_string(b));
 }

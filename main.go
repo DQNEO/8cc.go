@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"errors"
 )
 
 const EXPR_LEN = 100
@@ -277,7 +278,7 @@ func ensure_lvalue(ast *Ast) {
 var errmsg string
 
 func result_type_int(a *Ctype, b *Ctype) (*Ctype, error) {
-	default_err := fmt.Errorf("error:")
+	default_err := errors.New("")
 	var err error
 	if a.typ == CTYPE_PTR {
 		if b.typ != CTYPE_PTR {

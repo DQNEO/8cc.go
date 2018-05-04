@@ -106,6 +106,14 @@ func make_ast_int(val int) *Ast {
 	return r
 }
 
+func make_ast_char(c byte) *Ast {
+	r := &Ast{}
+	r.typ = AST_LITERAL
+	r.ctype = ctype_char
+	r.c = c
+	return r
+}
+
 func make_ast_var(ctype *Ctype, vname []byte) *Ast {
 	r := &Ast{}
 	r.typ = AST_VAR
@@ -118,14 +126,6 @@ func make_ast_var(ctype *Ctype, vname []byte) *Ast {
 	}
 	r.variable.next = vars
 	vars = r
-	return r
-}
-
-func make_ast_char(c byte) *Ast {
-	r := &Ast{}
-	r.typ = AST_LITERAL
-	r.ctype = ctype_char
-	r.c = c
 	return r
 }
 
@@ -266,12 +266,6 @@ func read_prim() *Ast {
 	return nil
 }
 
-func ensure_lvalue(ast *Ast) {
-	if ast.typ != AST_VAR {
-		_error("variable expected")
-	}
-}
-
 func result_type_int(a *Ctype, b *Ctype) (*Ctype, error) {
 	default_err := errors.New("")
 	var err error
@@ -329,6 +323,12 @@ func result_type(op byte, a *Ast, b *Ast) *Ctype {
 			op, ast_to_string(a), ast_to_string(b))
 	}
 	return ret
+}
+
+func ensure_lvalue(ast *Ast) {
+	if ast.typ != AST_VAR {
+		_error("variable expected")
+	}
 }
 
 func read_unary_expr() *Ast {
@@ -450,20 +450,6 @@ func read_decl_or_stmt() *Ast {
 	return r
 }
 
-func quote(sval []byte) string {
-	var s string
-	for _, c := range sval {
-		if c == byte(0) {
-			break
-		}
-		if c == '"' || c == '\\' {
-			s += "\\"
-		}
-		s += fmt.Sprintf("%c", c)
-	}
-	return s
-}
-
 func emit_assign(variable *Ast, value *Ast) {
 	emit_expr(value)
 	printf("mov %%rax, -%d(%%rbp)\n\t", variable.variable.pos*8)
@@ -546,6 +532,20 @@ func emit_expr(ast *Ast) {
 	default:
 		emit_binop(ast)
 	}
+}
+
+func quote(sval []byte) string {
+	var s string
+	for _, c := range sval {
+		if c == byte(0) {
+			break
+		}
+		if c == '"' || c == '\\' {
+			s += "\\"
+		}
+		s += fmt.Sprintf("%c", c)
+	}
+	return s
 }
 
 func ctype_to_string(ctype *Ctype) string {

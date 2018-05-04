@@ -85,7 +85,7 @@ static Ast *read_expr(int prec);
 static char *ast_to_string(Ast *ast);
 static char *ctype_to_string(Ctype *ctype);
 
-static Ast *make_ast_uop(char type, Ctype *ctype, Ast *operand) {
+static Ast *ast_uop(char type, Ctype *ctype, Ast *operand) {
   Ast *r = malloc(sizeof(Ast));
   r->type = type;
   r->ctype = ctype;
@@ -93,7 +93,7 @@ static Ast *make_ast_uop(char type, Ctype *ctype, Ast *operand) {
   return r;
 }
 
-static Ast *make_ast_binop(char type, Ctype *ctype, Ast *left, Ast *right) {
+static Ast *ast_binop(char type, Ctype *ctype, Ast *left, Ast *right) {
   Ast *r = malloc(sizeof(Ast));
   r->type = type;
   r->ctype = ctype;
@@ -102,7 +102,7 @@ static Ast *make_ast_binop(char type, Ctype *ctype, Ast *left, Ast *right) {
   return r;
 }
 
-static Ast *make_ast_int(int val) {
+static Ast *ast_int(int val) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_LITERAL;
   r->ctype = ctype_int;
@@ -110,7 +110,7 @@ static Ast *make_ast_int(int val) {
   return r;
 }
 
-static Ast *make_ast_char(char c) {
+static Ast *ast_char(char c) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_LITERAL;
   r->ctype = ctype_char;
@@ -129,7 +129,7 @@ static Ast *make_ast_var(Ctype *ctype, char *vname) {
   return r;
 }
 
-static Ast *make_ast_string(char *str) {
+static Ast *ast_string(char *str) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_LITERAL;
   r->ctype = ctype_array;
@@ -145,7 +145,7 @@ static Ast *make_ast_string(char *str) {
   return r;
 }
 
-static Ast *make_ast_funcall(char *fname, int nargs, Ast **args) {
+static Ast *ast_funcall(char *fname, int nargs, Ast **args) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_FUNCALL;
   r->ctype = ctype_int;
@@ -155,7 +155,7 @@ static Ast *make_ast_funcall(char *fname, int nargs, Ast **args) {
   return r;
 }
 
-static Ast *make_ast_decl(Ast *var, Ast *init) {
+static Ast *ast_decl(Ast *var, Ast *init) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_DECL;
   r->ctype = NULL;
@@ -212,7 +212,7 @@ static Ast *read_func_args(char *fname) {
   }
   if (i == MAX_ARGS)
     error("Too many arguments: %s", fname);
-  return make_ast_funcall(fname, nargs, args);
+  return ast_funcall(fname, nargs, args);
 }
 
 static Ast *read_ident_or_func(char *name) {
@@ -233,11 +233,11 @@ static Ast *read_prim(void) {
     case TTYPE_IDENT:
       return read_ident_or_func(tok->sval);
     case TTYPE_INT:
-      return make_ast_int(tok->ival);
+      return ast_int(tok->ival);
     case TTYPE_CHAR:
-      return make_ast_char(tok->c);
+      return ast_char(tok->c);
     case TTYPE_STRING:
-      return make_ast_string(tok->sval);
+      return ast_string(tok->sval);
     case TTYPE_PUNCT:
       error("unexpected character: '%c'", tok->punct);
     default:
@@ -296,13 +296,13 @@ static Ast *read_unary_expr(void) {
   if (is_punct(tok, '&')) {
     Ast *operand = read_unary_expr();
     ensure_lvalue(operand);
-    return make_ast_uop(AST_ADDR, make_ptr_type(operand->ctype), operand);
+    return ast_uop(AST_ADDR, make_ptr_type(operand->ctype), operand);
   }
   if (is_punct(tok, '*')) {
     Ast *operand = read_unary_expr();
     if (operand->ctype->type != CTYPE_PTR)
       error("pointer type expected, but got %s", ast_to_string(operand));
-    return make_ast_uop(AST_DEREF, operand->ctype->ptr, operand);
+    return ast_uop(AST_DEREF, operand->ctype->ptr, operand);
   }
   unget_token(tok);
   return read_prim();
@@ -329,7 +329,7 @@ static Ast *read_expr(int prec) {
     if (ctype->type == CTYPE_PTR &&
         ast->ctype->type != CTYPE_PTR)
       swap(ast, rest);
-    ast = make_ast_binop(tok->punct, ctype, ast, rest);
+    ast = ast_binop(tok->punct, ctype, ast, rest);
   }
 }
 
@@ -368,7 +368,7 @@ static Ast *read_decl(void) {
   Ast *var = make_ast_var(ctype, tok->sval);
   expect('=');
   Ast *init = read_expr(0);
-  return make_ast_decl(var, init);
+  return ast_decl(var, init);
 }
 
 static Ast *read_decl_or_stmt(void) {

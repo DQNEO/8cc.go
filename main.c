@@ -78,7 +78,7 @@ static char *REGS[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 static Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL };
 static Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL };
-static Ctype *ctype_array = &(Ctype){ CTYPE_ARRAY, NULL };
+static Ctype *ctype_array = &(Ctype){ CTYPE_ARRAY, &(Ctype){ CTYPE_CHAR, NULL } };
 
 static void emit_expr(Ast *ast);
 static Ast *read_expr(int prec);
@@ -270,7 +270,7 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
     case CTYPE_CHAR:
       return ctype_int;
     case CTYPE_ARRAY:
-      goto err;
+      return result_type_int(jmpbuf, op, make_ptr_type(a->ptr), b);
     default:
       error("internal error");
   }
@@ -386,9 +386,38 @@ static void emit_assign(Ast *var, Ast *value) {
   printf("mov %%rax, -%d(%%rbp)\n\t", var->vpos * 8);
 }
 
+static int ctype_shift(Ctype *ctype) {
+  switch (ctype->type) {
+    case CTYPE_CHAR: return 0;
+    case CTYPE_INT: return 2;
+    default: return 3;
+  }
+}
+
+static int ctype_size(Ctype *ctype) {
+  return 1 << ctype_shift(ctype);
+}
+
+static void emit_pointer_arith(char op, Ast *left, Ast *right) {
+  assert(left->ctype->type == CTYPE_PTR);
+  emit_expr(left);
+  printf("push %%rax\n\t");
+  emit_expr(right);
+  int shift = ctype_shift(left->ctype);
+  if (shift > 0)
+    printf("sal $%d, %%rax\n\t", shift);
+  printf("mov %%rax, %%rbx\n\t"
+         "pop %%rax\n\t"
+         "add %%rbx, %%rax\n\t");
+}
+
 static void emit_binop(Ast *ast) {
   if (ast->type == '=') {
     emit_assign(ast->left, ast->right);
+    return;
+  }
+  if (ast->ctype->type == CTYPE_PTR) {
+    emit_pointer_arith(ast->type, ast->left, ast->right);
     return;
   }
   char *op;
@@ -418,7 +447,7 @@ static void emit_expr(Ast *ast) {
     case AST_LITERAL:
       switch (ast->ctype->type) {
         case CTYPE_INT:
-          printf("mov $%d, %%rax\n\t", ast->ival);
+          printf("mov $%d, %%eax\n\t", ast->ival);
           break;
         case CTYPE_CHAR:
           printf("mov $%d, %%rax\n\t", ast->c);
@@ -431,7 +460,20 @@ static void emit_expr(Ast *ast) {
       }
       break;
     case AST_VAR:
-      printf("mov -%d(%%rbp), %%rax\n\t", ast->vpos * 8);
+      switch (ctype_size(ast->ctype)) {
+        case 1:
+          printf("mov $0, %%eax\n\t");
+          printf("mov -%d(%%rbp), %%al\n\t", ast->vpos * 8);
+          break;
+        case 4:
+          printf("mov -%d(%%rbp), %%eax\n\t", ast->vpos * 8);
+          break;
+        case 8:
+          printf("mov -%d(%%rbp), %%rax\n\t", ast->vpos * 8);
+          break;
+        default:
+          error("internal error");
+      }
       break;
     case AST_FUNCALL:
       for (int i = 1; i < ast->nargs; i++)
@@ -442,7 +484,7 @@ static void emit_expr(Ast *ast) {
       }
       for (int i = ast->nargs - 1; i >= 0; i--)
         printf("pop %%%s\n\t", REGS[i]);
-      printf("mov $0, %%rax\n\t");
+      printf("mov $0, %%eax\n\t");
       printf("call %s\n\t", ast->fname);
       for (int i = ast->nargs - 1; i > 0; i--)
         printf("pop %%%s\n\t", REGS[i]);
@@ -457,7 +499,16 @@ static void emit_expr(Ast *ast) {
     case AST_DEREF:
       assert(ast->operand->ctype->type == CTYPE_PTR);
       emit_expr(ast->operand);
-      printf("mov (%%rax), %%rax\n\t");
+      char *reg;
+      switch (ctype_size(ast->ctype)) {
+        case 1: reg = "%bl";  break;
+        case 4: reg = "%ebx"; break;
+        case 8: reg = "%rbx"; break;
+        default: error("internal error");
+      }
+      printf("mov $0, %%ebx\n\t");
+      printf("mov (%%rax), %s\n\t", reg);
+      printf("mov %%rbx, %%rax\n\t");
       break;
     default:
       emit_binop(ast);
@@ -480,11 +531,16 @@ static char *ctype_to_string(Ctype *ctype) {
     case CTYPE_VOID: return "void";
     case CTYPE_INT:  return "int";
     case CTYPE_CHAR: return "char";
-    case CTYPE_ARRAY:  return "string";
     case CTYPE_PTR: {
       String *s = make_string();
       string_appendf(s, "%s", ctype_to_string(ctype->ptr));
       string_append(s, '*');
+      return get_cstring(s);
+    }
+    case CTYPE_ARRAY: {
+      String *s = make_string();
+      string_appendf(s, "%s", ctype_to_string(ctype->ptr));
+      string_appendf(s, "[]");
       return get_cstring(s);
     }
     default: error("Unknown ctype: %d", ctype);

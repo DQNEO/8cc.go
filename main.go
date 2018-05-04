@@ -79,7 +79,7 @@ var REGS = []string{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}
 
 var ctype_int = &Ctype{CTYPE_INT, nil}
 var ctype_char = &Ctype{CTYPE_CHAR, nil}
-var ctype_array = &Ctype{CTYPE_ARRAY, nil}
+var ctype_array = &Ctype{CTYPE_ARRAY, &Ctype{CTYPE_CHAR, nil}}
 
 func make_ast_uop(typ byte, ctype *Ctype, operand *Ast) *Ast {
 	r := &Ast{}
@@ -300,7 +300,7 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 	case CTYPE_CHAR:
 		return ctype_int, nil
 	case CTYPE_ARRAY:
-		return nil, default_err
+		return result_type_int(op, make_ptr_type(a.ptr), b)
 	default:
 		_error("internal error")
 	}
@@ -450,12 +450,45 @@ func emit_assign(variable *Ast, value *Ast) {
 	printf("mov %%rax, -%d(%%rbp)\n\t", variable.variable.pos*8)
 }
 
+func ctype_shift(ctype *Ctype) uint {
+	switch ctype.typ {
+	case CTYPE_CHAR:
+		return 0
+	case CTYPE_INT:
+		return 2
+	default:
+		return 3
+	}
+}
+
+func ctype_size(ctype *Ctype) int {
+	return 1 << ctype_shift(ctype)
+}
+
+func emit_pointer_arith(op byte, left *Ast, right *Ast) {
+	assert(left.ctype.typ == CTYPE_PTR)
+	emit_expr(left)
+	printf("push %%rax\n\t")
+	emit_expr(right)
+	shift := ctype_shift(left.ctype)
+	if shift > 0 {
+		printf("sal $%d, %%rax\n\t", shift)
+	}
+	printf("mov %%rax, %%rbx\n\t"+
+		"pop %%rax\n\t"+
+		"add %%rbx, %%rax\n\t")
+}
+
 func emit_binop(ast *Ast) {
 	if ast.typ == '=' {
 		emit_assign(ast.binop.left, ast.binop.right)
 		return
 	}
 
+	if ast.ctype.typ == CTYPE_PTR {
+		emit_pointer_arith(ast.typ, ast.binop.left, ast.binop.right)
+		return
+	}
 	var op string
 	switch ast.typ {
 	case '+':
@@ -489,7 +522,7 @@ func emit_expr(ast *Ast) {
 	case AST_LITERAL:
 		switch ast.ctype.typ {
 		case CTYPE_INT:
-			printf("mov $%d, %%rax\n\t", ast.ival)
+			printf("mov $%d, %%eax\n\t", ast.ival)
 		case CTYPE_CHAR:
 			printf("mov $%d, %%rax\n\t", ast.c)
 		case CTYPE_ARRAY:
@@ -498,7 +531,17 @@ func emit_expr(ast *Ast) {
 			_error("internal error")
 		}
 	case AST_VAR:
-		printf("mov -%d(%%rbp), %%rax\n\t", ast.variable.pos*8)
+		switch ctype_size(ast.ctype) {
+		case 1:
+			printf("mov $0, %%eax\n\t")
+			printf("mov -%d(%%rbp), %%al\n\t", ast.variable.pos * 8)
+		case 4:
+			printf("mov -%d(%%rbp), %%eax\n\t", ast.variable.pos * 8)
+		case 8:
+			printf("mov -%d(%%rbp), %%rax\n\t", ast.variable.pos * 8)
+		default:
+			_error("internal error")
+		}
 	case AST_FUNCALL:
 		for i := 0; i < ast.funcall.nargs; i++ {
 			printf("push %%%s\n\t", REGS[i])
@@ -510,7 +553,7 @@ func emit_expr(ast *Ast) {
 		for i := ast.funcall.nargs - 1; i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
-		printf("mov $0, %%rax\n\t")
+		printf("mov $0, %%eax\n\t")
 		printf("call %s\n\t", bytes2string(ast.funcall.fname))
 		for i := ast.funcall.nargs - 1; i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
@@ -523,7 +566,20 @@ func emit_expr(ast *Ast) {
 	case AST_DEREF:
 		assert(ast.unary.operand.ctype.typ == CTYPE_PTR)
 		emit_expr(ast.unary.operand)
-		printf("mov (%%rax), %%rax\n\t")
+		var reg string
+		switch ctype_size(ast.ctype) {
+		case 1:
+			reg = "%bl"
+		case 4:
+			reg = "%ebx"
+		case 8:
+			reg = "%rbx"
+		default:
+			_error("internal error")
+		}
+		printf("mov $0, %%ebx\n\t")
+		printf("mov (%%rax), %s\n\t", reg)
+		printf("mov %%rbx, %%rax\n\t")
 	default:
 		emit_binop(ast)
 	}
@@ -551,10 +607,10 @@ func ctype_to_string(ctype *Ctype) string {
 		return "int"
 	case CTYPE_CHAR:
 		return "char"
-	case CTYPE_ARRAY:
-		return "string"
 	case CTYPE_PTR:
 		return fmt.Sprintf("%s*", ctype_to_string(ctype.ptr))
+	case CTYPE_ARRAY:
+		return fmt.Sprintf("%s[]", ctype_to_string(ctype.ptr))
 	default:
 		_error("Unknown ctype: %d", ctype)
 	}

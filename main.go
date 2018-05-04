@@ -1,9 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
-	"errors"
 )
 
 const EXPR_LEN = 100
@@ -298,9 +298,9 @@ func result_type_int(a *Ctype, b *Ctype) (*Ctype, error) {
 	case CTYPE_INT:
 		switch b.typ {
 		case CTYPE_INT:
-			return ctype_int,nil
+			return ctype_int, nil
 		case CTYPE_CHAR:
-			return ctype_int,nil
+			return ctype_int, nil
 		case CTYPE_STR:
 			return nil, default_err
 		}
@@ -308,7 +308,7 @@ func result_type_int(a *Ctype, b *Ctype) (*Ctype, error) {
 	case CTYPE_CHAR:
 		switch b.typ {
 		case CTYPE_CHAR:
-			return ctype_int,nil
+			return ctype_int, nil
 		case CTYPE_STR:
 			return nil, default_err
 		}
@@ -319,7 +319,7 @@ func result_type_int(a *Ctype, b *Ctype) (*Ctype, error) {
 		_error("internal error")
 	}
 
-	return nil,default_err
+	return nil, default_err
 }
 
 func result_type(op byte, a *Ast, b *Ast) *Ctype {
@@ -338,7 +338,7 @@ func read_unary_expr() *Ast {
 		ensure_lvalue(operand)
 		return make_ast_uop(AST_ADDR, make_ptr_type(operand.ctype), operand)
 	}
-	if (is_punct(tok, '*')) {
+	if is_punct(tok, '*') {
 		operand := read_unary_expr()
 		if operand.ctype.typ != CTYPE_PTR {
 			_error("pointer type expected, but got %", ast_to_string(operand))

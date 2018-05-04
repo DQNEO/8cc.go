@@ -254,8 +254,10 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
   if (b->type == CTYPE_PTR) {
     if (op != '+' && op != '-')
       goto err;
-    if (a->type != CTYPE_PTR)
-      goto err;
+    if (a->type != CTYPE_PTR) {
+        warn("Making a pointer from %s", ctype_to_string(a));
+        return b;
+    }
     Ctype *r = malloc(sizeof(Ctype));
     r->type = CTYPE_PTR;
     r->ptr = result_type_int(jmpbuf, op, a->ptr, b->ptr);
@@ -338,6 +340,10 @@ static Ast *read_expr(int prec) {
       ensure_lvalue(ast);
     Ast *rest = read_expr(prec2 + (is_right_assoc(tok->punct) ? 0 : 1));
     Ctype *ctype = result_type(tok->punct, ast, rest);
+    if (ast->ctype->type != CTYPE_PTR &&
+        ctype->type == CTYPE_PTR) {
+        swap(ast, rest)
+    }
     ast = make_ast_binop(tok->punct, ctype, ast, rest);
   }
 }

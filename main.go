@@ -54,6 +54,8 @@ type Ast struct {
 		left  *Ast
 		right *Ast
 	}
+	// Unary operator
+	operand *Ast
 	// Function call
 	funcall struct {
 		fname []byte
@@ -65,8 +67,6 @@ type Ast struct {
 		decl_var  *Ast
 		decl_init *Ast
 	}
-	// Address
-	operand *Ast
 }
 
 var vars *Ast

@@ -83,6 +83,7 @@ static Ctype *ctype_str = &(Ctype){ CTYPE_STR, NULL };
 static void emit_expr(Ast *ast);
 static Ast *read_expr(int prec);
 static char *ast_to_string(Ast *ast);
+static char *ctype_to_string(Ctype *ctype);
 
 static Ast *make_ast_uop(char type, Ctype *ctype, Ast *operand) {
   Ast *r = malloc(sizeof(Ast));

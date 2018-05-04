@@ -275,8 +275,6 @@ func ensure_lvalue(ast *Ast) {
 	}
 }
 
-var errmsg string
-
 func result_type_int(a *Ctype, b *Ctype) (*Ctype, error) {
 	default_err := errors.New("")
 	var err error
@@ -328,7 +326,6 @@ func result_type_int(a *Ctype, b *Ctype) (*Ctype, error) {
 }
 
 func result_type(op byte, a *Ast, b *Ast) *Ctype {
-	errmsg = ""
 	ret, err := result_type_int(a.ctype, b.ctype)
 	if err != nil {
 		_error("incompatible operands: %c: <%s> and <%s>",

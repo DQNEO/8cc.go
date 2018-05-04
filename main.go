@@ -22,7 +22,7 @@ const (
 	CTYPE_VOID int = iota
 	CTYPE_INT
 	CTYPE_CHAR
-	CTYPE_STR
+	CTYPE_ARRAY
 	CTYPE_PTR
 )
 
@@ -79,7 +79,7 @@ var REGS = []string{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}
 
 var ctype_int = &Ctype{CTYPE_INT, nil}
 var ctype_char = &Ctype{CTYPE_CHAR, nil}
-var ctype_str = &Ctype{CTYPE_STR, nil}
+var ctype_array = &Ctype{CTYPE_ARRAY, nil}
 
 func make_ast_uop(typ byte, ctype *Ctype, operand *Ast) *Ast {
 	r := &Ast{}
@@ -132,7 +132,7 @@ func make_ast_var(ctype *Ctype, vname []byte) *Ast {
 func make_ast_string(str []byte) *Ast {
 	r := &Ast{}
 	r.typ = AST_LITERAL
-	r.ctype = ctype_str
+	r.ctype = ctype_array
 	r.str.val = str
 
 	if strings == nil {
@@ -301,7 +301,7 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 			return ctype_int, nil
 		case CTYPE_CHAR:
 			return ctype_int, nil
-		case CTYPE_STR:
+		case CTYPE_ARRAY:
 			return nil, default_err
 		}
 		_error("internal error")
@@ -309,11 +309,11 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 		switch b.typ {
 		case CTYPE_CHAR:
 			return ctype_int, nil
-		case CTYPE_STR:
+		case CTYPE_ARRAY:
 			return nil, default_err
 		}
 		_error("internal error")
-	case CTYPE_STR:
+	case CTYPE_ARRAY:
 		return nil, default_err
 	default:
 		_error("internal error")
@@ -405,7 +405,7 @@ func get_ctype(tok *Token) *Ctype {
 		return ctype_char
 	}
 	if strcmp(tok.v.sval, []byte("string\x00")) == 0 {
-		return ctype_str
+		return ctype_array
 	}
 	return nil
 }
@@ -508,7 +508,7 @@ func emit_expr(ast *Ast) {
 			printf("mov $%d, %%rax\n\t", ast.ival)
 		case CTYPE_CHAR:
 			printf("mov $%d, %%rax\n\t", ast.c)
-		case CTYPE_STR:
+		case CTYPE_ARRAY:
 			printf("lea .s%d(%%rip), %%rax\n\t", ast.str.id)
 		default:
 			_error("internal error")
@@ -567,7 +567,7 @@ func ctype_to_string(ctype *Ctype) string {
 		return "int"
 	case CTYPE_CHAR:
 		return "char"
-	case CTYPE_STR:
+	case CTYPE_ARRAY:
 		return "string"
 	case CTYPE_PTR:
 		return fmt.Sprintf("%s*", ctype_to_string(ctype.ptr))
@@ -586,7 +586,7 @@ func ast_to_string_int(ast *Ast) string {
 			return fmt.Sprintf("%d", ast.ival)
 		case CTYPE_CHAR:
 			return fmt.Sprintf("'%c'", ast.c)
-		case CTYPE_STR:
+		case CTYPE_ARRAY:
 			return fmt.Sprintf("\"%s\"", quote(ast.str.val))
 		default:
 			_error("internal error")

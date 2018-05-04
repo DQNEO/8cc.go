@@ -1,5 +1,5 @@
 #!/bin/bash
-
+mode=$1
 function compile {
   echo "$1" | ./8cc > tmp.s
   if [ $? -ne 0 ]; then
@@ -43,7 +43,16 @@ function testfail {
   fi
 }
 
-make -s 8cc
+make clean
+if [[ $mode == "-c" ]];then
+    echo "build for C" >&2
+    make 8cc
+else
+    echo "build for Go" >&2
+    make 8gg.linux
+    cp 8gg.linux 8cc
+fi
+
 
 # Parser
 testast '1' '1;'

@@ -247,7 +247,7 @@ func read_prim() *Ast {
 	case TTYPE_STRING:
 		return make_ast_string(tk.v.sval)
 	case TTYPE_PUNCT:
-		_error("unexpected character: '%c'", tk.v.c)
+		_error("unexpected character: '%c'", tk.v.punct)
 	default:
 		_error("Don't know how to handle '%d'", tk.typ)
 	}

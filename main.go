@@ -57,7 +57,9 @@ type Ast struct {
 		right *Ast
 	}
 	// Unary operator
-	operand *Ast
+	unary struct {
+		operand *Ast
+	}
 	// Function call
 	funcall struct {
 		fname []byte
@@ -83,7 +85,7 @@ func make_ast_uop(typ byte, ctype *Ctype, operand *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
 	r.ctype = ctype
-	r.operand = operand
+	r.unary.operand = operand
 	return r
 }
 
@@ -535,11 +537,11 @@ func emit_expr(ast *Ast) {
 	case AST_DECL:
 		emit_assign(ast.decl.decl_var, ast.decl.decl_init)
 	case AST_ADDR:
-		assert(ast.operand.typ == AST_VAR)
-		printf("lea -%d(%%rbp), %%rax\n\t", ast.operand.variable.pos*8)
+		assert(ast.unary.operand.typ == AST_VAR)
+		printf("lea -%d(%%rbp), %%rax\n\t", ast.unary.operand.variable.pos*8)
 	case AST_DEREF:
-		assert(ast.operand.ctype.typ == CTYPE_PTR)
-		emit_expr(ast.operand)
+		assert(ast.unary.operand.ctype.typ == CTYPE_PTR)
+		emit_expr(ast.unary.operand)
 		printf("mov (%%rax), %%rax\n\t")
 	default:
 		emit_binop(ast)
@@ -597,9 +599,9 @@ func ast_to_string_int(ast *Ast) string {
 			bytes2string(ast.decl.decl_var.variable.name),
 			ast_to_string_int(ast.decl.decl_init))
 	case AST_ADDR:
-		return fmt.Sprintf("(& %s)", ast_to_string(ast.operand))
+		return fmt.Sprintf("(& %s)", ast_to_string(ast.unary.operand))
 	case AST_DEREF:
-		return fmt.Sprintf("(* %s)", ast_to_string(ast.operand))
+		return fmt.Sprintf("(* %s)", ast_to_string(ast.unary.operand))
 	default:
 		left := ast_to_string_int(ast.op.left)
 		right := ast_to_string_int(ast.op.right)

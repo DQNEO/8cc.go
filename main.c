@@ -20,7 +20,7 @@ enum {
   CTYPE_VOID,
   CTYPE_INT,
   CTYPE_CHAR,
-  CTYPE_STR,
+  CTYPE_ARRAY,
   CTYPE_PTR,
 };
 
@@ -78,7 +78,7 @@ static char *REGS[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 static Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL };
 static Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL };
-static Ctype *ctype_str = &(Ctype){ CTYPE_STR, NULL };
+static Ctype *ctype_array = &(Ctype){ CTYPE_ARRAY, NULL };
 
 static void emit_expr(Ast *ast);
 static Ast *read_expr(int prec);
@@ -132,7 +132,7 @@ static Ast *make_ast_var(Ctype *ctype, char *vname) {
 static Ast *make_ast_string(char *str) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_LITERAL;
-  r->ctype = ctype_str;
+  r->ctype = ctype_array;
   r->sval = str;
   if (strings == NULL) {
     r->sid = 0;
@@ -271,7 +271,7 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
         case CTYPE_INT:
         case CTYPE_CHAR:
           return ctype_int;
-        case CTYPE_STR:
+        case CTYPE_ARRAY:
           goto err;
       }
       error("internal error");
@@ -279,11 +279,11 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
       switch (b->type) {
         case CTYPE_CHAR:
           return ctype_int;
-        case CTYPE_STR:
+        case CTYPE_ARRAY:
           goto err;
       }
       error("internal error");
-    case CTYPE_STR:
+    case CTYPE_ARRAY:
       goto err;
     default:
       error("internal error");
@@ -355,7 +355,7 @@ static Ctype *get_ctype(Token *tok) {
   if (!strcmp(tok->sval, "char"))
     return ctype_char;
   if (!strcmp(tok->sval, "string"))
-    return ctype_str;
+    return ctype_array;
   return NULL;
 }
 
@@ -439,7 +439,7 @@ static void emit_expr(Ast *ast) {
         case CTYPE_CHAR:
           printf("mov $%d, %%rax\n\t", ast->c);
           break;
-        case CTYPE_STR:
+        case CTYPE_ARRAY:
           printf("lea .s%d(%%rip), %%rax\n\t", ast->sid);
           break;
         default:
@@ -496,7 +496,7 @@ static char *ctype_to_string(Ctype *ctype) {
     case CTYPE_VOID: return "void";
     case CTYPE_INT:  return "int";
     case CTYPE_CHAR: return "char";
-    case CTYPE_STR:  return "string";
+    case CTYPE_ARRAY:  return "string";
     case CTYPE_PTR: {
       String *s = make_string();
       string_appendf(s, "%s", ctype_to_string(ctype->ptr));
@@ -517,7 +517,7 @@ static void ast_to_string_int(Ast *ast, String *buf) {
         case CTYPE_CHAR:
           string_appendf(buf, "'%c'", ast->c);
           break;
-        case CTYPE_STR:
+        case CTYPE_ARRAY:
           string_appendf(buf, "\"%s\"", quote(ast->sval));
           break;
         default:

@@ -249,16 +249,16 @@ static Ast *read_prim(void) {
   { typeof(a) tmp = b; b = a; a = tmp; }
 
 static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
-  if (a->type == CTYPE_PTR) {
-    if (b->type != CTYPE_PTR)
+  if (a->type > b->type)
+    swap(a, b);
+  if (b->type == CTYPE_PTR) {
+    if (a->type != CTYPE_PTR)
       goto err;
     Ctype *r = malloc(sizeof(Ctype));
     r->type = CTYPE_PTR;
     r->ptr = result_type_int(jmpbuf, op, a->ptr, b->ptr);
     return r;
   }
-  if (a->type > b->type)
-    swap(a, b);
   switch (a->type) {
     case CTYPE_VOID:
       goto err;

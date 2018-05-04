@@ -79,11 +79,6 @@ var ctype_int = &Ctype{CTYPE_INT, nil}
 var ctype_char = &Ctype{CTYPE_CHAR, nil}
 var ctype_str = &Ctype{CTYPE_STR, nil}
 
-func _error(format string, args ...interface{}) {
-	panic(fmt.Sprintf(format, args...))
-	os.Exit(1)
-}
-
 func make_ast_uop(typ byte, ctype *Ctype, operand *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ

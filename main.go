@@ -296,23 +296,9 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 	case CTYPE_VOID:
 		return nil, default_err
 	case CTYPE_INT:
-		switch b.typ {
-		case CTYPE_INT:
-			return ctype_int, nil
-		case CTYPE_CHAR:
-			return ctype_int, nil
-		case CTYPE_ARRAY:
-			return nil, default_err
-		}
-		_error("internal error")
+		return ctype_int, nil
 	case CTYPE_CHAR:
-		switch b.typ {
-		case CTYPE_CHAR:
-			return ctype_int, nil
-		case CTYPE_ARRAY:
-			return nil, default_err
-		}
-		_error("internal error")
+		return ctype_int, nil
 	case CTYPE_ARRAY:
 		return nil, default_err
 	default:

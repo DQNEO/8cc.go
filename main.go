@@ -387,13 +387,14 @@ func get_ctype(tok *Token) *Ctype {
 	if tok.typ != TTYPE_IDENT {
 		return nil
 	}
-	if strcmp(tok.v.sval, []byte{'i', 'n', 't', 0}) == 0 {
+	//@TODO use string literal
+	if strcmp(tok.v.sval, []byte("int\x00")) == 0 {
 		return ctype_int
 	}
-	if strcmp(tok.v.sval, []byte{'c', 'h', 'a', 'r', 0}) == 0 {
+	if strcmp(tok.v.sval, []byte("char\x00")) == 0 {
 		return ctype_char
 	}
-	if strcmp(tok.v.sval, []byte{'s', 't', 'r', 'i', 'n', 'g', 0}) == 0 {
+	if strcmp(tok.v.sval, []byte("string\x00")) == 0 {
 		return ctype_str
 	}
 	return nil

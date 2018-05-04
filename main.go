@@ -280,7 +280,8 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 			}
 		}
 		if a.typ != CTYPE_PTR {
-			return nil, default_err
+			warn("Making a pointer from %s", ctype_to_string(a))
+			return b, nil
 		}
 		r := &Ctype{}
 		r.typ = CTYPE_PTR
@@ -383,6 +384,10 @@ func read_expr(prec int) *Ast {
 		}
 		rest := read_expr(prec2 + prec_incr)
 		ctype := result_type(tok.v.punct, ast, rest)
+		if ctype.typ == CTYPE_PTR &&
+			ast.ctype.typ != CTYPE_PTR {
+				ast,rest = rest,ast
+		}
 		ast = make_ast_binop(tok.v.punct, ctype, ast, rest)
 	}
 	return ast

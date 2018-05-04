@@ -19,6 +19,6 @@ clean:
 	rm -f 8gg.*
 
 8gg: main.go adapter.go lex.go
-	GOOS=linux  GOARCH=amd64 go build -o 8gg.linux main.go lex.go adapter.go
-	GOOS=darwin GOARCH=amd64 go build -o 8gg.mac   main.go lex.go adapter.go
+	GOOS=linux  GOARCH=amd64 go build -o 8gg.linux main.go header.go lex.go adapter.go
+	GOOS=darwin GOARCH=amd64 go build -o 8gg.mac   main.go header.go lex.go adapter.go
 

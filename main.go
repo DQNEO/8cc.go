@@ -516,8 +516,10 @@ func emit_expr(ast *Ast) {
 	case AST_DECL:
 		emit_assign(ast.decl.decl_var, ast.decl.decl_init)
 	case AST_ADDR:
+		assert(ast.operand.typ == AST_VAR)
 		printf("lea -%d(%%rbp), %%rax\n\t" ,ast.operand.variable.pos * 8)
 	case AST_DEREF:
+		assert(ast.operand.ctype == CTYPE_P_TO_INT)
 		emit_expr(ast.operand)
 		printf("mov (%%rax), %%rax\n\t")
 	default:

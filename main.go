@@ -267,10 +267,14 @@ func read_prim() *Ast {
 }
 
 func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
+	if a.typ > b.typ {
+		b, a = a, b
+	}
+
 	default_err := errors.New("")
 	var err error
-	if a.typ == CTYPE_PTR {
-		if b.typ != CTYPE_PTR {
+	if b.typ == CTYPE_PTR {
+		if a.typ != CTYPE_PTR {
 			return nil, default_err
 		}
 		r := &Ctype{}
@@ -280,10 +284,6 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 			return nil, err
 		}
 		return r, nil
-	}
-
-	if a.typ > b.typ {
-		b, a = a, b
 	}
 
 	switch a.typ {

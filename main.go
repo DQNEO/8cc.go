@@ -404,9 +404,7 @@ func get_ctype(tok *Token) *Ctype {
 	if strcmp(tok.v.sval, []byte("char\x00")) == 0 {
 		return ctype_char
 	}
-	if strcmp(tok.v.sval, []byte("string\x00")) == 0 {
-		return ctype_array
-	}
+
 	return nil
 }
 

@@ -1,5 +1,6 @@
 CFLAGS=-Wall -std=gnu99 -g
 OBJS=lex.o string.o util.o
+GO_OBJS=main.go header.go lex.go adapter.go util.go
 
 8cc: 8gg 8cc.h main.o $(OBJS)
 	$(CC) $(CFLAGS) -o $@ main.o $(OBJS)
@@ -19,6 +20,6 @@ clean:
 	rm -f 8gg.*
 
 8gg: main.go adapter.go lex.go
-	GOOS=linux  GOARCH=amd64 go build -o 8gg.linux main.go header.go lex.go adapter.go
-	GOOS=darwin GOARCH=amd64 go build -o 8gg.mac   main.go header.go lex.go adapter.go
+	GOOS=linux  GOARCH=amd64 go build -o 8gg.linux $(GO_OBJS)
+	GOOS=darwin GOARCH=amd64 go build -o 8gg.mac   $(GO_OBJS)
 

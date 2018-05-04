@@ -1,2 +1,3 @@
 #!/bin/bash
-go run main.go header.go lex.go adapter.go "$@"
+GO_OBJS=(main.go header.go lex.go adapter.go util.go)
+go run ${GO_OBJS[*]} "$@"

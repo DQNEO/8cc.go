@@ -266,7 +266,7 @@ func read_prim() *Ast {
 	return nil
 }
 
-func result_type_int(a *Ctype, b *Ctype) (*Ctype, error) {
+func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 	default_err := errors.New("")
 	var err error
 	if a.typ == CTYPE_PTR {
@@ -275,7 +275,7 @@ func result_type_int(a *Ctype, b *Ctype) (*Ctype, error) {
 		}
 		r := &Ctype{}
 		r.typ = CTYPE_PTR
-		r.ptr, err = result_type_int(a.ptr, b.ptr)
+		r.ptr, err = result_type_int(op, a.ptr, b.ptr)
 		if err != nil {
 			return nil, err
 		}
@@ -317,7 +317,7 @@ func result_type_int(a *Ctype, b *Ctype) (*Ctype, error) {
 }
 
 func result_type(op byte, a *Ast, b *Ast) *Ctype {
-	ret, err := result_type_int(a.ctype, b.ctype)
+	ret, err := result_type_int(op, a.ctype, b.ctype)
 	if err != nil {
 		_error("incompatible operands: %c: <%s> and <%s>",
 			op, ast_to_string(a), ast_to_string(b))

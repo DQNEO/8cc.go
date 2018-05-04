@@ -3,18 +3,19 @@ package main
 import (
 	"fmt"
 	"os"
+	"errors"
 )
 
 const EXPR_LEN = 100
 const MAX_ARGS = 6
 
 const (
-	AST_INT byte = iota
-	AST_CHAR
+	AST_LITERAL byte = iota
 	AST_VAR
-	AST_STR
 	AST_FUNCALL
 	AST_DECL
+	AST_ADDR
+	AST_DEREF
 )
 
 const (
@@ -22,11 +23,17 @@ const (
 	CTYPE_INT
 	CTYPE_CHAR
 	CTYPE_STR
+	CTYPE_PTR
 )
+
+type Ctype struct {
+	typ int
+	ptr *Ctype
+}
 
 type Ast struct {
 	typ   byte
-	ctype int
+	ctype *Ctype
 	// want to be "union"
 	// Integer
 	ival int
@@ -49,6 +56,8 @@ type Ast struct {
 		left  *Ast
 		right *Ast
 	}
+	// Unary operator
+	operand *Ast
 	// Function call
 	funcall struct {
 		fname []byte
@@ -66,12 +75,24 @@ var vars *Ast
 var strings *Ast
 var REGS = []string{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}
 
+var ctype_int = &Ctype{CTYPE_INT, nil}
+var ctype_char = &Ctype{CTYPE_CHAR, nil}
+var ctype_str = &Ctype{CTYPE_STR, nil}
+
 func _error(format string, args ...interface{}) {
 	panic(fmt.Sprintf(format, args...))
 	os.Exit(1)
 }
 
-func make_ast_op(typ byte, ctype int, left *Ast, right *Ast) *Ast {
+func make_ast_uop(typ byte, ctype *Ctype, operand *Ast) *Ast {
+	r := &Ast{}
+	r.typ = typ
+	r.ctype = ctype
+	r.operand = operand
+	return r
+}
+
+func make_ast_binop(typ byte, ctype *Ctype, left *Ast, right *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
 	r.ctype = ctype
@@ -82,13 +103,13 @@ func make_ast_op(typ byte, ctype int, left *Ast, right *Ast) *Ast {
 
 func make_ast_int(val int) *Ast {
 	r := &Ast{}
-	r.typ = AST_INT
-	r.ctype = CTYPE_INT
+	r.typ = AST_LITERAL
+	r.ctype = ctype_int
 	r.ival = val
 	return r
 }
 
-func make_ast_var(ctype int, vname []byte) *Ast {
+func make_ast_var(ctype *Ctype, vname []byte) *Ast {
 	r := &Ast{}
 	r.typ = AST_VAR
 	r.ctype = ctype
@@ -105,16 +126,16 @@ func make_ast_var(ctype int, vname []byte) *Ast {
 
 func make_ast_char(c byte) *Ast {
 	r := &Ast{}
-	r.typ = AST_CHAR
-	r.ctype = CTYPE_CHAR
+	r.typ = AST_LITERAL
+	r.ctype = ctype_char
 	r.c = c
 	return r
 }
 
 func make_ast_string(str []byte) *Ast {
 	r := &Ast{}
-	r.typ = AST_STR
-	r.ctype = CTYPE_STR
+	r.typ = AST_LITERAL
+	r.ctype = ctype_str
 	r.str.val = str
 
 	if strings == nil {
@@ -132,7 +153,7 @@ func make_ast_string(str []byte) *Ast {
 func make_ast_funcall(fname []byte, nargs int, args []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNCALL
-	r.ctype = CTYPE_INT // WHY??
+	r.ctype = ctype_int // WHY??
 	r.funcall.fname = fname
 	r.funcall.nargs = nargs
 	r.funcall.args = args
@@ -142,9 +163,16 @@ func make_ast_funcall(fname []byte, nargs int, args []*Ast) *Ast {
 func make_ast_decl(variable *Ast, init *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_DECL
-	// NO CTYPE ? WHY??
+	r.ctype = nil
 	r.decl.decl_var = variable
 	r.decl.decl_init = init
+	return r
+}
+
+func make_ptr_type(ctype *Ctype) *Ctype {
+	r := &Ctype{}
+	r.typ = CTYPE_PTR
+	r.ptr = ctype
 	return r
 }
 
@@ -233,7 +261,7 @@ func read_prim() *Ast {
 	case TTYPE_STRING:
 		return make_ast_string(tk.v.sval)
 	case TTYPE_PUNCT:
-		_error("unexpected character: '%c'", tk.v.c)
+		_error("unexpected character: '%c'", tk.v.punct)
 	default:
 		_error("Don't know how to handle '%d'", tk.typ)
 	}
@@ -247,52 +275,85 @@ func ensure_lvalue(ast *Ast) {
 	}
 }
 
-func result_type(op byte, a *Ast, b *Ast) int {
-	var x, y *Ast
-	if a.ctype > b.ctype {
-		x, y = b, a
-	} else {
-		x, y = a, b
-	}
-	var errmsg string
-	default_err := "incompatible operands: %s and %s for %c"
-	internal_err := "internal error"
-	switch x.ctype {
-	case CTYPE_VOID:
-		errmsg = default_err
-	case CTYPE_INT:
-		switch y.ctype {
-		case CTYPE_INT:
-			return CTYPE_INT
-		case CTYPE_CHAR:
-			return CTYPE_INT
-		case CTYPE_STR:
-			errmsg = default_err
-		default:
-			errmsg = internal_err
+func result_type_int(a *Ctype, b *Ctype) (*Ctype, error) {
+	default_err := errors.New("")
+	var err error
+	if a.typ == CTYPE_PTR {
+		if b.typ != CTYPE_PTR {
+			return nil, default_err
 		}
-	case CTYPE_CHAR:
-		switch y.ctype {
-		case CTYPE_CHAR:
-			return CTYPE_INT
-		case CTYPE_STR:
-			errmsg = default_err
+		r := &Ctype{}
+		r.typ = CTYPE_PTR
+		r.ptr, err = result_type_int(a.ptr, b.ptr)
+		if err != nil {
+			return nil, err
 		}
-	case CTYPE_STR:
-		errmsg = default_err
-	default:
-		errmsg = internal_err
+		return r, nil
 	}
 
-	if errmsg != "" {
-		_error(errmsg,
-			ast_to_string(a), ast_to_string(b), op)
+	if a.typ > b.typ {
+		b, a = a, b
 	}
-	return -1
+
+	switch a.typ {
+	case CTYPE_VOID:
+		return nil, default_err
+	case CTYPE_INT:
+		switch b.typ {
+		case CTYPE_INT:
+			return ctype_int,nil
+		case CTYPE_CHAR:
+			return ctype_int,nil
+		case CTYPE_STR:
+			return nil, default_err
+		}
+		_error("internal error")
+	case CTYPE_CHAR:
+		switch b.typ {
+		case CTYPE_CHAR:
+			return ctype_int,nil
+		case CTYPE_STR:
+			return nil, default_err
+		}
+		_error("internal error")
+	case CTYPE_STR:
+		return nil, default_err
+	default:
+		_error("internal error")
+	}
+
+	return nil,default_err
+}
+
+func result_type(op byte, a *Ast, b *Ast) *Ctype {
+	ret, err := result_type_int(a.ctype, b.ctype)
+	if err != nil {
+		_error("incompatible operands: %c: <%s> and <%s>",
+			op, ast_to_string(a), ast_to_string(b))
+	}
+	return ret
+}
+
+func read_unary_expr() *Ast {
+	tok := read_token()
+	if is_punct(tok, '&') {
+		operand := read_unary_expr()
+		ensure_lvalue(operand)
+		return make_ast_uop(AST_ADDR, make_ptr_type(operand.ctype), operand)
+	}
+	if (is_punct(tok, '*')) {
+		operand := read_unary_expr()
+		if operand.ctype.typ != CTYPE_PTR {
+			_error("pointer type expected, but got %", ast_to_string(operand))
+		}
+		return make_ast_uop(AST_DEREF, operand.ctype.ptr, operand)
+	}
+	unget_token(tok)
+	return read_prim()
 }
 
 func read_expr(prec int) *Ast {
-	ast := read_prim()
+	ast := read_unary_expr()
 	if ast == nil {
 		return nil
 	}
@@ -320,45 +381,54 @@ func read_expr(prec int) *Ast {
 		}
 		rest := read_expr(prec2 + prec_incr)
 		ctype := result_type(tok.v.punct, ast, rest)
-		ast = make_ast_op(tok.v.punct, ctype, ast, rest)
+		ast = make_ast_binop(tok.v.punct, ctype, ast, rest)
 	}
 	return ast
 }
 
-func get_ctype(tok *Token) int {
+func get_ctype(tok *Token) *Ctype {
 	if tok.typ != TTYPE_IDENT {
-		return -1
+		return nil
 	}
 	if strcmp(tok.v.sval, []byte{'i', 'n', 't', 0}) == 0 {
-		return CTYPE_INT
+		return ctype_int
 	}
 	if strcmp(tok.v.sval, []byte{'c', 'h', 'a', 'r', 0}) == 0 {
-		return CTYPE_CHAR
+		return ctype_char
 	}
 	if strcmp(tok.v.sval, []byte{'s', 't', 'r', 'i', 'n', 'g', 0}) == 0 {
-		return CTYPE_STR
+		return ctype_str
 	}
-	return -1
+	return nil
 }
 
 func is_type_keyword(tok *Token) bool {
-	return get_ctype(tok) != -1
+	return get_ctype(tok) != nil
 }
 
 func expect(punct byte) {
 	tok := read_token()
 	if !is_punct(tok, punct) {
-		_error("%punct expected but got %s", punct, token_to_string(tok))
+		_error("'%c' expected but got %s", punct, token_to_string(tok))
 	}
 }
 
 func read_decl() *Ast {
 	ctype := get_ctype(read_token())
-	name := read_token()
-	if name.typ != TTYPE_IDENT {
-		_error("Identifier expected, but got %s", token_to_string(name))
+	var tok *Token
+	for {
+		tok = read_token()
+		if !is_punct(tok, '*') {
+			break
+		}
+		// pointer
+		ctype = make_ptr_type(ctype)
 	}
-	variable := make_ast_var(ctype, name.v.sval)
+
+	if tok.typ != TTYPE_IDENT {
+		_error("Identifier expected, but got %s", token_to_string(tok))
+	}
+	variable := make_ast_var(ctype, tok.v.sval)
 	expect('=')
 	init := read_expr(0)
 	return make_ast_decl(variable, init)
@@ -399,7 +469,7 @@ func quote(sval []byte) string {
 
 func emit_assign(variable *Ast, value *Ast) {
 	emit_expr(value)
-	printf("mov %%eax, -%d(%%rbp)\n\t", variable.variable.pos*4)
+	printf("mov %%rax, -%d(%%rbp)\n\t", variable.variable.pos*8)
 }
 
 func emit_binop(ast *Ast) {
@@ -426,26 +496,31 @@ func emit_binop(ast *Ast) {
 	printf("push %%rax\n\t")
 	emit_expr(ast.op.right)
 	if ast.typ == '/' {
-		printf("mov %%eax, %%ebx\n\t")
+		printf("mov %%rax, %%rbx\n\t")
 		printf("pop %%rax\n\t")
 		printf("mov $0, %%edx\n\t")
-		printf("idiv %%ebx\n\t")
+		printf("idiv %%rbx\n\t")
 	} else {
 		printf("pop %%rbx\n\t")
-		printf("%s %%ebx, %%eax\n\t", op)
+		printf("%s %%rbx, %%rax\n\t", op)
 	}
 }
 
 func emit_expr(ast *Ast) {
 	switch ast.typ {
-	case AST_INT:
-		printf("mov $%d, %%eax\n\t", ast.ival)
+	case AST_LITERAL:
+		switch ast.ctype.typ {
+		case CTYPE_INT:
+			printf("mov $%d, %%rax\n\t", ast.ival)
+		case CTYPE_CHAR:
+			printf("mov $%d, %%rax\n\t", ast.c)
+		case CTYPE_STR:
+			printf("lea .s%d(%%rip), %%rax\n\t", ast.str.id)
+		default:
+			_error("internal error")
+		}
 	case AST_VAR:
-		printf("mov -%d(%%rbp), %%eax\n\t", ast.variable.pos*4)
-	case AST_STR:
-		printf("lea .s%d(%%rip), %%rax\n\t", ast.str.id)
-	case AST_CHAR:
-		printf("mov $%d, %%eax\n\t", ast.c)
+		printf("mov -%d(%%rbp), %%rax\n\t", ast.variable.pos*8)
 	case AST_FUNCALL:
 		for i := 0; i < ast.funcall.nargs; i++ {
 			printf("push %%%s\n\t", REGS[i])
@@ -457,20 +532,27 @@ func emit_expr(ast *Ast) {
 		for i := ast.funcall.nargs - 1; i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
-		printf("mov $0, %%eax\n\t")
+		printf("mov $0, %%rax\n\t")
 		printf("call %s\n\t", bytes2string(ast.funcall.fname))
 		for i := ast.funcall.nargs - 1; i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 	case AST_DECL:
 		emit_assign(ast.decl.decl_var, ast.decl.decl_init)
+	case AST_ADDR:
+		assert(ast.operand.typ == AST_VAR)
+		printf("lea -%d(%%rbp), %%rax\n\t", ast.operand.variable.pos*8)
+	case AST_DEREF:
+		assert(ast.operand.ctype.typ == CTYPE_PTR)
+		emit_expr(ast.operand)
+		printf("mov (%%rax), %%rax\n\t")
 	default:
 		emit_binop(ast)
 	}
 }
 
-func ctype_to_string(ctype int) string {
-	switch ctype {
+func ctype_to_string(ctype *Ctype) string {
+	switch ctype.typ {
 	case CTYPE_VOID:
 		return "void"
 	case CTYPE_INT:
@@ -479,6 +561,8 @@ func ctype_to_string(ctype int) string {
 		return "char"
 	case CTYPE_STR:
 		return "string"
+	case CTYPE_PTR:
+		return fmt.Sprintf("%s*", ctype_to_string(ctype.ptr))
 	default:
 		_error("Unknown ctype: %d", ctype)
 	}
@@ -488,14 +572,20 @@ func ctype_to_string(ctype int) string {
 
 func ast_to_string_int(ast *Ast) string {
 	switch ast.typ {
-	case AST_INT:
-		return fmt.Sprintf("%d", ast.ival)
+	case AST_LITERAL:
+		switch ast.ctype.typ {
+		case CTYPE_INT:
+			return fmt.Sprintf("%d", ast.ival)
+		case CTYPE_CHAR:
+			return fmt.Sprintf("'%c'", ast.c)
+		case CTYPE_STR:
+			return fmt.Sprintf("\"%s\"", quote(ast.str.val))
+		default:
+			_error("internal error")
+			return ""
+		}
 	case AST_VAR:
 		return fmt.Sprintf("%s", bytes2string(ast.variable.name))
-	case AST_CHAR:
-		return fmt.Sprintf("'%c'", ast.c)
-	case AST_STR:
-		return fmt.Sprintf("\"%s\"", quote(ast.str.val))
 	case AST_FUNCALL:
 		s := fmt.Sprintf("%s(", bytes2string(ast.funcall.fname))
 		for i := 0; ast.funcall.args[i] != nil; i++ {
@@ -511,6 +601,10 @@ func ast_to_string_int(ast *Ast) string {
 			ctype_to_string(ast.decl.decl_var.ctype),
 			bytes2string(ast.decl.decl_var.variable.name),
 			ast_to_string_int(ast.decl.decl_init))
+	case AST_ADDR:
+		return fmt.Sprintf("(& %s)", ast_to_string(ast.operand))
+	case AST_DEREF:
+		return fmt.Sprintf("(* %s)", ast_to_string(ast.operand))
 	default:
 		left := ast_to_string_int(ast.op.left)
 		right := ast_to_string_int(ast.op.right)
@@ -551,7 +645,12 @@ func main() {
 		emit_data_section()
 		printf(".text\n\t" +
 			".global mymain\n" +
-			"mymain:\n\t")
+			"mymain:\n\t" +
+			"push %%rbp\n\t" +
+			"mov %%rsp, %%rbp\n\t")
+		if vars != nil {
+			printf("sub $%d, %%rsp\n\t", vars.variable.pos*8)
+		}
 	}
 	for i = 0; i < nexpr; i++ {
 		if wantast {
@@ -562,7 +661,8 @@ func main() {
 	}
 
 	if !wantast {
-		printf("ret\n")
+		printf("leave\n\t" +
+			"ret\n")
 	}
 	return
 }

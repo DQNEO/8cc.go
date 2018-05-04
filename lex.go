@@ -6,24 +6,6 @@ import (
 
 const BUFLEN = 256
 
-const (
-	TTYPE_IDENT int = iota
-	TTYPE_PUNCT
-	TTYPE_INT
-	TTYPE_CHAR
-	TTYPE_STRING
-)
-
-type Token struct {
-	typ int
-	v   struct { // wanna be Union
-		ival  int
-		sval  []byte
-		punct byte
-		c     byte
-	}
-}
-
 var ungotten *Token
 
 func make_ident(s []byte) *Token {
@@ -181,7 +163,7 @@ func read_token_init() *Token {
 	}
 	if c == '/' || c == '=' || c == '*' ||
 		c == '+' || c == '-' || c == '(' ||
-		c == ')' || c == ',' || c == ';' {
+		c == ')' || c == ',' || c == ';' || c == '&'{
 		return make_punct(c)
 	}
 	_error("Don't know how to handle '%c'", c)

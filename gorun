@@ -1,0 +1,2 @@
+#!/bin/bash
+go run main.go header.go lex.go adapter.go "$@"

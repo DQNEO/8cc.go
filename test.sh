@@ -99,8 +99,8 @@ test b1 "xprintf(\"%c\", 'a'+1);1;"
 
 # Pointer
 test 61 'int a=61;int *b=&a;*b;'
-test 97 'char *c="ab";*c;'
-test 98 'char *c="ab"+1;*c;'
+#test 97 'char *c="ab";*c;'
+#test 98 'char *c="ab"+1;*c;'
 
 testfail '0abc;'
 testfail '1+;'

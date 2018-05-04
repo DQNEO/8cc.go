@@ -267,22 +267,8 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
     case CTYPE_VOID:
       goto err;
     case CTYPE_INT:
-      switch (b->type) {
-        case CTYPE_INT:
-        case CTYPE_CHAR:
-          return ctype_int;
-        case CTYPE_ARRAY:
-          goto err;
-      }
-      error("internal error");
     case CTYPE_CHAR:
-      switch (b->type) {
-        case CTYPE_CHAR:
-          return ctype_int;
-        case CTYPE_ARRAY:
-          goto err;
-      }
-      error("internal error");
+      return ctype_int;
     case CTYPE_ARRAY:
       goto err;
     default:

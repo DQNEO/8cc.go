@@ -104,9 +104,6 @@ testfail '0abc;'
 testfail '1+;'
 testfail '1=2;'
 
-# Incompatible type
-testfail '"a"+1;'
-
 # & is only applicable to an lvalue
 testfail '&"a";'
 testfail '&1;'

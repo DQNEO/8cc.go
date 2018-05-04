@@ -14,6 +14,7 @@ const (
 	AST_FUNCALL
 	AST_DECL
 	AST_ADDR
+	AST_DEREF
 )
 
 const (
@@ -319,8 +320,13 @@ func read_unary_expr() *Ast {
 		ensure_lvalue(operand)
 		return make_ast_uop(AST_ADDR, CTYPE_P_TO_INT, operand)
 	}
-	// do something
-	// return on some condition
+	if (is_punct(tok, '*')) {
+		operand := read_unary_expr()
+		if operand.ctype != CTYPE_P_TO_INT {
+			_error("pointer typte expected, but got %", ast_to_string(operand))
+		}
+		return make_ast_uop(AST_DEREF, CTYPE_INT, operand)
+	}
 	unget_token(tok)
 	return read_prim()
 }
@@ -511,6 +517,9 @@ func emit_expr(ast *Ast) {
 		emit_assign(ast.decl.decl_var, ast.decl.decl_init)
 	case AST_ADDR:
 		printf("lea -%d(%%rbp), %%rax\n\t" ,ast.operand.variable.pos * 8)
+	case AST_DEREF:
+		emit_expr(ast.operand)
+		printf("mov (%%rax), %%rax\n\t")
 	default:
 		emit_binop(ast)
 	}
@@ -568,6 +577,8 @@ func ast_to_string_int(ast *Ast) string {
 			ast_to_string_int(ast.decl.decl_init))
 	case AST_ADDR:
 		return fmt.Sprintf("(& %s)", ast_to_string(ast.operand))
+	case AST_DEREF:
+		return fmt.Sprintf("(* %s)", ast_to_string(ast.operand))
 	default:
 		left := ast_to_string_int(ast.op.left)
 		right := ast_to_string_int(ast.op.right)

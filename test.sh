@@ -56,9 +56,8 @@ testast '(decl int a 3)' 'int a=3;'
 testast "(decl char c 'a')" "char c='a';"
 testast '(decl int a 1)(decl int b 2)(= a (= b 3))' 'int a=1;int b=2;a=b=3;'
 testast '(decl int a 3)(& a)' 'int a=3;&a;'
-#testast '(decl int a 3)(* (& a))' 'int a=3;*&a;'
-testast '(decl int a 3)(decl int* b (& a))' 'int a=3;int *b=&a;'
-#testast '(decl int a 3)(decl int* b (& a))(* b)' 'int a=3;int *b=&a;*b;'
+testast '(decl int a 3)(* (& a))' 'int a=3;*&a;'
+testast '(decl int a 3)(decl int* b (& a))(* b)' 'int a=3;int *b=&a;*b;'
 
 testast '"abc"' '"abc";'
 testast "'c'" "'c';"
@@ -90,7 +89,7 @@ test abc5 'xprintf("%s", "abc");5;'
 test b1 "xprintf(\"%c\", 'a'+1);1;"
 
 # Pointer
-#test 61 'int a=61;int *b=&a;*b;'
+test 61 'int a=61;int *b=&a;*b;'
 
 testfail '0abc;'
 testfail '1+;'

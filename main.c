@@ -252,6 +252,8 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
   if (a->type > b->type)
     swap(a, b);
   if (b->type == CTYPE_PTR) {
+    if (op != '+' && op != '-')
+      goto err;
     if (a->type != CTYPE_PTR)
       goto err;
     Ctype *r = malloc(sizeof(Ctype));

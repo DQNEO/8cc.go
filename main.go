@@ -52,7 +52,7 @@ type Ast struct {
 		next *Ast
 	}
 	// Binary operator
-	op struct {
+	binop struct {
 		left  *Ast
 		right *Ast
 	}
@@ -93,8 +93,8 @@ func make_ast_binop(typ byte, ctype *Ctype, left *Ast, right *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
 	r.ctype = ctype
-	r.op.left = left
-	r.op.right = right
+	r.binop.left = left
+	r.binop.right = right
 	return r
 }
 
@@ -471,7 +471,7 @@ func emit_assign(variable *Ast, value *Ast) {
 
 func emit_binop(ast *Ast) {
 	if ast.typ == '=' {
-		emit_assign(ast.op.left, ast.op.right)
+		emit_assign(ast.binop.left, ast.binop.right)
 		return
 	}
 
@@ -489,9 +489,9 @@ func emit_binop(ast *Ast) {
 		_error("invalid operator '%c", ast.typ)
 	}
 
-	emit_expr(ast.op.left)
+	emit_expr(ast.binop.left)
 	printf("push %%rax\n\t")
-	emit_expr(ast.op.right)
+	emit_expr(ast.binop.right)
 	if ast.typ == '/' {
 		printf("mov %%rax, %%rbx\n\t")
 		printf("pop %%rax\n\t")
@@ -603,8 +603,8 @@ func ast_to_string_int(ast *Ast) string {
 	case AST_DEREF:
 		return fmt.Sprintf("(* %s)", ast_to_string(ast.unary.operand))
 	default:
-		left := ast_to_string_int(ast.op.left)
-		right := ast_to_string_int(ast.op.right)
+		left := ast_to_string_int(ast.binop.left)
+		right := ast_to_string_int(ast.binop.right)
 		return fmt.Sprintf("(%c %s %s)", ast.typ, left, right)
 	}
 }

@@ -354,8 +354,6 @@ static Ctype *get_ctype(Token *tok) {
     return ctype_int;
   if (!strcmp(tok->sval, "char"))
     return ctype_char;
-  if (!strcmp(tok->sval, "string"))
-    return ctype_array;
   return NULL;
 }
 

@@ -48,7 +48,6 @@ typedef struct Ast {
     struct {
       char *vname;
       int vpos;
-      struct Ast *vnext;
     };
     // Binary operator
     struct {
@@ -133,7 +132,7 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
   r->ctype = ctype;
   r->vname = name;
   r->vpos = locals ? locals->vpos + 1 : 1;
-  r->vnext = locals;
+  r->next = locals;
   locals = r;
   return r;
 }
@@ -176,7 +175,7 @@ static Ctype* make_ptr_type(Ctype *ctype) {
 }
 
 static Ast *find_var(char *name) {
-  for (Ast *p = locals; p; p = p->vnext) {
+  for (Ast *p = locals; p; p = p->next) {
     if (!strcmp(name, p->vname))
       return p;
   }

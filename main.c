@@ -9,6 +9,7 @@
 
 enum {
   AST_LITERAL,
+  AST_STRING,
   AST_VAR,
   AST_FUNCALL,
   AST_DECL,
@@ -131,7 +132,7 @@ static Ast *make_ast_var(Ctype *ctype, char *vname) {
 
 static Ast *ast_string(char *str) {
   Ast *r = malloc(sizeof(Ast));
-  r->type = AST_LITERAL;
+  r->type = AST_STRING;
   r->ctype = ctype_array;
   r->sval = str;
   if (globals == NULL) {
@@ -448,12 +449,12 @@ static void emit_expr(Ast *ast) {
         case CTYPE_CHAR:
           printf("mov $%d, %%rax\n\t", ast->c);
           break;
-        case CTYPE_ARRAY:
-          printf("lea .s%d(%%rip), %%rax\n\t", ast->sid);
-          break;
         default:
           error("internal error");
       }
+      break;
+    case AST_STRING:
+      printf("lea .s%d(%%rip), %%rax\n\t", ast->sid);
       break;
     case AST_VAR:
       switch (ctype_size(ast->ctype)) {
@@ -553,12 +554,12 @@ static void ast_to_string_int(Ast *ast, String *buf) {
         case CTYPE_CHAR:
           string_appendf(buf, "'%c'", ast->c);
           break;
-        case CTYPE_ARRAY:
-          string_appendf(buf, "\"%s\"", quote(ast->sval));
-          break;
         default:
           error("internal error");
       }
+      break;
+    case AST_STRING:
+      string_appendf(buf, "\"%s\"", quote(ast->sval));
       break;
     case AST_VAR:
       string_appendf(buf, "%s", ast->vname);
@@ -602,6 +603,7 @@ static void emit_data_section(void) {
   if (!globals) return;
   printf("\t.data\n");
   for (Ast *p = globals; p; p = p->snext) {
+    assert(p->type == AST_STRING);
     printf(".s%d:\n\t", p->sid);
     printf(".string \"%s\"\n", quote(p->sval));
   }

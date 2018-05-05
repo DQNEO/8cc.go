@@ -33,6 +33,7 @@ typedef struct Ctype {
 typedef struct Ast {
   char type;
   Ctype *ctype;
+  struct Ast *next;
   union {
     // Integer
     int ival;
@@ -42,7 +43,6 @@ typedef struct Ast {
     struct {
       char *sval;
       char *slabel;
-      struct Ast *snext;
     };
     // Variable
     struct {
@@ -144,7 +144,7 @@ static Ast *ast_string(char *str) {
   r->ctype = ctype_array;
   r->sval = str;
   r->slabel = make_next_label();
-  r->snext = globals;
+  r->next = globals;
   globals = r;
   return r;
 }
@@ -605,7 +605,7 @@ static char *ast_to_string(Ast *ast) {
 static void emit_data_section(void) {
   if (!globals) return;
   printf("\t.data\n");
-  for (Ast *p = globals; p; p = p->snext) {
+  for (Ast *p = globals; p; p = p->next) {
     assert(p->type == AST_STRING);
     printf("%s:\n\t", p->slabel);
     printf(".string \"%s\"\n", quote(p->sval));

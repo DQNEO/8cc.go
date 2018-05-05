@@ -41,7 +41,7 @@ typedef struct Ast {
     // String
     struct {
       char *sval;
-      int sid;
+      char *slabel;
       struct Ast *snext;
     };
     // Variable
@@ -129,9 +129,13 @@ static Ast *make_ast_var(Ctype *ctype, char *vname) {
   vars = r;
   return r;
 }
+
 static int labelseq = 0;
-int make_next_label_num(void) {
-    return labelseq++;
+
+char *make_next_label(void) {
+    String *s = make_string();
+    string_appendf(s, ".s%d", labelseq++);
+    return get_cstring(s);
 }
 
 static Ast *ast_string(char *str) {
@@ -139,7 +143,7 @@ static Ast *ast_string(char *str) {
   r->type = AST_STRING;
   r->ctype = ctype_array;
   r->sval = str;
-  r->sid = make_next_label_num();
+  r->slabel = make_next_label();
   r->snext = globals;
   globals = r;
   return r;
@@ -453,7 +457,7 @@ static void emit_expr(Ast *ast) {
       }
       break;
     case AST_STRING:
-      printf("lea .s%d(%%rip), %%rax\n\t", ast->sid);
+      printf("lea %s(%%rip), %%rax\n\t", ast->slabel);
       break;
     case AST_VAR:
       switch (ctype_size(ast->ctype)) {
@@ -603,7 +607,7 @@ static void emit_data_section(void) {
   printf("\t.data\n");
   for (Ast *p = globals; p; p = p->snext) {
     assert(p->type == AST_STRING);
-    printf(".s%d:\n\t", p->sid);
+    printf("%s:\n\t", p->slabel);
     printf(".string \"%s\"\n", quote(p->sval));
   }
   printf("\t");

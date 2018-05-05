@@ -175,10 +175,10 @@ static Ctype* make_ptr_type(Ctype *ctype) {
 }
 
 static Ast *find_var(char *name) {
-  for (Ast *p = locals; p; p = p->next) {
+  for (Ast *p = locals; p; p = p->next)
     if (!strcmp(name, p->vname))
       return p;
-  }
+
   return NULL;
 }
 

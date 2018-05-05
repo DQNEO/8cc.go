@@ -281,12 +281,12 @@ err:
   longjmp(*jmpbuf, 1);
 }
 
-static Ctype *result_type(char op, Ast *a, Ast *b) {
+static Ctype *result_type(char op, Ctype *a, Ctype *b) {
   jmp_buf jmpbuf;
   if (setjmp(jmpbuf) == 0)
-    return result_type_int(&jmpbuf, op, a->ctype, b->ctype);
+    return result_type_int(&jmpbuf, op, a, b);
   error("incompatible operands: %c: <%s> and <%s>",
-        op, ast_to_string(a), ast_to_string(b));
+        op, ctype_to_string(a), ctype_to_string(b));
 }
 
 static void ensure_lvalue(Ast *ast) {
@@ -328,7 +328,7 @@ static Ast *read_expr(int prec) {
     if (is_punct(tok, '='))
       ensure_lvalue(ast);
     Ast *rest = read_expr(prec2 + (is_right_assoc(tok->punct) ? 0 : 1));
-    Ctype *ctype = result_type(tok->punct, ast, rest);
+    Ctype *ctype = result_type(tok->punct, ast->ctype, rest->ctype);
     if (ctype->type == CTYPE_PTR &&
         ast->ctype->type != CTYPE_PTR)
       swap(ast, rest);

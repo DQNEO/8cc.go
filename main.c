@@ -133,10 +133,8 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
   r->lname = name;
 
   if (locals) {
-    r->vpos = locals->vpos + 1 ;
     r->next = locals;
   } else {
-    r->vpos = 1;
     r->next = NULL;
   }
   locals = r;
@@ -631,7 +629,9 @@ int main(int argc, char **argv) {
   int nexpr = i;
   if (!wantast) {
     int off = 0;
+    int vpos = 1;
     for (Ast *p = locals; p; p = p->next) {
+      p->vpos = vpos++;
       off += 8;
     }
 

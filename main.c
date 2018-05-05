@@ -28,6 +28,7 @@ enum {
 typedef struct Ctype {
   int type;
   struct Ctype *ptr;
+  int size;
 } Ctype;
 
 typedef struct Ast {
@@ -80,12 +81,14 @@ static char *REGS[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 static Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL };
 static Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL };
-static Ctype *ctype_array = &(Ctype){ CTYPE_ARRAY, &(Ctype){ CTYPE_CHAR, NULL } };
 
 static void emit_expr(Ast *ast);
 static Ast *read_expr(int prec);
 static char *ast_to_string(Ast *ast);
 static char *ctype_to_string(Ctype *ctype);
+
+static Ctype* make_ptr_type(Ctype *ctype);
+static Ctype* make_array_type(Ctype *ctype, int size);
 
 static Ast *ast_uop(char type, Ctype *ctype, Ast *operand) {
   Ast *r = malloc(sizeof(Ast));
@@ -146,7 +149,7 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
 static Ast *ast_string(char *str) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_STRING;
-  r->ctype = ctype_array;
+  r->ctype = make_array_type(ctype_char, strlen(str) + 1);
   r->sval = str;
   r->slabel = make_next_label();
   r->next = globals;
@@ -177,6 +180,14 @@ static Ctype* make_ptr_type(Ctype *ctype) {
   Ctype *r = malloc(sizeof(Ctype));
   r->type = CTYPE_PTR;
   r->ptr = ctype;
+  return r;
+}
+
+static Ctype* make_array_type(Ctype *ctype, int size) {
+  Ctype *r = malloc(sizeof(Ctype));
+  r->type = CTYPE_ARRAY;
+  r->ptr = ctype;
+  r->size = size;
   return r;
 }
 

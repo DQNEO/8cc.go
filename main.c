@@ -72,8 +72,8 @@ typedef struct Ast {
   };
 } Ast;
 
-static Ast *locals = NULL;
 static Ast *globals = NULL;
+static Ast *locals = NULL;
 
 static int labelseq = 0;
 static char *REGS[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};

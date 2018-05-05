@@ -127,11 +127,11 @@ char *make_next_label(void) {
   return get_cstring(s);
 }
 
-static Ast *make_ast_var(Ctype *ctype, char *vname) {
+static Ast *ast_lvar(Ctype *ctype, char *name) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_VAR;
   r->ctype = ctype;
-  r->vname = vname;
+  r->vname = name;
   r->vpos = locals ? locals->vpos + 1 : 1;
   r->vnext = locals;
   locals = r;
@@ -369,7 +369,7 @@ static Ast *read_decl(void) {
   }
   if (tok->type != TTYPE_IDENT)
     error("Identifier expected, but got %s", token_to_string(tok));
-  Ast *var = make_ast_var(ctype, tok->sval);
+  Ast *var = ast_lvar(ctype, tok->sval);
   expect('=');
   Ast *init = read_expr(0);
   return ast_decl(var, init);

@@ -75,6 +75,8 @@ typedef struct Ast {
 
 static Ast *vars = NULL;
 static Ast *globals = NULL;
+
+static int labelseq = 0;
 static char *REGS[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 static Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL };
@@ -119,6 +121,12 @@ static Ast *ast_char(char c) {
   return r;
 }
 
+char *make_next_label(void) {
+  String *s = make_string();
+  string_appendf(s, ".L%d", labelseq++);
+  return get_cstring(s);
+}
+
 static Ast *make_ast_var(Ctype *ctype, char *vname) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_VAR;
@@ -128,14 +136,6 @@ static Ast *make_ast_var(Ctype *ctype, char *vname) {
   r->vnext = vars;
   vars = r;
   return r;
-}
-
-static int labelseq = 0;
-
-char *make_next_label(void) {
-    String *s = make_string();
-    string_appendf(s, ".L%d", labelseq++);
-    return get_cstring(s);
 }
 
 static Ast *ast_string(char *str) {

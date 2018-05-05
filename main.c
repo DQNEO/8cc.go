@@ -623,6 +623,11 @@ int main(int argc, char **argv) {
   }
   int nexpr = i;
   if (!wantast) {
+    int off = 0;
+    for (Ast *p = locals; p; p = p->next) {
+      off += 8;
+    }
+
     emit_data_section();
     printf(".text\n\t"
            ".global mymain\n"
@@ -630,7 +635,8 @@ int main(int argc, char **argv) {
            "push %%rbp\n\t"
            "mov %%rsp, %%rbp\n\t");
     if (locals)
-      printf("sub $%d, %%rsp\n\t", locals->vpos * 8);
+      printf("sub $%d, %%rsp\n\t", off);
+
   }
   for (i = 0; i < nexpr; i++) {
     if (wantast)

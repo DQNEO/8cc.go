@@ -10,7 +10,7 @@
 enum {
   AST_LITERAL,
   AST_STRING,
-  AST_VAR,
+  AST_LVAR,
   AST_FUNCALL,
   AST_DECL,
   AST_ADDR,
@@ -128,7 +128,7 @@ char *make_next_label(void) {
 
 static Ast *ast_lvar(Ctype *ctype, char *name) {
   Ast *r = malloc(sizeof(Ast));
-  r->type = AST_VAR;
+  r->type = AST_LVAR;
   r->ctype = ctype;
   r->vname = name;
   r->vpos = locals ? locals->vpos + 1 : 1;
@@ -290,7 +290,7 @@ static Ctype *result_type(char op, Ast *a, Ast *b) {
 }
 
 static void ensure_lvalue(Ast *ast) {
-  if (ast->type != AST_VAR)
+  if (ast->type != AST_LVAR)
     error("lvalue expected, but got %s", ast_to_string(ast));
 }
 
@@ -458,7 +458,7 @@ static void emit_expr(Ast *ast) {
     case AST_STRING:
       printf("lea %s(%%rip), %%rax\n\t", ast->slabel);
       break;
-    case AST_VAR:
+    case AST_LVAR:
       switch (ctype_size(ast->ctype)) {
         case 1:
           printf("mov $0, %%eax\n\t");
@@ -492,7 +492,7 @@ static void emit_expr(Ast *ast) {
       emit_assign(ast->declvar, ast->declinit);
       return;
     case AST_ADDR:
-      assert(ast->operand->type == AST_VAR);
+      assert(ast->operand->type == AST_LVAR);
       printf("lea -%d(%%rbp), %%rax\n\t", ast->operand->vpos * 8);
       break;
     case AST_DEREF:
@@ -563,7 +563,7 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     case AST_STRING:
       string_appendf(buf, "\"%s\"", quote(ast->sval));
       break;
-    case AST_VAR:
+    case AST_LVAR:
       string_appendf(buf, "%s", ast->vname);
       break;
     case AST_FUNCALL:

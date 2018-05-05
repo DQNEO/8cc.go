@@ -63,6 +63,7 @@ testast '(+ (/ 4 2) (/ 6 3))' '4/2+6/3;'
 testast '(/ (/ 24 2) 4)' '24/2/4;'
 testast '(decl int a 3)' 'int a=3;'
 testast "(decl char c 'a')" "char c='a';"
+testast '(decl char* s "abc")' 'char *s="abc";'
 testast '(decl int a 1)(decl int b 2)(= a (= b 3))' 'int a=1;int b=2;a=b=3;'
 testast '(decl int a 3)(& a)' 'int a=3;&a;'
 testast '(decl int a 3)(* (& a))' 'int a=3;*&a;'

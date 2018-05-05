@@ -387,7 +387,8 @@ static Ast *read_decl_or_stmt(void) {
 static int ctype_size(Ctype *ctype) {
   switch (ctype->type) {
     case CTYPE_CHAR: return 1;
-    case CTYPE_INT: return 4;
+    case CTYPE_INT:  return 4;
+    case CTYPE_PTR:  return 8;
     default: return 8;
   }
 }

@@ -384,11 +384,6 @@ static Ast *read_decl_or_stmt(void) {
   return r;
 }
 
-static void emit_assign(Ast *var, Ast *value) {
-  emit_expr(value);
-  printf("mov %%rax, -%d(%%rbp)\n\t", var->vpos * 8);
-}
-
 static int ctype_size(Ctype *ctype) {
   switch (ctype->type) {
     case CTYPE_CHAR: return 1;
@@ -408,6 +403,11 @@ static void emit_pointer_arith(char op, Ast *left, Ast *right) {
   printf("mov %%rax, %%rbx\n\t"
          "pop %%rax\n\t"
          "add %%rbx, %%rax\n\t");
+}
+
+static void emit_assign(Ast *var, Ast *value) {
+  emit_expr(value);
+  printf("mov %%rax, -%d(%%rbp)\n\t", var->vpos * 8);
 }
 
 static void emit_binop(Ast *ast) {

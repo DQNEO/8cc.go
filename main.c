@@ -46,7 +46,7 @@ typedef struct Ast {
     };
     // Local variable
     struct {
-      char *vname;
+      char *lname;
       int vpos;
     };
     // Binary operator
@@ -130,7 +130,7 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_LVAR;
   r->ctype = ctype;
-  r->vname = name;
+  r->lname = name;
   r->vpos = locals ? locals->vpos + 1 : 1;
   r->next = locals;
   locals = r;
@@ -176,7 +176,7 @@ static Ctype* make_ptr_type(Ctype *ctype) {
 
 static Ast *find_var(char *name) {
   for (Ast *p = locals; p; p = p->next)
-    if (!strcmp(name, p->vname))
+    if (!strcmp(name, p->lname))
       return p;
 
   return NULL;
@@ -564,7 +564,7 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       string_appendf(buf, "\"%s\"", quote(ast->sval));
       break;
     case AST_LVAR:
-      string_appendf(buf, "%s", ast->vname);
+      string_appendf(buf, "%s", ast->lname);
       break;
     case AST_FUNCALL:
       string_appendf(buf, "%s(", ast->fname);
@@ -578,7 +578,7 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     case AST_DECL:
       string_appendf(buf, "(decl %s %s %s)",
                      ctype_to_string(ast->declvar->ctype),
-                     ast->declvar->vname,
+                     ast->declvar->lname,
                      ast_to_string(ast->declinit));
       break;
     case AST_ADDR:

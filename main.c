@@ -86,9 +86,9 @@ static void emit_expr(Ast *ast);
 static Ast *read_expr(int prec);
 static char *ast_to_string(Ast *ast);
 static char *ctype_to_string(Ctype *ctype);
-
 static Ctype* make_ptr_type(Ctype *ctype);
 static Ctype* make_array_type(Ctype *ctype, int size);
+static int ctype_size(Ctype *ctype);
 
 static Ast *ast_uop(char type, Ctype *ctype, Ast *operand) {
   Ast *r = malloc(sizeof(Ast));
@@ -134,7 +134,6 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
   r->type = AST_LVAR;
   r->ctype = ctype;
   r->lname = name;
-
   r->next = NULL;
   if (locals) {
     Ast *p;
@@ -195,7 +194,6 @@ static Ast *find_var(char *name) {
   for (Ast *p = locals; p; p = p->next)
     if (!strcmp(name, p->lname))
       return p;
-
   return NULL;
 }
 
@@ -307,8 +305,12 @@ static Ctype *result_type(char op, Ctype *a, Ctype *b) {
 }
 
 static void ensure_lvalue(Ast *ast) {
-  if (ast->type != AST_LVAR)
-    error("lvalue expected, but got %s", ast_to_string(ast));
+  switch (ast->type) {
+    case AST_LVAR:
+        return;
+    default:
+      error("lvalue expected, but got %s", ast_to_string(ast));
+  }
 }
 
 static Ast *read_unary_expr(void) {
@@ -346,8 +348,9 @@ static Ast *read_expr(int prec) {
       ensure_lvalue(ast);
     Ast *rest = read_expr(prec2 + (is_right_assoc(tok->punct) ? 0 : 1));
     Ctype *ctype = result_type(tok->punct, ast->ctype, rest->ctype);
-    if (ctype->type == CTYPE_PTR &&
-        ast->ctype->type != CTYPE_PTR)
+    if (
+        ast->ctype->type != CTYPE_PTR &&
+        ctype->type == CTYPE_PTR)
       swap(ast, rest);
     ast = ast_binop(tok->punct, ctype, ast, rest);
   }
@@ -362,7 +365,6 @@ static Ctype *get_ctype(Token *tok) {
     return ctype_char;
   return NULL;
 }
-
 
 static bool is_type_keyword(Token *tok) {
   return get_ctype(tok) != NULL;
@@ -650,7 +652,6 @@ int main(int argc, char **argv) {
       off += ceil8();
       p->loff = off;
     }
-
     emit_data_section();
     printf(".text\n\t"
            ".global mymain\n"
@@ -659,7 +660,6 @@ int main(int argc, char **argv) {
            "mov %%rsp, %%rbp\n\t");
     if (locals)
       printf("sub $%d, %%rsp\n\t", off);
-
   }
   for (i = 0; i < nexpr; i++) {
     if (wantast)

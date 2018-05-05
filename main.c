@@ -129,19 +129,18 @@ static Ast *make_ast_var(Ctype *ctype, char *vname) {
   vars = r;
   return r;
 }
+static int labelseq = 0;
+int make_next_label_num(void) {
+    return labelseq++;
+}
 
 static Ast *ast_string(char *str) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_STRING;
   r->ctype = ctype_array;
   r->sval = str;
-  if (globals == NULL) {
-    r->sid = 0;
-    r->snext = NULL;
-  } else {
-    r->sid = globals->sid + 1;
-    r->snext = globals;
-  }
+  r->sid = make_next_label_num();
+  r->snext = globals;
   globals = r;
   return r;
 }

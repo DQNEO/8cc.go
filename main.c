@@ -131,8 +131,14 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
   r->type = AST_LVAR;
   r->ctype = ctype;
   r->lname = name;
-  r->vpos = locals ? locals->vpos + 1 : 1;
-  r->next = locals;
+
+  if (locals) {
+    r->vpos = locals->vpos + 1 ;
+    r->next = locals;
+  } else {
+    r->vpos = 1;
+    r->next = NULL;
+  }
   locals = r;
   return r;
 }

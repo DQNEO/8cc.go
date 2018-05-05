@@ -44,7 +44,7 @@ typedef struct Ast {
       char *sval;
       char *slabel;
     };
-    // Variable
+    // Local variable
     struct {
       char *vname;
       int vpos;
@@ -73,7 +73,7 @@ typedef struct Ast {
   };
 } Ast;
 
-static Ast *vars = NULL;
+static Ast *locals = NULL;
 static Ast *globals = NULL;
 
 static int labelseq = 0;
@@ -132,9 +132,9 @@ static Ast *make_ast_var(Ctype *ctype, char *vname) {
   r->type = AST_VAR;
   r->ctype = ctype;
   r->vname = vname;
-  r->vpos = vars ? vars->vpos + 1 : 1;
-  r->vnext = vars;
-  vars = r;
+  r->vpos = locals ? locals->vpos + 1 : 1;
+  r->vnext = locals;
+  locals = r;
   return r;
 }
 
@@ -176,7 +176,7 @@ static Ctype* make_ptr_type(Ctype *ctype) {
 }
 
 static Ast *find_var(char *name) {
-  for (Ast *p = vars; p; p = p->vnext) {
+  for (Ast *p = locals; p; p = p->vnext) {
     if (!strcmp(name, p->vname))
       return p;
   }
@@ -630,8 +630,8 @@ int main(int argc, char **argv) {
            "mymain:\n\t"
            "push %%rbp\n\t"
            "mov %%rsp, %%rbp\n\t");
-    if (vars)
-      printf("sub $%d, %%rsp\n\t", vars->vpos * 8);
+    if (locals)
+      printf("sub $%d, %%rsp\n\t", locals->vpos * 8);
   }
   for (i = 0; i < nexpr; i++) {
     if (wantast)

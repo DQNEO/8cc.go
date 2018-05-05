@@ -47,7 +47,7 @@ typedef struct Ast {
     // Local variable
     struct {
       char *lname;
-      int vpos;
+      int loff;
     };
     // Binary operator
     struct {
@@ -412,7 +412,7 @@ static void emit_pointer_arith(char op, Ast *left, Ast *right) {
 
 static void emit_assign(Ast *var, Ast *value) {
   emit_expr(value);
-  printf("mov %%rax, -%d(%%rbp)\n\t", var->vpos * 8);
+  printf("mov %%rax, -%d(%%rbp)\n\t", var->loff);
 }
 
 static void emit_binop(Ast *ast) {
@@ -467,13 +467,13 @@ static void emit_expr(Ast *ast) {
       switch (ctype_size(ast->ctype)) {
         case 1:
           printf("mov $0, %%eax\n\t");
-          printf("mov -%d(%%rbp), %%al\n\t", ast->vpos * 8);
+          printf("mov -%d(%%rbp), %%al\n\t", ast->loff);
           break;
         case 4:
-          printf("mov -%d(%%rbp), %%eax\n\t", ast->vpos * 8);
+          printf("mov -%d(%%rbp), %%eax\n\t", ast->loff);
           break;
         case 8:
-          printf("mov -%d(%%rbp), %%rax\n\t", ast->vpos * 8);
+          printf("mov -%d(%%rbp), %%rax\n\t", ast->loff);
           break;
         default:
           error("internal error");
@@ -498,7 +498,7 @@ static void emit_expr(Ast *ast) {
       return;
     case AST_ADDR:
       assert(ast->operand->type == AST_LVAR);
-      printf("lea -%d(%%rbp), %%rax\n\t", ast->operand->vpos * 8);
+      printf("lea -%d(%%rbp), %%rax\n\t", ast->operand->loff);
       break;
     case AST_DEREF:
       assert(ast->operand->ctype->type == CTYPE_PTR);
@@ -629,10 +629,9 @@ int main(int argc, char **argv) {
   int nexpr = i;
   if (!wantast) {
     int off = 0;
-    int vpos = 1;
     for (Ast *p = locals; p; p = p->next) {
-      p->vpos = vpos++;
       off += 8;
+      p->loff = off;
     }
 
     emit_data_section();

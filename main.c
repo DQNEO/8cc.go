@@ -617,6 +617,10 @@ static void emit_data_section(void) {
   printf("\t");
 }
 
+static int ceil8() {
+  return 8;
+}
+
 int main(int argc, char **argv) {
   int wantast = (argc > 1 && !strcmp(argv[1], "-a"));
   Ast *exprs[EXPR_LEN];
@@ -630,7 +634,7 @@ int main(int argc, char **argv) {
   if (!wantast) {
     int off = 0;
     for (Ast *p = locals; p; p = p->next) {
-      off += 8;
+      off += ceil8();
       p->loff = off;
     }
 

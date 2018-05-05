@@ -134,7 +134,7 @@ static int labelseq = 0;
 
 char *make_next_label(void) {
     String *s = make_string();
-    string_appendf(s, ".s%d", labelseq++);
+    string_appendf(s, ".L%d", labelseq++);
     return get_cstring(s);
 }
 

@@ -386,16 +386,12 @@ static void emit_assign(Ast *var, Ast *value) {
   printf("mov %%rax, -%d(%%rbp)\n\t", var->vpos * 8);
 }
 
-static int ctype_shift(Ctype *ctype) {
-  switch (ctype->type) {
-    case CTYPE_CHAR: return 0;
-    case CTYPE_INT: return 2;
-    default: return 3;
-  }
-}
-
 static int ctype_size(Ctype *ctype) {
-  return 1 << ctype_shift(ctype);
+  switch (ctype->type) {
+    case CTYPE_CHAR: return 1;
+    case CTYPE_INT: return 4;
+    default: return 8;
+  }
 }
 
 static void emit_pointer_arith(char op, Ast *left, Ast *right) {
@@ -403,9 +399,9 @@ static void emit_pointer_arith(char op, Ast *left, Ast *right) {
   emit_expr(left);
   printf("push %%rax\n\t");
   emit_expr(right);
-  int shift = ctype_shift(left->ctype);
-  if (shift > 0)
-    printf("sal $%d, %%rax\n\t", shift);
+  int size = ctype_size(left->ctype);
+  if (size > 1)
+    printf("sal $%d, %%rax\n\t", size);
   printf("mov %%rax, %%rbx\n\t"
          "pop %%rax\n\t"
          "add %%rbx, %%rax\n\t");

@@ -13,6 +13,7 @@ enum {
   AST_LVAR,
   AST_FUNCALL,
   AST_DECL,
+  AST_ARRAY_INIT,
   AST_ADDR,
   AST_DEREF,
 };
@@ -69,6 +70,11 @@ typedef struct Ast {
     struct {
       struct Ast *declvar;
       struct Ast *declinit;
+    };
+    // Array initializer
+    struct {
+      int size;
+      struct Ast **array_init;
     };
   };
 } Ast;
@@ -172,6 +178,15 @@ static Ast *ast_decl(Ast *var, Ast *init) {
   r->ctype = NULL;
   r->declvar = var;
   r->declinit = init;
+  return r;
+}
+
+static Ast *ast_array_init(int size, Ast **array_init) {
+  Ast *r = malloc(sizeof(Ast));
+  r->type = AST_ARRAY_INIT;
+  r->ctype = NULL;
+  r->size = size;
+  r->array_init = array_init;
   return r;
 }
 
@@ -376,6 +391,37 @@ static void expect(char punct) {
     error("'%c' expected, but got %s", punct, token_to_string(tok));
 }
 
+static Ast *read_decl_array_initializer(Ctype *ctype) {
+  Token *tok = read_token();
+  if (ctype->ptr->type == CTYPE_CHAR && tok->type == TTYPE_STRING)
+    return ast_string(tok->sval);
+  if (!is_punct(tok, '{'))
+    error("Expected an initializer list, but got %s", token_to_string(tok));
+  Ast **init = malloc(sizeof(Ast*) * ctype->size);
+  for (int i = 0; i < ctype->size; i++) {
+    init[i] = read_expr(0);
+    result_type('=', init[i]->ctype, ctype->ptr);
+    tok = read_token();
+    if (is_punct(tok, '}') && (i == ctype->size - 1))
+      break;
+    if (!is_punct(tok, ','))
+      error("comma expected, but got %s", token_to_string(tok));
+    if (i == ctype->size - 1) {
+      tok = read_token();
+      if (!is_punct(tok, '}'))
+        error("'}' expected, but got %s", token_to_string(tok));
+      break;
+    }
+  }
+  return ast_array_init(ctype->size, init);
+}
+
+static Ast *read_declinitializer(Ctype *ctype) {
+  if (ctype->type == CTYPE_ARRAY)
+    return read_decl_array_initializer(ctype);
+  return read_expr(0);
+}
+
 static Ast *read_decl(void) {
   Ctype *ctype = get_ctype(read_token());
   Token *tok;
@@ -387,9 +433,23 @@ static Ast *read_decl(void) {
   }
   if (tok->type != TTYPE_IDENT)
     error("Identifier expected, but got %s", token_to_string(tok));
-  Ast *var = ast_lvar(ctype, tok->sval);
+  Token *varname = tok;
+  for (;;) {
+    tok = read_token();
+    if (is_punct(tok, '[')) {
+      Ast *size = read_expr(0);
+      if (size->type != AST_LITERAL || size->ctype->type != CTYPE_INT)
+        error("Integer expected, but got %s", ast_to_string(size));
+      expect(']');
+      ctype = make_array_type(ctype, size->ival);
+    } else {
+      unget_token(tok);
+      break;
+    }
+  }
+  Ast *var = ast_lvar(ctype, varname->sval);
   expect('=');
-  Ast *init = read_expr(0);
+  Ast *init = read_declinitializer(ctype);
   return ast_decl(var, init);
 }
 
@@ -408,7 +468,10 @@ static int ctype_size(Ctype *ctype) {
     case CTYPE_CHAR: return 1;
     case CTYPE_INT:  return 4;
     case CTYPE_PTR:  return 8;
-    default: return 8;
+    case CTYPE_ARRAY:
+      return ctype_size(ctype->ptr) * ctype->size;
+    default:
+      error("internal error");
   }
 }
 
@@ -509,7 +572,16 @@ static void emit_expr(Ast *ast) {
         printf("pop %%%s\n\t", REGS[i]);
       break;
     case AST_DECL:
-      emit_assign(ast->declvar, ast->declinit);
+      if (ast->declinit->type == AST_ARRAY_INIT) {
+        int size = 4; // only int for now
+        char *reg = "eax";
+        for (int i = 0; i < ast->declinit->size; i++) {
+          emit_expr(ast->declinit->array_init[i]);
+          printf("mov %%%s, -%d(%%rbp)\n\t", reg, ast->declvar->loff - i * size);
+        }
+      } else {
+        emit_assign(ast->declvar, ast->declinit);
+      }
       return;
     case AST_ADDR:
       assert(ast->operand->type == AST_LVAR);
@@ -559,7 +631,7 @@ static char *ctype_to_string(Ctype *ctype) {
     case CTYPE_ARRAY: {
       String *s = make_string();
       string_appendf(s, "%s", ctype_to_string(ctype->ptr));
-      string_appendf(s, "[]");
+      string_appendf(s, "[%d]", ctype->size);
       return get_cstring(s);
     }
     default: error("Unknown ctype: %d", ctype);
@@ -600,6 +672,15 @@ static void ast_to_string_int(Ast *ast, String *buf) {
                      ctype_to_string(ast->declvar->ctype),
                      ast->declvar->lname,
                      ast_to_string(ast->declinit));
+      break;
+    case AST_ARRAY_INIT:
+      string_appendf(buf, "{");
+      for (int i = 0; i < ast->size; i++) {
+        ast_to_string_int(ast->array_init[i], buf);
+        if (i != ast->size - 1)
+          string_appendf(buf, ",");
+      }
+      string_appendf(buf, "}");
       break;
     case AST_ADDR:
       string_appendf(buf, "(& %s)", ast_to_string(ast->operand));

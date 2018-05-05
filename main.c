@@ -73,7 +73,7 @@ typedef struct Ast {
 } Ast;
 
 static Ast *vars = NULL;
-static Ast *strings = NULL;
+static Ast *globals = NULL;
 static char *REGS[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 static Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL };
@@ -134,14 +134,14 @@ static Ast *ast_string(char *str) {
   r->type = AST_LITERAL;
   r->ctype = ctype_array;
   r->sval = str;
-  if (strings == NULL) {
+  if (globals == NULL) {
     r->sid = 0;
     r->snext = NULL;
   } else {
-    r->sid = strings->sid + 1;
-    r->snext = strings;
+    r->sid = globals->sid + 1;
+    r->snext = globals;
   }
-  strings = r;
+  globals = r;
   return r;
 }
 
@@ -599,9 +599,9 @@ static char *ast_to_string(Ast *ast) {
 }
 
 static void emit_data_section(void) {
-  if (!strings) return;
+  if (!globals) return;
   printf("\t.data\n");
-  for (Ast *p = strings; p; p = p->snext) {
+  for (Ast *p = globals; p; p = p->snext) {
     printf(".s%d:\n\t", p->sid);
     printf(".string \"%s\"\n", quote(p->sval));
   }

@@ -76,6 +76,8 @@ type Ast struct {
 
 var vars *Ast
 var globals *Ast
+
+var labelseq = 0;
 var REGS = []string{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}
 
 var ctype_int = &Ctype{CTYPE_INT, nil}
@@ -115,6 +117,12 @@ func ast_char(c byte) *Ast {
 	return r
 }
 
+func make_next_label() string {
+	ret := labelseq
+	labelseq++
+	return fmt.Sprintf(".L%d", ret)
+}
+
 func ast_var(ctype *Ctype, vname []byte) *Ast {
 	r := &Ast{}
 	r.typ = AST_VAR
@@ -128,12 +136,6 @@ func ast_var(ctype *Ctype, vname []byte) *Ast {
 	r.variable.next = vars
 	vars = r
 	return r
-}
-var labelseq = 0;
-func make_next_label() string {
-	ret := labelseq
-	labelseq++
-    return fmt.Sprintf(".L%d", ret)
 }
 
 func ast_string(str []byte) *Ast {

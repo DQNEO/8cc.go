@@ -74,7 +74,7 @@ type Ast struct {
 }
 
 var vars *Ast
-var strings *Ast
+var globals *Ast
 var REGS = []string{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}
 
 var ctype_int = &Ctype{CTYPE_INT, nil}
@@ -135,15 +135,15 @@ func ast_string(str []byte) *Ast {
 	r.ctype = ctype_array
 	r.str.val = str
 
-	if strings == nil {
+	if globals == nil {
 		r.str.id = 0
 		r.str.next = nil
 	} else {
-		r.str.id = strings.str.id + 1
-		r.str.next = strings
+		r.str.id = globals.str.id + 1
+		r.str.next = globals
 	}
 
-	strings = r
+	globals = r
 	return r
 }
 
@@ -661,11 +661,11 @@ func ast_to_string(ast *Ast) string {
 }
 
 func emit_data_section() {
-	if strings == nil {
+	if globals == nil {
 		return
 	}
 	printf("\t.data\n")
-	for p := strings; p != nil; p = p.str.next {
+	for p := globals; p != nil; p = p.str.next {
 		printf(".s%d:\n\t", p.str.id)
 		printf(".string \"%s\"\n", quote(p.str.val))
 	}

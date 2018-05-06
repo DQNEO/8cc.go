@@ -450,19 +450,15 @@ func emit_assign(variable *Ast, value *Ast) {
 	printf("mov %%rax, -%d(%%rbp)\n\t", variable.variable.pos*8)
 }
 
-func ctype_shift(ctype *Ctype) uint {
+func ctype_size(ctype *Ctype) int {
 	switch ctype.typ {
 	case CTYPE_CHAR:
-		return 0
+		return 1
 	case CTYPE_INT:
-		return 2
+		return 4
 	default:
-		return 3
+		return 8
 	}
-}
-
-func ctype_size(ctype *Ctype) int {
-	return 1 << ctype_shift(ctype)
 }
 
 func emit_pointer_arith(op byte, left *Ast, right *Ast) {
@@ -470,9 +466,9 @@ func emit_pointer_arith(op byte, left *Ast, right *Ast) {
 	emit_expr(left)
 	printf("push %%rax\n\t")
 	emit_expr(right)
-	shift := ctype_shift(left.ctype)
-	if shift > 0 {
-		printf("sal $%d, %%rax\n\t", shift)
+	size := ctype_size(left.ctype)
+	if size > 1 {
+		printf("sal $%d, %%rax\n\t", size)
 	}
 	printf("mov %%rax, %%rbx\n\t"+
 		"pop %%rax\n\t"+

@@ -68,8 +68,8 @@ type Ast struct {
 	}
 	// Declaration
 	decl struct {
-		decl_var  *Ast
-		decl_init *Ast
+		declvar  *Ast
+		declinit *Ast
 	}
 }
 
@@ -161,8 +161,8 @@ func make_ast_decl(variable *Ast, init *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_DECL
 	r.ctype = nil
-	r.decl.decl_var = variable
-	r.decl.decl_init = init
+	r.decl.declvar = variable
+	r.decl.declinit = init
 	return r
 }
 
@@ -559,7 +559,7 @@ func emit_expr(ast *Ast) {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 	case AST_DECL:
-		emit_assign(ast.decl.decl_var, ast.decl.decl_init)
+		emit_assign(ast.decl.declvar, ast.decl.declinit)
 	case AST_ADDR:
 		assert(ast.unary.operand.typ == AST_VAR)
 		printf("lea -%d(%%rbp), %%rax\n\t", ast.unary.operand.variable.pos*8)
@@ -646,9 +646,9 @@ func ast_to_string_int(ast *Ast) string {
 		return s
 	case AST_DECL:
 		return fmt.Sprintf("(decl %s %s %s)",
-			ctype_to_string(ast.decl.decl_var.ctype),
-			bytes2string(ast.decl.decl_var.variable.name),
-			ast_to_string_int(ast.decl.decl_init))
+			ctype_to_string(ast.decl.declvar.ctype),
+			bytes2string(ast.decl.declvar.variable.name),
+			ast_to_string_int(ast.decl.declinit))
 	case AST_ADDR:
 		return fmt.Sprintf("(& %s)", ast_to_string(ast.unary.operand))
 	case AST_DEREF:

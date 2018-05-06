@@ -11,6 +11,7 @@ const MAX_ARGS = 6
 
 const (
 	AST_LITERAL byte = iota
+	AST_STRING
 	AST_VAR
 	AST_FUNCALL
 	AST_DECL
@@ -131,7 +132,7 @@ func ast_var(ctype *Ctype, vname []byte) *Ast {
 
 func ast_string(str []byte) *Ast {
 	r := &Ast{}
-	r.typ = AST_LITERAL
+	r.typ = AST_STRING
 	r.ctype = ctype_array
 	r.str.val = str
 
@@ -521,11 +522,11 @@ func emit_expr(ast *Ast) {
 			printf("mov $%d, %%eax\n\t", ast.ival)
 		case CTYPE_CHAR:
 			printf("mov $%d, %%rax\n\t", ast.c)
-		case CTYPE_ARRAY:
-			printf("lea .s%d(%%rip), %%rax\n\t", ast.str.id)
 		default:
 			_error("internal error")
 		}
+	case AST_STRING:
+		printf("lea .s%d(%%rip), %%rax\n\t", ast.str.id)
 	case AST_VAR:
 		switch ctype_size(ast.ctype) {
 		case 1:
@@ -622,12 +623,12 @@ func ast_to_string_int(ast *Ast) string {
 			return fmt.Sprintf("%d", ast.ival)
 		case CTYPE_CHAR:
 			return fmt.Sprintf("'%c'", ast.c)
-		case CTYPE_ARRAY:
-			return fmt.Sprintf("\"%s\"", quote(ast.str.val))
 		default:
 			_error("internal error")
 			return ""
 		}
+	case AST_STRING:
+		return fmt.Sprintf("\"%s\"", quote(ast.str.val))
 	case AST_VAR:
 		return fmt.Sprintf("%s", bytes2string(ast.variable.name))
 	case AST_FUNCALL:
@@ -666,6 +667,7 @@ func emit_data_section() {
 	}
 	printf("\t.data\n")
 	for p := globals; p != nil; p = p.str.next {
+		assert(p.typ == AST_STRING)
 		printf(".s%d:\n\t", p.str.id)
 		printf(".string \"%s\"\n", quote(p.str.val))
 	}

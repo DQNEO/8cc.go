@@ -35,6 +35,7 @@ type Ctype struct {
 type Ast struct {
 	typ   byte
 	ctype *Ctype
+	next *Ast
 	// want to be "union"
 	// Integer
 	ival int
@@ -44,7 +45,6 @@ type Ast struct {
 	str struct {
 		val  []byte
 		slabel   string
-		next *Ast
 	}
 	// Variable
 	variable struct {
@@ -144,7 +144,7 @@ func ast_string(str []byte) *Ast {
 	r.ctype = ctype_array
 	r.str.val = str
 	r.str.slabel = make_next_label()
-	r.str.next = globals
+	r.next = globals
 
 	globals = r
 	return r
@@ -668,7 +668,7 @@ func emit_data_section() {
 		return
 	}
 	printf("\t.data\n")
-	for p := globals; p != nil; p = p.str.next {
+	for p := globals; p != nil; p = p.next {
 		assert(p.typ == AST_STRING)
 		printf("%s:\n\t", p.str.slabel)
 		printf(".string \"%s\"\n", quote(p.str.val))

@@ -11,6 +11,7 @@ enum {
   AST_LITERAL,
   AST_STRING,
   AST_LVAR,
+  AST_LREF,
   AST_FUNCALL,
   AST_DECL,
   AST_ARRAY_INIT,
@@ -50,6 +51,11 @@ typedef struct Ast {
     struct {
       char *lname;
       int loff;
+    };
+    // Local reference
+    struct {
+      struct Ast *lref;
+      int lrefoff;
     };
     // Binary operator
     struct {
@@ -148,6 +154,15 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
   } else {
     locals = r;
   }
+  return r;
+}
+
+static Ast *ast_lref(Ctype *ctype, Ast *lvar, int off) {
+  Ast *r = malloc(sizeof(Ast));
+  r->type = AST_LREF;
+  r->ctype = ctype;
+  r->lref = lvar;
+  r->lrefoff = off;
   return r;
 }
 
@@ -287,23 +302,26 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
   if (b->type == CTYPE_PTR) {
     if (op != '+' && op != '-')
       goto err;
-    if (a->type != CTYPE_PTR) {
-      warn("Making a pointer from %s", ctype_to_string(a));
-      return b;
-    }
-    Ctype *r = malloc(sizeof(Ctype));
-    r->type = CTYPE_PTR;
-    r->ptr = result_type_int(jmpbuf, op, a->ptr, b->ptr);
-    return r;
+    if (a->type != CTYPE_INT)
+      goto err;
+    return b;
   }
   switch (a->type) {
     case CTYPE_VOID:
       goto err;
     case CTYPE_INT:
     case CTYPE_CHAR:
-      return ctype_int;
+      switch (b->type) {
+        case CTYPE_INT:
+        case CTYPE_CHAR:
+          return ctype_int;
+        case CTYPE_ARRAY:
+        case CTYPE_PTR:
+          return b;
+      }
+      error("internal error");
     case CTYPE_ARRAY:
-      return result_type_int(jmpbuf, op, make_ptr_type(a->ptr), b);
+      goto err;
     default:
       error("internal error");
   }
@@ -321,8 +339,8 @@ static Ctype *result_type(char op, Ctype *a, Ctype *b) {
 
 static void ensure_lvalue(Ast *ast) {
   switch (ast->type) {
-    case AST_LVAR:
-        return;
+    case AST_LVAR: case AST_LREF:
+      return;
     default:
       error("lvalue expected, but got %s", ast_to_string(ast));
   }
@@ -345,6 +363,16 @@ static Ast *read_unary_expr(void) {
   return read_prim();
 }
 
+static Ast *convert_array(Ast *ast) {
+  if (ast->type == AST_STRING)
+    return ast;
+  if (ast->ctype->type != CTYPE_ARRAY)
+    return ast;
+  if (ast->type == AST_LVAR)
+    return ast_lref(make_ptr_type(ast->ctype->ptr), ast, 0);
+  return ast;
+}
+
 static Ast *read_expr(int prec) {
   Ast *ast = read_unary_expr();
   if (!ast) return NULL;
@@ -361,11 +389,14 @@ static Ast *read_expr(int prec) {
     }
     if (is_punct(tok, '='))
       ensure_lvalue(ast);
+    else
+      ast = convert_array(ast);
     Ast *rest = read_expr(prec2 + (is_right_assoc(tok->punct) ? 0 : 1));
+    rest = convert_array(rest);
     Ctype *ctype = result_type(tok->punct, ast->ctype, rest->ctype);
-    if (
+    if (!is_punct(tok, '=') &&
         ast->ctype->type != CTYPE_PTR &&
-        ctype->type == CTYPE_PTR)
+        rest->ctype->type == CTYPE_PTR)
       swap(ast, rest);
     ast = ast_binop(tok->punct, ctype, ast, rest);
   }
@@ -475,14 +506,49 @@ static int ctype_size(Ctype *ctype) {
   }
 }
 
+static void emit_lload(Ast *var, int off) {
+  if (var->ctype->type == CTYPE_ARRAY) {
+    printf("lea -%d(%%rbp), %%rax\n\t", var->loff);
+    return;
+  }
+  int size = ctype_size(var->ctype);
+  switch (size) {
+    case 1:
+      printf("mov $0, %%eax\n\t");
+      printf("mov -%d(%%rbp), %%al\n\t", var->loff);
+      break;
+    case 4:
+      printf("mov -%d(%%rbp), %%eax\n\t", var->loff);
+      break;
+    case 8:
+      printf("mov -%d(%%rbp), %%rax\n\t", var->loff);
+      break;
+    default:
+      error("Unknown data size: %s: %d", ast_to_string(var), size);
+  }
+  if (off)
+    printf("add $%d, %%rax\n\t", var->loff * size);
+}
+
+static void emit_lsave(Ctype *ctype, int loff, int off) {
+  char *reg;
+  int size = ctype_size(ctype);
+  switch (size) {
+    case 1: reg = "al";  break;
+    case 4: reg = "eax"; break;
+    case 8: reg = "rax"; break;
+  }
+  printf("mov %%%s, -%d(%%rbp)\n\t", reg, loff + off * size);
+}
+
 static void emit_pointer_arith(char op, Ast *left, Ast *right) {
   assert(left->ctype->type == CTYPE_PTR);
   emit_expr(left);
   printf("push %%rax\n\t");
   emit_expr(right);
-  int size = ctype_size(left->ctype);
+  int size = ctype_size(left->ctype->ptr);
   if (size > 1)
-    printf("sal $%d, %%rax\n\t", size);
+    printf("imul $%d, %%rax\n\t", size);
   printf("mov %%rax, %%rbx\n\t"
          "pop %%rax\n\t"
          "add %%rbx, %%rax\n\t");
@@ -490,7 +556,11 @@ static void emit_pointer_arith(char op, Ast *left, Ast *right) {
 
 static void emit_assign(Ast *var, Ast *value) {
   emit_expr(value);
-  printf("mov %%rax, -%d(%%rbp)\n\t", var->loff);
+  switch (var->type) {
+    case AST_LVAR: emit_lsave(var->ctype, var->loff, 0); break;
+    case AST_LREF: emit_lsave(var->lref->ctype, var->lref->loff, var->loff); break;
+    default: error("internal error");
+  }
 }
 
 static void emit_binop(Ast *ast) {
@@ -542,20 +612,11 @@ static void emit_expr(Ast *ast) {
       printf("lea %s(%%rip), %%rax\n\t", ast->slabel);
       break;
     case AST_LVAR:
-      switch (ctype_size(ast->ctype)) {
-        case 1:
-          printf("mov $0, %%eax\n\t");
-          printf("mov -%d(%%rbp), %%al\n\t", ast->loff);
-          break;
-        case 4:
-          printf("mov -%d(%%rbp), %%eax\n\t", ast->loff);
-          break;
-        case 8:
-          printf("mov -%d(%%rbp), %%rax\n\t", ast->loff);
-          break;
-        default:
-          error("internal error");
-      }
+      emit_lload(ast, 0);
+      break;
+    case AST_LREF:
+      assert(ast->lref->type == AST_LVAR);
+      emit_lload(ast->lref, ast->lrefoff);
       break;
     case AST_FUNCALL:
       for (int i = 1; i < ast->nargs; i++)
@@ -573,14 +634,22 @@ static void emit_expr(Ast *ast) {
       break;
     case AST_DECL:
       if (ast->declinit->type == AST_ARRAY_INIT) {
-        int size = 4; // only int for now
-        char *reg = "eax";
         for (int i = 0; i < ast->declinit->size; i++) {
           emit_expr(ast->declinit->array_init[i]);
-          printf("mov %%%s, -%d(%%rbp)\n\t", reg, ast->declvar->loff - i * size);
+          emit_lsave(ast->declvar->ctype->ptr, ast->declvar->loff, -i);
         }
+      } else if (ast->declvar->ctype->type == CTYPE_ARRAY) {
+        assert(ast->declinit->type == AST_STRING);
+        int i = 0;
+        for (char *p = ast->declinit->sval; *p; p++, i++)
+          printf("movb $%d, -%d(%%rbp)\n\t", *p, ast->declvar->loff - i);
+        printf("movb $0, -%d(%%rbp)\n\t", ast->declvar->loff - i);
+      } else if (ast->declinit->type == AST_STRING) {
+        printf("lea %s(%%rip), %%rax\n\t", ast->declinit->slabel);
+        emit_lsave(ast->declvar->ctype, ast->declvar->loff, 0);
       } else {
-        emit_assign(ast->declvar, ast->declinit);
+        emit_expr(ast->declinit);
+        emit_lsave(ast->declvar->ctype, ast->declvar->loff, 0);
       }
       return;
     case AST_ADDR:
@@ -658,6 +727,9 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     case AST_LVAR:
       string_appendf(buf, "%s", ast->lname);
       break;
+    case AST_LREF:
+      string_appendf(buf, "%s[%d]", ast_to_string(ast->lref), ast->lrefoff);
+      break;
     case AST_FUNCALL:
       string_appendf(buf, "%s(", ast->fname);
       for (int i = 0; ast->args[i]; i++) {
@@ -713,8 +785,9 @@ static void emit_data_section(void) {
   printf("\t");
 }
 
-static int ceil8() {
-  return 8;
+static int ceil8(int n) {
+  int rem = n % 8;
+  return (rem == 0) ? n : n - rem + 8;
 }
 
 int main(int argc, char **argv) {
@@ -730,7 +803,7 @@ int main(int argc, char **argv) {
   if (!wantast) {
     int off = 0;
     for (Ast *p = locals; p; p = p->next) {
-      off += ceil8();
+      off += ceil8(ctype_size(p->ctype));
       p->loff = off;
     }
     emit_data_section();

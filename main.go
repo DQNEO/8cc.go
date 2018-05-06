@@ -43,7 +43,7 @@ type Ast struct {
 	// String
 	str struct {
 		val  []byte
-		id   int
+		slabel   string
 		next *Ast
 	}
 	// Variable
@@ -130,10 +130,10 @@ func ast_var(ctype *Ctype, vname []byte) *Ast {
 	return r
 }
 var labelseq = 0;
-func make_next_label_num() int {
+func make_next_label() string {
 	ret := labelseq
 	labelseq++
-    return ret
+    return fmt.Sprintf(".s%d", ret)
 }
 
 func ast_string(str []byte) *Ast {
@@ -141,7 +141,7 @@ func ast_string(str []byte) *Ast {
 	r.typ = AST_STRING
 	r.ctype = ctype_array
 	r.str.val = str
-	r.str.id = make_next_label_num()
+	r.str.slabel = make_next_label()
 	r.str.next = globals
 
 	globals = r
@@ -526,7 +526,7 @@ func emit_expr(ast *Ast) {
 			_error("internal error")
 		}
 	case AST_STRING:
-		printf("lea .s%d(%%rip), %%rax\n\t", ast.str.id)
+		printf("lea %s(%%rip), %%rax\n\t", ast.str.slabel)
 	case AST_VAR:
 		switch ctype_size(ast.ctype) {
 		case 1:
@@ -668,7 +668,7 @@ func emit_data_section() {
 	printf("\t.data\n")
 	for p := globals; p != nil; p = p.str.next {
 		assert(p.typ == AST_STRING)
-		printf(".s%d:\n\t", p.str.id)
+		printf("%s:\n\t", p.str.slabel)
 		printf(".string \"%s\"\n", quote(p.str.val))
 	}
 	printf("\t")

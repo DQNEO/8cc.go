@@ -43,7 +43,6 @@ function testfail {
   fi
 }
 
-make clean
 if [[ $mode == "-c" ]];then
     echo "C build" >&2
     make 8cc

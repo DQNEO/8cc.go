@@ -129,20 +129,20 @@ func ast_var(ctype *Ctype, vname []byte) *Ast {
 	vars = r
 	return r
 }
+var labelseq = 0;
+func make_next_label_num() int {
+	ret := labelseq
+	labelseq++
+    return ret
+}
 
 func ast_string(str []byte) *Ast {
 	r := &Ast{}
 	r.typ = AST_STRING
 	r.ctype = ctype_array
 	r.str.val = str
-
-	if globals == nil {
-		r.str.id = 0
-		r.str.next = nil
-	} else {
-		r.str.id = globals.str.id + 1
-		r.str.next = globals
-	}
+	r.str.id = make_next_label_num()
+	r.str.next = globals
 
 	globals = r
 	return r

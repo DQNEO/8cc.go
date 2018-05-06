@@ -46,7 +46,7 @@ type Ast struct {
 		val  []byte
 		slabel   string
 	}
-	// Variable
+	// Local variable
 	variable struct {
 		name []byte
 		pos  int
@@ -74,7 +74,7 @@ type Ast struct {
 	}
 }
 
-var vars *Ast
+var locals *Ast
 var globals *Ast
 
 var labelseq = 0;
@@ -128,13 +128,13 @@ func ast_var(ctype *Ctype, vname []byte) *Ast {
 	r.typ = AST_VAR
 	r.ctype = ctype
 	r.variable.name = vname
-	if vars == nil {
+	if locals == nil {
 		r.variable.pos = 1
 	} else {
-		r.variable.pos = vars.variable.pos + 1
+		r.variable.pos = locals.variable.pos + 1
 	}
-	r.variable.next = vars
-	vars = r
+	r.variable.next = locals
+	locals = r
 	return r
 }
 
@@ -177,7 +177,7 @@ func make_ptr_type(ctype *Ctype) *Ctype {
 }
 
 func find_var(name []byte) *Ast {
-	for v := vars; v != nil; v = v.variable.next {
+	for v := locals; v != nil; v = v.variable.next {
 		if strcmp(name, v.variable.name) == 0 {
 			return v
 		}
@@ -696,8 +696,8 @@ func main() {
 			"mymain:\n\t" +
 			"push %%rbp\n\t" +
 			"mov %%rsp, %%rbp\n\t")
-		if vars != nil {
-			printf("sub $%d, %%rsp\n\t", vars.variable.pos*8)
+		if locals != nil {
+			printf("sub $%d, %%rsp\n\t", locals.variable.pos*8)
 		}
 	}
 	for i = 0; i < nexpr; i++ {

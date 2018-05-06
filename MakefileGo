@@ -1,0 +1,14 @@
+GO_OBJS=main.go header.go lex.go adapter.go util.go
+
+8gg.linux: $(GO_OBJS)
+	GOOS=linux  GOARCH=amd64 go build -o 8gg.linux $(GO_OBJS)
+
+8gg.mac:  $(GO_OBJS)
+	GOOS=darwin GOARCH=amd64 go build -o 8gg.mac   $(GO_OBJS)
+
+clean:
+	rm -f 8gg.*
+	make clean
+
+8cc: 8gg.linux
+	cp 8gg.linux 8cc

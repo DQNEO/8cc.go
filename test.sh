@@ -45,12 +45,11 @@ function testfail {
 
 make clean
 if [[ $mode == "-c" ]];then
-    echo "build for C" >&2
+    echo "C build" >&2
     make 8cc
 else
-    echo "build for Go" >&2
-    make 8gg.linux
-    cp 8gg.linux 8cc
+    echo "Go build" >&2
+    make -f MakefileGo 8cc
 fi
 
 

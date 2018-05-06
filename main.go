@@ -133,7 +133,7 @@ var labelseq = 0;
 func make_next_label() string {
 	ret := labelseq
 	labelseq++
-    return fmt.Sprintf(".s%d", ret)
+    return fmt.Sprintf(".L%d", ret)
 }
 
 func ast_string(str []byte) *Ast {

@@ -12,6 +12,8 @@ enum {
   AST_STRING,
   AST_LVAR,
   AST_LREF,
+  AST_GVAR,
+  AST_GREF,
   AST_FUNCALL,
   AST_DECL,
   AST_ARRAY_INIT,
@@ -52,10 +54,20 @@ typedef struct Ast {
       char *lname;
       int loff;
     };
+    // Global variable
+    struct {
+      char *gname;
+      char *glabel;
+    };
     // Local reference
     struct {
       struct Ast *lref;
       int lrefoff;
+    };
+    // Global reference
+    struct {
+      struct Ast *gref;
+      int goff;
     };
     // Binary operator
     struct {
@@ -166,6 +178,33 @@ static Ast *ast_lref(Ctype *ctype, Ast *lvar, int off) {
   return r;
 }
 
+static Ast *ast_gvar(Ctype *ctype, char *name, bool filelocal) __attribute__((unused));
+static Ast *ast_gvar(Ctype *ctype, char *name, bool filelocal) {
+  Ast *r = malloc(sizeof(Ast));
+  r->type = AST_GVAR;
+  r->ctype = ctype;
+  r->gname = name;
+  r->glabel = filelocal ? make_next_label() : name;
+  r->next = NULL;
+  if (globals) {
+    Ast *p;
+    for (p = locals; p->next; p = p->next);
+    p->next = r;
+  } else {
+    globals = r;
+  }
+  return r;
+}
+
+static Ast *ast_gref(Ctype *ctype, Ast *gvar, int off) {
+  Ast *r = malloc(sizeof(Ast));
+  r->type = AST_GREF;
+  r->ctype = ctype;
+  r->gref = gvar;
+  r->goff = off;
+  return r;
+}
+
 static Ast *ast_string(char *str) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_STRING;
@@ -223,6 +262,9 @@ static Ctype* make_array_type(Ctype *ctype, int size) {
 static Ast *find_var(char *name) {
   for (Ast *p = locals; p; p = p->next)
     if (!strcmp(name, p->lname))
+      return p;
+  for (Ast *p = globals; p; p = p->next)
+    if (!strcmp(name, p->gname))
       return p;
   return NULL;
 }
@@ -340,6 +382,7 @@ static Ctype *result_type(char op, Ctype *a, Ctype *b) {
 static void ensure_lvalue(Ast *ast) {
   switch (ast->type) {
     case AST_LVAR: case AST_LREF:
+    case AST_GVAR: case AST_GREF:
       return;
     default:
       error("lvalue expected, but got %s", ast_to_string(ast));
@@ -365,12 +408,14 @@ static Ast *read_unary_expr(void) {
 
 static Ast *convert_array(Ast *ast) {
   if (ast->type == AST_STRING)
-    return ast;
+    return ast_gref(make_ptr_type(ctype_char), ast, 0);
   if (ast->ctype->type != CTYPE_ARRAY)
     return ast;
   if (ast->type == AST_LVAR)
     return ast_lref(make_ptr_type(ast->ctype->ptr), ast, 0);
-  return ast;
+  if (ast->type != AST_GVAR)
+    error("Internal error: Gvar expected, but got %s", ast_to_string(ast));
+  return ast_gref(make_ptr_type(ast->ctype->ptr), ast, 0);
 }
 
 static Ast *read_expr(int prec) {
@@ -506,6 +551,28 @@ static int ctype_size(Ctype *ctype) {
   }
 }
 
+static void emit_gload(Ctype *ctype, char *label, int off) {
+  if (ctype->type == CTYPE_ARRAY) {
+    printf("lea %s(%%rip), %%rax\n\t", label);
+    if (off)
+      printf("add $%d, %%rax\n\t", ctype_size(ctype->ptr) * off);
+    return;
+  }
+  char *reg;
+  int size = ctype_size(ctype);
+  switch (size) {
+    case 1: reg = "al"; printf("mov $0, %%eax\n\t"); break;
+    case 4: reg = "eax"; break;
+    case 8: reg = "rax"; break;
+    default:
+      error("Unknown data size: %s: %d", ctype_to_string(ctype), size);
+  }
+  printf("mov %s(%%rip), %%%s\n\t", label, reg);
+  if (off)
+    printf("add $%d, %%rax\n\t", off * size);
+  printf("mov (%%rax), %%%s\n\t", reg);
+}
+
 static void emit_lload(Ast *var, int off) {
   if (var->ctype->type == CTYPE_ARRAY) {
     printf("lea -%d(%%rbp), %%rax\n\t", var->loff);
@@ -528,6 +595,23 @@ static void emit_lload(Ast *var, int off) {
   }
   if (off)
     printf("add $%d, %%rax\n\t", var->loff * size);
+}
+
+static void emit_gsave(Ast *var, int off) {
+  assert(var->ctype->type != CTYPE_ARRAY);
+  char *reg;
+  printf("push %%rbx\n\t");
+  printf("mov %s(%%rip), %%rbx\n\t", var->glabel);
+  int size = ctype_size(var->ctype);
+  switch (size) {
+    case 1: reg = "al";  break;
+    case 4: reg = "eax"; break;
+    case 8: reg = "rax"; break;
+    default:
+      error("Unknown data size: %s: %d", ast_to_string(var), size);
+  }
+  printf("mov %s, %d(%%rbp)\n\t", reg, off * size);
+  printf("pop %%rbx\n\t");
 }
 
 static void emit_lsave(Ctype *ctype, int loff, int off) {
@@ -559,6 +643,8 @@ static void emit_assign(Ast *var, Ast *value) {
   switch (var->type) {
     case AST_LVAR: emit_lsave(var->ctype, var->loff, 0); break;
     case AST_LREF: emit_lsave(var->lref->ctype, var->lref->loff, var->loff); break;
+    case AST_GVAR: emit_gsave(var, 0); break;
+    case AST_GREF: emit_gsave(var->gref, var->goff); break;
     default: error("internal error");
   }
 }
@@ -618,6 +704,17 @@ static void emit_expr(Ast *ast) {
       assert(ast->lref->type == AST_LVAR);
       emit_lload(ast->lref, ast->lrefoff);
       break;
+    case AST_GVAR:
+      emit_gload(ast->ctype, ast->glabel, 0);
+      break;
+    case AST_GREF:
+      if (ast->gref->type == AST_STRING) {
+        printf("lea %s(%%rip), %%rax\n\t", ast->gref->slabel);
+      } else {
+        assert(ast->gref->type == AST_GVAR);
+        emit_gload(ast->gref->ctype, ast->gref->glabel, ast->goff);
+      }
+      break;
     case AST_FUNCALL:
       for (int i = 1; i < ast->nargs; i++)
         printf("push %%%s\n\t", REGS[i]);
@@ -645,7 +742,7 @@ static void emit_expr(Ast *ast) {
           printf("movb $%d, -%d(%%rbp)\n\t", *p, ast->declvar->loff - i);
         printf("movb $0, -%d(%%rbp)\n\t", ast->declvar->loff - i);
       } else if (ast->declinit->type == AST_STRING) {
-        printf("lea %s(%%rip), %%rax\n\t", ast->declinit->slabel);
+        emit_gload(ast->declinit->ctype, ast->declinit->slabel, 0);
         emit_lsave(ast->declvar->ctype, ast->declvar->loff, 0);
       } else {
         emit_expr(ast->declinit);
@@ -727,8 +824,14 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     case AST_LVAR:
       string_appendf(buf, "%s", ast->lname);
       break;
+    case AST_GVAR:
+      string_appendf(buf, "%s", ast->gname);
+      break;
     case AST_LREF:
       string_appendf(buf, "%s[%d]", ast_to_string(ast->lref), ast->lrefoff);
+      break;
+    case AST_GREF:
+      string_appendf(buf, "%s[%d]", ast_to_string(ast->gref), ast->goff);
       break;
     case AST_FUNCALL:
       string_appendf(buf, "%s(", ast->fname);

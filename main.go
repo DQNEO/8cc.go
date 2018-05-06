@@ -81,7 +81,7 @@ var ctype_int = &Ctype{CTYPE_INT, nil}
 var ctype_char = &Ctype{CTYPE_CHAR, nil}
 var ctype_array = &Ctype{CTYPE_ARRAY, &Ctype{CTYPE_CHAR, nil}}
 
-func make_ast_uop(typ byte, ctype *Ctype, operand *Ast) *Ast {
+func ast_uop(typ byte, ctype *Ctype, operand *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
 	r.ctype = ctype
@@ -89,7 +89,7 @@ func make_ast_uop(typ byte, ctype *Ctype, operand *Ast) *Ast {
 	return r
 }
 
-func make_ast_binop(typ byte, ctype *Ctype, left *Ast, right *Ast) *Ast {
+func ast_binop(typ byte, ctype *Ctype, left *Ast, right *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
 	r.ctype = ctype
@@ -98,7 +98,7 @@ func make_ast_binop(typ byte, ctype *Ctype, left *Ast, right *Ast) *Ast {
 	return r
 }
 
-func make_ast_int(val int) *Ast {
+func ast_int(val int) *Ast {
 	r := &Ast{}
 	r.typ = AST_LITERAL
 	r.ctype = ctype_int
@@ -106,7 +106,7 @@ func make_ast_int(val int) *Ast {
 	return r
 }
 
-func make_ast_char(c byte) *Ast {
+func ast_char(c byte) *Ast {
 	r := &Ast{}
 	r.typ = AST_LITERAL
 	r.ctype = ctype_char
@@ -114,7 +114,7 @@ func make_ast_char(c byte) *Ast {
 	return r
 }
 
-func make_ast_var(ctype *Ctype, vname []byte) *Ast {
+func ast_var(ctype *Ctype, vname []byte) *Ast {
 	r := &Ast{}
 	r.typ = AST_VAR
 	r.ctype = ctype
@@ -129,7 +129,7 @@ func make_ast_var(ctype *Ctype, vname []byte) *Ast {
 	return r
 }
 
-func make_ast_string(str []byte) *Ast {
+func ast_string(str []byte) *Ast {
 	r := &Ast{}
 	r.typ = AST_LITERAL
 	r.ctype = ctype_array
@@ -147,7 +147,7 @@ func make_ast_string(str []byte) *Ast {
 	return r
 }
 
-func make_ast_funcall(fname []byte, nargs int, args []*Ast) *Ast {
+func ast_funcall(fname []byte, nargs int, args []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNCALL
 	r.ctype = ctype_int // WHY??
@@ -157,7 +157,7 @@ func make_ast_funcall(fname []byte, nargs int, args []*Ast) *Ast {
 	return r
 }
 
-func make_ast_decl(variable *Ast, init *Ast) *Ast {
+func ast_decl(variable *Ast, init *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_DECL
 	r.ctype = nil
@@ -226,7 +226,7 @@ func read_func_args(fname []byte) *Ast {
 	if i == MAX_ARGS {
 		_error("Too many arguments: %s", fname)
 	}
-	return make_ast_funcall(fname, nargs, args)
+	return ast_funcall(fname, nargs, args)
 }
 
 func read_ident_or_func(name []byte) *Ast {
@@ -252,11 +252,11 @@ func read_prim() *Ast {
 	case TTYPE_IDENT:
 		return read_ident_or_func(tk.v.sval)
 	case TTYPE_INT:
-		return make_ast_int(tk.v.ival)
+		return ast_int(tk.v.ival)
 	case TTYPE_CHAR:
-		return make_ast_char(tk.v.c)
+		return ast_char(tk.v.c)
 	case TTYPE_STRING:
-		return make_ast_string(tk.v.sval)
+		return ast_string(tk.v.sval)
 	case TTYPE_PUNCT:
 		_error("unexpected character: '%c'", tk.v.punct)
 	default:
@@ -328,14 +328,14 @@ func read_unary_expr() *Ast {
 	if is_punct(tok, '&') {
 		operand := read_unary_expr()
 		ensure_lvalue(operand)
-		return make_ast_uop(AST_ADDR, make_ptr_type(operand.ctype), operand)
+		return ast_uop(AST_ADDR, make_ptr_type(operand.ctype), operand)
 	}
 	if is_punct(tok, '*') {
 		operand := read_unary_expr()
 		if operand.ctype.typ != CTYPE_PTR {
 			_error("pointer type expected, but got %", ast_to_string(operand))
 		}
-		return make_ast_uop(AST_DEREF, operand.ctype.ptr, operand)
+		return ast_uop(AST_DEREF, operand.ctype.ptr, operand)
 	}
 	unget_token(tok)
 	return read_prim()
@@ -374,7 +374,7 @@ func read_expr(prec int) *Ast {
 			ast.ctype.typ != CTYPE_PTR {
 				ast,rest = rest,ast
 		}
-		ast = make_ast_binop(tok.v.punct, ctype, ast, rest)
+		ast = ast_binop(tok.v.punct, ctype, ast, rest)
 	}
 	return ast
 }
@@ -420,10 +420,10 @@ func read_decl() *Ast {
 	if tok.typ != TTYPE_IDENT {
 		_error("Identifier expected, but got %s", token_to_string(tok))
 	}
-	variable := make_ast_var(ctype, tok.v.sval)
+	variable := ast_var(ctype, tok.v.sval)
 	expect('=')
 	init := read_expr(0)
-	return make_ast_decl(variable, init)
+	return ast_decl(variable, init)
 }
 
 func read_decl_or_stmt() *Ast {

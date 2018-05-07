@@ -447,11 +447,6 @@ func read_decl_or_stmt() *Ast {
 	return r
 }
 
-func emit_assign(variable *Ast, value *Ast) {
-	emit_expr(value)
-	printf("mov %%rax, -%d(%%rbp)\n\t", variable.variable.pos*8)
-}
-
 func ctype_size(ctype *Ctype) int {
 	switch ctype.typ {
 	case CTYPE_CHAR:
@@ -475,6 +470,11 @@ func emit_pointer_arith(op byte, left *Ast, right *Ast) {
 	printf("mov %%rax, %%rbx\n\t"+
 		"pop %%rax\n\t"+
 		"add %%rbx, %%rax\n\t")
+}
+
+func emit_assign(variable *Ast, value *Ast) {
+	emit_expr(value)
+	printf("mov %%rax, -%d(%%rbp)\n\t", variable.variable.pos*8)
 }
 
 func emit_binop(ast *Ast) {

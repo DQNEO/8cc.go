@@ -23,7 +23,7 @@ function assertequal {
 function testast {
   result="$(echo "$2" | ./8cc -a)"
   if [ $? -ne 0 ]; then
-    echo "Failed to compile $1"
+    echo "Failed to compile" "'$2'"
     exit
   fi
   assertequal "$result" "$1"

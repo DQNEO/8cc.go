@@ -50,7 +50,6 @@ type Ast struct {
 	variable struct {
 		name []byte
 		pos  int
-		next *Ast
 	}
 	// Binary operator
 	binop struct {
@@ -133,7 +132,7 @@ func ast_lvar(ctype *Ctype, name []byte) *Ast {
 	} else {
 		r.variable.pos = locals.variable.pos + 1
 	}
-	r.variable.next = locals
+	r.next = locals
 	locals = r
 	return r
 }
@@ -177,7 +176,7 @@ func make_ptr_type(ctype *Ctype) *Ctype {
 }
 
 func find_var(name []byte) *Ast {
-	for v := locals; v != nil; v = v.variable.next {
+	for v := locals; v != nil; v = v.next {
 		if strcmp(name, v.variable.name) == 0 {
 			return v
 		}

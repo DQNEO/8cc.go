@@ -12,7 +12,7 @@ const MAX_ARGS = 6
 const (
 	AST_LITERAL byte = iota
 	AST_STRING
-	AST_VAR
+	AST_LVAR
 	AST_FUNCALL
 	AST_DECL
 	AST_ADDR
@@ -124,7 +124,7 @@ func make_next_label() string {
 
 func ast_lvar(ctype *Ctype, name []byte) *Ast {
 	r := &Ast{}
-	r.typ = AST_VAR
+	r.typ = AST_LVAR
 	r.ctype = ctype
 	r.variable.name = name
 	if locals == nil {
@@ -320,7 +320,7 @@ func result_type(op byte, a *Ast, b *Ast) *Ctype {
 }
 
 func ensure_lvalue(ast *Ast) {
-	if ast.typ != AST_VAR {
+	if ast.typ != AST_LVAR {
 		_error("variable expected")
 	}
 }
@@ -528,7 +528,7 @@ func emit_expr(ast *Ast) {
 		}
 	case AST_STRING:
 		printf("lea %s(%%rip), %%rax\n\t", ast.str.slabel)
-	case AST_VAR:
+	case AST_LVAR:
 		switch ctype_size(ast.ctype) {
 		case 1:
 			printf("mov $0, %%eax\n\t")
@@ -559,7 +559,7 @@ func emit_expr(ast *Ast) {
 	case AST_DECL:
 		emit_assign(ast.decl.declvar, ast.decl.declinit)
 	case AST_ADDR:
-		assert(ast.unary.operand.typ == AST_VAR)
+		assert(ast.unary.operand.typ == AST_LVAR)
 		printf("lea -%d(%%rbp), %%rax\n\t", ast.unary.operand.variable.pos*8)
 	case AST_DEREF:
 		assert(ast.unary.operand.ctype.typ == CTYPE_PTR)
@@ -630,7 +630,7 @@ func ast_to_string_int(ast *Ast) string {
 		}
 	case AST_STRING:
 		return fmt.Sprintf("\"%s\"", quote(ast.str.val))
-	case AST_VAR:
+	case AST_LVAR:
 		return fmt.Sprintf("%s", bytes2string(ast.variable.name))
 	case AST_FUNCALL:
 		s := fmt.Sprintf("%s(", bytes2string(ast.funcall.fname))

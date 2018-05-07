@@ -127,12 +127,13 @@ func ast_lvar(ctype *Ctype, name []byte) *Ast {
 	r.typ = AST_LVAR
 	r.ctype = ctype
 	r.variable.lname = name
-	if locals == nil {
-		r.variable.pos = 1
-	} else {
+	if locals != nil {
 		r.variable.pos = locals.variable.pos + 1
+		r.next = locals
+	} else {
+		r.variable.pos = 1
+		r.next = nil
 	}
-	r.next = locals
 	locals = r
 	return r
 }

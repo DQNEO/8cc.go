@@ -689,6 +689,10 @@ func main() {
 	}
 	nexpr := i
 	if !wantast {
+		off := 0
+		for p := locals; p != nil; p = p.next {
+			off += 8
+		}
 		emit_data_section()
 		printf(".text\n\t" +
 			".global mymain\n" +
@@ -696,7 +700,7 @@ func main() {
 			"push %%rbp\n\t" +
 			"mov %%rsp, %%rbp\n\t")
 		if locals != nil {
-			printf("sub $%d, %%rsp\n\t", locals.variable.pos*8)
+			printf("sub $%d, %%rsp\n\t", off)
 		}
 	}
 	for i = 0; i < nexpr; i++ {

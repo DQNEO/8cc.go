@@ -73,8 +73,8 @@ type Ast struct {
 	}
 }
 
-var locals *Ast
 var globals *Ast
+var locals *Ast
 
 var labelseq = 0;
 var REGS = []string{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}

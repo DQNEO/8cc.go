@@ -123,11 +123,11 @@ func make_next_label() string {
 	return fmt.Sprintf(".L%d", ret)
 }
 
-func ast_var(ctype *Ctype, vname []byte) *Ast {
+func ast_lvar(ctype *Ctype, name []byte) *Ast {
 	r := &Ast{}
 	r.typ = AST_VAR
 	r.ctype = ctype
-	r.variable.name = vname
+	r.variable.name = name
 	if locals == nil {
 		r.variable.pos = 1
 	} else {
@@ -423,7 +423,7 @@ func read_decl() *Ast {
 	if tok.typ != TTYPE_IDENT {
 		_error("Identifier expected, but got %s", token_to_string(tok))
 	}
-	variable := ast_var(ctype, tok.v.sval)
+	variable := ast_lvar(ctype, tok.v.sval)
 	expect('=')
 	init := read_expr(0)
 	return ast_decl(variable, init)

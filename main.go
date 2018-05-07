@@ -676,6 +676,11 @@ func emit_data_section() {
 	printf("\t")
 
 }
+
+func ceil8() int {
+	return 8
+}
+
 func main() {
 	initStdin()
 	wantast := (len(os.Args) > 1 && os.Args[1] == "-a")
@@ -692,7 +697,7 @@ func main() {
 	if !wantast {
 		off := 0
 		for p := locals; p != nil; p = p.next {
-			off += 8
+			off += ceil8()
 			p.variable.loff = off
 		}
 		emit_data_section()

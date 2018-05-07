@@ -48,8 +48,8 @@ type Ast struct {
 	}
 	// Local variable
 	variable struct {
-		name []byte
-		pos  int
+		lname []byte
+		pos   int
 	}
 	// Binary operator
 	binop struct {
@@ -126,7 +126,7 @@ func ast_lvar(ctype *Ctype, name []byte) *Ast {
 	r := &Ast{}
 	r.typ = AST_LVAR
 	r.ctype = ctype
-	r.variable.name = name
+	r.variable.lname = name
 	if locals == nil {
 		r.variable.pos = 1
 	} else {
@@ -177,7 +177,7 @@ func make_ptr_type(ctype *Ctype) *Ctype {
 
 func find_var(name []byte) *Ast {
 	for v := locals; v != nil; v = v.next {
-		if strcmp(name, v.variable.name) == 0 {
+		if strcmp(name, v.variable.lname) == 0 {
 			return v
 		}
 	}
@@ -631,7 +631,7 @@ func ast_to_string_int(ast *Ast) string {
 	case AST_STRING:
 		return fmt.Sprintf("\"%s\"", quote(ast.str.val))
 	case AST_LVAR:
-		return fmt.Sprintf("%s", bytes2string(ast.variable.name))
+		return fmt.Sprintf("%s", bytes2string(ast.variable.lname))
 	case AST_FUNCALL:
 		s := fmt.Sprintf("%s(", bytes2string(ast.funcall.fname))
 		for i := 0; ast.funcall.args[i] != nil; i++ {
@@ -645,7 +645,7 @@ func ast_to_string_int(ast *Ast) string {
 	case AST_DECL:
 		return fmt.Sprintf("(decl %s %s %s)",
 			ctype_to_string(ast.decl.declvar.ctype),
-			bytes2string(ast.decl.declvar.variable.name),
+			bytes2string(ast.decl.declvar.variable.lname),
 			ast_to_string_int(ast.decl.declinit))
 	case AST_ADDR:
 		return fmt.Sprintf("(& %s)", ast_to_string(ast.unary.operand))

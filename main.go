@@ -310,11 +310,11 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 	return nil, default_err
 }
 
-func result_type(op byte, a *Ast, b *Ast) *Ctype {
-	ret, err := result_type_int(op, a.ctype, b.ctype)
+func result_type(op byte, a *Ctype, b *Ctype) *Ctype {
+	ret, err := result_type_int(op, a, b)
 	if err != nil {
 		_error("incompatible operands: %c: <%s> and <%s>",
-			op, ast_to_string(a), ast_to_string(b))
+			op, ctype_to_string(a), ctype_to_string(b))
 	}
 	return ret
 }
@@ -371,7 +371,7 @@ func read_expr(prec int) *Ast {
 			prec_incr = 1
 		}
 		rest := read_expr(prec2 + prec_incr)
-		ctype := result_type(tok.v.punct, ast, rest)
+		ctype := result_type(tok.v.punct, ast.ctype, rest.ctype)
 		if ctype.typ == CTYPE_PTR &&
 			ast.ctype.typ != CTYPE_PTR {
 				ast,rest = rest,ast

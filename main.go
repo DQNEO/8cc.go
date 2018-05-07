@@ -49,7 +49,7 @@ type Ast struct {
 	// Local variable
 	variable struct {
 		lname []byte
-		pos   int
+		loff  int
 	}
 	// Binary operator
 	binop struct {
@@ -475,7 +475,7 @@ func emit_pointer_arith(op byte, left *Ast, right *Ast) {
 
 func emit_assign(variable *Ast, value *Ast) {
 	emit_expr(value)
-	printf("mov %%rax, -%d(%%rbp)\n\t", variable.variable.pos*8)
+	printf("mov %%rax, -%d(%%rbp)\n\t", variable.variable.loff)
 }
 
 func emit_binop(ast *Ast) {
@@ -533,11 +533,11 @@ func emit_expr(ast *Ast) {
 		switch ctype_size(ast.ctype) {
 		case 1:
 			printf("mov $0, %%eax\n\t")
-			printf("mov -%d(%%rbp), %%al\n\t", ast.variable.pos * 8)
+			printf("mov -%d(%%rbp), %%al\n\t", ast.variable.loff)
 		case 4:
-			printf("mov -%d(%%rbp), %%eax\n\t", ast.variable.pos * 8)
+			printf("mov -%d(%%rbp), %%eax\n\t", ast.variable.loff)
 		case 8:
-			printf("mov -%d(%%rbp), %%rax\n\t", ast.variable.pos * 8)
+			printf("mov -%d(%%rbp), %%rax\n\t", ast.variable.loff)
 		default:
 			_error("internal error")
 		}
@@ -561,7 +561,7 @@ func emit_expr(ast *Ast) {
 		emit_assign(ast.decl.declvar, ast.decl.declinit)
 	case AST_ADDR:
 		assert(ast.unary.operand.typ == AST_LVAR)
-		printf("lea -%d(%%rbp), %%rax\n\t", ast.unary.operand.variable.pos*8)
+		printf("lea -%d(%%rbp), %%rax\n\t", ast.unary.operand.variable.loff)
 	case AST_DEREF:
 		assert(ast.unary.operand.ctype.typ == CTYPE_PTR)
 		emit_expr(ast.unary.operand)
@@ -691,11 +691,9 @@ func main() {
 	nexpr := i
 	if !wantast {
 		off := 0
-		vpos := 1
 		for p := locals; p != nil; p = p.next {
-			p.variable.pos = vpos
-			vpos++
 			off += 8
+			p.variable.loff = off
 		}
 		emit_data_section()
 		printf(".text\n\t" +

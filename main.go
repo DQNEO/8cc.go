@@ -331,9 +331,13 @@ func result_type(op byte, a *Ctype, b *Ctype) *Ctype {
 }
 
 func ensure_lvalue(ast *Ast) {
-	if ast.typ != AST_LVAR {
+	switch ast.typ {
+	case AST_LVAR:
+		return
+	default:
 		_error("variable expected")
 	}
+	return
 }
 
 func read_unary_expr() *Ast {
@@ -383,8 +387,8 @@ func read_expr(prec int) *Ast {
 		}
 		rest := read_expr(prec2 + prec_incr)
 		ctype := result_type(tok.v.punct, ast.ctype, rest.ctype)
-		if ctype.typ == CTYPE_PTR &&
-			ast.ctype.typ != CTYPE_PTR {
+		if ast.ctype.typ != CTYPE_PTR &&
+			ctype.typ == CTYPE_PTR {
 				ast,rest = rest,ast
 		}
 		ast = ast_binop(tok.v.punct, ctype, ast, rest)

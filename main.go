@@ -30,6 +30,7 @@ const (
 type Ctype struct {
 	typ int
 	ptr *Ctype
+	size int
 }
 
 type Ast struct {
@@ -79,9 +80,8 @@ var locals *Ast
 var labelseq = 0;
 var REGS = []string{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}
 
-var ctype_int = &Ctype{CTYPE_INT, nil}
-var ctype_char = &Ctype{CTYPE_CHAR, nil}
-var ctype_array = &Ctype{CTYPE_ARRAY, &Ctype{CTYPE_CHAR, nil}}
+var ctype_int = &Ctype{CTYPE_INT, nil, 0}
+var ctype_char = &Ctype{CTYPE_CHAR, nil, 0}
 
 func ast_uop(typ byte, ctype *Ctype, operand *Ast) *Ast {
 	r := &Ast{}
@@ -143,7 +143,7 @@ func ast_lvar(ctype *Ctype, name []byte) *Ast {
 func ast_string(str []byte) *Ast {
 	r := &Ast{}
 	r.typ = AST_STRING
-	r.ctype = ctype_array
+	r.ctype = make_array_type(ctype_char, strlen(str) + 1)
 	r.str.val = str
 	r.str.slabel = make_next_label()
 	r.next = globals
@@ -175,6 +175,14 @@ func make_ptr_type(ctype *Ctype) *Ctype {
 	r := &Ctype{}
 	r.typ = CTYPE_PTR
 	r.ptr = ctype
+	return r
+}
+
+func make_array_type(ctype *Ctype, size int) *Ctype {
+	r := &Ctype{}
+	r.typ = CTYPE_ARRAY
+	r.ptr = ctype
+	r.size = size
 	return r
 }
 

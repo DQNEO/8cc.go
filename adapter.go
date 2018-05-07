@@ -68,6 +68,14 @@ func strcmp(a []byte, b []byte) int {
 	return 0
 }
 
+func strlen(str []byte) int {
+	var i int
+	for i = 0; str[i] != 0; i++ {
+
+	}
+	return i
+}
+
 func bytes2string(b []byte) string {
 	i := 0
 	for {

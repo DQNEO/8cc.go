@@ -453,6 +453,8 @@ func ctype_size(ctype *Ctype) int {
 		return 1
 	case CTYPE_INT:
 		return 4
+	case CTYPE_PTR:
+		return 8
 	default:
 		return 8
 	}

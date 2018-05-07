@@ -128,10 +128,8 @@ func ast_lvar(ctype *Ctype, name []byte) *Ast {
 	r.ctype = ctype
 	r.variable.lname = name
 	if locals != nil {
-		r.variable.pos = locals.variable.pos + 1
 		r.next = locals
 	} else {
-		r.variable.pos = 1
 		r.next = nil
 	}
 	locals = r
@@ -693,7 +691,10 @@ func main() {
 	nexpr := i
 	if !wantast {
 		off := 0
+		vpos := 1
 		for p := locals; p != nil; p = p.next {
+			p.variable.pos = vpos
+			vpos++
 			off += 8
 		}
 		emit_data_section()

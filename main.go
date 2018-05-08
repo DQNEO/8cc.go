@@ -15,6 +15,7 @@ const (
 	AST_LVAR
 	AST_FUNCALL
 	AST_DECL
+	AST_ARRAY_INIT
 	AST_ADDR
 	AST_DEREF
 )
@@ -71,6 +72,10 @@ type Ast struct {
 	decl struct {
 		declvar  *Ast
 		declinit *Ast
+	}
+	array_initializer struct {
+		size int
+		array_init []*Ast
 	}
 }
 
@@ -168,6 +173,15 @@ func ast_decl(variable *Ast, init *Ast) *Ast {
 	r.ctype = nil
 	r.decl.declvar = variable
 	r.decl.declinit = init
+	return r
+}
+
+func ast_array_init(size int, array_init []*Ast) *Ast {
+	r := &Ast{}
+	r.typ = AST_ARRAY_INIT
+	r.ctype = nil
+	r.array_initializer.size = size
+	r.array_initializer.array_init = array_init
 	return r
 }
 
@@ -422,6 +436,45 @@ func expect(punct byte) {
 	}
 }
 
+func read_decl_array_initializer(ctype *Ctype) *Ast {
+	tok := read_token()
+	if ctype.ptr.typ == CTYPE_CHAR && tok.typ == TTYPE_STRING {
+		return ast_string(tok.v.sval)
+	}
+
+	if !is_punct(tok, '{') {
+		_error("Expected an initializer list, but got %s", token_to_string(tok))
+	}
+	init := make([]*Ast, ctype.size)
+	for i := 0; i < ctype.size; i++ {
+		init[i] = read_expr(0)
+		result_type('=', init[i].ctype, ctype.ptr)
+		tok = read_token()
+		if is_punct(tok, '}') && i == ctype.size - 1  {
+			break
+		}
+		if !is_punct(tok, ',') {
+			_error("comma expected, but got %s", token_to_string(tok))
+		}
+		if i == ctype.size - 1 {
+			tok = read_token()
+			if !is_punct(tok, '}') {
+				_error("'}' expected, but got %s", token_to_string(tok))
+			}
+			//break // we don't need to break
+		}
+	}
+
+	return ast_array_init(ctype.size, init)
+}
+
+func read_declinitializer(ctype *Ctype) *Ast {
+	if ctype.typ == CTYPE_ARRAY {
+		return read_decl_array_initializer(ctype)
+	}
+	return read_expr(0)
+}
+
 func read_decl() *Ast {
 	ctype := get_ctype(read_token())
 	var tok *Token
@@ -437,11 +490,28 @@ func read_decl() *Ast {
 	if tok.typ != TTYPE_IDENT {
 		_error("Identifier expected, but got %s", token_to_string(tok))
 	}
-	variable := ast_lvar(ctype, tok.v.sval)
+	varname := tok
+	for { // we need to loop?
+		tok = read_token()
+		if is_punct(tok, '[') {
+			size := read_expr(0)
+			//                            wny not compare to size.ctype != ctype_int ?
+			if size.typ != AST_LITERAL || size.ctype.typ != CTYPE_INT {
+				_error("Integer expected, but got %s", ast_to_string(size))
+			}
+			expect(']')
+			ctype = make_array_type(ctype, size.ival)
+		} else {
+			unget_token(tok)
+			break
+		}
+	}
+	variable := ast_lvar(ctype, varname.v.sval)
 	expect('=')
-	init := read_expr(0)
+	init := read_declinitializer(ctype)
 	return ast_decl(variable, init)
 }
+
 
 func read_decl_or_stmt() *Ast {
 	tok := peek_token()
@@ -470,9 +540,12 @@ func ctype_size(ctype *Ctype) int {
 		return 4
 	case CTYPE_PTR:
 		return 8
+	case CTYPE_ARRAY:
+		return ctype_size(ctype.ptr) * ctype.size
 	default:
-		return 8
+		_error("internal error");
 	}
+	return -1
 }
 
 func emit_pointer_arith(op byte, left *Ast, right *Ast) {
@@ -574,7 +647,16 @@ func emit_expr(ast *Ast) {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 	case AST_DECL:
-		emit_assign(ast.decl.declvar, ast.decl.declinit)
+		if ast.decl.declinit.typ == AST_ARRAY_INIT {
+			size := 4  // size of ast.decl.declvar.ctype.ptr
+			reg := "eax"
+			for i := 0; i < ast.decl.declinit.array_initializer.size; i++ {
+				emit_expr(ast.decl.declinit.array_initializer.array_init[i])
+				printf("mov %%%s, -%d(%%rbp)\n\t", reg, ast.decl.declvar.variable.loff - i * size)
+			}
+		} else {
+			emit_assign(ast.decl.declvar, ast.decl.declinit)
+		}
 	case AST_ADDR:
 		assert(ast.unary.operand.typ == AST_LVAR)
 		printf("lea -%d(%%rbp), %%rax\n\t", ast.unary.operand.variable.loff)
@@ -625,7 +707,7 @@ func ctype_to_string(ctype *Ctype) string {
 	case CTYPE_PTR:
 		return fmt.Sprintf("%s*", ctype_to_string(ctype.ptr))
 	case CTYPE_ARRAY:
-		return fmt.Sprintf("%s[]", ctype_to_string(ctype.ptr))
+		return fmt.Sprintf("%s[%d]", ctype_to_string(ctype.ptr), ctype.size)
 	default:
 		_error("Unknown ctype: %d", ctype)
 	}
@@ -664,6 +746,16 @@ func ast_to_string_int(ast *Ast) string {
 			ctype_to_string(ast.decl.declvar.ctype),
 			bytes2string(ast.decl.declvar.variable.lname),
 			ast_to_string_int(ast.decl.declinit))
+	case AST_ARRAY_INIT:
+		s := "{"
+		for i:= 0; i < ast.array_initializer.size; i++ {
+			s += ast_to_string_int(ast.array_initializer.array_init[i])
+			if i != ast.array_initializer.size - 1 {
+				s += ","
+			}
+		}
+		s += "}"
+		return s
 	case AST_ADDR:
 		return fmt.Sprintf("(& %s)", ast_to_string(ast.unary.operand))
 	case AST_DEREF:

@@ -43,11 +43,10 @@ function testfail {
   fi
 }
 
+rm -f 8cc
 if [[ $mode == "-c" ]];then
-    echo "C build" >&2
     make 8cc
 else
-    echo "Go build" >&2
     make -f MakefileGo 8cc
 fi
 

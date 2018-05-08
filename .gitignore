@@ -4,3 +4,4 @@
 *.o
 tmp.*
 unittest
+8cc_c

@@ -3,6 +3,7 @@ OBJS=lex.o string.o util.o
 
 8cc: 8cc.h main.o $(OBJS)
 	$(CC) $(CFLAGS) -o $@ main.o $(OBJS)
+	$(CC) $(CFLAGS) -o 8cc_c main.o $(OBJS)
 
 $(OBJS) unittest.o main.o: 8cc.h
 

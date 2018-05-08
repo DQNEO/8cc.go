@@ -13,6 +13,7 @@ const (
 	AST_LITERAL byte = iota
 	AST_STRING
 	AST_LVAR
+	AST_LREF
 	AST_FUNCALL
 	AST_DECL
 	AST_ARRAY_INIT
@@ -52,6 +53,11 @@ type Ast struct {
 	variable struct {
 		lname []byte
 		loff  int
+	}
+	// Local reference
+	lref struct {
+		ref *Ast
+		off int
 	}
 	// Binary operator
 	binop struct {
@@ -142,6 +148,15 @@ func ast_lvar(ctype *Ctype, name []byte) *Ast {
 	} else {
 		locals = r
 	}
+	return r
+}
+
+func ast_lref(ctype *Ctype, lvar *Ast, off int) *Ast {
+	r := &Ast{}
+	r.typ = AST_LREF
+	r.ctype = ctype
+	r.lref.ref = lvar
+	r.lref.off = off
 	return r
 }
 
@@ -299,33 +314,35 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 	}
 
 	default_err := errors.New("")
-	var err error
 	if b.typ == CTYPE_PTR {
 		if op != '+' && op != '-' {
 			return nil, default_err
 		}
-		if a.typ != CTYPE_PTR {
-			warn("Making a pointer from %s", ctype_to_string(a))
-			return b, nil
+		if a.typ != CTYPE_INT {
+			return nil, default_err
 		}
-		r := &Ctype{}
-		r.typ = CTYPE_PTR
-		r.ptr, err = result_type_int(op, a.ptr, b.ptr)
-		if err != nil {
-			return nil, err
-		}
-		return r, nil
+		return b, nil
 	}
 
 	switch a.typ {
 	case CTYPE_VOID:
 		return nil, default_err
 	case CTYPE_INT:
-		return ctype_int, nil
+		fallthrough
 	case CTYPE_CHAR:
-		return ctype_int, nil
+		switch b.typ {
+		case CTYPE_INT:
+			fallthrough
+		case CTYPE_CHAR:
+			return ctype_int, nil
+		case CTYPE_ARRAY:
+			fallthrough
+		case CTYPE_PTR:
+			return b, nil
+		}
+		_error("internal error")
 	case CTYPE_ARRAY:
-		return result_type_int(op, make_ptr_type(a.ptr), b)
+		return nil, default_err
 	default:
 		_error("internal error")
 	}
@@ -344,11 +361,10 @@ func result_type(op byte, a *Ctype, b *Ctype) *Ctype {
 
 func ensure_lvalue(ast *Ast) {
 	switch ast.typ {
-	case AST_LVAR:
+	case AST_LVAR, AST_LREF:
 		return
-	default:
-		_error("variable expected")
 	}
+	_error("lvalue expected, but got %s", ast_to_string(ast))
 	return
 }
 
@@ -370,6 +386,19 @@ func read_unary_expr() *Ast {
 	return read_prim()
 }
 
+func convert_array(ast *Ast) *Ast {
+	if ast.typ == AST_STRING {
+		return ast
+	}
+	if ast.ctype.typ != CTYPE_ARRAY {
+		return ast
+	}
+	if ast.typ == AST_LVAR {
+		return ast_lref(make_ptr_type(ast.ctype.ptr), ast, 0)
+	}
+	return ast
+}
+
 func read_expr(prec int) *Ast {
 	ast := read_unary_expr()
 	if ast == nil {
@@ -389,6 +418,8 @@ func read_expr(prec int) *Ast {
 
 		if is_punct(tok, '=') {
 			ensure_lvalue(ast)
+		} else {
+			ast = convert_array(ast)
 		}
 
 		var prec_incr int
@@ -398,9 +429,10 @@ func read_expr(prec int) *Ast {
 			prec_incr = 1
 		}
 		rest := read_expr(prec2 + prec_incr)
+		rest = convert_array(rest)
 		ctype := result_type(tok.v.punct, ast.ctype, rest.ctype)
-		if ast.ctype.typ != CTYPE_PTR &&
-			ctype.typ == CTYPE_PTR {
+		if !is_punct(tok, '=') && ast.ctype.typ != CTYPE_PTR &&
+			rest.ctype.typ == CTYPE_PTR {
 				ast,rest = rest,ast
 		}
 		ast = ast_binop(tok.v.punct, ctype, ast, rest)
@@ -541,9 +573,45 @@ func ctype_size(ctype *Ctype) int {
 	case CTYPE_ARRAY:
 		return ctype_size(ctype.ptr) * ctype.size
 	default:
-		_error("internal error");
+		_error("internal error")
 	}
 	return -1
+}
+
+func emit_lload(v *Ast, off int) {
+	if v.ctype.typ == CTYPE_ARRAY {
+		printf("lea -%d(%%rbp), %%rax\n\t", v.variable.loff)
+		return;
+	}
+	size := ctype_size(v.ctype)
+	switch size {
+	case 1:
+		printf("mov $0, %%eax\n\t")
+		printf("mov -%d(%%rbp), %%al\n\t", v.variable.loff)
+	case 4:
+		printf("mov -%d(%%rbp), %%eax\n\t", v.variable.loff)
+	case 8:
+		printf("mov -%d(%%rbp), %%rax\n\t", v.variable.loff)
+	default:
+		_error("Unknown data size: %s: %d", ast_to_string(v), size)
+	}
+	if off > 0 {
+		printf("add $%d, %%rax\n\t", size, off * size)
+	}
+}
+
+func emit_lsave(ctype *Ctype, loff int, off int) {
+	var reg string
+	size := ctype_size(ctype)
+	switch size {
+	case 1:
+		reg = "al"
+	case 4:
+		reg = "eax"
+	case 8:
+		reg = "rax"
+	}
+	printf("mov %%%s, -%d(%%rbp)\n\t", reg, loff + off * size)
 }
 
 func emit_pointer_arith(op byte, left *Ast, right *Ast) {
@@ -551,9 +619,9 @@ func emit_pointer_arith(op byte, left *Ast, right *Ast) {
 	emit_expr(left)
 	printf("push %%rax\n\t")
 	emit_expr(right)
-	size := ctype_size(left.ctype)
+	size := ctype_size(left.ctype.ptr)
 	if size > 1 {
-		printf("sal $%d, %%rax\n\t", size)
+		printf("imul $%d, %%rax\n\t", size)
 	}
 	printf("mov %%rax, %%rbx\n\t"+
 		"pop %%rax\n\t"+
@@ -562,6 +630,14 @@ func emit_pointer_arith(op byte, left *Ast, right *Ast) {
 
 func emit_assign(variable *Ast, value *Ast) {
 	emit_expr(value)
+	switch variable.typ {
+	case AST_LVAR:
+		emit_lsave(variable.ctype, variable.variable.loff, 0)
+	case AST_LREF:
+		emit_lsave(variable.lref.ref.ctype, variable.lref.ref.variable.loff, variable.lref.off)
+	default:
+		_error("internal error")
+	}
 	printf("mov %%rax, -%d(%%rbp)\n\t", variable.variable.loff)
 }
 
@@ -617,17 +693,10 @@ func emit_expr(ast *Ast) {
 	case AST_STRING:
 		printf("lea %s(%%rip), %%rax\n\t", ast.str.slabel)
 	case AST_LVAR:
-		switch ctype_size(ast.ctype) {
-		case 1:
-			printf("mov $0, %%eax\n\t")
-			printf("mov -%d(%%rbp), %%al\n\t", ast.variable.loff)
-		case 4:
-			printf("mov -%d(%%rbp), %%eax\n\t", ast.variable.loff)
-		case 8:
-			printf("mov -%d(%%rbp), %%rax\n\t", ast.variable.loff)
-		default:
-			_error("internal error")
-		}
+		emit_lload(ast, 0)
+	case AST_LREF:
+		assert(ast.lref.ref.typ == AST_LVAR)
+		emit_lload(ast.lref.ref, ast.lref.off)
 	case AST_FUNCALL:
 		for i := 0; i < ast.funcall.nargs; i++ {
 			printf("push %%%s\n\t", REGS[i])
@@ -646,14 +715,23 @@ func emit_expr(ast *Ast) {
 		}
 	case AST_DECL:
 		if ast.decl.declinit.typ == AST_ARRAY_INIT {
-			size := 4  // size of ast.decl.declvar.ctype.ptr
-			reg := "eax"
 			for i := 0; i < ast.decl.declinit.array_initializer.size; i++ {
 				emit_expr(ast.decl.declinit.array_initializer.array_init[i])
-				printf("mov %%%s, -%d(%%rbp)\n\t", reg, ast.decl.declvar.variable.loff - i * size)
+				emit_lsave(ast.decl.declvar.ctype.ptr, ast.decl.declvar.variable.loff, -i)
 			}
+		} else if ast.decl.declvar.ctype.typ == CTYPE_ARRAY {
+			assert(ast.decl.declinit.typ == AST_STRING)
+			var i int
+			for i = 0; ast.decl.declinit.str.val[i] != 0; i++ {
+				printf("movb $%d, -%d(%%rbp)\n\t", ast.decl.declinit.str.val[i], ast.decl.declvar.variable.loff-i)
+			}
+			printf("movb $0, -%d(%%rbp)\n\t", ast.decl.declvar.variable.loff-i)
+		} else if ast.decl.declinit.typ == AST_STRING {
+			printf("lea %s(%%rip), %%rax\n\t", ast.decl.declinit.str.slabel); //emit_gload
+			emit_lsave(ast.decl.declvar.ctype, ast.decl.declvar.variable.loff, 0)
 		} else {
-			emit_assign(ast.decl.declvar, ast.decl.declinit)
+			emit_expr(ast.decl.declinit)
+			emit_lsave(ast.decl.declvar.ctype, ast.decl.declvar.variable.loff,0)
 		}
 	case AST_ADDR:
 		assert(ast.unary.operand.typ == AST_LVAR)
@@ -729,6 +807,8 @@ func ast_to_string_int(ast *Ast) string {
 		return fmt.Sprintf("\"%s\"", quote(ast.str.val))
 	case AST_LVAR:
 		return fmt.Sprintf("%s", bytes2string(ast.variable.lname))
+	case AST_LREF:
+		return fmt.Sprintf("%s[%d]", ast_to_string(ast.lref.ref), ast.lref.off)
 	case AST_FUNCALL:
 		s := fmt.Sprintf("%s(", bytes2string(ast.funcall.fname))
 		for i := 0; ast.funcall.args[i] != nil; i++ {
@@ -783,8 +863,13 @@ func emit_data_section() {
 
 }
 
-func ceil8() int {
-	return 8
+func ceil8(n int) int {
+	rem := n % 8
+	if rem == 0 {
+		return n
+	} else {
+		return n - rem + 8
+	}
 }
 
 func main() {
@@ -803,7 +888,7 @@ func main() {
 	if !wantast {
 		off := 0
 		for p := locals; p != nil; p = p.next {
-			off += ceil8()
+			off += ceil8(ctype_size(p.ctype))
 			p.variable.loff = off
 		}
 		emit_data_section()

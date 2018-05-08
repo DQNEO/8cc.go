@@ -91,10 +91,10 @@ test 2 '1;2;'
 # Declaration
 test 3 'int a=1;a+2;'
 test 102 'int a=1;int b=48+2;int c=a+b;c*2;'
-test '' 'int a[3]={20,30,40};'
-#test 55 'int a[1]={55};int *b=a;*b;'
-#test 67 'int a[2]={55,67};int *b=a+1;*b;'
-#test 30 'int a[3]={20,30,40};int *b=a+1;*b;'
+#test '' 'int a[3]={20,30,40};'
+test 55 'int a[1]={55};int *b=a;*b;'
+test 67 'int a[2]={55,67};int *b=a+1;*b;'
+test 30 'int a[3]={20,30,40};int *b=a+1;*b;'
 
 # Function call
 test 25 'sum2(20, 5);'
@@ -107,7 +107,7 @@ test b1 "xprintf(\"%c\", 'a'+1);1;"
 test 61 'int a=61;int *b=&a;*b;'
 test 97 'char *c="ab";*c;'
 test 98 'char *c="ab"+1;*c;'
-#test 99 'char s[4]="abc";char *c=s+2;*c;'
+test 99 'char s[4]="abc";char *c=s+2;*c;'
 
 testfail '0abc;'
 testfail '1+;'

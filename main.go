@@ -698,7 +698,7 @@ func emit_expr(ast *Ast) {
 		assert(ast.lref.ref.typ == AST_LVAR)
 		emit_lload(ast.lref.ref, ast.lref.off)
 	case AST_FUNCALL:
-		for i := 0; i < ast.funcall.nargs; i++ {
+		for i := 1; i < ast.funcall.nargs; i++ {
 			printf("push %%%s\n\t", REGS[i])
 		}
 		for i := 0; i < ast.funcall.nargs; i++ {

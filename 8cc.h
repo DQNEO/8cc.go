@@ -140,4 +140,15 @@ extern void unget_token(Token *tok);
 extern Token *peek_token(void);
 extern Token *read_token(void);
 
+extern void emit_expr(Ast *ast);
+extern char *ast_to_string(Ast *ast);
+extern char *ctype_to_string(Ctype *ctype);
+extern void print_asm_header(void);
+
+
+extern Ast *globals;
+extern Ast *locals;
+extern Ctype *ctype_int;
+extern Ctype *ctype_char;
+
 #endif /* ECC_H */

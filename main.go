@@ -875,20 +875,6 @@ func emit_expr(ast *Ast) {
 	}
 }
 
-func quote(sval []byte) string {
-	var s string
-	for _, c := range sval {
-		if c == byte(0) {
-			break
-		}
-		if c == '"' || c == '\\' {
-			s += "\\"
-		}
-		s += fmt.Sprintf("%c", c)
-	}
-	return s
-}
-
 func ctype_to_string(ctype *Ctype) string {
 	switch ctype.typ {
 	case CTYPE_VOID:
@@ -921,7 +907,7 @@ func ast_to_string_int(ast *Ast) string {
 			return ""
 		}
 	case AST_STRING:
-		return fmt.Sprintf("\"%s\"", quote(ast.str.val))
+		return fmt.Sprintf("\"%s\"", quote_cstring(ast.str.val))
 	case AST_LVAR:
 		return fmt.Sprintf("%s", bytes2string(ast.variable.lname))
 	case AST_GVAR:
@@ -978,7 +964,7 @@ func emit_data_section() {
 	for p := globals; p != nil; p = p.next {
 		assert(p.typ == AST_STRING)
 		printf("%s:\n\t", bytes2string(p.str.slabel))
-		printf(".string \"%s\"\n", quote(p.str.val))
+		printf(".string \"%s\"\n", quote_cstring(p.str.val))
 	}
 	printf("\t")
 

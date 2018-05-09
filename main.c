@@ -772,17 +772,6 @@ static void emit_expr(Ast *ast) {
   }
 }
 
-static char *quote(char *p) {
-  String *s = make_string();
-  while (*p) {
-    if (*p == '\"' || *p == '\\')
-      string_append(s, '\\');
-    string_append(s, *p);
-    p++;
-  }
-  return get_cstring(s);
-}
-
 static char *ctype_to_string(Ctype *ctype) {
   switch (ctype->type) {
     case CTYPE_VOID: return "void";
@@ -819,7 +808,7 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       }
       break;
     case AST_STRING:
-      string_appendf(buf, "\"%s\"", quote(ast->sval));
+      string_appendf(buf, "\"%s\"", quote_cstring(ast->sval));
       break;
     case AST_LVAR:
       string_appendf(buf, "%s", ast->lname);
@@ -883,7 +872,7 @@ static void emit_data_section(void) {
   for (Ast *p = globals; p; p = p->next) {
     assert(p->type == AST_STRING);
     printf("%s:\n\t", p->slabel);
-    printf(".string \"%s\"\n", quote(p->sval));
+    printf(".string \"%s\"\n", quote_cstring(p->sval));
   }
   printf("\t");
 }

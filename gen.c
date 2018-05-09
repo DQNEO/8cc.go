@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include "8cc.h"
-//static void emit_expr(Ast *ast);
-//static int ctype_size(Ctype *ctype);
-static char *REGS[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
+static char *REGS[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 static int ctype_size(Ctype *ctype) {
   switch (ctype->type) {
@@ -238,7 +236,6 @@ void emit_expr(Ast *ast) {
   }
 }
 
-
 static void emit_data_section(void) {
   if (!globals) return;
   printf("\t.data\n");
@@ -256,17 +253,17 @@ static int ceil8(int n) {
 }
 
 void print_asm_header(void) {
-    int off = 0;
-    for (Ast *p = locals; p; p = p->next) {
-      off += ceil8(ctype_size(p->ctype));
-      p->loff = off;
-    }
-    emit_data_section();
-    printf(".text\n\t"
-           ".global mymain\n"
-           "mymain:\n\t"
-           "push %%rbp\n\t"
-           "mov %%rsp, %%rbp\n\t");
-    if (locals)
-      printf("sub $%d, %%rsp\n\t", off);
+  int off = 0;
+  for (Ast *p = locals; p; p = p->next) {
+    off += ceil8(ctype_size(p->ctype));
+    p->loff = off;
+  }
+  emit_data_section();
+  printf(".text\n\t"
+         ".global mymain\n"
+         "mymain:\n\t"
+         "push %%rbp\n\t"
+         "mov %%rsp, %%rbp\n\t");
+  if (locals)
+    printf("sub $%d, %%rsp\n\t", off);
 }

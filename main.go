@@ -14,6 +14,8 @@ const (
 	AST_STRING
 	AST_LVAR
 	AST_LREF
+	AST_GVAR
+	AST_GREF
 	AST_FUNCALL
 	AST_DECL
 	AST_ARRAY_INIT
@@ -47,15 +49,25 @@ type Ast struct {
 	// String
 	str struct {
 		val  []byte
-		slabel   string
+		slabel   []byte
 	}
 	// Local variable
 	variable struct {
 		lname []byte
 		loff  int
 	}
+	// Global variable
+	gvar struct {
+		gname []byte
+		glabel []byte
+	}
 	// Local reference
 	lref struct {
+		ref *Ast
+		off int
+	}
+	// Global reference
+	gref struct {
 		ref *Ast
 		off int
 	}
@@ -127,10 +139,11 @@ func ast_char(c byte) *Ast {
 	return r
 }
 
-func make_next_label() string {
-	ret := labelseq
+func make_next_label() []byte {
+	seq := labelseq
 	labelseq++
-	return fmt.Sprintf(".L%d", ret)
+	s := fmt.Sprintf(".L%d", seq)
+	return []byte(s+"\x00")
 }
 
 func ast_lvar(ctype *Ctype, name []byte) *Ast {
@@ -157,6 +170,37 @@ func ast_lref(ctype *Ctype, lvar *Ast, off int) *Ast {
 	r.ctype = ctype
 	r.lref.ref = lvar
 	r.lref.off = off
+	return r
+}
+
+func ast_gvar(ctype *Ctype, name []byte, filelocal bool) *Ast {
+	r := &Ast{}
+	r.typ = AST_GVAR
+	r.ctype = ctype
+	r.gvar.gname = name
+	if filelocal {
+		r.gvar.glabel = make_next_label()
+	} else {
+		r.gvar.glabel = name
+	}
+	r.next = nil
+	if globals != nil {
+		var p *Ast
+		for p = locals; p.next != nil; p = p.next {
+		}
+		p.next = r
+	} else {
+		globals = r
+	}
+	return r
+}
+
+func ast_gref(ctype *Ctype, gvar *Ast, off int) *Ast {
+	r := &Ast{}
+	r.typ = AST_GREF
+	r.ctype = ctype
+	r.gref.ref = gvar
+	r.gref.off = off
 	return r
 }
 
@@ -221,6 +265,13 @@ func find_var(name []byte) *Ast {
 			return v
 		}
 	}
+
+	for v := globals; v != nil; v = v.next {
+		if strcmp(name, v.variable.lname) == 0 {
+			return v
+		}
+	}
+
 	return nil
 }
 
@@ -361,7 +412,8 @@ func result_type(op byte, a *Ctype, b *Ctype) *Ctype {
 
 func ensure_lvalue(ast *Ast) {
 	switch ast.typ {
-	case AST_LVAR, AST_LREF:
+	case AST_LVAR, AST_LREF,
+	     AST_GVAR, AST_GREF:
 		return
 	}
 	_error("lvalue expected, but got %s", ast_to_string(ast))
@@ -388,7 +440,7 @@ func read_unary_expr() *Ast {
 
 func convert_array(ast *Ast) *Ast {
 	if ast.typ == AST_STRING {
-		return ast
+		return ast_gref(make_ptr_type(ctype_char), ast, 0)
 	}
 	if ast.ctype.typ != CTYPE_ARRAY {
 		return ast
@@ -396,7 +448,11 @@ func convert_array(ast *Ast) *Ast {
 	if ast.typ == AST_LVAR {
 		return ast_lref(make_ptr_type(ast.ctype.ptr), ast, 0)
 	}
-	return ast
+
+	if ast.typ != AST_GVAR {
+		_error("Internal error: Gvar expected, but got %s", ast_to_string(ast));
+	}
+	return ast_gref(make_ptr_type(ast.ctype.ptr), ast, 0)
 }
 
 func read_expr(prec int) *Ast {
@@ -578,6 +634,33 @@ func ctype_size(ctype *Ctype) int {
 	return -1
 }
 
+func emit_gload(ctype *Ctype, label []byte, off int) {
+	if ctype.typ == CTYPE_ARRAY {
+		printf("lea %s(%%rip), %%rax\n\t", bytes2string(label))
+		return
+	}
+	var reg string
+	size := ctype_size(ctype)
+	switch size {
+	case 1:
+		reg = "al"
+		printf("mov $0, %%eax\n\t")
+	case 4:
+		reg = "eax"
+	case 8:
+		reg = "rax"
+	default:
+		_error("Unknown data size: %s: %d", ctype_to_string(ctype), size)
+	}
+
+	printf("mov %s(%%rip), %%%s\n\t", bytes2string(label), reg)
+	if off > 0 {
+		printf("add $%d, %%rax\n\t", off * size)
+	}
+	printf("mov (%%rax), %%%s\n\t", reg)
+}
+
+
 func emit_lload(v *Ast, off int) {
 	if v.ctype.typ == CTYPE_ARRAY {
 		printf("lea -%d(%%rbp), %%rax\n\t", v.variable.loff)
@@ -598,6 +681,27 @@ func emit_lload(v *Ast, off int) {
 	if off > 0 {
 		printf("add $%d, %%rax\n\t", size, off * size)
 	}
+}
+
+func emit_gsave(v *Ast, off int) {
+	assert(v.ctype.typ != CTYPE_ARRAY)
+	var reg string
+	printf("push %%rbx\n\t")
+	printf("mov %s(%%rip) %%rbx\n\t", v.gvar.glabel)
+
+	size := ctype_size(v.ctype)
+	switch size {
+	case 1:
+		reg = "al"
+	case 4:
+		reg = "eax"
+	case 8:
+		reg = "rax"
+	default:
+		_error("Unknown data size: %s: %d", ast_to_string(v), size);
+	}
+	printf("mov %s, %d(%%rbp)\n\t", reg, off * size)
+	printf("pop %%rbx\n\t")
 }
 
 func emit_lsave(ctype *Ctype, loff int, off int) {
@@ -635,6 +739,10 @@ func emit_assign(variable *Ast, value *Ast) {
 		emit_lsave(variable.ctype, variable.variable.loff, 0)
 	case AST_LREF:
 		emit_lsave(variable.lref.ref.ctype, variable.lref.ref.variable.loff, variable.lref.off)
+	case AST_GVAR:
+		emit_gsave(variable, 0)
+	case AST_GREF:
+		emit_gsave(variable.gref.ref, variable.gref.off)
 	default:
 		_error("internal error")
 	}
@@ -691,12 +799,21 @@ func emit_expr(ast *Ast) {
 			_error("internal error")
 		}
 	case AST_STRING:
-		printf("lea %s(%%rip), %%rax\n\t", ast.str.slabel)
+		printf("lea %s(%%rip), %%rax\n\t", bytes2string(ast.str.slabel))
 	case AST_LVAR:
 		emit_lload(ast, 0)
 	case AST_LREF:
 		assert(ast.lref.ref.typ == AST_LVAR)
 		emit_lload(ast.lref.ref, ast.lref.off)
+	case AST_GVAR:
+		emit_gload(ast.ctype, ast.gvar.glabel, 0)
+	case AST_GREF:
+		if ast.gref.ref.typ == AST_STRING {
+			printf("lea %s(%%rip), %%rax\n\t", bytes2string(ast.gref.ref.str.slabel))
+		} else {
+			assert(ast.gref.ref.typ == AST_GVAR)
+			emit_gload(ast.gref.ref.ctype, ast.gref.ref.gvar.glabel, ast.gref.off)
+		}
 	case AST_FUNCALL:
 		for i := 1; i < ast.funcall.nargs; i++ {
 			printf("push %%%s\n\t", REGS[i])
@@ -727,7 +844,7 @@ func emit_expr(ast *Ast) {
 			}
 			printf("movb $0, -%d(%%rbp)\n\t", ast.decl.declvar.variable.loff-i)
 		} else if ast.decl.declinit.typ == AST_STRING {
-			printf("lea %s(%%rip), %%rax\n\t", ast.decl.declinit.str.slabel); //emit_gload
+			emit_gload(ast.decl.declinit.ctype, ast.decl.declinit.str.slabel, 0)
 			emit_lsave(ast.decl.declvar.ctype, ast.decl.declvar.variable.loff, 0)
 		} else {
 			emit_expr(ast.decl.declinit)
@@ -807,8 +924,12 @@ func ast_to_string_int(ast *Ast) string {
 		return fmt.Sprintf("\"%s\"", quote(ast.str.val))
 	case AST_LVAR:
 		return fmt.Sprintf("%s", bytes2string(ast.variable.lname))
+	case AST_GVAR:
+		return fmt.Sprintf("%s", bytes2string(ast.gvar.gname))
 	case AST_LREF:
 		return fmt.Sprintf("%s[%d]", ast_to_string(ast.lref.ref), ast.lref.off)
+	case AST_GREF:
+		return fmt.Sprintf("%s[%d]", ast_to_string(ast.gref.ref), ast.gref.off)
 	case AST_FUNCALL:
 		s := fmt.Sprintf("%s(", bytes2string(ast.funcall.fname))
 		for i := 0; ast.funcall.args[i] != nil; i++ {
@@ -856,7 +977,7 @@ func emit_data_section() {
 	printf("\t.data\n")
 	for p := globals; p != nil; p = p.next {
 		assert(p.typ == AST_STRING)
-		printf("%s:\n\t", p.str.slabel)
+		printf("%s:\n\t", bytes2string(p.str.slabel))
 		printf(".string \"%s\"\n", quote(p.str.val))
 	}
 	printf("\t")

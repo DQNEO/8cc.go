@@ -128,6 +128,7 @@ typedef struct Ast {
 extern void errorf(char *file, int line, char *fmt, ...) __attribute__((noreturn));
 extern void warn(char *fmt, ...);
 extern char *quote_cstring(char *p);
+
 extern String *make_string(void);
 extern char *get_cstring(String *s);
 extern void string_append(String *s, char c);

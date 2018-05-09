@@ -27,6 +27,96 @@ typedef struct {
   int len;
 } String;
 
+enum {
+  AST_LITERAL,
+  AST_STRING,
+  AST_LVAR,
+  AST_LREF,
+  AST_GVAR,
+  AST_GREF,
+  AST_FUNCALL,
+  AST_DECL,
+  AST_ARRAY_INIT,
+  AST_ADDR,
+  AST_DEREF,
+};
+
+enum {
+  CTYPE_VOID,
+  CTYPE_INT,
+  CTYPE_CHAR,
+  CTYPE_ARRAY,
+  CTYPE_PTR,
+};
+
+typedef struct Ctype {
+  int type;
+  struct Ctype *ptr;
+  int size;
+} Ctype;
+
+typedef struct Ast {
+  char type;
+  Ctype *ctype;
+  struct Ast *next;
+  union {
+    // Integer
+    int ival;
+    // Char
+    char c;
+    // String
+    struct {
+      char *sval;
+      char *slabel;
+    };
+    // Local variable
+    struct {
+      char *lname;
+      int loff;
+    };
+    // Global variable
+    struct {
+      char *gname;
+      char *glabel;
+    };
+    // Local reference
+    struct {
+      struct Ast *lref;
+      int lrefoff;
+    };
+    // Global reference
+    struct {
+      struct Ast *gref;
+      int goff;
+    };
+    // Binary operator
+    struct {
+      struct Ast *left;
+      struct Ast *right;
+    };
+    // Unary operator
+    struct {
+      struct Ast *operand;
+    };
+    // Function call
+    struct {
+      char *fname;
+      int nargs;
+      struct Ast **args;
+    };
+    // Declaration
+    struct {
+      struct Ast *declvar;
+      struct Ast *declinit;
+    };
+    // Array initializer
+    struct {
+      int size;
+      struct Ast **array_init;
+    };
+  };
+} Ast;
+
 #define error(...)                              \
   errorf(__FILE__, __LINE__, __VA_ARGS__)
 

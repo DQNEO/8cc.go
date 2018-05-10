@@ -3,6 +3,8 @@
 
 static char *REGS[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
+extern void emit_expr(Ast *ast);
+
 static int ctype_size(Ctype *ctype) {
   switch (ctype->type) {
     case CTYPE_CHAR: return 1;
@@ -267,3 +269,10 @@ void print_asm_header(void) {
   if (locals)
     printf("sub $%d, %%rsp\n\t", off);
 }
+
+
+void emit_block(Ast **block) {
+  for (int i = 0; block[i]; i++)
+    emit_expr(block[i]);
+}
+

@@ -5,6 +5,7 @@
 #include "8cc.h"
 
 #define MAX_ARGS 6
+#define EXPR_LEN 100
 
 Ast *globals = NULL;
 Ast *locals = NULL;
@@ -442,6 +443,18 @@ Ast *read_decl_or_stmt(void) {
   return r;
 }
 
+Ast **read_block(void) {
+  Ast **block = malloc(sizeof(Ast) * EXPR_LEN);
+  int i;
+  for (i = 0; i < EXPR_LEN; i++) {
+    Ast *t = read_decl_or_stmt();
+    if (!t) break;
+    block[i] = t;
+  }
+  block[i] = NULL;
+  return block;
+}
+
 char *ctype_to_string(Ctype *ctype) {
   switch (ctype->type) {
     case CTYPE_VOID: return "void";
@@ -538,8 +551,7 @@ char *ast_to_string(Ast *ast) {
 
 char *block_to_string(Ast **block) {
   String *s = make_string();
-  int i;
-  for (i = 0; block[i]; i++) {
+  for (int i = 0; block[i]; i++) {
     ast_to_string_int(block[i], s);
   }
   return get_cstring(s);

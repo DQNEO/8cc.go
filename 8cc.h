@@ -139,12 +139,15 @@ extern bool is_punct(Token *tok, char c);
 extern void unget_token(Token *tok);
 extern Token *peek_token(void);
 extern Token *read_token(void);
-extern void emit_expr(Ast *ast);
 extern char *ast_to_string(Ast *ast);
+extern char *block_to_string(Ast **block);
 extern char *ctype_to_string(Ctype *ctype);
 extern void print_asm_header(void);
+extern void emit_block(Ast **block);
 
 extern Ast *read_decl_or_stmt(void);
+
+extern Ast **read_block(void);
 
 extern Ast *globals;
 extern Ast *locals;

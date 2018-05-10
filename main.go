@@ -892,6 +892,23 @@ func ceil8(n int) int {
 	}
 }
 
+func print_asm_header() {
+	off := 0
+	for p := locals; p != nil; p = p.next {
+		off += ceil8(ctype_size(p.ctype))
+		p.variable.loff = off
+	}
+	emit_data_section()
+	printf(".text\n\t" +
+		".global mymain\n" +
+		"mymain:\n\t" +
+		"push %%rbp\n\t" +
+		"mov %%rsp, %%rbp\n\t")
+	if locals != nil {
+		printf("sub $%d, %%rsp\n\t", off)
+	}
+}
+
 func main() {
 	initStdin()
 	wantast := (len(os.Args) > 1 && os.Args[1] == "-a")
@@ -906,20 +923,7 @@ func main() {
 	}
 	nexpr := i
 	if !wantast {
-		off := 0
-		for p := locals; p != nil; p = p.next {
-			off += ceil8(ctype_size(p.ctype))
-			p.variable.loff = off
-		}
-		emit_data_section()
-		printf(".text\n\t" +
-			".global mymain\n" +
-			"mymain:\n\t" +
-			"push %%rbp\n\t" +
-			"mov %%rsp, %%rbp\n\t")
-		if locals != nil {
-			printf("sub $%d, %%rsp\n\t", off)
-		}
+		print_asm_header()
 	}
 	for i = 0; i < nexpr; i++ {
 		if wantast {

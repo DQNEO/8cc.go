@@ -535,3 +535,12 @@ char *ast_to_string(Ast *ast) {
   ast_to_string_int(ast, s);
   return get_cstring(s);
 }
+
+char *block_to_string(Ast **block) {
+  String *s = make_string();
+  int i;
+  for (i = 0; block[i]; i++) {
+    ast_to_string_int(block[i], s);
+  }
+  return get_cstring(s);
+}

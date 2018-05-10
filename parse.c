@@ -444,15 +444,15 @@ Ast *read_decl_or_stmt(void) {
 }
 
 Ast **read_block(void) {
-  Ast **block = malloc(sizeof(Ast) * EXPR_LEN);
+  Ast **stmts = malloc(sizeof(Ast) * EXPR_LEN);
   int i;
   for (i = 0; i < EXPR_LEN; i++) {
     Ast *t = read_decl_or_stmt();
     if (!t) break;
-    block[i] = t;
+    stmts[i] = t;
   }
-  block[i] = NULL;
-  return block;
+  stmts[i] = NULL;
+  return stmts;
 }
 
 char *ctype_to_string(Ctype *ctype) {

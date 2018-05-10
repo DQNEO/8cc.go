@@ -5,7 +5,7 @@
 #include "8cc.h"
 
 #define MAX_ARGS 6
-#define EXPR_LEN 100
+#define EXPR_LEN 50
 
 Ast *globals = NULL;
 Ast *locals = NULL;
@@ -450,7 +450,9 @@ Ast **read_block(void) {
     stmts[i] = read_decl_or_stmt();
     if (!stmts[i]) break;
   }
-  stmts[i] = NULL;
+  if (i == EXPR_LEN - 1)
+    error("Block too long");
+  stmts[i + 1] = NULL;
   return stmts;
 }
 
@@ -501,10 +503,11 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     case AST_LREF:
       string_appendf(buf, "%s[%d]", ast_to_string(ast->lref), ast->lrefoff);
       break;
-    case AST_GREF:
+    case AST_GREF: {
       string_appendf(buf, "%s[%d]", ast_to_string(ast->gref), ast->goff);
       break;
-    case AST_FUNCALL:
+    }
+    case AST_FUNCALL: {
       string_appendf(buf, "%s(", ast->fname);
       for (int i = 0; ast->args[i]; i++) {
         string_appendf(buf, "%s", ast_to_string(ast->args[i]));
@@ -513,12 +516,14 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       }
       string_appendf(buf, ")");
       break;
-    case AST_DECL:
+    }
+    case AST_DECL: {
       string_appendf(buf, "(decl %s %s %s)",
                      ctype_to_string(ast->declvar->ctype),
                      ast->declvar->lname,
                      ast_to_string(ast->declinit));
       break;
+    }
     case AST_ARRAY_INIT:
       string_appendf(buf, "{");
       for (int i = 0; i < ast->size; i++) {
@@ -531,9 +536,10 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     case AST_ADDR:
       string_appendf(buf, "(& %s)", ast_to_string(ast->operand));
       break;
-    case AST_DEREF:
+    case AST_DEREF: {
       string_appendf(buf, "(* %s)", ast_to_string(ast->operand));
       break;
+    }
     default: {
       char *left = ast_to_string(ast->left);
       char *right = ast_to_string(ast->right);

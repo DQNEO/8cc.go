@@ -173,7 +173,7 @@ void emit_expr(Ast *ast) {
     case AST_GVAR:
       emit_gload(ast->ctype, ast->glabel, 0);
       break;
-    case AST_GREF:
+    case AST_GREF: {
       if (ast->gref->type == AST_STRING) {
         printf("lea %s(%%rip), %%rax\n\t", ast->gref->slabel);
       } else {
@@ -181,7 +181,8 @@ void emit_expr(Ast *ast) {
         emit_gload(ast->gref->ctype, ast->gref->glabel, ast->goff);
       }
       break;
-    case AST_FUNCALL:
+    }
+    case AST_FUNCALL: {
       for (int i = 1; i < ast->nargs; i++)
         printf("push %%%s\n\t", REGS[i]);
       for (int i = 0; i < ast->nargs; i++) {
@@ -195,7 +196,8 @@ void emit_expr(Ast *ast) {
       for (int i = ast->nargs - 1; i > 0; i--)
         printf("pop %%%s\n\t", REGS[i]);
       break;
-    case AST_DECL:
+    }
+    case AST_DECL: {
       if (ast->declinit->type == AST_ARRAY_INIT) {
         for (int i = 0; i < ast->declinit->size; i++) {
           emit_expr(ast->declinit->array_init[i]);
@@ -215,6 +217,7 @@ void emit_expr(Ast *ast) {
         emit_lsave(ast->declvar->ctype, ast->declvar->loff, 0);
       }
       return;
+    }
     case AST_ADDR:
       assert(ast->operand->type == AST_LVAR);
       printf("lea -%d(%%rbp), %%rax\n\t", ast->operand->loff);

@@ -551,8 +551,11 @@ char *ast_to_string(Ast *ast) {
 
 char *block_to_string(Ast **block) {
   String *s = make_string();
+  string_appendf(s, "{");
   for (int i = 0; block[i]; i++) {
     ast_to_string_int(block[i], s);
+    string_appendf(s, ";");
   }
+  string_appendf(s, "}");
   return get_cstring(s);
 }

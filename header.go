@@ -41,15 +41,15 @@ const (
 )
 
 type Ctype struct {
-	typ int
-	ptr *Ctype
+	typ  int
+	ptr  *Ctype
 	size int
 }
 
 type Ast struct {
 	typ   byte
 	ctype *Ctype
-	next *Ast
+	next  *Ast
 	// want to be "union"
 	// Integer
 	ival int
@@ -57,8 +57,8 @@ type Ast struct {
 	c byte
 	// String
 	str struct {
-		val  []byte
-		slabel   []byte
+		val    []byte
+		slabel []byte
 	}
 	// Local variable
 	variable struct {
@@ -67,7 +67,7 @@ type Ast struct {
 	}
 	// Global variable
 	gvar struct {
-		gname []byte
+		gname  []byte
 		glabel []byte
 	}
 	// Local reference
@@ -101,7 +101,7 @@ type Ast struct {
 		declinit *Ast
 	}
 	array_initializer struct {
-		size int
+		size       int
 		array_init []*Ast
 	}
 }

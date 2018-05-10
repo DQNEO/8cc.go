@@ -164,7 +164,7 @@ func read_token_init() *Token {
 	if c == '/' || c == '=' || c == '*' ||
 		c == '+' || c == '-' || c == '(' ||
 		c == ')' || c == ',' || c == ';' || c == '&' ||
-			c == '[' || c == ']' || c == '{' || c == '}' {
+		c == '[' || c == ']' || c == '{' || c == '}' {
 		return make_punct(c)
 	}
 	_error("Don't know how to handle '%c'", c)

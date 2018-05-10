@@ -1,17 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 )
 
 const MAX_ARGS = 6
 
-
 var globals *Ast
 var locals *Ast
 
-var labelseq = 0;
+var labelseq = 0
 
 var ctype_int = &Ctype{CTYPE_INT, nil, 0}
 var ctype_char = &Ctype{CTYPE_CHAR, nil, 0}
@@ -53,7 +52,7 @@ func make_next_label() []byte {
 	seq := labelseq
 	labelseq++
 	s := fmt.Sprintf(".L%d", seq)
-	return []byte(s+"\x00")
+	return []byte(s + "\x00")
 }
 
 func ast_lvar(ctype *Ctype, name []byte) *Ast {
@@ -117,7 +116,7 @@ func ast_gref(ctype *Ctype, gvar *Ast, off int) *Ast {
 func ast_string(str []byte) *Ast {
 	r := &Ast{}
 	r.typ = AST_STRING
-	r.ctype = make_array_type(ctype_char, strlen(str) + 1)
+	r.ctype = make_array_type(ctype_char, strlen(str)+1)
 	r.str.val = str
 	r.str.slabel = make_next_label()
 	r.next = globals
@@ -360,7 +359,7 @@ func convert_array(ast *Ast) *Ast {
 	}
 
 	if ast.typ != AST_GVAR {
-		_error("Internal error: Gvar expected, but got %s", ast_to_string(ast));
+		_error("Internal error: Gvar expected, but got %s", ast_to_string(ast))
 	}
 	return ast_gref(make_ptr_type(ast.ctype.ptr), ast, 0)
 }
@@ -399,7 +398,7 @@ func read_expr(prec int) *Ast {
 		ctype := result_type(tok.v.punct, ast.ctype, rest.ctype)
 		if !is_punct(tok, '=') && ast.ctype.typ != CTYPE_PTR &&
 			rest.ctype.typ == CTYPE_PTR {
-			ast,rest = rest,ast
+			ast, rest = rest, ast
 		}
 		ast = ast_binop(tok.v.punct, ctype, ast, rest)
 	}
@@ -446,13 +445,13 @@ func read_decl_array_initializer(ctype *Ctype) *Ast {
 		init[i] = read_expr(0)
 		result_type('=', init[i].ctype, ctype.ptr)
 		tok = read_token()
-		if is_punct(tok, '}') && i == ctype.size - 1  {
+		if is_punct(tok, '}') && i == ctype.size-1 {
 			break
 		}
 		if !is_punct(tok, ',') {
 			_error("comma expected, but got %s", token_to_string(tok))
 		}
-		if i == ctype.size - 1 {
+		if i == ctype.size-1 {
 			tok = read_token()
 			if !is_punct(tok, '}') {
 				_error("'}' expected, but got %s", token_to_string(tok))
@@ -508,7 +507,6 @@ func read_decl() *Ast {
 	return ast_decl(variable, init)
 }
 
-
 func read_decl_or_stmt() *Ast {
 	tok := peek_token()
 	if tok == nil {
@@ -527,7 +525,6 @@ func read_decl_or_stmt() *Ast {
 	}
 	return r
 }
-
 
 func ast_to_string_int(ast *Ast) string {
 	switch ast.typ {
@@ -568,9 +565,9 @@ func ast_to_string_int(ast *Ast) string {
 			ast_to_string_int(ast.decl.declinit))
 	case AST_ARRAY_INIT:
 		s := "{"
-		for i:= 0; i < ast.array_initializer.size; i++ {
+		for i := 0; i < ast.array_initializer.size; i++ {
 			s += ast_to_string_int(ast.array_initializer.array_init[i])
-			if i != ast.array_initializer.size - 1 {
+			if i != ast.array_initializer.size-1 {
 				s += ","
 			}
 		}
@@ -609,4 +606,3 @@ func ctype_to_string(ctype *Ctype) string {
 
 	return ""
 }
-

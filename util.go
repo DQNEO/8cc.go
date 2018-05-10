@@ -12,7 +12,7 @@ func _error(format string, args ...interface{}) {
 
 func warn(format string, args ...interface{}) {
 	fmt.Fprint(os.Stderr, "warning: ")
-	fmt.Fprintf(os.Stderr, format,args...)
+	fmt.Fprintf(os.Stderr, format, args...)
 }
 
 func quote_cstring(sval []byte) string {

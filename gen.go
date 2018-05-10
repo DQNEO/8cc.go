@@ -39,16 +39,15 @@ func emit_gload(ctype *Ctype, label []byte, off int) {
 
 	printf("mov %s(%%rip), %%%s\n\t", bytes2string(label), reg)
 	if off > 0 {
-		printf("add $%d, %%rax\n\t", off * size)
+		printf("add $%d, %%rax\n\t", off*size)
 	}
 	printf("mov (%%rax), %%%s\n\t", reg)
 }
 
-
 func emit_lload(v *Ast, off int) {
 	if v.ctype.typ == CTYPE_ARRAY {
 		printf("lea -%d(%%rbp), %%rax\n\t", v.variable.loff)
-		return;
+		return
 	}
 	size := ctype_size(v.ctype)
 	switch size {
@@ -63,7 +62,7 @@ func emit_lload(v *Ast, off int) {
 		_error("Unknown data size: %s: %d", ast_to_string(v), size)
 	}
 	if off > 0 {
-		printf("add $%d, %%rax\n\t", size, off * size)
+		printf("add $%d, %%rax\n\t", size, off*size)
 	}
 }
 
@@ -82,9 +81,9 @@ func emit_gsave(v *Ast, off int) {
 	case 8:
 		reg = "rax"
 	default:
-		_error("Unknown data size: %s: %d", ast_to_string(v), size);
+		_error("Unknown data size: %s: %d", ast_to_string(v), size)
 	}
-	printf("mov %s, %d(%%rbp)\n\t", reg, off * size)
+	printf("mov %s, %d(%%rbp)\n\t", reg, off*size)
 	printf("pop %%rbx\n\t")
 }
 
@@ -99,7 +98,7 @@ func emit_lsave(ctype *Ctype, loff int, off int) {
 	case 8:
 		reg = "rax"
 	}
-	printf("mov %%%s, -%d(%%rbp)\n\t", reg, loff + off * size)
+	printf("mov %%%s, -%d(%%rbp)\n\t", reg, loff+off*size)
 }
 
 func emit_pointer_arith(op byte, left *Ast, right *Ast) {
@@ -111,8 +110,8 @@ func emit_pointer_arith(op byte, left *Ast, right *Ast) {
 	if size > 1 {
 		printf("imul $%d, %%rax\n\t", size)
 	}
-	printf("mov %%rax, %%rbx\n\t"+
-		"pop %%rax\n\t"+
+	printf("mov %%rax, %%rbx\n\t" +
+		"pop %%rax\n\t" +
 		"add %%rbx, %%rax\n\t")
 }
 
@@ -232,7 +231,7 @@ func emit_expr(ast *Ast) {
 			emit_lsave(ast.decl.declvar.ctype, ast.decl.declvar.variable.loff, 0)
 		} else {
 			emit_expr(ast.decl.declinit)
-			emit_lsave(ast.decl.declvar.ctype, ast.decl.declvar.variable.loff,0)
+			emit_lsave(ast.decl.declvar.ctype, ast.decl.declvar.variable.loff, 0)
 		}
 	case AST_ADDR:
 		assert(ast.unary.operand.typ == AST_LVAR)
@@ -258,7 +257,6 @@ func emit_expr(ast *Ast) {
 		emit_binop(ast)
 	}
 }
-
 
 func emit_data_section() {
 	if globals == nil {

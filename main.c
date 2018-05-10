@@ -14,15 +14,18 @@ int main(int argc, char **argv) {
     exprs[i] = t;
   }
   int nexpr = i;
-  if (!wantast)
-    print_asm_header();
-  for (i = 0; i < nexpr; i++) {
-    if (wantast)
+
+  if (wantast) {
+    for (i = 0; i < nexpr; i++) {
       printf("%s", ast_to_string(exprs[i]));
-    else
-      emit_expr(exprs[i]);
-  }
-  if (!wantast) {
+    }
+  } else {
+    print_asm_header();
+    for(i = 0; i < nexpr; i++) {
+      if(!wantast) {
+        emit_expr(exprs[i]);
+      }
+    }
     printf("leave\n\t"
            "ret\n");
   }

@@ -222,7 +222,7 @@ void emit_expr(Ast *ast) {
       assert(ast->operand->type == AST_LVAR);
       printf("lea -%d(%%rbp), %%rax\n\t", ast->operand->loff);
       break;
-    case AST_DEREF:
+    case AST_DEREF: {
       assert(ast->operand->ctype->type == CTYPE_PTR);
       emit_expr(ast->operand);
       char *reg;
@@ -236,6 +236,7 @@ void emit_expr(Ast *ast) {
       printf("mov (%%rax), %s\n\t", reg);
       printf("mov %%rbx, %%rax\n\t");
       break;
+    }
     default:
       emit_binop(ast);
   }

@@ -1,4 +1,4 @@
-GO_OBJS=main.go header.go lex.go adapter.go util.go gen.go
+GO_OBJS=main.go header.go lex.go adapter.go util.go gen.go parse.go
 
 8gg.linux: $(GO_OBJS)
 	GOOS=linux  GOARCH=amd64 go build -o 8gg.linux $(GO_OBJS)

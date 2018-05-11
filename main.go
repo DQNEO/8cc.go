@@ -19,17 +19,17 @@ func main() {
 		}
 		exprs[i] = t
 	}
-	nexpr := i
+	exprs[i] = nil;
 	if wantast {
 		printf("{")
-		for i = 0; i < nexpr; i++ {
+		for i = 0; exprs[i] != nil; i++ {
 			printf("%s", ast_to_string(exprs[i]))
 			printf(";")
 		}
 		printf("}")
 	} else {
 		print_asm_header()
-		for i = 0; i < nexpr; i++ {
+		for i = 0; exprs[i] != nil; i++ {
 			emit_expr(exprs[i])
 		}
 		printf("leave\n\t" +

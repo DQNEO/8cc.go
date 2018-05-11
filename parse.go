@@ -537,7 +537,10 @@ func read_block() []*Ast {
 			break
 		}
 	}
-	stmts[i] = nil;
+	if i == EXPR_LEN - 1 {
+		_error("Block too long")
+	}
+	stmts[i + 1] = nil
 	return stmts
 }
 

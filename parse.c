@@ -149,6 +149,16 @@ static Ast *ast_array_init(int size, Ast **array_init) {
   return r;
 }
 
+static Ast *ast_if(Ast *cond, Ast **then, Ast **els) {
+  Ast *r = malloc(sizeof(Ast));
+  r->type = AST_IF;
+  r->ctype = NULL;
+  r->cond = cond;
+  r->then = then;
+  r->els = els;
+  return r;
+}
+
 static Ctype* make_ptr_type(Ctype *ctype) {
   Ctype *r = malloc(sizeof(Ctype));
   r->type = CTYPE_PTR;

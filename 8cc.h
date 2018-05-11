@@ -39,6 +39,7 @@ enum {
   AST_ARRAY_INIT,
   AST_ADDR,
   AST_DEREF,
+  AST_IF,
 };
 
 enum {
@@ -113,6 +114,12 @@ typedef struct Ast {
     struct {
       int size;
       struct Ast **array_init;
+    };
+    // If statement
+    struct {
+      struct Ast *cond;
+      struct Ast **then;
+      struct Ast **els;
     };
   };
 } Ast;

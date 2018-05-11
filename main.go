@@ -21,23 +21,19 @@ func main() {
 	nexpr := i
 	if wantast {
 		printf("{")
-	} else {
-		print_asm_header()
-	}
-	for i = 0; i < nexpr; i++ {
-		if wantast {
+		for i = 0; i < nexpr; i++ {
 			printf("%s", ast_to_string(exprs[i]))
 			printf(";")
-		} else {
-			emit_expr(exprs[i])
 		}
-	}
-
-	if wantast {
 		printf("}")
 	} else {
+		print_asm_header()
+		for i = 0; i < nexpr; i++ {
+			emit_expr(exprs[i])
+		}
 		printf("leave\n\t" +
 			"ret\n")
 	}
+
 	return
 }

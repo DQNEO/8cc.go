@@ -6,6 +6,7 @@ import (
 )
 
 const MAX_ARGS = 6
+const EXPR_LEN = 50
 
 var globals *Ast
 var locals *Ast
@@ -584,6 +585,21 @@ func ast_to_string_int(ast *Ast) string {
 	}
 }
 
+func read_block() []*Ast {
+	var block []*Ast
+	block = make([]*Ast, EXPR_LEN)
+	var i int
+	for i = 0; i < EXPR_LEN; i++ {
+		t := read_decl_or_stmt()
+		if t == nil {
+			break
+		}
+		block[i] = t
+	}
+	block[i] = nil;
+	return block
+}
+
 func ast_to_string(ast *Ast) string {
 	return ast_to_string_int(ast)
 }
@@ -605,4 +621,14 @@ func ctype_to_string(ctype *Ctype) string {
 	}
 
 	return ""
+}
+
+func block_to_string(block []*Ast) string {
+	s := "{"
+	for i := 0; block[i] != nil; i++ {
+		s += ast_to_string(block[i])
+		s += ";"
+	}
+	s += "}"
+	return s
 }

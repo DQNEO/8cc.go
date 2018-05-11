@@ -505,7 +505,14 @@ func read_decl() *Ast {
 	variable := ast_lvar(ctype, varname.v.sval)
 	expect('=')
 	init := read_declinitializer(ctype)
+	expect(';')
 	return ast_decl(variable, init)
+}
+
+func read_stmt() *Ast {
+	r := read_expr(0)
+	expect(';')
+	return r
 }
 
 func read_decl_or_stmt() *Ast {
@@ -513,16 +520,12 @@ func read_decl_or_stmt() *Ast {
 	if tok == nil {
 		return nil
 	}
+
 	var r *Ast
 	if is_type_keyword(tok) {
 		r = read_decl()
 	} else {
-		r = read_expr(0)
-	}
-	// should use expect(';')
-	tok2 := read_token()
-	if !is_punct(tok2, ';') {
-		_error("Unterminated expression %s", token_to_string(tok2))
+		r = read_stmt()
 	}
 	return r
 }

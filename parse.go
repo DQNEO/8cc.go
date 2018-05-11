@@ -540,10 +540,10 @@ func read_block() []*Ast {
 			break
 		}
 	}
-	if i == EXPR_LEN - 1 {
+	if i == EXPR_LEN-1 {
 		_error("Block too long")
 	}
-	stmts[i + 1] = nil
+	stmts[i+1] = nil
 	return stmts
 }
 

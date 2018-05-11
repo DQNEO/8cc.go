@@ -528,18 +528,18 @@ func read_decl_or_stmt() *Ast {
 }
 
 func read_block() []*Ast {
-	var block []*Ast
-	block = make([]*Ast, EXPR_LEN)
+	var stmts []*Ast
+	stmts = make([]*Ast, EXPR_LEN)
 	var i int
 	for i = 0; i < EXPR_LEN; i++ {
 		t := read_decl_or_stmt()
 		if t == nil {
 			break
 		}
-		block[i] = t
+		stmts[i] = t
 	}
-	block[i] = nil;
-	return block
+	stmts[i] = nil;
+	return stmts
 }
 
 func ctype_to_string(ctype *Ctype) string {

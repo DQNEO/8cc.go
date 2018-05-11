@@ -145,7 +145,6 @@ extern char *ctype_to_string(Ctype *ctype);
 extern void print_asm_header(void);
 extern void emit_block(Ast **block);
 
-extern Ast *read_decl_or_stmt(void);
 
 extern Ast **read_block(void);
 

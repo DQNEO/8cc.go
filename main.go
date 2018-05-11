@@ -6,32 +6,46 @@ import (
 
 const EXPR_LEN = 50
 
-func main() {
-	initStdin()
-	wantast := (len(os.Args) > 1 && os.Args[1] == "-a")
-	var exprs []*Ast
-	exprs = make([]*Ast, EXPR_LEN)
+func read_block() []*Ast {
+	var block []*Ast
+	block = make([]*Ast, EXPR_LEN)
 	var i int
 	for i = 0; i < EXPR_LEN; i++ {
 		t := read_decl_or_stmt()
 		if t == nil {
 			break
 		}
-		exprs[i] = t
+		block[i] = t
 	}
-	exprs[i] = nil;
+	block[i] = nil;
+	return block
+}
+
+func block_to_string(block []*Ast) string {
+	s := "{"
+	for i := 0; block[i] != nil; i++ {
+		s += ast_to_string(block[i])
+		s += ";"
+	}
+	s += "}"
+	return s
+}
+
+func emit_block(block []*Ast) {
+	for i := 0; block[i] != nil; i++ {
+		emit_expr(block[i])
+	}
+}
+
+func main() {
+	initStdin()
+	wantast := (len(os.Args) > 1 && os.Args[1] == "-a")
+	block := read_block()
 	if wantast {
-		printf("{")
-		for i = 0; exprs[i] != nil; i++ {
-			printf("%s", ast_to_string(exprs[i]))
-			printf(";")
-		}
-		printf("}")
+		printf("%s", block_to_string(block))
 	} else {
 		print_asm_header()
-		for i = 0; exprs[i] != nil; i++ {
-			emit_expr(exprs[i])
-		}
+		emit_block(block)
 		printf("leave\n\t" +
 			"ret\n")
 	}

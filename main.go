@@ -9,7 +9,8 @@ const EXPR_LEN = 100
 func main() {
 	initStdin()
 	wantast := (len(os.Args) > 1 && os.Args[1] == "-a")
-	var exprs [EXPR_LEN]*Ast
+	var exprs []*Ast
+	exprs = make([]*Ast, EXPR_LEN)
 	var i int
 	for i = 0; i < EXPR_LEN; i++ {
 		t := read_decl_or_stmt()

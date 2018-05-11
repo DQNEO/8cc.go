@@ -19,10 +19,10 @@ func main() {
 		exprs[i] = t
 	}
 	nexpr := i
-	if !wantast {
-		print_asm_header()
-	} else {
+	if wantast {
 		printf("{")
+	} else {
+		print_asm_header()
 	}
 	for i = 0; i < nexpr; i++ {
 		if wantast {
@@ -33,11 +33,11 @@ func main() {
 		}
 	}
 
-	if !wantast {
+	if wantast {
+		printf("}")
+	} else {
 		printf("leave\n\t" +
 			"ret\n")
-	} else {
-		printf("}")
 	}
 	return
 }

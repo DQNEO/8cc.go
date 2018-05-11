@@ -21,10 +21,13 @@ func main() {
 	nexpr := i
 	if !wantast {
 		print_asm_header()
+	} else {
+		printf("{")
 	}
 	for i = 0; i < nexpr; i++ {
 		if wantast {
 			printf("%s", ast_to_string(exprs[i]))
+			printf(";")
 		} else {
 			emit_expr(exprs[i])
 		}
@@ -33,6 +36,8 @@ func main() {
 	if !wantast {
 		printf("leave\n\t" +
 			"ret\n")
+	} else {
+		printf("}")
 	}
 	return
 }

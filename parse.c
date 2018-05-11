@@ -5,6 +5,7 @@
 #include "8cc.h"
 
 #define MAX_ARGS 6
+#define EXPR_LEN 50
 
 Ast *globals = NULL;
 Ast *locals = NULL;
@@ -429,17 +430,34 @@ static Ast *read_decl(void) {
   Ast *var = ast_lvar(ctype, varname->sval);
   expect('=');
   Ast *init = read_declinitializer(ctype);
+  expect(';');
   return ast_decl(var, init);
+}
+
+static Ast *read_stmt(void) {
+  Ast *r = read_expr(0);
+  expect(';');
+  return r;
 }
 
 Ast *read_decl_or_stmt(void) {
   Token *tok = peek_token();
   if (!tok) return NULL;
-  Ast *r = is_type_keyword(tok) ? read_decl() : read_expr(0);
-  tok = read_token();
-  if (!is_punct(tok, ';'))
-    error("Unterminated expression: %s", token_to_string(tok));
+  Ast *r = is_type_keyword(tok) ? read_decl() : read_stmt();
   return r;
+}
+
+Ast **read_block(void) {
+  Ast **stmts = malloc(sizeof(Ast **) * EXPR_LEN);
+  int i;
+  for (i = 0; i < EXPR_LEN - 1; i++) {
+    stmts[i] = read_decl_or_stmt();
+    if (!stmts[i]) break;
+  }
+  if (i == EXPR_LEN - 1)
+    error("Block too long");
+  stmts[i + 1] = NULL;
+  return stmts;
 }
 
 char *ctype_to_string(Ctype *ctype) {
@@ -533,5 +551,16 @@ static void ast_to_string_int(Ast *ast, String *buf) {
 char *ast_to_string(Ast *ast) {
   String *s = make_string();
   ast_to_string_int(ast, s);
+  return get_cstring(s);
+}
+
+char *block_to_string(Ast **block) {
+  String *s = make_string();
+  string_appendf(s, "{");
+  for (int i = 0; block[i]; i++) {
+    ast_to_string_int(block[i], s);
+    string_appendf(s, ";");
+  }
+  string_appendf(s, "}");
   return get_cstring(s);
 }

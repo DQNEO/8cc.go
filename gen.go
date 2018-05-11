@@ -297,3 +297,9 @@ func print_asm_header() {
 		printf("sub $%d, %%rsp\n\t", off)
 	}
 }
+
+func emit_block(block []*Ast) {
+	for i := 0; block[i] != nil; i++ {
+		emit_expr(block[i])
+	}
+}

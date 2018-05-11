@@ -6,6 +6,7 @@ import (
 )
 
 const MAX_ARGS = 6
+const EXPR_LEN = 50
 
 var globals *Ast
 var locals *Ast
@@ -504,7 +505,14 @@ func read_decl() *Ast {
 	variable := ast_lvar(ctype, varname.v.sval)
 	expect('=')
 	init := read_declinitializer(ctype)
+	expect(';')
 	return ast_decl(variable, init)
+}
+
+func read_stmt() *Ast {
+	r := read_expr(0)
+	expect(';')
+	return r
 }
 
 func read_decl_or_stmt() *Ast {
@@ -512,18 +520,50 @@ func read_decl_or_stmt() *Ast {
 	if tok == nil {
 		return nil
 	}
+
 	var r *Ast
 	if is_type_keyword(tok) {
 		r = read_decl()
 	} else {
-		r = read_expr(0)
-	}
-	// should use expect(';')
-	tok2 := read_token()
-	if !is_punct(tok2, ';') {
-		_error("Unterminated expression %s", token_to_string(tok2))
+		r = read_stmt()
 	}
 	return r
+}
+
+func read_block() []*Ast {
+	var stmts []*Ast
+	stmts = make([]*Ast, EXPR_LEN)
+	var i int
+	for i = 0; i < EXPR_LEN; i++ {
+		stmts[i] = read_decl_or_stmt()
+		if stmts[i] == nil {
+			break
+		}
+	}
+	if i == EXPR_LEN-1 {
+		_error("Block too long")
+	}
+	stmts[i+1] = nil
+	return stmts
+}
+
+func ctype_to_string(ctype *Ctype) string {
+	switch ctype.typ {
+	case CTYPE_VOID:
+		return "void"
+	case CTYPE_INT:
+		return "int"
+	case CTYPE_CHAR:
+		return "char"
+	case CTYPE_PTR:
+		return fmt.Sprintf("%s*", ctype_to_string(ctype.ptr))
+	case CTYPE_ARRAY:
+		return fmt.Sprintf("%s[%d]", ctype_to_string(ctype.ptr), ctype.size)
+	default:
+		_error("Unknown ctype: %d", ctype)
+	}
+
+	return ""
 }
 
 func ast_to_string_int(ast *Ast) string {
@@ -588,21 +628,12 @@ func ast_to_string(ast *Ast) string {
 	return ast_to_string_int(ast)
 }
 
-func ctype_to_string(ctype *Ctype) string {
-	switch ctype.typ {
-	case CTYPE_VOID:
-		return "void"
-	case CTYPE_INT:
-		return "int"
-	case CTYPE_CHAR:
-		return "char"
-	case CTYPE_PTR:
-		return fmt.Sprintf("%s*", ctype_to_string(ctype.ptr))
-	case CTYPE_ARRAY:
-		return fmt.Sprintf("%s[%d]", ctype_to_string(ctype.ptr), ctype.size)
-	default:
-		_error("Unknown ctype: %d", ctype)
+func block_to_string(block []*Ast) string {
+	s := "{"
+	for i := 0; block[i] != nil; i++ {
+		s += ast_to_string(block[i])
+		s += ";"
 	}
-
-	return ""
+	s += "}"
+	return s
 }

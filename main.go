@@ -4,7 +4,7 @@ import (
 	"os"
 )
 
-const EXPR_LEN = 100
+const EXPR_LEN = 50
 
 func main() {
 	initStdin()

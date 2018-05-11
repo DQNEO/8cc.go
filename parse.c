@@ -430,16 +430,20 @@ static Ast *read_decl(void) {
   Ast *var = ast_lvar(ctype, varname->sval);
   expect('=');
   Ast *init = read_declinitializer(ctype);
+  expect(';');
   return ast_decl(var, init);
+}
+
+static Ast *read_stmt(void) {
+  Ast *r = read_expr(0);
+  expect(';');
+  return r;
 }
 
 Ast *read_decl_or_stmt(void) {
   Token *tok = peek_token();
   if (!tok) return NULL;
-  Ast *r = is_type_keyword(tok) ? read_decl() : read_expr(0);
-  tok = read_token();
-  if (!is_punct(tok, ';'))
-    error("Unterminated expression: %s", token_to_string(tok));
+  Ast *r = is_type_keyword(tok) ? read_decl() : read_stmt();
   return r;
 }
 

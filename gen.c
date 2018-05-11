@@ -274,7 +274,6 @@ void print_asm_header(void) {
     printf("sub $%d, %%rsp\n\t", off);
 }
 
-
 void emit_block(Ast **block) {
   for (int i = 0; block[i]; i++)
     emit_expr(block[i]);

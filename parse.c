@@ -17,6 +17,7 @@ static int labelseq = 0;
 static Ast *read_expr(int prec);
 static Ctype* make_ptr_type(Ctype *ctype);
 static Ctype* make_array_type(Ctype *ctype, int size);
+static void ast_to_string_int(Ast *ast, String *buf);
 
 static Ast *ast_uop(char type, Ctype *ctype, Ast *operand) {
   Ast *r = malloc(sizeof(Ast));
@@ -440,11 +441,10 @@ static Ast *read_stmt(void) {
   return r;
 }
 
-Ast *read_decl_or_stmt(void) {
+static Ast *read_decl_or_stmt(void) {
   Token *tok = peek_token();
   if (!tok) return NULL;
-  Ast *r = is_type_keyword(tok) ? read_decl() : read_stmt();
-  return r;
+  return is_type_keyword(tok) ? read_decl() : read_stmt();
 }
 
 Ast **read_block(void) {

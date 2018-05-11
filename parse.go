@@ -527,6 +527,40 @@ func read_decl_or_stmt() *Ast {
 	return r
 }
 
+func read_block() []*Ast {
+	var block []*Ast
+	block = make([]*Ast, EXPR_LEN)
+	var i int
+	for i = 0; i < EXPR_LEN; i++ {
+		t := read_decl_or_stmt()
+		if t == nil {
+			break
+		}
+		block[i] = t
+	}
+	block[i] = nil;
+	return block
+}
+
+func ctype_to_string(ctype *Ctype) string {
+	switch ctype.typ {
+	case CTYPE_VOID:
+		return "void"
+	case CTYPE_INT:
+		return "int"
+	case CTYPE_CHAR:
+		return "char"
+	case CTYPE_PTR:
+		return fmt.Sprintf("%s*", ctype_to_string(ctype.ptr))
+	case CTYPE_ARRAY:
+		return fmt.Sprintf("%s[%d]", ctype_to_string(ctype.ptr), ctype.size)
+	default:
+		_error("Unknown ctype: %d", ctype)
+	}
+
+	return ""
+}
+
 func ast_to_string_int(ast *Ast) string {
 	switch ast.typ {
 	case AST_LITERAL:
@@ -585,42 +619,8 @@ func ast_to_string_int(ast *Ast) string {
 	}
 }
 
-func read_block() []*Ast {
-	var block []*Ast
-	block = make([]*Ast, EXPR_LEN)
-	var i int
-	for i = 0; i < EXPR_LEN; i++ {
-		t := read_decl_or_stmt()
-		if t == nil {
-			break
-		}
-		block[i] = t
-	}
-	block[i] = nil;
-	return block
-}
-
 func ast_to_string(ast *Ast) string {
 	return ast_to_string_int(ast)
-}
-
-func ctype_to_string(ctype *Ctype) string {
-	switch ctype.typ {
-	case CTYPE_VOID:
-		return "void"
-	case CTYPE_INT:
-		return "int"
-	case CTYPE_CHAR:
-		return "char"
-	case CTYPE_PTR:
-		return fmt.Sprintf("%s*", ctype_to_string(ctype.ptr))
-	case CTYPE_ARRAY:
-		return fmt.Sprintf("%s[%d]", ctype_to_string(ctype.ptr), ctype.size)
-	default:
-		_error("Unknown ctype: %d", ctype)
-	}
-
-	return ""
 }
 
 func block_to_string(block []*Ast) string {

@@ -532,11 +532,10 @@ func read_block() []*Ast {
 	stmts = make([]*Ast, EXPR_LEN)
 	var i int
 	for i = 0; i < EXPR_LEN; i++ {
-		t := read_decl_or_stmt()
-		if t == nil {
+		stmts[i] = read_decl_or_stmt()
+		if stmts[i] == nil {
 			break
 		}
-		stmts[i] = t
 	}
 	stmts[i] = nil;
 	return stmts

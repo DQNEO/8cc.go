@@ -7,7 +7,7 @@ void assert_string_equal(char *s, char *t) {
     error("Expected %s but got %s", s, t);
 }
 
-void test_string() {
+void test_string(void) {
   String *s = make_string();
   string_append(s, 'a');
   assert_string_equal("a", get_cstring(s));

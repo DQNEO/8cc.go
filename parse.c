@@ -445,7 +445,29 @@ static Ast *read_decl(void) {
   return ast_decl(var, init);
 }
 
+static Ast *read_if_stmt(void) {
+  expect('(');
+  Ast *cond = read_expr(0);
+  expect(')');
+  expect('{');
+  Ast **then = read_block();
+  expect('}');
+  Token *tok = read_token();
+  if (!tok || tok->type != TTYPE_IDENT || strcmp(tok->sval, "else")) {
+    unget_token(tok);
+    return ast_if(cond, then, NULL);
+  }
+  expect('{');
+  Ast **els = read_block();
+  expect('}');
+  return ast_if(cond, then, els);
+}
+
 static Ast *read_stmt(void) {
+  Token *tok = read_token();
+  if (tok->type == TTYPE_IDENT && !strcmp(tok->sval, "if"))
+    return read_if_stmt();
+  unget_token(tok);
   Ast *r = read_expr(0);
   expect(';');
   return r;
@@ -462,7 +484,9 @@ Ast **read_block(void) {
   int i;
   for (i = 0; i < EXPR_LEN - 1; i++) {
     stmts[i] = read_decl_or_stmt();
-    if (!stmts[i]) break;
+    Token *tok = peek_token();
+    if (!stmts[i] || is_punct(tok, '}'))
+      break;
   }
   if (i == EXPR_LEN - 1)
     error("Block too long");
@@ -492,6 +516,10 @@ char *ctype_to_string(Ctype *ctype) {
 }
 
 static void ast_to_string_int(Ast *ast, String *buf) {
+  if (!ast) {
+    string_appendf(buf, "(null)");
+    return;
+  }
   switch (ast->type) {
     case AST_LITERAL:
       switch (ast->ctype->type) {

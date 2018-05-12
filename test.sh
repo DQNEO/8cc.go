@@ -68,6 +68,8 @@ testast '{(decl int a 1);(decl int b 2);(= a (= b 3));}' 'int a=1;int b=2;a=b=3;
 testast '{(decl int a 3);(& a);}' 'int a=3;&a;'
 testast '{(decl int a 3);(* (& a));}' 'int a=3;*&a;'
 testast '{(decl int a 3);(decl int* b (& a));(* b);}' 'int a=3;int *b=&a;*b;'
+testast '{(if 1 {2;});}' 'if(1){2;}'
+testast '{(if 1 {2;} {3;});}' 'if(1){2;}else{3;}'
 
 testast '{"abc";}' '"abc";'
 testast "{'c';}" "'c';"
@@ -107,6 +109,12 @@ test 61 'int a=61;int *b=&a;*b;'
 test 97 'char *c="ab";*c;'
 test 98 'char *c="ab"+1;*c;'
 test 99 'char s[4]="abc";char *c=s+2;*c;'
+
+# If statement
+test 'a1' 'if(1){xprintf("a");}1;'
+test '1' 'if(0){xprintf("a");}1;'
+test 'x1' 'if(1){xprintf("x");}else{xprintf("y");}1;'
+test 'y1' 'if(0){xprintf("x");}else{xprintf("y");}1;'
 
 testfail '0abc;'
 testfail '1+;'

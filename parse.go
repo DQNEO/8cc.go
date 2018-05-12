@@ -521,13 +521,11 @@ func read_decl_or_stmt() *Ast {
 		return nil
 	}
 
-	var r *Ast
 	if is_type_keyword(tok) {
-		r = read_decl()
+		return read_decl()
 	} else {
-		r = read_stmt()
+		return read_stmt()
 	}
-	return r
 }
 
 func read_block() []*Ast {

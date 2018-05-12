@@ -253,6 +253,21 @@ func emit_expr(ast *Ast) {
 		printf("mov $0, %%ebx\n\t")
 		printf("mov (%%rax), %s\n\t", reg)
 		printf("mov %%rbx, %%rax\n\t")
+	case AST_IF:
+		emit_expr(ast._if.cond)
+		l1 := make_next_label()
+		printf("test %%rax, %%rax\n\t")
+		printf("je %s\n\t", bytes2string(l1))
+		emit_block(ast._if.then)
+		if ast._if.els != nil {
+			l2 := make_next_label()
+			printf("jmp %s\n\t", bytes2string(l2))
+			printf("%s:\n\t", bytes2string(l1))
+			emit_block(ast._if.els)
+			printf("%s:\n\t", bytes2string(l2))
+		} else {
+			printf("%s:\n\t", bytes2string(l1))
+		}
 	default:
 		emit_binop(ast)
 	}

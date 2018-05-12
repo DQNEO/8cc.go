@@ -625,6 +625,15 @@ func ast_to_string_int(ast *Ast) string {
 		return fmt.Sprintf("(& %s)", ast_to_string(ast.unary.operand))
 	case AST_DEREF:
 		return fmt.Sprintf("(* %s)", ast_to_string(ast.unary.operand))
+	case AST_IF:
+		s := fmt.Sprintf("(if %s %s",
+			ast_to_string(ast._if.cond),
+				block_to_string(ast._if.then))
+		if ast._if.els != nil {
+			s += fmt.Sprintf("%s", block_to_string(ast._if.els))
+		}
+		s += ")"
+		return s
 	default:
 		left := ast_to_string_int(ast.binop.left)
 		right := ast_to_string_int(ast.binop.right)

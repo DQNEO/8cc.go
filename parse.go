@@ -154,6 +154,16 @@ func ast_array_init(size int, array_init []*Ast) *Ast {
 	return r
 }
 
+func ast_if(cond *Ast, then []*Ast, els []*Ast) *Ast {
+	r := &Ast{}
+	r.typ = AST_IF
+	r.ctype = nil
+	r._if.cond = cond
+	r._if.then = then
+	r._if.els = els
+	return r
+}
+
 func make_ptr_type(ctype *Ctype) *Ctype {
 	r := &Ctype{}
 	r.typ = CTYPE_PTR

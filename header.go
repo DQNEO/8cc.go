@@ -30,6 +30,7 @@ const (
 	AST_ARRAY_INIT
 	AST_ADDR
 	AST_DEREF
+	AST_IF
 )
 
 const (
@@ -100,9 +101,16 @@ type Ast struct {
 		declvar  *Ast
 		declinit *Ast
 	}
+	// Array initializer
 	array_initializer struct {
 		size       int
 		array_init []*Ast
+	}
+	// If statement
+	_if struct {
+		cond *Ast
+		then []*Ast
+		els  []*Ast
 	}
 }
 

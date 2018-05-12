@@ -52,7 +52,7 @@ static Ast *ast_char(char c) {
   return r;
 }
 
-char *make_next_label(void) {
+char *make_label(void) {
   String *s = make_string();
   string_appendf(s, ".L%d", labelseq++);
   return get_cstring(s);
@@ -89,7 +89,7 @@ static Ast *ast_gvar(Ctype *ctype, char *name, bool filelocal) {
   r->type = AST_GVAR;
   r->ctype = ctype;
   r->gname = name;
-  r->glabel = filelocal ? make_next_label() : name;
+  r->glabel = filelocal ? make_label() : name;
   r->next = NULL;
   if (globals) {
     Ast *p;
@@ -115,7 +115,7 @@ static Ast *ast_string(char *str) {
   r->type = AST_STRING;
   r->ctype = make_array_type(ctype_char, strlen(str) + 1);
   r->sval = str;
-  r->slabel = make_next_label();
+  r->slabel = make_label();
   r->next = globals;
   globals = r;
   return r;

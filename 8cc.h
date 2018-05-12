@@ -140,7 +140,7 @@ extern char *block_to_string(Ast **block);
 extern char *ctype_to_string(Ctype *ctype);
 extern void print_asm_header(void);
 extern void emit_block(Ast **block);
-extern char *make_next_label(void);
+extern char *make_label(void);
 
 extern Ast **read_block(void);
 

@@ -239,12 +239,12 @@ void emit_expr(Ast *ast) {
     }
     case AST_IF: {
       emit_expr(ast->cond);
-      char *l1 = make_next_label();
+      char *l1 = make_label();
       printf("test %%rax, %%rax\n\t");
       printf("je %s\n\t", l1);
       emit_block(ast->then);
       if (ast->els) {
-        char *l2 = make_next_label();
+        char *l2 = make_label();
         printf("jmp %s\n\t", l2);
         printf("%s:\n\t", l1);
         emit_block(ast->els);

@@ -2,6 +2,7 @@
 #define ECC_H
 
 #include <stdbool.h>
+#include "util.h"
 
 enum {
   TTYPE_IDENT,
@@ -123,18 +124,6 @@ typedef struct Ast {
     };
   };
 } Ast;
-
-#define error(...)                              \
-  errorf(__FILE__, __LINE__, __VA_ARGS__)
-
-#define assert(expr)                                    \
-  do {                                                  \
-    if (!(expr)) error("Assertion failed: " #expr);     \
-  } while (0)
-
-extern void errorf(char *file, int line, char *fmt, ...) __attribute__((noreturn));
-extern void warn(char *fmt, ...);
-extern char *quote_cstring(char *p);
 
 extern String *make_string(void);
 extern char *get_cstring(String *s);

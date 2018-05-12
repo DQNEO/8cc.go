@@ -49,7 +49,7 @@ func ast_char(c byte) *Ast {
 	return r
 }
 
-func make_next_label() []byte {
+func make_label() []byte {
 	seq := labelseq
 	labelseq++
 	s := fmt.Sprintf(".L%d", seq)
@@ -89,7 +89,7 @@ func ast_gvar(ctype *Ctype, name []byte, filelocal bool) *Ast {
 	r.ctype = ctype
 	r.gvar.gname = name
 	if filelocal {
-		r.gvar.glabel = make_next_label()
+		r.gvar.glabel = make_label()
 	} else {
 		r.gvar.glabel = name
 	}
@@ -119,7 +119,7 @@ func ast_string(str []byte) *Ast {
 	r.typ = AST_STRING
 	r.ctype = make_array_type(ctype_char, strlen(str)+1)
 	r.str.val = str
-	r.str.slabel = make_next_label()
+	r.str.slabel = make_label()
 	r.next = globals
 
 	globals = r

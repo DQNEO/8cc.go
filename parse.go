@@ -519,7 +519,30 @@ func read_decl() *Ast {
 	return ast_decl(variable, init)
 }
 
+func read_if_stmt() *Ast {
+	expect('(')
+	cond := read_expr(0)
+	expect(')')
+	expect('{')
+	then := read_block()
+	expect('}')
+	tok := read_token()
+	if tok == nil || tok.typ != TTYPE_IDENT || strcmp(tok.v.sval, []byte("else\x00")) != 0 {
+		unget_token(tok)
+		return ast_if(cond, then, nil)
+	}
+	expect('{')
+	els := read_block()
+	expect('}')
+	return ast_if(cond, then, els)
+}
+
 func read_stmt() *Ast {
+	tok := read_token()
+	if tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, []byte("if\x00")) == 0 {
+		return read_if_stmt()
+	}
+	unget_token(tok)
 	r := read_expr(0)
 	expect(';')
 	return r
@@ -544,7 +567,8 @@ func read_block() []*Ast {
 	var i int
 	for i = 0; i < EXPR_LEN; i++ {
 		stmts[i] = read_decl_or_stmt()
-		if stmts[i] == nil {
+		tok := peek_token()
+		if stmts[i] == nil || is_punct(tok, '}'){
 			break
 		}
 	}
@@ -575,6 +599,9 @@ func ctype_to_string(ctype *Ctype) string {
 }
 
 func ast_to_string_int(ast *Ast) string {
+	if ast == nil {
+		return "(null)"
+	}
 	switch ast.typ {
 	case AST_LITERAL:
 		switch ast.ctype.typ {
@@ -630,7 +657,7 @@ func ast_to_string_int(ast *Ast) string {
 			ast_to_string(ast._if.cond),
 				block_to_string(ast._if.then))
 		if ast._if.els != nil {
-			s += fmt.Sprintf("%s", block_to_string(ast._if.els))
+			s += fmt.Sprintf(" %s", block_to_string(ast._if.els))
 		}
 		s += ")"
 		return s

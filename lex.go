@@ -190,13 +190,13 @@ func token_to_string(tok *Token) []byte {
 }
 
 func is_punct(tok *Token, c byte) bool {
-	if tok == nil {
-		_error("Token is null")
-	}
-	return tok.typ == TTYPE_PUNCT && tok.v.punct == c
+	return tok != nil && (tok.typ == TTYPE_PUNCT && tok.v.punct == c)
 }
 
 func unget_token(tok *Token) {
+	if tok == nil {
+		return
+	}
 	if ungotten != nil {
 		_error("Push back buffer is already full")
 	}

@@ -114,8 +114,8 @@ typedef struct Ast {
     };
     // Array initializer
     struct {
-      int size;
-      struct Ast **array_init;
+      int csize;
+      struct List *arrayinit;
     };
     // If statement
     struct {

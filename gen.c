@@ -199,9 +199,11 @@ void emit_expr(Ast *ast) {
     }
     case AST_DECL: {
       if (ast->declinit->type == AST_ARRAY_INIT) {
-        for (int i = 0; i < ast->declinit->size; i++) {
-          emit_expr(ast->declinit->array_init[i]);
+        int i = 0;
+        for (Iter *iter = list_iter(ast->declinit->arrayinit); !iter_end(iter);) {
+          emit_expr(iter_next(iter));
           emit_lsave(ast->declvar->ctype->ptr, ast->declvar->loff, -i);
+          i++;
         }
       } else if (ast->declvar->ctype->type == CTYPE_ARRAY) {
         assert(ast->declinit->type == AST_STRING);

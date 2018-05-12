@@ -140,12 +140,12 @@ static Ast *ast_decl(Ast *var, Ast *init) {
   return r;
 }
 
-static Ast *ast_array_init(int size, Ast **array_init) {
+static Ast *ast_array_init(int csize, List *arrayinit) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_ARRAY_INIT;
   r->ctype = NULL;
-  r->size = size;
-  r->array_init = array_init;
+  r->csize = csize;
+  r->arrayinit = arrayinit;
   return r;
 }
 
@@ -388,10 +388,11 @@ static Ast *read_decl_array_initializer(Ctype *ctype) {
     return ast_string(tok->sval);
   if (!is_punct(tok, '{'))
     error("Expected an initializer list, but got %s", token_to_string(tok));
-  Ast **init = malloc(sizeof(Ast*) * ctype->size);
+  List *initlist = make_list();
   for (int i = 0; i < ctype->size; i++) {
-    init[i] = read_expr(0);
-    result_type('=', init[i]->ctype, ctype->ptr);
+    Ast *init = read_expr(0);
+    list_append(initlist, init);
+    result_type('=', init->ctype, ctype->ptr);
     tok = read_token();
     if (is_punct(tok, '}') && (i == ctype->size - 1))
       break;
@@ -404,7 +405,7 @@ static Ast *read_decl_array_initializer(Ctype *ctype) {
       break;
     }
   }
-  return ast_array_init(ctype->size, init);
+  return ast_array_init(ctype->size, initlist);
 }
 
 static Ast *read_declinitializer(Ctype *ctype) {
@@ -565,9 +566,9 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       break;
     case AST_ARRAY_INIT:
       string_appendf(buf, "{");
-      for (int i = 0; i < ast->size; i++) {
-        ast_to_string_int(ast->array_init[i], buf);
-        if (i != ast->size - 1)
+      for (Iter *i = list_iter(ast->arrayinit); !iter_end(i);) {
+        ast_to_string_int(iter_next(i), buf);
+        if (!iter_end(i))
           string_appendf(buf, ",");
       }
       string_appendf(buf, "}");

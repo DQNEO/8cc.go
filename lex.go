@@ -172,6 +172,9 @@ func read_token_init() *Token {
 }
 
 func token_to_string(tok *Token) []byte {
+	if tok == nil {
+		return []byte("(null)\x00")
+	}
 	switch tok.typ {
 	case TTYPE_IDENT:
 		return tok.v.sval

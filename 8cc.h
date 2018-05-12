@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include "util.h"
+#include "list.h"
 
 enum {
   TTYPE_IDENT,

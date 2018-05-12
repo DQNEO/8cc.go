@@ -293,7 +293,7 @@ void print_asm_header(void) {
     printf("sub $%d, %%rsp\n\t", off);
 }
 
-void emit_block(Ast **block) {
-  for (int i = 0; block[i]; i++)
-    emit_expr(block[i]);
+void emit_block(List *block) {
+  for (Iter *i = list_iter(block); !iter_end(i);)
+    emit_expr(iter_next(i));
 }

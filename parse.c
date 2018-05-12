@@ -149,7 +149,7 @@ static Ast *ast_array_init(int csize, List *arrayinit) {
   return r;
 }
 
-static Ast *ast_if(Ast *cond, Ast **then, Ast **els) {
+static Ast *ast_if(Ast *cond, List *then, List *els) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_IF;
   r->ctype = NULL;
@@ -451,7 +451,7 @@ static Ast *read_if_stmt(void) {
   Ast *cond = read_expr(0);
   expect(')');
   expect('{');
-  Ast **then = read_block();
+  List *then = read_block();
   expect('}');
   Token *tok = read_token();
   if (!tok || tok->type != TTYPE_IDENT || strcmp(tok->sval, "else")) {
@@ -459,7 +459,7 @@ static Ast *read_if_stmt(void) {
     return ast_if(cond, then, NULL);
   }
   expect('{');
-  Ast **els = read_block();
+  List *els = read_block();
   expect('}');
   return ast_if(cond, then, els);
 }
@@ -480,19 +480,16 @@ static Ast *read_decl_or_stmt(void) {
   return is_type_keyword(tok) ? read_decl() : read_stmt();
 }
 
-Ast **read_block(void) {
-  Ast **stmts = malloc(sizeof(Ast **) * EXPR_LEN);
-  int i;
-  for (i = 0; i < EXPR_LEN - 1; i++) {
-    stmts[i] = read_decl_or_stmt();
+List *read_block(void) {
+  List *r = make_list();
+  for (;;) {
+    Ast *stmt = read_decl_or_stmt();
+    if (stmt) list_append(r, stmt);
     Token *tok = peek_token();
-    if (!stmts[i] || is_punct(tok, '}'))
+    if (!stmt || is_punct(tok, '}'))
       break;
   }
-  if (i == EXPR_LEN - 1)
-    error("Block too long");
-  stmts[i + 1] = NULL;
-  return stmts;
+  return r;
 }
 
 char *ctype_to_string(Ctype *ctype) {
@@ -601,11 +598,11 @@ char *ast_to_string(Ast *ast) {
   return get_cstring(s);
 }
 
-char *block_to_string(Ast **block) {
+char *block_to_string(List *block) {
   String *s = make_string();
   string_appendf(s, "{");
-  for (int i = 0; block[i]; i++) {
-    ast_to_string_int(block[i], s);
+  for (Iter *i = list_iter(block); !iter_end(i);) {
+    ast_to_string_int(iter_next(i), s);
     string_appendf(s, ";");
   }
   string_appendf(s, "}");

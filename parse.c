@@ -550,6 +550,14 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     case AST_DEREF:
       string_appendf(buf, "(* %s)", ast_to_string(ast->operand));
       break;
+    case AST_IF:
+      string_appendf(buf, "(if %s %s",
+                     ast_to_string(ast->cond),
+                     block_to_string(ast->then));
+      if (ast->els)
+        string_appendf(buf, " %s", block_to_string(ast->els));
+      string_appendf(buf, ")");
+      break;
     default: {
       char *left = ast_to_string(ast->left);
       char *right = ast_to_string(ast->right);

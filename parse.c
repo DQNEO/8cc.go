@@ -5,7 +5,6 @@
 #include "8cc.h"
 
 #define MAX_ARGS 6
-#define EXPR_LEN 50
 
 List *globals = EMPTY_LIST;
 List *locals = EMPTY_LIST;

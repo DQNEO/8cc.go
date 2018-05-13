@@ -10,6 +10,12 @@ func _error(format string, args ...interface{}) {
 	os.Exit(1)
 }
 
+func assert(expr bool) {
+	if !expr {
+		_error("Assertion failed.s")
+	}
+}
+
 func warn(format string, args ...interface{}) {
 	fmt.Fprint(os.Stderr, "warning: ")
 	fmt.Fprintf(os.Stderr, format, args...)

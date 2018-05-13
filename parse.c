@@ -121,12 +121,11 @@ static Ast *ast_string(char *str) {
   return r;
 }
 
-static Ast *ast_funcall(char *fname, int nargs, Ast **args) {
+static Ast *ast_funcall(char *fname, List *args) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_FUNCALL;
   r->ctype = ctype_int;
   r->fname = fname;
-  r->nargs = nargs;
   r->args = args;
   return r;
 }
@@ -202,22 +201,20 @@ static int priority(char op) {
 }
 
 static Ast *read_func_args(char *fname) {
-  Ast **args = malloc(sizeof(Ast*) * (MAX_ARGS + 1));
-  int i = 0, nargs = 0;
-  for (; i < MAX_ARGS; i++) {
+  List *args = make_list();
+  for (;;) {
     Token *tok = read_token();
     if (is_punct(tok, ')')) break;
     unget_token(tok);
-    args[i] = read_expr(0);
-    nargs++;
+    list_append(args, read_expr(0));
     tok = read_token();
     if (is_punct(tok, ')')) break;
     if (!is_punct(tok, ','))
       error("Unexpected token: '%s'", token_to_string(tok));
   }
-  if (i == MAX_ARGS)
+  if (MAX_ARGS < list_len(args))
     error("Too many arguments: %s", fname);
-  return ast_funcall(fname, nargs, args);
+  return ast_funcall(fname, args);
 }
 
 static Ast *read_ident_or_func(char *name) {
@@ -546,15 +543,16 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     case AST_GREF:
       string_appendf(buf, "%s[%d]", ast_to_string(ast->gref), ast->goff);
       break;
-    case AST_FUNCALL:
+    case AST_FUNCALL: {
       string_appendf(buf, "%s(", ast->fname);
-      for (int i = 0; ast->args[i]; i++) {
-        string_appendf(buf, "%s", ast_to_string(ast->args[i]));
-        if (ast->args[i + 1])
+      for (Iter *i = list_iter(ast->args); !iter_end(i);) {
+        string_appendf(buf, "%s", ast_to_string(iter_next(i)));
+        if (!iter_end(i))
           string_appendf(buf, ",");
       }
       string_appendf(buf, ")");
       break;
+    }
     case AST_DECL:
       string_appendf(buf, "(decl %s %s %s)",
                      ctype_to_string(ast->declvar->ctype),

@@ -105,7 +105,7 @@ typedef struct Ast {
     struct {
       char *fname;
       int nargs;
-      struct Ast **args;
+      struct List *args;
     };
     // Declaration
     struct {

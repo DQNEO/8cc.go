@@ -183,17 +183,17 @@ void emit_expr(Ast *ast) {
       break;
     }
     case AST_FUNCALL: {
-      for (int i = 1; i < ast->nargs; i++)
+      for (int i = 1; i < list_len(ast->args); i++)
         printf("push %%%s\n\t", REGS[i]);
-      for (int i = 0; i < ast->nargs; i++) {
-        emit_expr(ast->args[i]);
+      for (Iter *i = list_iter(ast->args); !iter_end(i);) {
+        emit_expr(iter_next(i));
         printf("push %%rax\n\t");
       }
-      for (int i = ast->nargs - 1; i >= 0; i--)
+      for (int i = list_len(ast->args) - 1; i >= 0; i--)
         printf("pop %%%s\n\t", REGS[i]);
       printf("mov $0, %%eax\n\t");
       printf("call %s\n\t", ast->fname);
-      for (int i = ast->nargs - 1; i > 0; i--)
+      for (int i = list_len(ast->args) - 1; i > 0; i--)
         printf("pop %%%s\n\t", REGS[i]);
       break;
     }

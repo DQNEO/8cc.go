@@ -22,5 +22,5 @@ Iter *list_iter(List *list);
 void *iter_next(Iter *iter);
 bool iter_end(Iter *iter);
 
-#define EMPTY_LIST
+#define EMPTY_LIST                                      \
   (&(List){ .len = 0, .head = NULL, .tail = NULL })

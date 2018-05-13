@@ -7,8 +7,8 @@
 #define MAX_ARGS 6
 #define EXPR_LEN 50
 
-Ast *globals = NULL;
-Ast *locals = NULL;
+List *globals = &(List){0,NULL,NULL};
+List *locals = &(List){0,NULL,NULL};
 Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL };
 Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL };
 
@@ -63,14 +63,7 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
   r->type = AST_LVAR;
   r->ctype = ctype;
   r->lname = name;
-  r->next = NULL;
-  if (locals) {
-    Ast *p;
-    for (p = locals; p->next; p = p->next);
-    p->next = r;
-  } else {
-    locals = r;
-  }
+  list_append(locals, r);
   return r;
 }
 
@@ -90,14 +83,7 @@ static Ast *ast_gvar(Ctype *ctype, char *name, bool filelocal) {
   r->ctype = ctype;
   r->gname = name;
   r->glabel = filelocal ? make_label() : name;
-  r->next = NULL;
-  if (globals) {
-    Ast *p;
-    for (p = locals; p->next; p = p->next);
-    p->next = r;
-  } else {
-    globals = r;
-  }
+  list_append(globals, r);
   return r;
 }
 
@@ -116,8 +102,7 @@ static Ast *ast_string(char *str) {
   r->ctype = make_array_type(ctype_char, strlen(str) + 1);
   r->sval = str;
   r->slabel = make_label();
-  r->next = globals;
-  globals = r;
+  list_append(globals, r);
   return r;
 }
 
@@ -174,12 +159,16 @@ static Ctype* make_array_type(Ctype *ctype, int size) {
 }
 
 static Ast *find_var(char *name) {
-  for (Ast *p = locals; p; p = p->next)
-    if (!strcmp(name, p->lname))
-      return p;
-  for (Ast *p = globals; p; p = p->next)
-    if (!strcmp(name, p->gname))
-      return p;
+  for (Iter *i = list_iter(locals); !iter_end(i);) {
+    Ast *v = iter_next(i);
+    if (!strcmp(name, v->lname))
+      return v;
+  }
+  for (Iter *i = list_iter(globals); !iter_end(i);) {
+    Ast *v = iter_next(i);
+    if (!strcmp(name, v->gname))
+      return v;
+  }
   return NULL;
 }
 

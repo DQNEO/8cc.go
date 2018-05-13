@@ -61,7 +61,6 @@ typedef struct Ctype {
 typedef struct Ast {
   char type;
   Ctype *ctype;
-  struct Ast *next;
   union {
     // Integer
     int ival;
@@ -145,8 +144,8 @@ extern char *make_label(void);
 
 extern List *read_block(void);
 
-extern Ast *globals;
-extern Ast *locals;
+extern List *globals;
+extern List *locals;
 extern Ctype *ctype_int;
 extern Ctype *ctype_char;
 

@@ -264,10 +264,11 @@ void emit_expr(Ast *ast) {
 static void emit_data_section(void) {
   if (!globals) return;
   printf("\t.data\n");
-  for (Ast *p = globals; p; p = p->next) {
-    assert(p->type == AST_STRING);
-    printf("%s:\n\t", p->slabel);
-    printf(".string \"%s\"\n", quote_cstring(p->sval));
+  for (Iter *i = list_iter(globals); !iter_end(i);) {
+    Ast *v = iter_next(i);
+    assert(v->type == AST_STRING);
+    printf("%s:\n\t", v->slabel);
+    printf(".string \"%s\"\n", quote_cstring(v->sval));
   }
   printf("\t");
 }
@@ -279,9 +280,10 @@ static int ceil8(int n) {
 
 void print_asm_header(void) {
   int off = 0;
-  for (Ast *p = locals; p; p = p->next) {
-    off += ceil8(ctype_size(p->ctype));
-    p->loff = off;
+  for (Iter *i = list_iter(locals); !iter_end(i);) {
+    Ast *v = iter_next(i);
+    off += ceil8(ctype_size(v->ctype));
+    v->loff = off;
   }
   emit_data_section();
   printf(".text\n\t"
@@ -289,7 +291,7 @@ void print_asm_header(void) {
          "mymain:\n\t"
          "push %%rbp\n\t"
          "mov %%rsp, %%rbp\n\t");
-  if (locals)
+  if (off)
     printf("sub $%d, %%rsp\n\t", off);
 }
 

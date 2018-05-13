@@ -7,8 +7,8 @@
 #define MAX_ARGS 6
 #define EXPR_LEN 50
 
-List *globals = &(List){0,NULL,NULL};
-List *locals = &(List){0,NULL,NULL};
+List *globals = EMPTY_LIST;
+List *locals = EMPTY_LIST;
 Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL };
 Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL };
 

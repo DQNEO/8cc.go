@@ -6,10 +6,9 @@ import (
 )
 
 const MAX_ARGS = 6
-const EXPR_LEN = 50
 
-var globals *Ast
-var locals *Ast
+var globals []*Ast
+var locals []*Ast
 
 var labelseq = 0
 
@@ -61,16 +60,7 @@ func ast_lvar(ctype *Ctype, name []byte) *Ast {
 	r.typ = AST_LVAR
 	r.ctype = ctype
 	r.variable.lname = name
-
-	r.next = nil
-	if locals != nil {
-		var p *Ast
-		for p = locals; p.next != nil; p = p.next {
-		}
-		p.next = r
-	} else {
-		locals = r
-	}
+	locals = append(locals, r)
 	return r
 }
 
@@ -93,15 +83,7 @@ func ast_gvar(ctype *Ctype, name []byte, filelocal bool) *Ast {
 	} else {
 		r.gvar.glabel = name
 	}
-	r.next = nil
-	if globals != nil {
-		var p *Ast
-		for p = locals; p.next != nil; p = p.next {
-		}
-		p.next = r
-	} else {
-		globals = r
-	}
+	globals = append(globals, r)
 	return r
 }
 
@@ -120,18 +102,15 @@ func ast_string(str []byte) *Ast {
 	r.ctype = make_array_type(ctype_char, strlen(str)+1)
 	r.str.val = str
 	r.str.slabel = make_label()
-	r.next = globals
-
-	globals = r
+	globals = append(globals, r)
 	return r
 }
 
-func ast_funcall(fname []byte, nargs int, args []*Ast) *Ast {
+func ast_funcall(fname []byte, args []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNCALL
 	r.ctype = ctype_int // WHY??
 	r.funcall.fname = fname
-	r.funcall.nargs = nargs
 	r.funcall.args = args
 	return r
 }
@@ -145,12 +124,12 @@ func ast_decl(variable *Ast, init *Ast) *Ast {
 	return r
 }
 
-func ast_array_init(size int, array_init []*Ast) *Ast {
+func ast_array_init(csize int, arrayinit []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_ARRAY_INIT
 	r.ctype = nil
-	r.array_initializer.size = size
-	r.array_initializer.array_init = array_init
+	r.array_initializer.csize = csize
+	r.array_initializer.arrayinit = arrayinit
 	return r
 }
 
@@ -180,13 +159,13 @@ func make_array_type(ctype *Ctype, size int) *Ctype {
 }
 
 func find_var(name []byte) *Ast {
-	for v := locals; v != nil; v = v.next {
+	for _, v := range locals {
 		if strcmp(name, v.variable.lname) == 0 {
 			return v
 		}
 	}
 
-	for v := globals; v != nil; v = v.next {
+	for _,v := range globals {
 		if strcmp(name, v.variable.lname) == 0 {
 			return v
 		}
@@ -217,17 +196,14 @@ func priority(op byte) int {
 }
 
 func read_func_args(fname []byte) *Ast {
-	args := make([]*Ast, MAX_ARGS+1)
-	i := 0
-	nargs := 0
-	for ; i < MAX_ARGS; i++ {
+	var args []*Ast
+	for {
 		tok := read_token()
 		if is_punct(tok, ')') {
 			break
 		}
 		unget_token(tok)
-		args[i] = read_expr(0)
-		nargs++
+		args = append(args, read_expr(0))
 		tok = read_token()
 		if is_punct(tok, ')') {
 			break
@@ -236,10 +212,10 @@ func read_func_args(fname []byte) *Ast {
 			_error("Unexpected token: '%s'", token_to_string(tok))
 		}
 	}
-	if i == MAX_ARGS {
+	if MAX_ARGS < len(args) {
 		_error("Too many arguments: %s", fname)
 	}
-	return ast_funcall(fname, nargs, args)
+	return ast_funcall(fname, args)
 }
 
 func read_ident_or_func(name []byte) *Ast {
@@ -451,10 +427,11 @@ func read_decl_array_initializer(ctype *Ctype) *Ast {
 	if !is_punct(tok, '{') {
 		_error("Expected an initializer list, but got %s", token_to_string(tok))
 	}
-	init := make([]*Ast, ctype.size)
+	var initlist []*Ast
 	for i := 0; i < ctype.size; i++ {
-		init[i] = read_expr(0)
-		result_type('=', init[i].ctype, ctype.ptr)
+		init := read_expr(0)
+		initlist = append(initlist, init)
+		result_type('=', init.ctype, ctype.ptr)
 		tok = read_token()
 		if is_punct(tok, '}') && i == ctype.size-1 {
 			break
@@ -471,7 +448,7 @@ func read_decl_array_initializer(ctype *Ctype) *Ast {
 		}
 	}
 
-	return ast_array_init(ctype.size, init)
+	return ast_array_init(ctype.size, initlist)
 }
 
 func read_declinitializer(ctype *Ctype) *Ast {
@@ -562,21 +539,20 @@ func read_decl_or_stmt() *Ast {
 }
 
 func read_block() []*Ast {
-	var stmts []*Ast
-	stmts = make([]*Ast, EXPR_LEN)
-	var i int
-	for i = 0; i < EXPR_LEN; i++ {
-		stmts[i] = read_decl_or_stmt()
+	var r []*Ast
+
+	for {
+		stmt := read_decl_or_stmt()
+		if stmt != nil {
+			r = append(r, stmt)
+		}
 		tok := peek_token()
-		if stmts[i] == nil || is_punct(tok, '}'){
+		if stmt == nil || is_punct(tok, '}'){
 			break
 		}
 	}
-	if i == EXPR_LEN-1 {
-		_error("Block too long")
-	}
-	stmts[i+1] = nil
-	return stmts
+
+	return r
 }
 
 func ctype_to_string(ctype *Ctype) string {
@@ -625,9 +601,9 @@ func ast_to_string_int(ast *Ast) string {
 		return fmt.Sprintf("%s[%d]", ast_to_string(ast.gref.ref), ast.gref.off)
 	case AST_FUNCALL:
 		s := fmt.Sprintf("%s(", bytes2string(ast.funcall.fname))
-		for i := 0; ast.funcall.args[i] != nil; i++ {
-			s += ast_to_string_int(ast.funcall.args[i])
-			if ast.funcall.args[i+1] != nil {
+		for i,v :=  range ast.funcall.args {
+			s += ast_to_string_int(v)
+			if i < len(ast.funcall.args) - 1 {
 				s += ","
 			}
 		}
@@ -640,9 +616,9 @@ func ast_to_string_int(ast *Ast) string {
 			ast_to_string_int(ast.decl.declinit))
 	case AST_ARRAY_INIT:
 		s := "{"
-		for i := 0; i < ast.array_initializer.size; i++ {
-			s += ast_to_string_int(ast.array_initializer.array_init[i])
-			if i != ast.array_initializer.size-1 {
+		for i, v := range ast.array_initializer.arrayinit {
+			s += ast_to_string_int(v)
+			if i != len(ast.array_initializer.arrayinit) - 1 {
 				s += ","
 			}
 		}
@@ -674,8 +650,8 @@ func ast_to_string(ast *Ast) string {
 
 func block_to_string(block []*Ast) string {
 	s := "{"
-	for i := 0; block[i] != nil; i++ {
-		s += ast_to_string(block[i])
+	for _, v := range block {
+		s += ast_to_string(v)
 		s += ";"
 	}
 	s += "}"

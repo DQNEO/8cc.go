@@ -198,25 +198,25 @@ func emit_expr(ast *Ast) {
 			emit_gload(ast.gref.ref.ctype, ast.gref.ref.gvar.glabel, ast.gref.off)
 		}
 	case AST_FUNCALL:
-		for i := 1; i < ast.funcall.nargs; i++ {
+		for i := 1; i < len(ast.funcall.args); i++ {
 			printf("push %%%s\n\t", REGS[i])
 		}
-		for i := 0; i < ast.funcall.nargs; i++ {
-			emit_expr(ast.funcall.args[i])
+		for _, v := range ast.funcall.args {
+			emit_expr(v)
 			printf("push %%rax\n\t")
 		}
-		for i := ast.funcall.nargs - 1; i >= 0; i-- {
+		for i := len(ast.funcall.args) - 1; i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 		printf("mov $0, %%eax\n\t")
 		printf("call %s\n\t", bytes2string(ast.funcall.fname))
-		for i := ast.funcall.nargs - 1; i >= 0; i-- {
+		for i := len(ast.funcall.args); i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 	case AST_DECL:
 		if ast.decl.declinit.typ == AST_ARRAY_INIT {
-			for i := 0; i < ast.decl.declinit.array_initializer.size; i++ {
-				emit_expr(ast.decl.declinit.array_initializer.array_init[i])
+			for i,v := range  ast.decl.declinit.array_initializer.arrayinit {
+				emit_expr(v)
 				emit_lsave(ast.decl.declvar.ctype.ptr, ast.decl.declvar.variable.loff, -i)
 			}
 		} else if ast.decl.declvar.ctype.typ == CTYPE_ARRAY {
@@ -278,10 +278,10 @@ func emit_data_section() {
 		return
 	}
 	printf("\t.data\n")
-	for p := globals; p != nil; p = p.next {
-		assert(p.typ == AST_STRING)
-		printf("%s:\n\t", bytes2string(p.str.slabel))
-		printf(".string \"%s\"\n", quote_cstring(p.str.val))
+	for _,v := range globals {
+		assert(v.typ == AST_STRING)
+		printf("%s:\n\t", bytes2string(v.str.slabel))
+		printf(".string \"%s\"\n", quote_cstring(v.str.val))
 	}
 	printf("\t")
 
@@ -298,9 +298,9 @@ func ceil8(n int) int {
 
 func print_asm_header() {
 	off := 0
-	for p := locals; p != nil; p = p.next {
-		off += ceil8(ctype_size(p.ctype))
-		p.variable.loff = off
+	for _, v := range locals {
+		off += ceil8(ctype_size(v.ctype))
+		v.variable.loff = off
 	}
 	emit_data_section()
 	printf(".text\n\t" +
@@ -308,13 +308,13 @@ func print_asm_header() {
 		"mymain:\n\t" +
 		"push %%rbp\n\t" +
 		"mov %%rsp, %%rbp\n\t")
-	if locals != nil {
+	if off > 0 {
 		printf("sub $%d, %%rsp\n\t", off)
 	}
 }
 
 func emit_block(block []*Ast) {
-	for i := 0; block[i] != nil; i++ {
-		emit_expr(block[i])
+	for _,v := range block {
+		emit_expr(v)
 	}
 }

@@ -50,7 +50,6 @@ type Ctype struct {
 type Ast struct {
 	typ   byte
 	ctype *Ctype
-	next  *Ast
 	// want to be "union"
 	// Integer
 	ival int
@@ -103,8 +102,8 @@ type Ast struct {
 	}
 	// Array initializer
 	array_initializer struct {
-		size       int
-		array_init []*Ast
+		csize      int
+		arrayinit []*Ast
 	}
 	// If statement
 	_if struct {

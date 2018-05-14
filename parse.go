@@ -6,7 +6,6 @@ import (
 )
 
 const MAX_ARGS = 6
-const EXPR_LEN = 50
 
 var globals []*Ast
 var locals []*Ast

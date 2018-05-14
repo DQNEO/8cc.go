@@ -197,7 +197,7 @@ func priority(op byte) int {
 }
 
 func read_func_args(fname []byte) *Ast {
-	args := make([]*Ast,0)
+	var args []*Ast
 	for {
 		tok := read_token()
 		if is_punct(tok, ')') {
@@ -428,7 +428,7 @@ func read_decl_array_initializer(ctype *Ctype) *Ast {
 	if !is_punct(tok, '{') {
 		_error("Expected an initializer list, but got %s", token_to_string(tok))
 	}
-	initlist := make([]*Ast, 0)
+	var initlist []*Ast
 	for i := 0; i < ctype.size; i++ {
 		init := read_expr(0)
 		initlist = append(initlist, init)
@@ -541,7 +541,7 @@ func read_decl_or_stmt() *Ast {
 
 func read_block() []*Ast {
 	var r []*Ast
-	r = make([]*Ast, 0)
+
 	for {
 		stmt := read_decl_or_stmt()
 		if stmt != nil {

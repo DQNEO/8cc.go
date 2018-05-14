@@ -222,7 +222,7 @@ void emit_expr(Ast *ast) {
     }
     case AST_ADDR:
       assert(ast->operand->type == AST_LVAR);
-      printf("lea %d(%%rbp), %%rax\n\t", -(ast->operand->loff));
+      printf("lea %d(%%rbp), %%rax\n\t", -ast->operand->loff);
       break;
     case AST_DEREF: {
       assert(ast->operand->ctype->type == CTYPE_PTR);

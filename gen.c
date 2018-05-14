@@ -41,20 +41,20 @@ static void emit_gload(Ctype *ctype, char *label, int off) {
 
 static void emit_lload(Ast *var, int off) {
   if (var->ctype->type == CTYPE_ARRAY) {
-    printf("lea -%d(%%rbp), %%rax\n\t", var->loff);
+    printf("lea %d(%%rbp), %%rax\n\t", -var->loff);
     return;
   }
   int size = ctype_size(var->ctype);
   switch (size) {
     case 1:
       printf("mov $0, %%eax\n\t");
-      printf("mov -%d(%%rbp), %%al\n\t", var->loff);
+      printf("mov %d(%%rbp), %%al\n\t", -var->loff);
       break;
     case 4:
-      printf("mov -%d(%%rbp), %%eax\n\t", var->loff);
+      printf("mov %d(%%rbp), %%eax\n\t", -var->loff);
       break;
     case 8:
-      printf("mov -%d(%%rbp), %%rax\n\t", var->loff);
+      printf("mov %d(%%rbp), %%rax\n\t", -var->loff);
       break;
     default:
       error("Unknown data size: %s: %d", ast_to_string(var), size);
@@ -88,7 +88,7 @@ static void emit_lsave(Ctype *ctype, int loff, int off) {
     case 4: reg = "eax"; break;
     case 8: reg = "rax"; break;
   }
-  printf("mov %%%s, -%d(%%rbp)\n\t", reg, loff + off * size);
+  printf("mov %%%s, %d(%%rbp)\n\t", reg, -(loff + off * size));
 }
 
 static void emit_pointer_arith(char op, Ast *left, Ast *right) {
@@ -209,8 +209,8 @@ void emit_expr(Ast *ast) {
         assert(ast->declinit->type == AST_STRING);
         int i = 0;
         for (char *p = ast->declinit->sval; *p; p++, i++)
-          printf("movb $%d, -%d(%%rbp)\n\t", *p, ast->declvar->loff - i);
-        printf("movb $0, -%d(%%rbp)\n\t", ast->declvar->loff - i);
+          printf("movb $%d, %d(%%rbp)\n\t", *p, -(ast->declvar->loff - i));
+        printf("movb $0, %d(%%rbp)\n\t", -(ast->declvar->loff - i));
       } else if (ast->declinit->type == AST_STRING) {
         emit_gload(ast->declinit->ctype, ast->declinit->slabel, 0);
         emit_lsave(ast->declvar->ctype, ast->declvar->loff, 0);
@@ -222,7 +222,7 @@ void emit_expr(Ast *ast) {
     }
     case AST_ADDR:
       assert(ast->operand->type == AST_LVAR);
-      printf("lea -%d(%%rbp), %%rax\n\t", ast->operand->loff);
+      printf("lea %d(%%rbp), %%rax\n\t", -(ast->operand->loff));
       break;
     case AST_DEREF: {
       assert(ast->operand->ctype->type == CTYPE_PTR);

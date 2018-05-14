@@ -314,7 +314,7 @@ func print_asm_header() {
 }
 
 func emit_block(block []*Ast) {
-	for i := 0; block[i] != nil; i++ {
-		emit_expr(block[i])
+	for _,v := range block {
+		emit_expr(v)
 	}
 }

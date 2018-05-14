@@ -563,21 +563,20 @@ func read_decl_or_stmt() *Ast {
 }
 
 func read_block() []*Ast {
-	var stmts []*Ast
-	stmts = make([]*Ast, EXPR_LEN)
-	var i int
-	for i = 0; i < EXPR_LEN; i++ {
-		stmts[i] = read_decl_or_stmt()
+	var r []*Ast
+	r = make([]*Ast, 0)
+	for {
+		stmt := read_decl_or_stmt()
+		if stmt != nil {
+			r = append(r, stmt)
+		}
 		tok := peek_token()
-		if stmts[i] == nil || is_punct(tok, '}'){
+		if stmt == nil || is_punct(tok, '}'){
 			break
 		}
 	}
-	if i == EXPR_LEN-1 {
-		_error("Block too long")
-	}
-	stmts[i+1] = nil
-	return stmts
+
+	return r
 }
 
 func ctype_to_string(ctype *Ctype) string {
@@ -675,8 +674,8 @@ func ast_to_string(ast *Ast) string {
 
 func block_to_string(block []*Ast) string {
 	s := "{"
-	for i := 0; block[i] != nil; i++ {
-		s += ast_to_string(block[i])
+	for _, v := range block {
+		s += ast_to_string(v)
 		s += ";"
 	}
 	s += "}"

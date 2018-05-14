@@ -126,12 +126,11 @@ func ast_string(str []byte) *Ast {
 	return r
 }
 
-func ast_funcall(fname []byte, nargs int, args []*Ast) *Ast {
+func ast_funcall(fname []byte, args []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNCALL
 	r.ctype = ctype_int // WHY??
 	r.funcall.fname = fname
-	r.funcall.nargs = nargs
 	r.funcall.args = args
 	return r
 }
@@ -217,17 +216,14 @@ func priority(op byte) int {
 }
 
 func read_func_args(fname []byte) *Ast {
-	args := make([]*Ast, MAX_ARGS+1)
-	i := 0
-	nargs := 0
-	for ; i < MAX_ARGS; i++ {
+	args := make([]*Ast,0)
+	for {
 		tok := read_token()
 		if is_punct(tok, ')') {
 			break
 		}
 		unget_token(tok)
-		args[i] = read_expr(0)
-		nargs++
+		args = append(args, read_expr(0))
 		tok = read_token()
 		if is_punct(tok, ')') {
 			break
@@ -236,10 +232,10 @@ func read_func_args(fname []byte) *Ast {
 			_error("Unexpected token: '%s'", token_to_string(tok))
 		}
 	}
-	if i == MAX_ARGS {
+	if MAX_ARGS < len(args) {
 		_error("Too many arguments: %s", fname)
 	}
-	return ast_funcall(fname, nargs, args)
+	return ast_funcall(fname, args)
 }
 
 func read_ident_or_func(name []byte) *Ast {
@@ -625,9 +621,9 @@ func ast_to_string_int(ast *Ast) string {
 		return fmt.Sprintf("%s[%d]", ast_to_string(ast.gref.ref), ast.gref.off)
 	case AST_FUNCALL:
 		s := fmt.Sprintf("%s(", bytes2string(ast.funcall.fname))
-		for i := 0; ast.funcall.args[i] != nil; i++ {
-			s += ast_to_string_int(ast.funcall.args[i])
-			if ast.funcall.args[i+1] != nil {
+		for i,v :=  range ast.funcall.args {
+			s += ast_to_string_int(v)
+			if i < len(ast.funcall.args) - 1 {
 				s += ","
 			}
 		}

@@ -198,19 +198,19 @@ func emit_expr(ast *Ast) {
 			emit_gload(ast.gref.ref.ctype, ast.gref.ref.gvar.glabel, ast.gref.off)
 		}
 	case AST_FUNCALL:
-		for i := 1; i < ast.funcall.nargs; i++ {
+		for i := 1; i < len(ast.funcall.args); i++ {
 			printf("push %%%s\n\t", REGS[i])
 		}
-		for i := 0; i < ast.funcall.nargs; i++ {
-			emit_expr(ast.funcall.args[i])
+		for _, v := range ast.funcall.args {
+			emit_expr(v)
 			printf("push %%rax\n\t")
 		}
-		for i := ast.funcall.nargs - 1; i >= 0; i-- {
+		for i := len(ast.funcall.args) - 1; i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 		printf("mov $0, %%eax\n\t")
 		printf("call %s\n\t", bytes2string(ast.funcall.fname))
-		for i := ast.funcall.nargs - 1; i >= 0; i-- {
+		for i := len(ast.funcall.args); i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 	case AST_DECL:

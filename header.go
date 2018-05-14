@@ -50,7 +50,6 @@ type Ctype struct {
 type Ast struct {
 	typ   byte
 	ctype *Ctype
-	next  *Ast
 	// want to be "union"
 	// Integer
 	ival int

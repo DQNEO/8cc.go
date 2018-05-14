@@ -8,8 +8,8 @@ import (
 const MAX_ARGS = 6
 const EXPR_LEN = 50
 
-var globals *Ast
-var locals *Ast
+var globals []*Ast
+var locals []*Ast
 
 var labelseq = 0
 
@@ -61,16 +61,7 @@ func ast_lvar(ctype *Ctype, name []byte) *Ast {
 	r.typ = AST_LVAR
 	r.ctype = ctype
 	r.variable.lname = name
-
-	r.next = nil
-	if locals != nil {
-		var p *Ast
-		for p = locals; p.next != nil; p = p.next {
-		}
-		p.next = r
-	} else {
-		locals = r
-	}
+	locals = append(locals, r)
 	return r
 }
 
@@ -93,15 +84,7 @@ func ast_gvar(ctype *Ctype, name []byte, filelocal bool) *Ast {
 	} else {
 		r.gvar.glabel = name
 	}
-	r.next = nil
-	if globals != nil {
-		var p *Ast
-		for p = locals; p.next != nil; p = p.next {
-		}
-		p.next = r
-	} else {
-		globals = r
-	}
+	globals = append(globals, r)
 	return r
 }
 
@@ -120,9 +103,7 @@ func ast_string(str []byte) *Ast {
 	r.ctype = make_array_type(ctype_char, strlen(str)+1)
 	r.str.val = str
 	r.str.slabel = make_label()
-	r.next = globals
-
-	globals = r
+	globals = append(globals, r)
 	return r
 }
 
@@ -179,13 +160,13 @@ func make_array_type(ctype *Ctype, size int) *Ctype {
 }
 
 func find_var(name []byte) *Ast {
-	for v := locals; v != nil; v = v.next {
+	for _, v := range locals {
 		if strcmp(name, v.variable.lname) == 0 {
 			return v
 		}
 	}
 
-	for v := globals; v != nil; v = v.next {
+	for _,v := range globals {
 		if strcmp(name, v.variable.lname) == 0 {
 			return v
 		}

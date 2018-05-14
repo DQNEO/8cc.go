@@ -278,10 +278,10 @@ func emit_data_section() {
 		return
 	}
 	printf("\t.data\n")
-	for p := globals; p != nil; p = p.next {
-		assert(p.typ == AST_STRING)
-		printf("%s:\n\t", bytes2string(p.str.slabel))
-		printf(".string \"%s\"\n", quote_cstring(p.str.val))
+	for _,v := range globals {
+		assert(v.typ == AST_STRING)
+		printf("%s:\n\t", bytes2string(v.str.slabel))
+		printf(".string \"%s\"\n", quote_cstring(v.str.val))
 	}
 	printf("\t")
 
@@ -298,9 +298,9 @@ func ceil8(n int) int {
 
 func print_asm_header() {
 	off := 0
-	for p := locals; p != nil; p = p.next {
-		off += ceil8(ctype_size(p.ctype))
-		p.variable.loff = off
+	for _, v := range locals {
+		off += ceil8(ctype_size(v.ctype))
+		v.variable.loff = off
 	}
 	emit_data_section()
 	printf(".text\n\t" +
@@ -308,7 +308,7 @@ func print_asm_header() {
 		"mymain:\n\t" +
 		"push %%rbp\n\t" +
 		"mov %%rsp, %%rbp\n\t")
-	if locals != nil {
+	if off > 0 {
 		printf("sub $%d, %%rsp\n\t", off)
 	}
 }

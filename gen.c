@@ -66,8 +66,8 @@ static void emit_lload(Ast *var, int off) {
 static void emit_gsave(Ast *var, int off) {
   assert(var->ctype->type != CTYPE_ARRAY);
   char *reg;
-  printf("push %%rbx\n\t");
-  printf("mov %s(%%rip), %%rbx\n\t", var->glabel);
+  printf("push %%rcx\n\t");
+  printf("mov %s(%%rip), %%rcx\n\t", var->glabel);
   int size = ctype_size(var->ctype);
   switch (size) {
     case 1: reg = "al";  break;
@@ -77,7 +77,7 @@ static void emit_gsave(Ast *var, int off) {
       error("Unknown data size: %s: %d", ast_to_string(var), size);
   }
   printf("mov %s, %d(%%rbp)\n\t", reg, off * size);
-  printf("pop %%rbx\n\t");
+  printf("pop %%rcx\n\t");
 }
 
 static void emit_lsave(Ctype *ctype, int loff, int off) {
@@ -99,9 +99,9 @@ static void emit_pointer_arith(char op, Ast *left, Ast *right) {
   int size = ctype_size(left->ctype->ptr);
   if (size > 1)
     printf("imul $%d, %%rax\n\t", size);
-  printf("mov %%rax, %%rbx\n\t"
+  printf("mov %%rax, %%rcx\n\t"
          "pop %%rax\n\t"
-         "add %%rbx, %%rax\n\t");
+         "add %%rcx, %%rax\n\t");
 }
 
 static void emit_assign(Ast *var, Ast *value) {
@@ -136,13 +136,13 @@ static void emit_binop(Ast *ast) {
   printf("push %%rax\n\t");
   emit_expr(ast->right);
   if (ast->type == '/') {
-    printf("mov %%rax, %%rbx\n\t");
+    printf("mov %%rax, %%rcx\n\t");
     printf("pop %%rax\n\t");
     printf("mov $0, %%edx\n\t");
-    printf("idiv %%rbx\n\t");
+    printf("idiv %%rcx\n\t");
   } else {
-    printf("pop %%rbx\n\t");
-    printf("%s %%rbx, %%rax\n\t", op);
+    printf("pop %%rcx\n\t");
+    printf("%s %%rcx, %%rax\n\t", op);
   }
 }
 
@@ -229,14 +229,14 @@ void emit_expr(Ast *ast) {
       emit_expr(ast->operand);
       char *reg;
       switch (ctype_size(ast->ctype)) {
-        case 1: reg = "%bl";  break;
-        case 4: reg = "%ebx"; break;
-        case 8: reg = "%rbx"; break;
+        case 1: reg = "%cl";  break;
+        case 4: reg = "%ecx"; break;
+        case 8: reg = "%rcx"; break;
         default: error("internal error");
       }
-      printf("mov $0, %%ebx\n\t");
+      printf("mov $0, %%ecx\n\t");
       printf("mov (%%rax), %s\n\t", reg);
-      printf("mov %%rbx, %%rax\n\t");
+      printf("mov %%rcx, %%rax\n\t");
       break;
     }
     case AST_IF: {

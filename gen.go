@@ -215,8 +215,8 @@ func emit_expr(ast *Ast) {
 		}
 	case AST_DECL:
 		if ast.decl.declinit.typ == AST_ARRAY_INIT {
-			for i := 0; i < ast.decl.declinit.array_initializer.size; i++ {
-				emit_expr(ast.decl.declinit.array_initializer.array_init[i])
+			for i,v := range  ast.decl.declinit.array_initializer.arrayinit {
+				emit_expr(v)
 				emit_lsave(ast.decl.declvar.ctype.ptr, ast.decl.declvar.variable.loff, -i)
 			}
 		} else if ast.decl.declvar.ctype.typ == CTYPE_ARRAY {

@@ -145,12 +145,12 @@ func ast_decl(variable *Ast, init *Ast) *Ast {
 	return r
 }
 
-func ast_array_init(size int, array_init []*Ast) *Ast {
+func ast_array_init(csize int, arrayinit []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_ARRAY_INIT
 	r.ctype = nil
-	r.array_initializer.size = size
-	r.array_initializer.array_init = array_init
+	r.array_initializer.csize = csize
+	r.array_initializer.arrayinit = arrayinit
 	return r
 }
 
@@ -451,10 +451,11 @@ func read_decl_array_initializer(ctype *Ctype) *Ast {
 	if !is_punct(tok, '{') {
 		_error("Expected an initializer list, but got %s", token_to_string(tok))
 	}
-	init := make([]*Ast, ctype.size)
+	initlist := make([]*Ast, 0)
 	for i := 0; i < ctype.size; i++ {
-		init[i] = read_expr(0)
-		result_type('=', init[i].ctype, ctype.ptr)
+		init := read_expr(0)
+		initlist = append(initlist, init)
+		result_type('=', init.ctype, ctype.ptr)
 		tok = read_token()
 		if is_punct(tok, '}') && i == ctype.size-1 {
 			break
@@ -471,7 +472,7 @@ func read_decl_array_initializer(ctype *Ctype) *Ast {
 		}
 	}
 
-	return ast_array_init(ctype.size, init)
+	return ast_array_init(ctype.size, initlist)
 }
 
 func read_declinitializer(ctype *Ctype) *Ast {
@@ -640,9 +641,9 @@ func ast_to_string_int(ast *Ast) string {
 			ast_to_string_int(ast.decl.declinit))
 	case AST_ARRAY_INIT:
 		s := "{"
-		for i := 0; i < ast.array_initializer.size; i++ {
-			s += ast_to_string_int(ast.array_initializer.array_init[i])
-			if i != ast.array_initializer.size-1 {
+		for i, v := range ast.array_initializer.arrayinit {
+			s += ast_to_string_int(v)
+			if i != len(ast.array_initializer.arrayinit) - 1 {
 				s += ","
 			}
 		}

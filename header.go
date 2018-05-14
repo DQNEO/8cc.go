@@ -103,8 +103,8 @@ type Ast struct {
 	}
 	// Array initializer
 	array_initializer struct {
-		size       int
-		array_init []*Ast
+		csize      int
+		arrayinit []*Ast
 	}
 	// If statement
 	_if struct {

@@ -301,3 +301,8 @@ void emit_block(List *block) {
   printf("leave\n\t"
          "ret\n");
 }
+
+void emit_func(List *block) {
+    print_asm_header();
+    emit_block(block);
+}

@@ -396,7 +396,7 @@ func get_ctype(tok *Token) *Ctype {
 	if tok.typ != TTYPE_IDENT {
 		return nil
 	}
-	//@TODO use string literal
+
 	if strcmp(tok.v.sval, []byte("int\x00")) == 0 {
 		return ctype_int
 	}

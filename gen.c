@@ -298,4 +298,7 @@ void print_asm_header(void) {
 void emit_block(List *block) {
   for (Iter *i = list_iter(block); !iter_end(i);)
     emit_expr(iter_next(i));
+
+  printf("leave\n\t"
+         "ret\n");
 }

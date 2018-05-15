@@ -10,8 +10,6 @@ int main(int argc, char **argv) {
   } else {
     print_asm_header();
     emit_block(block);
-    printf("leave\n\t"
-           "ret\n");
   }
   return 0;
 }

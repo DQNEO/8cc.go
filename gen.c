@@ -279,13 +279,13 @@ static int ceil8(int n) {
 }
 
 void print_asm_header(void) {
+  emit_data_section();
   int off = 0;
   for (Iter *i = list_iter(locals); !iter_end(i);) {
     Ast *v = iter_next(i);
     off += ceil8(ctype_size(v->ctype));
     v->loff = off;
   }
-  emit_data_section();
   printf(".text\n\t"
          ".global mymain\n"
          "mymain:\n\t"

@@ -279,17 +279,18 @@ static int ceil8(int n) {
 }
 
 void emit_func_prologue(void) {
+  printf(".text\n\t"
+         ".global mymain\n"
+         "mymain:\n\t"
+         "push %%rbp\n\t"
+         "mov %%rsp, %%rbp\n\t");
+
   int off = 0;
   for (Iter *i = list_iter(locals); !iter_end(i);) {
     Ast *v = iter_next(i);
     off += ceil8(ctype_size(v->ctype));
     v->loff = off;
   }
-  printf(".text\n\t"
-         ".global mymain\n"
-         "mymain:\n\t"
-         "push %%rbp\n\t"
-         "mov %%rsp, %%rbp\n\t");
   if (off)
     printf("sub $%d, %%rsp\n\t", off);
 }

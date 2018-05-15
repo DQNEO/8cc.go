@@ -69,8 +69,8 @@ func emit_lload(v *Ast, off int) {
 func emit_gsave(v *Ast, off int) {
 	assert(v.ctype.typ != CTYPE_ARRAY)
 	var reg string
-	printf("push %%rbx\n\t")
-	printf("mov %s(%%rip) %%rbx\n\t", v.gvar.glabel)
+	printf("push %%rcx\n\t")
+	printf("mov %s(%%rip) %%rcx\n\t", v.gvar.glabel)
 
 	size := ctype_size(v.ctype)
 	switch size {
@@ -84,7 +84,7 @@ func emit_gsave(v *Ast, off int) {
 		_error("Unknown data size: %s: %d", ast_to_string(v), size)
 	}
 	printf("mov %s, %d(%%rbp)\n\t", reg, off*size)
-	printf("pop %%rbx\n\t")
+	printf("pop %%rcx\n\t")
 }
 
 func emit_lsave(ctype *Ctype, loff int, off int) {
@@ -110,9 +110,9 @@ func emit_pointer_arith(op byte, left *Ast, right *Ast) {
 	if size > 1 {
 		printf("imul $%d, %%rax\n\t", size)
 	}
-	printf("mov %%rax, %%rbx\n\t" +
+	printf("mov %%rax, %%rcx\n\t" +
 		"pop %%rax\n\t" +
-		"add %%rbx, %%rax\n\t")
+		"add %%rcx, %%rax\n\t")
 }
 
 func emit_assign(variable *Ast, value *Ast) {
@@ -160,13 +160,13 @@ func emit_binop(ast *Ast) {
 	printf("push %%rax\n\t")
 	emit_expr(ast.binop.right)
 	if ast.typ == '/' {
-		printf("mov %%rax, %%rbx\n\t")
+		printf("mov %%rax, %%rcx\n\t")
 		printf("pop %%rax\n\t")
 		printf("mov $0, %%edx\n\t")
-		printf("idiv %%rbx\n\t")
+		printf("idiv %%rcx\n\t")
 	} else {
-		printf("pop %%rbx\n\t")
-		printf("%s %%rbx, %%rax\n\t", op)
+		printf("pop %%rcx\n\t")
+		printf("%s %%rcx, %%rax\n\t", op)
 	}
 }
 
@@ -242,17 +242,17 @@ func emit_expr(ast *Ast) {
 		var reg string
 		switch ctype_size(ast.ctype) {
 		case 1:
-			reg = "%bl"
+			reg = "%cl"
 		case 4:
-			reg = "%ebx"
+			reg = "%ecx"
 		case 8:
-			reg = "%rbx"
+			reg = "%rcx"
 		default:
 			_error("internal error")
 		}
-		printf("mov $0, %%ebx\n\t")
+		printf("mov $0, %%ecx\n\t")
 		printf("mov (%%rax), %s\n\t", reg)
-		printf("mov %%rbx, %%rax\n\t")
+		printf("mov %%rcx, %%rax\n\t")
 	case AST_IF:
 		emit_expr(ast._if.cond)
 		l1 := make_label()

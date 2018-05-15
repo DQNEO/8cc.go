@@ -6,7 +6,7 @@ import (
 
 func main() {
 	initStdin()
-	wantast := (len(os.Args) > 1 && os.Args[1] == "-a")
+	wantast := len(os.Args) > 1 && os.Args[1] == "-a"
 	block := read_block()
 	if wantast {
 		printf("%s", block_to_string(block))

@@ -101,7 +101,7 @@ func emit_lsave(ctype *Ctype, loff int, off int) {
 	printf("mov %%%s, %d(%%rbp)\n\t", reg, -(loff+off*size))
 }
 
-func emit_pointer_arith(op byte, left *Ast, right *Ast) {
+func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
 	assert(left.ctype.typ == CTYPE_PTR)
 	emit_expr(left)
 	printf("push %%rax\n\t")

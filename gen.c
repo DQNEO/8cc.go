@@ -294,15 +294,18 @@ void print_asm_header(void) {
     printf("sub $%d, %%rsp\n\t", off);
 }
 
-void emit_block(List *block) {
-  for (Iter *i = list_iter(block); !iter_end(i);)
-    emit_expr(iter_next(i));
-
+void emit_func_epilogue(void) {
   printf("leave\n\t"
          "ret\n");
 }
 
+void emit_block(List *block) {
+  for (Iter *i = list_iter(block); !iter_end(i);)
+    emit_expr(iter_next(i));
+}
+
 void emit_func(List *block) {
-    print_asm_header();
-    emit_block(block);
+  print_asm_header();
+  emit_block(block);
+  emit_func_epilogue();
 }

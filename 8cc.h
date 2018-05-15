@@ -141,6 +141,7 @@ extern char *ctype_to_string(Ctype *ctype);
 extern void print_asm_header(void);
 extern void emit_block(List *block);
 extern char *make_label(void);
+extern void emit_data_section(void);
 
 extern List *read_block(void);
 

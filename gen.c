@@ -261,7 +261,7 @@ void emit_expr(Ast *ast) {
   }
 }
 
-static void emit_data_section(void) {
+void emit_data_section(void) {
   if (!globals) return;
   printf("\t.data\n");
   for (Iter *i = list_iter(globals); !iter_end(i);) {
@@ -279,7 +279,6 @@ static int ceil8(int n) {
 }
 
 void print_asm_header(void) {
-  emit_data_section();
   int off = 0;
   for (Iter *i = list_iter(locals); !iter_end(i);) {
     Ast *v = iter_next(i);

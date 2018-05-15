@@ -278,7 +278,7 @@ static int ceil8(int n) {
   return (rem == 0) ? n : n - rem + 8;
 }
 
-void print_asm_header(void) {
+void emit_func_prologue(void) {
   int off = 0;
   for (Iter *i = list_iter(locals); !iter_end(i);) {
     Ast *v = iter_next(i);
@@ -305,7 +305,7 @@ void emit_block(List *block) {
 }
 
 void emit_func(List *block) {
-  print_asm_header();
+  emit_func_prologue();
   emit_block(block);
   emit_func_epilogue();
 }

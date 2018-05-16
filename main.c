@@ -2,7 +2,6 @@
 #include <string.h>
 #include "8cc.h"
 
-
 int main(int argc, char **argv) {
   int wantast = (argc > 1 && !strcmp(argv[1], "-a"));
   List *func_list = read_func_list();

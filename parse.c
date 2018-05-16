@@ -487,7 +487,7 @@ Ast *ast_func(List *body) {
   return r;
 }
 
-List *read_func_list() {
+List *read_func_list(void) {
   List *block = read_block();
   Ast *r = ast_func(block);
   List *func_list = make_list();

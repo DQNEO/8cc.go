@@ -518,6 +518,17 @@ char *ctype_to_string(Ctype *ctype) {
   }
 }
 
+char *block_to_string(List *block) {
+  String *s = make_string();
+  string_appendf(s, "{");
+  for (Iter *i = list_iter(block); !iter_end(i);) {
+    ast_to_string_int(iter_next(i), s);
+    string_appendf(s, ";");
+  }
+  string_appendf(s, "}");
+  return get_cstring(s);
+}
+
 static void ast_to_string_int(Ast *ast, String *buf) {
   if (!ast) {
     string_appendf(buf, "(null)");
@@ -607,13 +618,3 @@ char *ast_to_string(Ast *ast) {
   return get_cstring(s);
 }
 
-char *block_to_string(List *block) {
-  String *s = make_string();
-  string_appendf(s, "{");
-  for (Iter *i = list_iter(block); !iter_end(i);) {
-    ast_to_string_int(iter_next(i), s);
-    string_appendf(s, ";");
-  }
-  string_appendf(s, "}");
-  return get_cstring(s);
-}

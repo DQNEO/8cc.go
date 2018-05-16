@@ -492,17 +492,20 @@ static List *read_block(void) {
 }
 
 static Ast *read_func_decl(void) {
+  static Ast *x;
+  if (x) return NULL;
   List *block = read_block();
   List *params = make_list();
   Ctype *ctype = ctype_int;
   
   Ast *f = ast_func(ctype, "mymain", params, block, locals);
+  x = f;
   return f;
 }
 
 List *read_func_list(void) {
   List *r = make_list();
-  for (int i = 0;i<1;i++) {
+  for (;;) {
     Ast *func = read_func_decl();
     if (!func) return r;
     list_append(r, func);

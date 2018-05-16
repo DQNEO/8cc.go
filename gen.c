@@ -147,7 +147,7 @@ static void emit_binop(Ast *ast) {
   }
 }
 
-void emit_expr(Ast *ast) {
+static void emit_expr(Ast *ast) {
   switch (ast->type) {
     case AST_LITERAL:
       switch (ast->ctype->type) {
@@ -279,7 +279,7 @@ static int ceil8(int n) {
   return (rem == 0) ? n : n - rem + 8;
 }
 
-void emit_func_prologue(Ast *func) {
+static void emit_func_prologue(Ast *func) {
   printf(".text\n\t"
          ".global %s\n"
          "%s:\n\t", func->fname, func->fname);
@@ -296,12 +296,12 @@ void emit_func_prologue(Ast *func) {
     printf("sub $%d, %%rsp\n\t", off);
 }
 
-void emit_func_epilogue(void) {
+static void emit_func_epilogue(void) {
   printf("leave\n\t"
          "ret\n");
 }
 
-void emit_block(List *block) {
+static void emit_block(List *block) {
   for (Iter *i = list_iter(block); !iter_end(i);)
     emit_expr(iter_next(i));
 }

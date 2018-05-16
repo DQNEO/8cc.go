@@ -413,20 +413,28 @@ static Ast *read_declinitializer(Ctype *ctype) {
   return read_expr(0);
 }
 
-static Ast *read_decl(void) {
+
+static Ctype *read_decl_spec(void) {
   Ctype *ctype = get_ctype(read_token());
   Token *tok;
   for (;;) {
     tok = read_token();
-    if (!is_punct(tok, '*'))
+    if (!is_punct(tok, '*')) {
+      unget_token(tok);
       break;
+    }
     ctype = make_ptr_type(ctype);
   }
-  if (tok->type != TTYPE_IDENT)
-    error("Identifier expected, but got %s", token_to_string(tok));
-  Token *varname = tok;
+  return ctype;
+}
+
+static Ast *read_decl(void) {
+  Ctype *ctype = read_decl_spec();
+  Token *varname = read_token();
+  if (varname->type != TTYPE_IDENT)
+    error("Identifier expected, but got %s", token_to_string(varname));
   for (;;) {
-    tok = read_token();
+    Token *tok = read_token();
     if (is_punct(tok, '[')) {
       Ast *size = read_expr(0);
       if (size->type != AST_LITERAL || size->ctype->type != CTYPE_INT)

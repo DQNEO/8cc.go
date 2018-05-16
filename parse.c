@@ -490,10 +490,12 @@ List *read_block(void) {
 }
 
 List *read_func_list(void) {
+  List *func_list = make_list();
+
   List *block = read_block();
   Ast *r = ast_func("mymain", NULL, locals, block);
-  List *func_list = make_list();
   list_append(func_list, r);
+
   return func_list;
 }
 

@@ -4,12 +4,10 @@
 
 int main(int argc, char **argv) {
   int wantast = (argc > 1 && !strcmp(argv[1], "-a"));
-  List *func_list = read_func_list();
-
+  List *funcs = read_func_list();
   if (!wantast)
     emit_data_section();
-
-  for (Iter *i = list_iter(func_list); !iter_end(i);) {
+  for (Iter *i = list_iter(funcs); !iter_end(i);) {
     Ast *func = iter_next(i);
     if (wantast)
       printf("%s", ast_to_string(func));

@@ -491,7 +491,7 @@ List *read_block(void) {
   return r;
 }
 
-Ast *read_func_decl() {
+static Ast *read_func_decl(void) {
   List *block = read_block();
   List *params = make_list();
   Ast *f = ast_func("mymain", params, locals, block);
@@ -505,8 +505,6 @@ List *read_func_list(void) {
     if (!func) return r;
     list_append(r, func);
   }
-
-  return r;
 }
 
 char *ctype_to_string(Ctype *ctype) {

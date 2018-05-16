@@ -3,7 +3,8 @@
 
 static char *REGS[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
-extern void emit_expr(Ast *ast);
+static void emit_expr(Ast *ast);
+static void emit_block(List *block);
 
 static int ctype_size(Ctype *ctype) {
   switch (ctype->type) {

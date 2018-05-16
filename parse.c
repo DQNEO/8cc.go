@@ -17,6 +17,8 @@ static Ast *read_expr(int prec);
 static Ctype* make_ptr_type(Ctype *ctype);
 static Ctype* make_array_type(Ctype *ctype, int size);
 static void ast_to_string_int(Ast *ast, String *buf);
+static List *read_block(void);
+static char *block_to_string(List *block);
 
 static Ast *ast_uop(char type, Ctype *ctype, Ast *operand) {
   Ast *r = malloc(sizeof(Ast));

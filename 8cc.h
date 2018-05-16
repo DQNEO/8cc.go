@@ -103,7 +103,6 @@ typedef struct Ast {
     // Function call
     struct {
       char *fname;
-      int nargs;
       struct List *args;
     };
     // Declaration

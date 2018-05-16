@@ -18,7 +18,6 @@ static Ctype* make_ptr_type(Ctype *ctype);
 static Ctype* make_array_type(Ctype *ctype, int size);
 static void ast_to_string_int(Ast *ast, String *buf);
 static List *read_block(void);
-static char *block_to_string(List *block);
 
 static Ast *ast_uop(char type, Ctype *ctype, Ast *operand) {
   Ast *r = malloc(sizeof(Ast));
@@ -479,7 +478,7 @@ static Ast *read_decl_or_stmt(void) {
   return is_type_keyword(tok) ? read_decl() : read_stmt();
 }
 
-List *read_block(void) {
+static List *read_block(void) {
   List *r = make_list();
   for (;;) {
     Ast *stmt = read_decl_or_stmt();
@@ -505,6 +504,7 @@ List *read_func_list(void) {
     if (!func) return r;
     list_append(r, func);
   }
+  return r;
 }
 
 char *ctype_to_string(Ctype *ctype) {
@@ -528,7 +528,7 @@ char *ctype_to_string(Ctype *ctype) {
   }
 }
 
-char *block_to_string(List *block) {
+static char *block_to_string(List *block) {
   String *s = make_string();
   string_appendf(s, "{");
   for (Iter *i = list_iter(block); !iter_end(i);) {

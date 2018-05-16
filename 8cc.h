@@ -36,8 +36,8 @@ enum {
   AST_LREF,
   AST_GVAR,
   AST_GREF,
-  AST_FUNC,
   AST_FUNCALL,
+  AST_FUNC,
   AST_DECL,
   AST_ARRAY_INIT,
   AST_ADDR,
@@ -101,7 +101,7 @@ typedef struct Ast {
     struct {
       struct Ast *operand;
     };
-    // Function call
+    // Function call or function declaration
     struct {
       char *fname;
       struct {

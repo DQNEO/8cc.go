@@ -303,6 +303,18 @@ static void ensure_lvalue(Ast *ast) {
   }
 }
 
+static Ast *convert_array(Ast *ast) {
+  if (ast->type == AST_STRING)
+    return ast_gref(make_ptr_type(ctype_char), ast, 0);
+  if (ast->ctype->type != CTYPE_ARRAY)
+    return ast;
+  if (ast->type == AST_LVAR)
+    return ast_lref(make_ptr_type(ast->ctype->ptr), ast, 0);
+  if (ast->type != AST_GVAR)
+    error("Internal error: Gvar expected, but got %s", ast_to_string(ast));
+  return ast_gref(make_ptr_type(ast->ctype->ptr), ast, 0);
+}
+
 static Ast *read_unary_expr(void) {
   Token *tok = read_token();
   if (is_punct(tok, '&')) {
@@ -318,18 +330,6 @@ static Ast *read_unary_expr(void) {
   }
   unget_token(tok);
   return read_prim();
-}
-
-static Ast *convert_array(Ast *ast) {
-  if (ast->type == AST_STRING)
-    return ast_gref(make_ptr_type(ctype_char), ast, 0);
-  if (ast->ctype->type != CTYPE_ARRAY)
-    return ast;
-  if (ast->type == AST_LVAR)
-    return ast_lref(make_ptr_type(ast->ctype->ptr), ast, 0);
-  if (ast->type != AST_GVAR)
-    error("Internal error: Gvar expected, but got %s", ast_to_string(ast));
-  return ast_gref(make_ptr_type(ast->ctype->ptr), ast, 0);
 }
 
 static Ast *read_expr(int prec) {

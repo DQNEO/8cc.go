@@ -479,10 +479,10 @@ List *read_block(void) {
   return r;
 }
 
-Ast *ast_func(List *body) {
+Ast *ast_func(char *fname, List *locals, List *body) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_FUNC;
-  r->fname = "mymain";
+  r->fname = fname;
   r->locals = locals;
   r->body = body;
   return r;
@@ -490,7 +490,7 @@ Ast *ast_func(List *body) {
 
 List *read_func_list(void) {
   List *block = read_block();
-  Ast *r = ast_func(block);
+  Ast *r = ast_func("mymain", locals, block);
   List *func_list = make_list();
   list_append(func_list, r);
   return func_list;

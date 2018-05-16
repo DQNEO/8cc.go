@@ -582,9 +582,10 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       string_appendf(buf, ")");
       break;
     }
-    case AST_FUNC:
+    case AST_FUNC: {
       string_appendf(buf, "%s", block_to_string(ast->body));
       break;
+    }
     case AST_DECL:
       string_appendf(buf, "(decl %s %s %s)",
                      ctype_to_string(ast->declvar->ctype),
@@ -627,4 +628,3 @@ char *ast_to_string(Ast *ast) {
   ast_to_string_int(ast, s);
   return get_cstring(s);
 }
-

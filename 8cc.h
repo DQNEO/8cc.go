@@ -150,7 +150,7 @@ extern char *make_label(void);
 extern void emit_data_section(void);
 extern void emit_func(Ast *func);
 extern List *read_block(void);
-
+extern List *read_func_list();
 extern List *globals;
 extern List *locals;
 extern Ctype *ctype_int;

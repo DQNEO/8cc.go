@@ -479,6 +479,22 @@ List *read_block(void) {
   return r;
 }
 
+Ast *ast_func(List *body) {
+  Ast *r = malloc(sizeof(Ast));
+  r->fname = "mymain";
+  r->locals = locals;
+  r->body = body;
+  return r;
+}
+
+List *read_func_list() {
+  List *block = read_block();
+  Ast *r = ast_func(block);
+  List *func_list = make_list();
+  list_append(func_list, r);
+  return func_list;
+}
+
 char *ctype_to_string(Ctype *ctype) {
   switch (ctype->type) {
     case CTYPE_VOID: return "void";

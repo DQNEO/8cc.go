@@ -105,18 +105,19 @@ static Ast *ast_string(char *str) {
   return r;
 }
 
-static Ast *ast_funcall(char *fname, List *args) {
+static Ast *ast_funcall(Ctype *ctype, char *fname, List *args) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_FUNCALL;
-  r->ctype = ctype_int;
+  r->ctype = ctype;
   r->fname = fname;
   r->args = args;
   return r;
 }
 
-static Ast *ast_func(char *fname, List *params, List *locals, List *body) {
+static Ast *ast_func(Ctype *rettype, char *fname, List *params, List *body, List *locals) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_FUNC;
+  r->ctype = rettype;
   r->fname = fname;
   r->params = params;
   r->locals = locals;
@@ -212,7 +213,7 @@ static Ast *read_func_args(char *fname) {
   }
   if (MAX_ARGS < list_len(args))
     error("Too many arguments: %s", fname);
-  return ast_funcall(fname, args);
+  return ast_funcall(ctype_int, fname, args);
 }
 
 static Ast *read_ident_or_func(char *name) {
@@ -493,7 +494,9 @@ static List *read_block(void) {
 static Ast *read_func_decl(void) {
   List *block = read_block();
   List *params = make_list();
-  Ast *f = ast_func("mymain", params, locals, block);
+  Ctype *ctype = ctype_int;
+  
+  Ast *f = ast_func(ctype, "mymain", params, block, locals);
   return f;
 }
 

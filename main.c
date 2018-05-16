@@ -23,13 +23,15 @@ int main(int argc, char **argv) {
   int wantast = (argc > 1 && !strcmp(argv[1], "-a"));
   List *func_list = read_func_list();
 
-  Iter *i = list_iter(func_list);
-  Ast *f = iter_next(i);
-  if (wantast) {
-    printf("%s", block_to_string(f->body));
-  } else {
+  if (!wantast)
     emit_data_section();
-    emit_func(f);
+
+  for (Iter *i = list_iter(func_list); !iter_end(i);) {
+    Ast *func = iter_next(i);
+    if (wantast)
+      printf("%s", block_to_string(func->body));
+    else
+      emit_func(func);
   }
   return 0;
 }

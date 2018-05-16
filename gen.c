@@ -307,8 +307,8 @@ static void emit_block(List *block) {
 }
 
 void emit_func(Ast *func) {
+  assert(func->type == AST_FUNC);
   emit_func_prologue(func);
   emit_block(func->body);
   emit_func_epilogue();
 }
-

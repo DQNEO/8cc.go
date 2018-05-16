@@ -279,10 +279,11 @@ static int ceil8(int n) {
 }
 
 void emit_func_prologue(void) {
+  char *fname = "mymain";
   printf(".text\n\t"
-         ".global mymain\n"
-         "mymain:\n\t"
-         "push %%rbp\n\t"
+         ".global %s\n"
+         "%s:\n\t", fname, fname);
+  printf("push %%rbp\n\t"
          "mov %%rsp, %%rbp\n\t");
 
   int off = 0;

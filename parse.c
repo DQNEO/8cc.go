@@ -481,6 +481,7 @@ List *read_block(void) {
 
 Ast *ast_func(List *body) {
   Ast *r = malloc(sizeof(Ast));
+  r->type = AST_FUNC;
   r->fname = "mymain";
   r->locals = locals;
   r->body = body;
@@ -548,6 +549,9 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       break;
     case AST_GREF:
       string_appendf(buf, "%s[%d]", ast_to_string(ast->gref), ast->goff);
+      break;
+    case AST_FUNC:
+      string_appendf(buf, "%s", block_to_string(ast->body));
       break;
     case AST_FUNCALL: {
       string_appendf(buf, "%s(", ast->fname);

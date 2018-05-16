@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
   for (Iter *i = list_iter(func_list); !iter_end(i);) {
     Ast *func = iter_next(i);
     if (wantast)
-      printf("%s", block_to_string(func->body));
+      printf("%s", ast_to_string(func));
     else
       emit_func(func);
   }

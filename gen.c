@@ -310,3 +310,4 @@ void emit_func(Ast *func) {
   emit_block(func->body);
   emit_func_epilogue();
 }
+

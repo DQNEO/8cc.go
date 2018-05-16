@@ -489,14 +489,22 @@ List *read_block(void) {
   return r;
 }
 
-List *read_func_list(void) {
-  List *func_list = make_list();
-
+Ast *read_func_decl() {
   List *block = read_block();
-  Ast *r = ast_func("mymain", NULL, locals, block);
-  list_append(func_list, r);
+  List *params = make_list();
+  Ast *f = ast_func("mymain", params, locals, block);
+  return f;
+}
 
-  return func_list;
+List *read_func_list(void) {
+  List *r = make_list();
+  for (int i = 0;i<1;i++) {
+    Ast *func = read_func_decl();
+    if (!func) return r;
+    list_append(r, func);
+  }
+
+  return r;
 }
 
 char *ctype_to_string(Ctype *ctype) {

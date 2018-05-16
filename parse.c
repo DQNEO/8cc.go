@@ -113,6 +113,15 @@ static Ast *ast_funcall(char *fname, List *args) {
   return r;
 }
 
+Ast *ast_func(char *fname, List *locals, List *body) {
+  Ast *r = malloc(sizeof(Ast));
+  r->type = AST_FUNC;
+  r->fname = fname;
+  r->locals = locals;
+  r->body = body;
+  return r;
+}
+
 static Ast *ast_decl(Ast *var, Ast *init) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_DECL;
@@ -476,15 +485,6 @@ List *read_block(void) {
     if (!stmt || is_punct(tok, '}'))
       break;
   }
-  return r;
-}
-
-Ast *ast_func(char *fname, List *locals, List *body) {
-  Ast *r = malloc(sizeof(Ast));
-  r->type = AST_FUNC;
-  r->fname = fname;
-  r->locals = locals;
-  r->body = body;
   return r;
 }
 

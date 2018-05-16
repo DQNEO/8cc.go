@@ -103,7 +103,14 @@ typedef struct Ast {
     // Function call
     struct {
       char *fname;
-      struct List *args;
+      struct {
+        struct List *args;
+        struct {
+          struct List *params;
+          struct List *locals;
+          struct List *body;
+        };
+      };
     };
     // Declaration
     struct {
@@ -141,7 +148,7 @@ extern void print_asm_header(void);
 extern void emit_block(List *block);
 extern char *make_label(void);
 extern void emit_data_section(void);
-extern void emit_func(List *block);
+extern void emit_func(Ast *func);
 extern List *read_block(void);
 
 extern List *globals;

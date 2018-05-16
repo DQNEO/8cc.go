@@ -278,16 +278,15 @@ static int ceil8(int n) {
   return (rem == 0) ? n : n - rem + 8;
 }
 
-void emit_func_prologue(void) {
-  char *fname = "mymain";
+void emit_func_prologue(Ast *func) {
   printf(".text\n\t"
          ".global %s\n"
-         "%s:\n\t", fname, fname);
+         "%s:\n\t", func->fname, func->fname);
   printf("push %%rbp\n\t"
          "mov %%rsp, %%rbp\n\t");
 
   int off = 0;
-  for (Iter *i = list_iter(locals); !iter_end(i);) {
+  for (Iter *i = list_iter(func->locals); !iter_end(i);) {
     Ast *v = iter_next(i);
     off += ceil8(ctype_size(v->ctype));
     v->loff = off;
@@ -306,8 +305,8 @@ void emit_block(List *block) {
     emit_expr(iter_next(i));
 }
 
-void emit_func(List *block) {
-  emit_func_prologue();
-  emit_block(block);
+void emit_func(Ast *func) {
+  emit_func_prologue(func);
+  emit_block(func->body);
   emit_func_epilogue();
 }

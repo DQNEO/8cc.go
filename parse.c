@@ -7,7 +7,8 @@
 #define MAX_ARGS 6
 
 List *globals = EMPTY_LIST;
-List *locals = EMPTY_LIST;
+List *locals = NULL;
+List *fparams = NULL;
 Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL };
 Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL };
 
@@ -63,7 +64,8 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
   r->type = AST_LVAR;
   r->ctype = ctype;
   r->lname = name;
-  list_append(locals, r);
+  if (locals)
+    list_append(locals, r);
   return r;
 }
 
@@ -169,6 +171,11 @@ static Ctype* make_array_type(Ctype *ctype, int size) {
 }
 
 static Ast *find_var(char *name) {
+  for (Iter *i = list_iter(fparams); !iter_end(i);) {
+    Ast *v = iter_next(i);
+    if (!strcmp(name, v->lname))
+      return v;
+  }
   for (Iter *i = list_iter(locals); !iter_end(i);) {
     Ast *v = iter_next(i);
     if (!strcmp(name, v->lname))
@@ -530,11 +537,13 @@ static Ast *read_func_decl(void) {
   if (fname->type != TTYPE_IDENT)
     error("Function name expected, but got %s", token_to_string(fname));
   expect('(');
-  List *fparams = read_params();
+  fparams = read_params();
   expect('{');
+  locals = make_list();
   List *body = read_block();
   expect('}');
   Ast *r = ast_func(rettype, fname->sval, fparams, body, locals);
+  fparams = locals = NULL;
   return r;
 }
 

@@ -287,6 +287,13 @@ static void emit_func_prologue(Ast *func) {
          "mov %%rsp, %%rbp\n\t");
 
   int off = 0;
+  int ri = 0;
+  for (Iter *i = list_iter(func->params); !iter_end(i); ri++) {
+    printf("push %%%s\n\t", REGS[ri]);
+    Ast *v = iter_next(i);
+    off += ceil8(ctype_size(v->ctype));
+    v->loff = off;
+  }
   for (Iter *i = list_iter(func->locals); !iter_end(i);) {
     Ast *v = iter_next(i);
     off += ceil8(ctype_size(v->ctype));

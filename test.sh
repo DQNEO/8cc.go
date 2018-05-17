@@ -30,15 +30,17 @@ function testastf {
   assertequal "$result" "$1"
 }
 function testast {
-    code="int f(){$2}"
-    testastf  "$1" "$code"
+  code="int f(){$2}"
+  testastf  "$1" "$code"
 }
 function test {
-    code="int f(){$2}"
-  compile "$code"
+  code="int f(){$2}"
+  testf "$1" "$code"
+}
+function testf {
+  compile "$2"
   assertequal "$(./tmp.out)" "$1"
 }
-
 function testfail {
   expr="$1"
   echo "$expr" | ./8cc > /dev/null 2>&1
@@ -123,6 +125,9 @@ test 'a1' 'if(1){xprintf("a");}1;'
 test '1' 'if(0){xprintf("a");}1;'
 test 'x1' 'if(1){xprintf("x");}else{xprintf("y");}1;'
 test 'y1' 'if(0){xprintf("x");}else{xprintf("y");}1;'
+
+# Function parameter
+testf '102' 'int f(int n){n;}'
 
 testfail '0abc;'
 testfail '1+;'

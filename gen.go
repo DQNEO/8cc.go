@@ -297,12 +297,12 @@ func ceil8(n int) int {
 }
 
 func print_asm_header() {
+	emit_data_section()
 	off := 0
 	for _, v := range locals {
 		off += ceil8(ctype_size(v.ctype))
 		v.variable.loff = off
 	}
-	emit_data_section()
 	printf(".text\n\t" +
 		".global mymain\n" +
 		"mymain:\n\t" +

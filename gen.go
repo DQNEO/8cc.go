@@ -296,7 +296,7 @@ func ceil8(n int) int {
 	}
 }
 
-func print_asm_header() {
+func emit_func_prologue() {
 	off := 0
 	for _, v := range locals {
 		off += ceil8(ctype_size(v.ctype))
@@ -325,7 +325,7 @@ func emit_block(block []*Ast) {
 }
 
 func emit_func(block []*Ast) {
-	print_asm_header()
+	emit_func_prologue()
 	emit_block(block)
 	emit_func_epilogue()
 }

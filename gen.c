@@ -264,7 +264,7 @@ static void emit_expr(Ast *ast) {
 
 void emit_data_section(void) {
   if (!globals) return;
-  printf("\t.data\n");
+  printf(".data\n");
   for (Iter *i = list_iter(globals); !iter_end(i);) {
     Ast *v = iter_next(i);
     assert(v->type == AST_STRING);

@@ -317,4 +317,7 @@ func emit_block(block []*Ast) {
 	for _,v := range block {
 		emit_expr(v)
 	}
+
+	printf("leave\n\t" +
+		"ret\n")
 }

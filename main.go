@@ -13,8 +13,6 @@ func main() {
 	} else {
 		print_asm_header()
 		emit_block(block)
-		printf("leave\n\t" +
-			"ret\n")
 	}
 
 	return

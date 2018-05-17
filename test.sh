@@ -18,28 +18,25 @@ function assertequal {
     echo "Test failed: $2 expected but got $1"
     exit
   fi
-  #echo "ok"
 }
 
 function testastf {
   result="$(echo "$2" | ./8cc -a)"
   if [ $? -ne 0 ]; then
-    echo "Failed to compile" "'$2'"
+    echo "Failed to compile $1"
     exit
   fi
   assertequal "$result" "$1"
 }
 function testast {
-  code="int f(){$2}"
-  testastf  "$1" "$code"
-}
-function test {
-  code="int f(){$2}"
-  testf "$1" "$code"
+  testastf  "$1" "int f(){$2}"
 }
 function testf {
   compile "$2"
   assertequal "$(./tmp.out)" "$1"
+}
+function test {
+  testf "$1" "int f(){$2}"
 }
 function testfail {
   expr="$1"

@@ -432,7 +432,6 @@ static Ctype *read_decl_spec(void) {
     }
     ctype = make_ptr_type(ctype);
   }
-  return ctype;
 }
 
 static Ast *read_decl(void) {
@@ -524,7 +523,6 @@ static List *read_params(void) {
     if (!is_punct(tok, ','))
       error("Comma expected, but got %s", token_to_string(tok));
   }
-  return params;
 }
 
 static Ast *read_func_decl(void) {
@@ -552,7 +550,6 @@ List *read_func_list(void) {
     if (!func) return r;
     list_append(r, func);
   }
-  return r;
 }
 
 char *ctype_to_string(Ctype *ctype) {

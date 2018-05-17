@@ -280,12 +280,13 @@ static int ceil8(int n) {
 }
 
 static void emit_func_prologue(Ast *func) {
+  if (list_len(func->params) > sizeof(REGS) / sizeof(*REGS))
+    error("Parameter list too long: %s", func->fname);
   printf(".text\n\t"
          ".global %s\n"
          "%s:\n\t", func->fname, func->fname);
   printf("push %%rbp\n\t"
          "mov %%rsp, %%rbp\n\t");
-
   int off = 0;
   int ri = 0;
   for (Iter *i = list_iter(func->params); !iter_end(i); ri++) {

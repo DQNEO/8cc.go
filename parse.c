@@ -328,7 +328,7 @@ static Ast *read_unary_expr(void) {
     return ast_uop(AST_ADDR, make_ptr_type(operand->ctype), operand);
   }
   if (is_punct(tok, '*')) {
-    Ast *operand = read_unary_expr();
+    Ast *operand = convert_array(read_unary_expr());
     if (operand->ctype->type != CTYPE_PTR)
       error("pointer type expected, but got %s", ast_to_string(operand));
     return ast_uop(AST_DEREF, operand->ctype->ptr, operand);

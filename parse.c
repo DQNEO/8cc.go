@@ -173,7 +173,7 @@ static Ctype* make_array_type(Ctype *ctype, int size) {
 static Ast *find_var_sub(List *list, char *name) {
   for (Iter *i = list_iter(list); !iter_end(i);) {
     Ast *v = iter_next(i);
-    if (!strcmp(name, v->lname)) // not gname to look up globals ??
+    if (!strcmp(name, v->lname))
       return v;
   }
   return NULL;
@@ -527,7 +527,7 @@ static List *read_params(void) {
 
 static Ast *read_func_decl(void) {
   Token *tok = peek_token();
-  if (!tok) return NULL;
+  if (!tok) return;
   void *rettype = read_decl_spec();
   Token *fname = read_token();
   if (fname->type != TTYPE_IDENT)

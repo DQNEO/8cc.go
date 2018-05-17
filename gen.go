@@ -320,3 +320,8 @@ func emit_block(block []*Ast) {
 	printf("leave\n\t" +
 		"ret\n")
 }
+
+func emit_func(block []*Ast) {
+	print_asm_header()
+	emit_block(block)
+}

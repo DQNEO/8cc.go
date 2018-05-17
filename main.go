@@ -12,8 +12,7 @@ func main() {
 		printf("%s", block_to_string(block))
 	} else {
 		emit_data_section()
-		print_asm_header()
-		emit_block(block)
+		emit_func(block)
 	}
 
 	return

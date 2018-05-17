@@ -367,6 +367,7 @@ static Ast *read_expr(int prec) {
 }
 
 static Ctype *get_ctype(Token *tok) {
+  if (!tok) return NULL;
   if (tok->type != TTYPE_IDENT)
     return NULL;
   if (!strcmp(tok->sval, "int"))

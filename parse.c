@@ -498,8 +498,9 @@ static List *read_block(void) {
   for (;;) {
     Ast *stmt = read_decl_or_stmt();
     if (stmt) list_append(r, stmt);
+    if (!stmt) break;
     Token *tok = peek_token();
-    if (!stmt || is_punct(tok, '}'))
+    if (is_punct(tok, '}'))
       break;
   }
   return r;

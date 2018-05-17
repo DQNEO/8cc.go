@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-extern int mymain(void);
+extern int f(void);
 
 int sum2(int a, int b) {
   return a + b;
@@ -15,6 +15,6 @@ void xprintf(char *fmt, char *arg) {
 }
 
 int main(int argc, char **argv) {
-  printf("%d\n", mymain());
+  printf("%d\n", f());
   return 0;
 }

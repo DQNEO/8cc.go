@@ -18,9 +18,10 @@ function assertequal {
     echo "Test failed: $2 expected but got $1"
     exit
   fi
+  #echo "ok"
 }
 
-function testast {
+function testastf {
   result="$(echo "$2" | ./8cc -a)"
   if [ $? -ne 0 ]; then
     echo "Failed to compile" "'$2'"
@@ -28,9 +29,13 @@ function testast {
   fi
   assertequal "$result" "$1"
 }
-
+function testast {
+    code="int f(){$2}"
+    testastf  "$1" "$code"
+}
 function test {
-  compile "$2"
+    code="int f(){$2}"
+  compile "$code"
   assertequal "$(./tmp.out)" "$1"
 }
 
@@ -52,30 +57,33 @@ fi
 
 
 # Parser
-testast '{1;}' '1;'
-testast '{(+ (- (+ 1 2) 3) 4);}' '1+2-3+4;'
-testast '{(+ (+ 1 (* 2 3)) 4);}' '1+2*3+4;'
-testast '{(+ (* 1 2) (* 3 4));}' '1*2+3*4;'
-testast '{(+ (/ 4 2) (/ 6 3));}' '4/2+6/3;'
-testast '{(/ (/ 24 2) 4);}' '24/2/4;'
-testast '{(decl int a 3);}' 'int a=3;'
-testast "{(decl char c 'a');}" "char c='a';"
-testast '{(decl char* s "abc");}' 'char *s="abc";'
-testast '{(decl char[4] s "abc");}' 'char s[4]="abc";'
-testast '{(decl int[3] a {1,2,3});}' 'int a[3]={1,2,3};'
-testast '{(decl int[3] a {1,2,3});}' 'int a[3]={1,2,3,};'
-testast '{(decl int a 1);(decl int b 2);(= a (= b 3));}' 'int a=1;int b=2;a=b=3;'
-testast '{(decl int a 3);(& a);}' 'int a=3;&a;'
-testast '{(decl int a 3);(* (& a));}' 'int a=3;*&a;'
-testast '{(decl int a 3);(decl int* b (& a));(* b);}' 'int a=3;int *b=&a;*b;'
-testast '{(if 1 {2;});}' 'if(1){2;}'
-testast '{(if 1 {2;} {3;});}' 'if(1){2;}else{3;}'
+testast '(int)f(){1;}' '1;'
+testast '(int)f(){(+ (- (+ 1 2) 3) 4);}' '1+2-3+4;'
+testast '(int)f(){(+ (+ 1 (* 2 3)) 4);}' '1+2*3+4;'
+testast '(int)f(){(+ (* 1 2) (* 3 4));}' '1*2+3*4;'
+testast '(int)f(){(+ (/ 4 2) (/ 6 3));}' '4/2+6/3;'
+testast '(int)f(){(/ (/ 24 2) 4);}' '24/2/4;'
+testast '(int)f(){(decl int a 3);}' 'int a=3;'
+testast "(int)f(){(decl char c 'a');}" "char c='a';"
+testast '(int)f(){(decl char* s "abc");}' 'char *s="abc";'
+testast '(int)f(){(decl char[4] s "abc");}' 'char s[4]="abc";'
+testast '(int)f(){(decl int[3] a {1,2,3});}' 'int a[3]={1,2,3};'
+testast '(int)f(){(decl int[3] a {1,2,3});}' 'int a[3]={1,2,3,};'
+testast '(int)f(){(decl int a 1);(decl int b 2);(= a (= b 3));}' 'int a=1;int b=2;a=b=3;'
+testast '(int)f(){(decl int a 3);(& a);}' 'int a=3;&a;'
+testast '(int)f(){(decl int a 3);(* (& a));}' 'int a=3;*&a;'
+testast '(int)f(){(decl int a 3);(decl int* b (& a));(* b);}' 'int a=3;int *b=&a;*b;'
+testast '(int)f(){(if 1 {2;});}' 'if(1){2;}'
+testast '(int)f(){(if 1 {2;} {3;});}' 'if(1){2;}else{3;}'
 
-testast '{"abc";}' '"abc";'
-testast "{'c';}" "'c';"
+testast '(int)f(){"abc";}' '"abc";'
+testast "(int)f(){'c';}" "'c';"
 
-testast '{a();}' 'a();'
-testast '{a(1,2,3,4,5,6);}' 'a(1,2,3,4,5,6);'
+testast '(int)f(){a();}' 'a();'
+testast '(int)f(){a(1,2,3,4,5,6);}' 'a(1,2,3,4,5,6);'
+
+testastf '(int)f(int c){c;}' 'int f(int c){c;}'
+testastf '(int)f(int c){c;}(int)g(int d){d;}' 'int f(int c){c;} int g(int d){d;}'
 
 # Basic arithmetic
 test 0 '0;'

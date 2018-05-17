@@ -92,7 +92,6 @@ type Ast struct {
 	// Function call
 	funcall struct {
 		fname []byte
-		nargs int
 		args  []*Ast
 	}
 	// Declaration

@@ -11,6 +11,7 @@ func main() {
 	if wantast {
 		printf("%s", block_to_string(block))
 	} else {
+		emit_data_section()
 		print_asm_header()
 		emit_block(block)
 	}

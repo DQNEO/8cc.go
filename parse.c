@@ -170,23 +170,21 @@ static Ctype* make_array_type(Ctype *ctype, int size) {
   return r;
 }
 
-static Ast *find_var(char *name) {
-  for (Iter *i = list_iter(fparams); !iter_end(i);) {
+static Ast *find_var_sub(List *list, char *name) {
+  for (Iter *i = list_iter(list); !iter_end(i);) {
     Ast *v = iter_next(i);
-    if (!strcmp(name, v->lname))
-      return v;
-  }
-  for (Iter *i = list_iter(locals); !iter_end(i);) {
-    Ast *v = iter_next(i);
-    if (!strcmp(name, v->lname))
-      return v;
-  }
-  for (Iter *i = list_iter(globals); !iter_end(i);) {
-    Ast *v = iter_next(i);
-    if (!strcmp(name, v->gname))
+    if (!strcmp(name, v->lname)) // not gname to look up globals ??
       return v;
   }
   return NULL;
+}
+
+static Ast *find_var(char *name) {
+  Ast *r = find_var_sub(locals, name);
+  if (r) return r;
+  r = find_var_sub(fparams, name);
+  if (r) return r;
+  return find_var_sub(globals, name);
 }
 
 static bool is_right_assoc(char op) {

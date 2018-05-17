@@ -297,9 +297,11 @@ func ceil8(n int) int {
 }
 
 func emit_func_prologue() {
+	fname := "mymain"
 	printf(".text\n\t" +
-		".global mymain\n" +
-		"mymain:\n\t" +
+		".global %s\n" +
+		"%s:\n\t", fname, fname)
+	printf(
 		"push %%rbp\n\t" +
 		"mov %%rsp, %%rbp\n\t")
 	off := 0

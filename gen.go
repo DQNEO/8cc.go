@@ -312,16 +312,20 @@ func print_asm_header() {
 	}
 }
 
+func emit_func_epilogue() {
+	printf("leave\n\t" +
+		"ret\n")
+}
+
 func emit_block(block []*Ast) {
 	for _,v := range block {
 		emit_expr(v)
 	}
 
-	printf("leave\n\t" +
-		"ret\n")
 }
 
 func emit_func(block []*Ast) {
 	print_asm_header()
 	emit_block(block)
+	emit_func_epilogue()
 }

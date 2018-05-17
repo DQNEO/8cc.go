@@ -618,7 +618,7 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       string_appendf(buf, "%s[%d]", ast_to_string(ast->gref), ast->goff);
       break;
     case AST_FUNCALL: {
-      string_appendf(buf, "%s(", ast->fname);
+      string_appendf(buf, "(%s)%s(", ctype_to_string(ast->ctype), ast->fname);
       for (Iter *i = list_iter(ast->args); !iter_end(i);) {
         string_appendf(buf, "%s", ast_to_string(iter_next(i)));
         if (!iter_end(i))

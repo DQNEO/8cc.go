@@ -43,7 +43,7 @@ function test {
 }
 
 function testfail {
-  expr="$1"
+  expr="int f(){$1}"
   echo "$expr" | ./8cc > /dev/null 2>&1
   if [ $? -eq 0 ]; then
     echo "Should fail to compile, but succeded: $expr"

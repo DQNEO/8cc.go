@@ -528,7 +528,7 @@ static List *read_params(void) {
 static Ast *read_func_decl(void) {
   Token *tok = peek_token();
   if (!tok) return NULL;
-  Ctype *rettype = read_decl_spec();
+  void *rettype = read_decl_spec();
   Token *fname = read_token();
   if (fname->type != TTYPE_IDENT)
     error("Function name expected, but got %s", token_to_string(fname));

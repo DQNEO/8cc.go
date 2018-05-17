@@ -421,7 +421,7 @@ static Ctype *read_decl_spec(void) {
     tok = read_token();
     if (!is_punct(tok, '*')) {
       unget_token(tok);
-      break;
+      return ctype;
     }
     ctype = make_ptr_type(ctype);
   }

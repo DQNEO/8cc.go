@@ -6,7 +6,7 @@ function compile {
     echo "Failed to compile $1"
     exit
   fi
-  gcc -o tmp.out driver.c tmp.s
+  gcc -no-pie -o tmp.out driver.c tmp.s
   if [ $? -ne 0 ]; then
     echo "GCC failed: $1"
     exit
@@ -107,9 +107,9 @@ test 30 'int a[3]={20,30,40};int *b=a+1;*b;'
 test 20 'int a[3]={20,30,40};*a;'
 
 # Function call
-test a3 'xprintf("a");3;'
-test abc5 'xprintf("%s", "abc");5;'
-test b1 "xprintf(\"%c\", 'a'+1);1;"
+test a3 'printf("a");3;'
+test abc5 'printf("%s", "abc");5;'
+test b1 "printf(\"%c\", 'a'+1);1;"
 
 # Pointer
 test 61 'int a=61;int *b=&a;*b;'
@@ -118,10 +118,10 @@ test 98 'char *c="ab"+1;*c;'
 test 99 'char s[4]="abc";char *c=s+2;*c;'
 
 # If statement
-test 'a1' 'if(1){xprintf("a");}1;'
-test '1' 'if(0){xprintf("a");}1;'
-test 'x1' 'if(1){xprintf("x");}else{xprintf("y");}1;'
-test 'y1' 'if(0){xprintf("x");}else{xprintf("y");}1;'
+test 'a1' 'if(1){printf("a");}1;'
+test '1' 'if(0){printf("a");}1;'
+test 'x1' 'if(1){printf("x");}else{printf("y");}1;'
+test 'y1' 'if(0){printf("x");}else{printf("y");}1;'
 
 # Function parameter
 testf '102' 'int f(int n){n;}'

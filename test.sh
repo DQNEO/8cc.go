@@ -128,6 +128,12 @@ test 'y1' 'if(0){xprintf("x");}else{xprintf("y");}1;'
 
 # Function parameter
 testf '102' 'int f(int n){n;}'
+testf 77 'int g(){77;} int f(){g();}'
+testf 77 'int g(){77;} int f(){g();}'
+testf 79 'int g(int a){a;} int f(){g(79);}'
+testf 21 'int g(int a,int b,int c,int d,int e,int f){a+b+c+d+e+f;} int f(){g(1,2,3,4,5,6);}'
+testf 79 'int g(int a){a;} int f(){g(79);}'
+testf 98 'int g(int *p){*p;} int f(){int a[1]={98};g(a);}'
 
 testfail '0abc;'
 testfail '1+;'

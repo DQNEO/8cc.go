@@ -415,8 +415,10 @@ static Ast *read_declinitializer(Ctype *ctype) {
 
 
 static Ctype *read_decl_spec(void) {
-  Ctype *ctype = get_ctype(read_token());
-  Token *tok;
+  Token *tok = read_token();
+  Ctype *ctype = get_ctype(tok);
+  if (!ctype)
+    error("Type expected, but got %s", token_to_string(tok));
   for (;;) {
     tok = read_token();
     if (!is_punct(tok, '*')) {
@@ -499,16 +501,41 @@ static List *read_block(void) {
   return r;
 }
 
-static Ast *read_func_decl(void) {
-  static Ast *x;
-  if (x) return NULL;
-  List *block = read_block();
+static List *read_params(void) {
   List *params = make_list();
-  Ctype *ctype = ctype_int;
-  
-  Ast *f = ast_func(ctype, "mymain", params, block, locals);
-  x = f;
-  return f;
+  Token *tok = read_token();
+  if (is_punct(tok, ')'))
+    return params;
+  unget_token(tok);
+  for (;;) {
+    Ctype *type = read_decl_spec();
+    Token *pname = read_token();
+    if (pname->type != TTYPE_IDENT)
+      error("Identifier expected, but got %s", token_to_string(pname));
+    list_append(params, ast_lvar(type, pname->sval));
+    Token *tok = read_token();
+    if (is_punct(tok, ')'))
+      return params;
+    if (!is_punct(tok, ','))
+      error("Comma expected, but got %s", token_to_string(tok));
+  }
+  return params;
+}
+
+static Ast *read_func_decl(void) {
+  Token *tok = peek_token();
+  if (!tok) return NULL;
+  Ctype *rettype = read_decl_spec();
+  Token *fname = read_token();
+  if (fname->type != TTYPE_IDENT)
+    error("Function name expected, but got %s", token_to_string(fname));
+  expect('(');
+  List *fparams = read_params();
+  expect('{');
+  List *body = read_block();
+  expect('}');
+  Ast *r = ast_func(rettype, fname->sval, fparams, body, locals);
+  return r;
 }
 
 List *read_func_list(void) {
@@ -597,7 +624,14 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       break;
     }
     case AST_FUNC: {
-      string_appendf(buf, "%s", block_to_string(ast->body));
+      string_appendf(buf, "(%s)%s(", ctype_to_string(ast->ctype), ast->fname);
+      for (Iter *i = list_iter(ast->params); !iter_end(i);) {
+        Ast *param = iter_next(i);
+        string_appendf(buf, "%s %s", ctype_to_string(param->ctype), ast_to_string(param));
+        if (!iter_end(i))
+          string_appendf(buf, ",");
+      }
+      string_appendf(buf, ")%s", block_to_string(ast->body));
       break;
     }
     case AST_DECL:

@@ -103,10 +103,10 @@ test 2 '1;2;'
 # Declaration
 test 3 'int a=1;a+2;'
 test 102 'int a=1;int b=48+2;int c=a+b;c*2;'
-#test '' 'int a[3]={20,30,40};'
 test 55 'int a[1]={55};int *b=a;*b;'
 test 67 'int a[2]={55,67};int *b=a+1;*b;'
 test 30 'int a[3]={20,30,40};int *b=a+1;*b;'
+test 20 'int a[3]={20,30,40};*a;'
 
 # Function call
 test a3 'xprintf("a");3;'

@@ -296,16 +296,15 @@ func ceil8(n int) int {
 	}
 }
 
-func emit_func_prologue() {
-	fname := "mymain"
+func emit_func_prologue(fn *Ast) {
 	printf(".text\n\t" +
 		".global %s\n" +
-		"%s:\n\t", fname, fname)
+		"%s:\n\t", bytes2string(fn.funcall.fname), bytes2string(fn.funcall.fname))
 	printf(
 		"push %%rbp\n\t" +
 		"mov %%rsp, %%rbp\n\t")
 	off := 0
-	for _, v := range locals {
+	for _, v := range fn.funcall.locals {
 		off += ceil8(ctype_size(v.ctype))
 		v.variable.loff = off
 	}
@@ -326,8 +325,8 @@ func emit_block(block []*Ast) {
 
 }
 
-func emit_func(block []*Ast) {
-	emit_func_prologue()
-	emit_block(block)
+func emit_func(fn *Ast) {
+	emit_func_prologue(fn)
+	emit_block(fn.funcall.body)
 	emit_func_epilogue()
 }

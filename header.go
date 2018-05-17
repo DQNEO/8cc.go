@@ -93,6 +93,9 @@ type Ast struct {
 	funcall struct {
 		fname []byte
 		args  []*Ast
+		params []*Ast
+		locals []*Ast
+		body []*Ast
 	}
 	// Declaration
 	decl struct {

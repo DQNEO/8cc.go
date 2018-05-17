@@ -465,7 +465,6 @@ static Ast *read_if_stmt(void) {
   expect(')');
   expect('{');
   List *then = read_block();
-  expect('}');
   Token *tok = read_token();
   if (!tok || tok->type != TTYPE_IDENT || strcmp(tok->sval, "else")) {
     unget_token(tok);
@@ -473,7 +472,6 @@ static Ast *read_if_stmt(void) {
   }
   expect('{');
   List *els = read_block();
-  expect('}');
   return ast_if(cond, then, els);
 }
 
@@ -499,9 +497,10 @@ static List *read_block(void) {
     Ast *stmt = read_decl_or_stmt();
     if (stmt) list_append(r, stmt);
     if (!stmt) break;
-    Token *tok = peek_token();
+    Token *tok = read_token();
     if (is_punct(tok, '}'))
       break;
+    unget_token(tok);
   }
   return r;
 }
@@ -538,7 +537,6 @@ static Ast *read_func_decl(void) {
   expect('{');
   locals = make_list();
   List *body = read_block();
-  expect('}');
   Ast *r = ast_func(rettype, fname->sval, fparams, body, locals);
   fparams = locals = NULL;
   return r;

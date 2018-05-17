@@ -7,8 +7,8 @@
 #define MAX_ARGS 6
 
 List *globals = EMPTY_LIST;
-List *locals = NULL;
 List *fparams = NULL;
+List *locals = NULL;
 Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL };
 Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL };
 

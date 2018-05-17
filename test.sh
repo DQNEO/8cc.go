@@ -78,10 +78,8 @@ testast '(int)f(){(decl int a 3);(* (& a));}' 'int a=3;*&a;'
 testast '(int)f(){(decl int a 3);(decl int* b (& a));(* b);}' 'int a=3;int *b=&a;*b;'
 testast '(int)f(){(if 1 {2;});}' 'if(1){2;}'
 testast '(int)f(){(if 1 {2;} {3;});}' 'if(1){2;}else{3;}'
-
 testast '(int)f(){"abc";}' '"abc";'
 testast "(int)f(){'c';}" "'c';"
-
 testast '(int)f(){(int)a();}' 'a();'
 testast '(int)f(){(int)a(1,2,3,4,5,6);}' 'a(1,2,3,4,5,6);'
 

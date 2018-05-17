@@ -28,16 +28,20 @@ function testastf {
   fi
   assertequal "$result" "$1"
 }
+
 function testast {
-  testastf  "$1" "int f(){$2}"
+  testastf "$1" "int f(){$2}"
 }
+
 function testf {
   compile "$2"
   assertequal "$(./tmp.out)" "$1"
 }
+
 function test {
   testf "$1" "int f(){$2}"
 }
+
 function testfail {
   expr="$1"
   echo "$expr" | ./8cc > /dev/null 2>&1
@@ -92,7 +96,7 @@ test 10 '1+2+3+4;'
 test 11 '1+2*3+4;'
 test 14 '1*2+3*4;'
 test 4 '4/2+6/3;'
-test 3 '24/2/4;'
+test 4 '24/2/3;'
 test 98 "'a'+1;"
 test 2 '1;2;'
 
@@ -123,7 +127,6 @@ test 'y1' 'if(0){xprintf("x");}else{xprintf("y");}1;'
 
 # Function parameter
 testf '102' 'int f(int n){n;}'
-testf 77 'int g(){77;} int f(){g();}'
 testf 77 'int g(){77;} int f(){g();}'
 testf 79 'int g(int a){a;} int f(){g(79);}'
 testf 21 'int g(int a,int b,int c,int d,int e,int f){a+b+c+d+e+f;} int f(){g(1,2,3,4,5,6);}'

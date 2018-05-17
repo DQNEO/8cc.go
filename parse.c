@@ -419,7 +419,6 @@ static Ast *read_declinitializer(Ctype *ctype) {
   return read_expr(0);
 }
 
-
 static Ctype *read_decl_spec(void) {
   Token *tok = read_token();
   Ctype *ctype = get_ctype(tok);

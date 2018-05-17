@@ -108,8 +108,6 @@ test 67 'int a[2]={55,67};int *b=a+1;*b;'
 test 30 'int a[3]={20,30,40};int *b=a+1;*b;'
 
 # Function call
-test 25 'sum2(20, 5);'
-test 15 'sum5(1, 2, 3, 4, 5);'
 test a3 'xprintf("a");3;'
 test abc5 'xprintf("%s", "abc");5;'
 test b1 "xprintf(\"%c\", 'a'+1);1;"

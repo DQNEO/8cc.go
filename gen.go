@@ -297,16 +297,16 @@ func ceil8(n int) int {
 }
 
 func emit_func_prologue() {
-	off := 0
-	for _, v := range locals {
-		off += ceil8(ctype_size(v.ctype))
-		v.variable.loff = off
-	}
 	printf(".text\n\t" +
 		".global mymain\n" +
 		"mymain:\n\t" +
 		"push %%rbp\n\t" +
 		"mov %%rsp, %%rbp\n\t")
+	off := 0
+	for _, v := range locals {
+		off += ceil8(ctype_size(v.ctype))
+		v.variable.loff = off
+	}
 	if off > 0 {
 		printf("sub $%d, %%rsp\n\t", off)
 	}

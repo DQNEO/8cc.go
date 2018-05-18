@@ -566,7 +566,12 @@ func read_block() []*Ast {
 	return r
 }
 
+var x int
 func read_func_decl() *Ast {
+	if x > 0 {
+		return nil
+	}
+	x++
 	block := read_block()
 	params := []*Ast{nil}
 	ctype := ctype_int
@@ -583,7 +588,6 @@ func read_func_list() []*Ast {
 			return func_list
 		}
 		func_list = append(func_list, fnc)
-		return func_list // to be removed
 	}
 
 	return nil

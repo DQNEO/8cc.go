@@ -7,13 +7,13 @@ import (
 func main() {
 	initStdin()
 	wantast := len(os.Args) > 1 && os.Args[1] == "-a"
-	func_list := read_func_list()
+	funcs := read_func_list()
 
 	if !wantast {
 		emit_data_section()
 	}
 
-	for _, fnc := range func_list {
+	for _, fnc := range funcs {
 		if wantast {
 			printf("%s", ast_to_string(fnc))
 		} else {

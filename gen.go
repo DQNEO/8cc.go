@@ -325,8 +325,9 @@ func emit_block(block []*Ast) {
 
 }
 
-func emit_func(fn *Ast) {
-	emit_func_prologue(fn)
-	emit_block(fn.fnc.body)
+func emit_func(fnc *Ast) {
+	assert(fnc.typ == AST_FUNC)
+	emit_func_prologue(fnc)
+	emit_block(fnc.fnc.body)
 	emit_func_epilogue()
 }

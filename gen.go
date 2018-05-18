@@ -297,6 +297,9 @@ func ceil8(n int) int {
 }
 
 func emit_func_prologue(fn *Ast) {
+	if len(fn.fnc.params) > len(REGS) {
+		_error("Parameter list too long: %s", fn.fnc.fname)
+	}
 	printf(".text\n\t" +
 		".global %s\n" +
 		"%s:\n\t", bytes2string(fn.fnc.fname), bytes2string(fn.fnc.fname))

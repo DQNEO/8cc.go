@@ -555,6 +555,23 @@ func read_block() []*Ast {
 	return r
 }
 
+
+func ast_func(body []*Ast) *Ast {
+	r := &Ast{}
+	r.funcall.fname = []byte("mymain\x00")
+	r.funcall.locals = locals
+	r.funcall.body = body
+	return r
+}
+
+func read_func_list() []*Ast {
+	block := read_block()
+	r := ast_func(block)
+	func_list := []*Ast{}
+	func_list = append(func_list, r)
+	return func_list
+}
+
 func ctype_to_string(ctype *Ctype) string {
 	switch ctype.typ {
 	case CTYPE_VOID:

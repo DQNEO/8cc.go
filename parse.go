@@ -8,8 +8,8 @@ import (
 const MAX_ARGS = 6
 
 var globals []*Ast
-var locals []*Ast
 var fparams []*Ast
+var locals []*Ast
 var labelseq = 0
 
 var ctype_int = &Ctype{CTYPE_INT, nil, 0}

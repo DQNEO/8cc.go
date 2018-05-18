@@ -115,10 +115,11 @@ func ast_funcall(fname []byte, args []*Ast) *Ast {
 	return r
 }
 
-func ast_func(fname []byte, locals []*Ast, body []*Ast) *Ast {
+func ast_func(fname []byte, params []*Ast, locals []*Ast, body []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNC
 	r.funcall.fname = fname
+	r.funcall.params = params
 	r.funcall.locals = locals
 	r.funcall.body = body
 	return r
@@ -567,7 +568,7 @@ func read_block() []*Ast {
 
 func read_func_list() []*Ast {
 	block := read_block()
-	r := ast_func([]byte("mymain\x00"), locals, block)
+	r := ast_func([]byte("mymain\x00"), nil, locals, block)
 	func_list := []*Ast{}
 	func_list = append(func_list, r)
 	return func_list

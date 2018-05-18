@@ -469,7 +469,7 @@ func read_declinitializer(ctype *Ctype) *Ast {
 	return read_expr(0)
 }
 
-func read_decl() *Ast {
+func read_decl_spec() *Ctype {
 	ctype := get_ctype(read_token())
 	var tok *Token
 	for {
@@ -481,13 +481,16 @@ func read_decl() *Ast {
 		// pointer
 		ctype = make_ptr_type(ctype)
 	}
-
+	return ctype
+}
+func read_decl() *Ast {
+	ctype := read_decl_spec()
 	varname := read_token()
 	if varname.typ != TTYPE_IDENT {
 		_error("Identifier expected, but got %s", token_to_string(varname))
 	}
 	for { // we need to loop?
-		tok = read_token()
+		tok := read_token()
 		if is_punct(tok, '[') {
 			size := read_expr(0)
 			//                            wny not compare to size.ctype != ctype_int ?

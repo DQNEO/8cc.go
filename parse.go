@@ -9,7 +9,7 @@ const MAX_ARGS = 6
 
 var globals []*Ast
 var locals []*Ast
-
+var fparams []*Ast
 var labelseq = 0
 
 var ctype_int = &Ctype{CTYPE_INT, nil, 0}
@@ -60,7 +60,9 @@ func ast_lvar(ctype *Ctype, name []byte) *Ast {
 	r.typ = AST_LVAR
 	r.ctype = ctype
 	r.variable.lname = name
-	locals = append(locals, r)
+	if locals != nil {
+		locals = append(locals, r)
+	}
 	return r
 }
 
@@ -170,6 +172,12 @@ func make_array_type(ctype *Ctype, size int) *Ctype {
 }
 
 func find_var(name []byte) *Ast {
+	for _, v := range fparams {
+		if strcmp(name, v.variable.lname) == 0 {
+			return v
+		}
+	}
+
 	for _, v := range locals {
 		if strcmp(name, v.variable.lname) == 0 {
 			return v
@@ -609,11 +617,14 @@ func read_func_decl() *Ast {
 		_error("Function name expected, but got %s", token_to_string(fname))
 	}
 	expect('(')
-	fparams := read_params()
+	fparams = read_params()
 	expect('{')
+	locals = make([]*Ast, 0)
 	body := read_block()
 	expect('}')
 	r := ast_func(rettype, fname.v.sval, fparams, locals, body)
+	locals = nil
+	fparams = nil
 	return r
 }
 

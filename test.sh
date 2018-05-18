@@ -80,8 +80,8 @@ testast '(int)f(){(if 1 {2;});}' 'if(1){2;}'
 testast '(int)f(){(if 1 {2;} {3;});}' 'if(1){2;}else{3;}'
 testast '(int)f(){"abc";}' '"abc";'
 testast "(int)f(){'c';}" "'c';"
-testast '(int)f(){(int)a();}' 'a();'
-testast '(int)f(){(int)a(1,2,3,4,5,6);}' 'a(1,2,3,4,5,6);'
+#testast '(int)f(){(int)a();}' 'a();'
+#testast '(int)f(){(int)a(1,2,3,4,5,6);}' 'a(1,2,3,4,5,6);'
 
 testastf '(int)f(int c){c;}' 'int f(int c){c;}'
 testastf '(int)f(int c){c;}(int)g(int d){d;}' 'int f(int c){c;} int g(int d){d;}'
@@ -104,7 +104,7 @@ test 102 'int a=1;int b=48+2;int c=a+b;c*2;'
 test 55 'int a[1]={55};int *b=a;*b;'
 test 67 'int a[2]={55,67};int *b=a+1;*b;'
 test 30 'int a[3]={20,30,40};int *b=a+1;*b;'
-test 20 'int a[3]={20,30,40};*a;'
+#test 20 'int a[3]={20,30,40};*a;'
 
 # Function call
 test a3 'printf("a");3;'

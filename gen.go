@@ -304,6 +304,13 @@ func emit_func_prologue(fn *Ast) {
 		"push %%rbp\n\t" +
 		"mov %%rsp, %%rbp\n\t")
 	off := 0
+	ri := 0
+	for _, v := range fn.fnc.params {
+		printf("push %%%s\n\t", REGS[ri])
+		ri++
+		off += ceil8(ctype_size(v.ctype))
+		v.variable.loff = off
+	}
 	for _, v := range fn.fnc.locals {
 		off += ceil8(ctype_size(v.ctype))
 		v.variable.loff = off

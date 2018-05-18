@@ -565,12 +565,25 @@ func read_block() []*Ast {
 	return r
 }
 
+func read_func_decl() *Ast {
+	block := read_block()
+	params := []*Ast{nil}
+	r := ast_func([]byte("mymain\x00"), params, locals, block)
+	return r
+}
 
 func read_func_list() []*Ast {
 	var func_list []*Ast
-	block := read_block()
-	r := ast_func([]byte("mymain\x00"), nil, locals, block)
-	func_list = append(func_list, r)
+
+	for {
+		fnc := read_func_decl()
+		if fnc == nil {
+			return func_list
+		}
+		func_list = append(func_list, fnc)
+		break
+	}
+
 	return func_list
 }
 

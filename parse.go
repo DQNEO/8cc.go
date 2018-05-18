@@ -567,9 +567,9 @@ func read_block() []*Ast {
 
 
 func read_func_list() []*Ast {
+	var func_list []*Ast
 	block := read_block()
 	r := ast_func([]byte("mymain\x00"), nil, locals, block)
-	func_list := []*Ast{}
 	func_list = append(func_list, r)
 	return func_list
 }

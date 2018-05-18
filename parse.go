@@ -575,8 +575,11 @@ func read_block() []*Ast {
 		if stmt != nil {
 			r = append(r, stmt)
 		}
+		if stmt == nil {
+			break
+		}
 		tok := peek_token()
-		if stmt == nil || is_punct(tok, '}'){
+		if is_punct(tok, '}'){
 			break
 		}
 	}

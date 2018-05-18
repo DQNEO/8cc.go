@@ -531,7 +531,6 @@ func read_if_stmt() *Ast {
 	expect(')')
 	expect('{')
 	then := read_block()
-	expect('}')
 	tok := read_token()
 	if tok == nil || tok.typ != TTYPE_IDENT || strcmp(tok.v.sval, []byte("else\x00")) != 0 {
 		unget_token(tok)
@@ -539,7 +538,6 @@ func read_if_stmt() *Ast {
 	}
 	expect('{')
 	els := read_block()
-	expect('}')
 	return ast_if(cond, then, els)
 }
 
@@ -578,10 +576,11 @@ func read_block() []*Ast {
 		if stmt == nil {
 			break
 		}
-		tok := peek_token()
+		tok := read_token()
 		if is_punct(tok, '}'){
 			break
 		}
+		unget_token(tok)
 	}
 
 	return r
@@ -627,7 +626,6 @@ func read_func_decl() *Ast {
 	expect('{')
 	locals = make([]*Ast, 0)
 	body := read_block()
-	expect('}')
 	r := ast_func(rettype, fname.v.sval, fparams, locals, body)
 	locals = nil
 	fparams = nil

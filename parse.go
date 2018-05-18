@@ -475,15 +475,16 @@ func read_decl() *Ast {
 	for {
 		tok = read_token()
 		if !is_punct(tok, '*') {
+			unget_token(tok)
 			break
 		}
 		// pointer
 		ctype = make_ptr_type(ctype)
 	}
 
-	varname := tok
+	varname := read_token()
 	if varname.typ != TTYPE_IDENT {
-		_error("Identifier expected, but got %s", token_to_string(tok))
+		_error("Identifier expected, but got %s", token_to_string(varname))
 	}
 	for { // we need to loop?
 		tok = read_token()

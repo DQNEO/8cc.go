@@ -558,6 +558,7 @@ func read_block() []*Ast {
 
 func ast_func(body []*Ast) *Ast {
 	r := &Ast{}
+	r.typ = AST_FUNC
 	r.funcall.fname = []byte("mymain\x00")
 	r.funcall.locals = locals
 	r.funcall.body = body
@@ -616,6 +617,8 @@ func ast_to_string_int(ast *Ast) string {
 		return fmt.Sprintf("%s[%d]", ast_to_string(ast.lref.ref), ast.lref.off)
 	case AST_GREF:
 		return fmt.Sprintf("%s[%d]", ast_to_string(ast.gref.ref), ast.gref.off)
+	case AST_FUNC:
+		return fmt.Sprintf("%s", block_to_string(ast.funcall.body))
 	case AST_FUNCALL:
 		s := fmt.Sprintf("%s(", bytes2string(ast.funcall.fname))
 		for i,v :=  range ast.funcall.args {

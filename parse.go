@@ -360,7 +360,7 @@ func read_unary_expr() *Ast {
 		return ast_uop(AST_ADDR, make_ptr_type(operand.ctype), operand)
 	}
 	if is_punct(tok, '*') {
-		operand := read_unary_expr()
+		operand := convert_array(read_unary_expr())
 		if operand.ctype.typ != CTYPE_PTR {
 			_error("pointer type expected, but got %", ast_to_string(operand))
 		}

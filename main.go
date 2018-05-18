@@ -24,11 +24,15 @@ func main() {
 	initStdin()
 	wantast := len(os.Args) > 1 && os.Args[1] == "-a"
 	func_list := read_func_list()
+
+	if !wantast {
+		emit_data_section()
+	}
+
 	f := func_list[0]
 	if wantast {
 		printf("%s", block_to_string(f.funcall.body))
 	} else {
-		emit_data_section()
 		emit_func(f)
 	}
 

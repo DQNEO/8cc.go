@@ -476,7 +476,7 @@ func read_decl_spec() *Ctype {
 		tok = read_token()
 		if !is_punct(tok, '*') {
 			unget_token(tok)
-			break
+			return ctype
 		}
 		// pointer
 		ctype = make_ptr_type(ctype)

@@ -115,6 +115,15 @@ func ast_funcall(fname []byte, args []*Ast) *Ast {
 	return r
 }
 
+func ast_func(fname []byte, locals []*Ast, body []*Ast) *Ast {
+	r := &Ast{}
+	r.typ = AST_FUNC
+	r.funcall.fname = fname
+	r.funcall.locals = locals
+	r.funcall.body = body
+	return r
+}
+
 func ast_decl(variable *Ast, init *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_DECL
@@ -555,15 +564,6 @@ func read_block() []*Ast {
 	return r
 }
 
-
-func ast_func(fname []byte, locals []*Ast, body []*Ast) *Ast {
-	r := &Ast{}
-	r.typ = AST_FUNC
-	r.funcall.fname = fname
-	r.funcall.locals = locals
-	r.funcall.body = body
-	return r
-}
 
 func read_func_list() []*Ast {
 	block := read_block()

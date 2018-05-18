@@ -106,18 +106,19 @@ func ast_string(str []byte) *Ast {
 	return r
 }
 
-func ast_funcall(fname []byte, args []*Ast) *Ast {
+func ast_funcall(ctype *Ctype, fname []byte, args []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNCALL
-	r.ctype = ctype_int // WHY??
+	r.ctype = ctype
 	r.fnc.fname = fname
 	r.fnc.args = args
 	return r
 }
 
-func ast_func(fname []byte, params []*Ast, locals []*Ast, body []*Ast) *Ast {
+func ast_func(rettype *Ctype, fname []byte, params []*Ast, locals []*Ast, body []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNC
+	r.ctype = rettype
 	r.fnc.fname = fname
 	r.fnc.params = params
 	r.fnc.locals = locals
@@ -225,7 +226,7 @@ func read_func_args(fname []byte) *Ast {
 	if MAX_ARGS < len(args) {
 		_error("Too many arguments: %s", fname)
 	}
-	return ast_funcall(fname, args)
+	return ast_funcall(ctype_int, fname, args)
 }
 
 func read_ident_or_func(name []byte) *Ast {
@@ -568,7 +569,8 @@ func read_block() []*Ast {
 func read_func_decl() *Ast {
 	block := read_block()
 	params := []*Ast{nil}
-	r := ast_func([]byte("mymain\x00"), params, locals, block)
+	ctype := ctype_int
+	r := ast_func(ctype, []byte("mymain\x00"), params, locals, block)
 	return r
 }
 

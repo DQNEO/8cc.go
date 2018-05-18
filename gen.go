@@ -277,7 +277,7 @@ func emit_data_section() {
 	if globals == nil {
 		return
 	}
-	printf("\t.data\n")
+	printf(".data\n")
 	for _,v := range globals {
 		assert(v.typ == AST_STRING)
 		printf("%s:\n\t", bytes2string(v.str.slabel))

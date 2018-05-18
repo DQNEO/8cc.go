@@ -326,6 +326,23 @@ func ensure_lvalue(ast *Ast) {
 	return
 }
 
+func convert_array(ast *Ast) *Ast {
+	if ast.typ == AST_STRING {
+		return ast_gref(make_ptr_type(ctype_char), ast, 0)
+	}
+	if ast.ctype.typ != CTYPE_ARRAY {
+		return ast
+	}
+	if ast.typ == AST_LVAR {
+		return ast_lref(make_ptr_type(ast.ctype.ptr), ast, 0)
+	}
+
+	if ast.typ != AST_GVAR {
+		_error("Internal error: Gvar expected, but got %s", ast_to_string(ast))
+	}
+	return ast_gref(make_ptr_type(ast.ctype.ptr), ast, 0)
+}
+
 func read_unary_expr() *Ast {
 	tok := read_token()
 	if is_punct(tok, '&') {
@@ -342,23 +359,6 @@ func read_unary_expr() *Ast {
 	}
 	unget_token(tok)
 	return read_prim()
-}
-
-func convert_array(ast *Ast) *Ast {
-	if ast.typ == AST_STRING {
-		return ast_gref(make_ptr_type(ctype_char), ast, 0)
-	}
-	if ast.ctype.typ != CTYPE_ARRAY {
-		return ast
-	}
-	if ast.typ == AST_LVAR {
-		return ast_lref(make_ptr_type(ast.ctype.ptr), ast, 0)
-	}
-
-	if ast.typ != AST_GVAR {
-		_error("Internal error: Gvar expected, but got %s", ast_to_string(ast))
-	}
-	return ast_gref(make_ptr_type(ast.ctype.ptr), ast, 0)
 }
 
 func read_expr(prec int) *Ast {

@@ -6,15 +6,19 @@ import (
 
 func main() {
 	initStdin()
-	wantast := (len(os.Args) > 1 && os.Args[1] == "-a")
-	block := read_block()
-	if wantast {
-		printf("%s", block_to_string(block))
-	} else {
-		print_asm_header()
-		emit_block(block)
-		printf("leave\n\t" +
-			"ret\n")
+	wantast := len(os.Args) > 1 && os.Args[1] == "-a"
+	funcs := read_func_list()
+
+	if !wantast {
+		emit_data_section()
+	}
+
+	for _, fnc := range funcs {
+		if wantast {
+			printf("%s", ast_to_string(fnc))
+		} else {
+			emit_func(fnc)
+		}
 	}
 
 	return

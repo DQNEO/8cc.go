@@ -46,18 +46,18 @@ func emit_gload(ctype *Ctype, label []byte, off int) {
 
 func emit_lload(v *Ast, off int) {
 	if v.ctype.typ == CTYPE_ARRAY {
-		printf("lea -%d(%%rbp), %%rax\n\t", v.variable.loff)
+		printf("lea %d(%%rbp), %%rax\n\t", -v.variable.loff)
 		return
 	}
 	size := ctype_size(v.ctype)
 	switch size {
 	case 1:
 		printf("mov $0, %%eax\n\t")
-		printf("mov -%d(%%rbp), %%al\n\t", v.variable.loff)
+		printf("mov %d(%%rbp), %%al\n\t", -v.variable.loff)
 	case 4:
-		printf("mov -%d(%%rbp), %%eax\n\t", v.variable.loff)
+		printf("mov %d(%%rbp), %%eax\n\t", -v.variable.loff)
 	case 8:
-		printf("mov -%d(%%rbp), %%rax\n\t", v.variable.loff)
+		printf("mov %d(%%rbp), %%rax\n\t", -v.variable.loff)
 	default:
 		_error("Unknown data size: %s: %d", ast_to_string(v), size)
 	}
@@ -69,8 +69,8 @@ func emit_lload(v *Ast, off int) {
 func emit_gsave(v *Ast, off int) {
 	assert(v.ctype.typ != CTYPE_ARRAY)
 	var reg string
-	printf("push %%rbx\n\t")
-	printf("mov %s(%%rip) %%rbx\n\t", v.gvar.glabel)
+	printf("push %%rcx\n\t")
+	printf("mov %s(%%rip) %%rcx\n\t", v.gvar.glabel)
 
 	size := ctype_size(v.ctype)
 	switch size {
@@ -84,7 +84,7 @@ func emit_gsave(v *Ast, off int) {
 		_error("Unknown data size: %s: %d", ast_to_string(v), size)
 	}
 	printf("mov %s, %d(%%rbp)\n\t", reg, off*size)
-	printf("pop %%rbx\n\t")
+	printf("pop %%rcx\n\t")
 }
 
 func emit_lsave(ctype *Ctype, loff int, off int) {
@@ -98,10 +98,10 @@ func emit_lsave(ctype *Ctype, loff int, off int) {
 	case 8:
 		reg = "rax"
 	}
-	printf("mov %%%s, -%d(%%rbp)\n\t", reg, loff+off*size)
+	printf("mov %%%s, %d(%%rbp)\n\t", reg, -(loff+off*size))
 }
 
-func emit_pointer_arith(op byte, left *Ast, right *Ast) {
+func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
 	assert(left.ctype.typ == CTYPE_PTR)
 	emit_expr(left)
 	printf("push %%rax\n\t")
@@ -110,9 +110,9 @@ func emit_pointer_arith(op byte, left *Ast, right *Ast) {
 	if size > 1 {
 		printf("imul $%d, %%rax\n\t", size)
 	}
-	printf("mov %%rax, %%rbx\n\t" +
+	printf("mov %%rax, %%rcx\n\t" +
 		"pop %%rax\n\t" +
-		"add %%rbx, %%rax\n\t")
+		"add %%rcx, %%rax\n\t")
 }
 
 func emit_assign(variable *Ast, value *Ast) {
@@ -129,7 +129,7 @@ func emit_assign(variable *Ast, value *Ast) {
 	default:
 		_error("internal error")
 	}
-	printf("mov %%rax, -%d(%%rbp)\n\t", variable.variable.loff)
+	printf("mov %%rax, %d(%%rbp)\n\t", -variable.variable.loff)
 }
 
 func emit_binop(ast *Ast) {
@@ -160,13 +160,13 @@ func emit_binop(ast *Ast) {
 	printf("push %%rax\n\t")
 	emit_expr(ast.binop.right)
 	if ast.typ == '/' {
-		printf("mov %%rax, %%rbx\n\t")
+		printf("mov %%rax, %%rcx\n\t")
 		printf("pop %%rax\n\t")
 		printf("mov $0, %%edx\n\t")
-		printf("idiv %%rbx\n\t")
+		printf("idiv %%rcx\n\t")
 	} else {
-		printf("pop %%rbx\n\t")
-		printf("%s %%rbx, %%rax\n\t", op)
+		printf("pop %%rcx\n\t")
+		printf("%s %%rcx, %%rax\n\t", op)
 	}
 }
 
@@ -198,19 +198,19 @@ func emit_expr(ast *Ast) {
 			emit_gload(ast.gref.ref.ctype, ast.gref.ref.gvar.glabel, ast.gref.off)
 		}
 	case AST_FUNCALL:
-		for i := 1; i < len(ast.funcall.args); i++ {
+		for i := 1; i < len(ast.fnc.args); i++ {
 			printf("push %%%s\n\t", REGS[i])
 		}
-		for _, v := range ast.funcall.args {
+		for _, v := range ast.fnc.args {
 			emit_expr(v)
 			printf("push %%rax\n\t")
 		}
-		for i := len(ast.funcall.args) - 1; i >= 0; i-- {
+		for i := len(ast.fnc.args) - 1; i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 		printf("mov $0, %%eax\n\t")
-		printf("call %s\n\t", bytes2string(ast.funcall.fname))
-		for i := len(ast.funcall.args); i >= 0; i-- {
+		printf("call %s\n\t", bytes2string(ast.fnc.fname))
+		for i := len(ast.fnc.args) -1 ; i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 	case AST_DECL:
@@ -223,9 +223,9 @@ func emit_expr(ast *Ast) {
 			assert(ast.decl.declinit.typ == AST_STRING)
 			var i int
 			for i = 0; ast.decl.declinit.str.val[i] != 0; i++ {
-				printf("movb $%d, -%d(%%rbp)\n\t", ast.decl.declinit.str.val[i], ast.decl.declvar.variable.loff-i)
+				printf("movb $%d, %d(%%rbp)\n\t", ast.decl.declinit.str.val[i], -(ast.decl.declvar.variable.loff-i))
 			}
-			printf("movb $0, -%d(%%rbp)\n\t", ast.decl.declvar.variable.loff-i)
+			printf("movb $0, %d(%%rbp)\n\t", -(ast.decl.declvar.variable.loff-i))
 		} else if ast.decl.declinit.typ == AST_STRING {
 			emit_gload(ast.decl.declinit.ctype, ast.decl.declinit.str.slabel, 0)
 			emit_lsave(ast.decl.declvar.ctype, ast.decl.declvar.variable.loff, 0)
@@ -235,24 +235,24 @@ func emit_expr(ast *Ast) {
 		}
 	case AST_ADDR:
 		assert(ast.unary.operand.typ == AST_LVAR)
-		printf("lea -%d(%%rbp), %%rax\n\t", ast.unary.operand.variable.loff)
+		printf("lea %d(%%rbp), %%rax\n\t", -ast.unary.operand.variable.loff)
 	case AST_DEREF:
 		assert(ast.unary.operand.ctype.typ == CTYPE_PTR)
 		emit_expr(ast.unary.operand)
 		var reg string
 		switch ctype_size(ast.ctype) {
 		case 1:
-			reg = "%bl"
+			reg = "%cl"
 		case 4:
-			reg = "%ebx"
+			reg = "%ecx"
 		case 8:
-			reg = "%rbx"
+			reg = "%rcx"
 		default:
 			_error("internal error")
 		}
-		printf("mov $0, %%ebx\n\t")
+		printf("mov $0, %%ecx\n\t")
 		printf("mov (%%rax), %s\n\t", reg)
-		printf("mov %%rbx, %%rax\n\t")
+		printf("mov %%rcx, %%rax\n\t")
 	case AST_IF:
 		emit_expr(ast._if.cond)
 		l1 := make_label()
@@ -277,7 +277,7 @@ func emit_data_section() {
 	if globals == nil {
 		return
 	}
-	printf("\t.data\n")
+	printf(".data\n")
 	for _,v := range globals {
 		assert(v.typ == AST_STRING)
 		printf("%s:\n\t", bytes2string(v.str.slabel))
@@ -296,25 +296,48 @@ func ceil8(n int) int {
 	}
 }
 
-func print_asm_header() {
+func emit_func_prologue(fn *Ast) {
+	if len(fn.fnc.params) > len(REGS) {
+		_error("Parameter list too long: %s", fn.fnc.fname)
+	}
+	printf(".text\n\t" +
+		".global %s\n" +
+		"%s:\n\t", bytes2string(fn.fnc.fname), bytes2string(fn.fnc.fname))
+	printf(
+		"push %%rbp\n\t" +
+		"mov %%rsp, %%rbp\n\t")
 	off := 0
-	for _, v := range locals {
+	ri := 0
+	for _, v := range fn.fnc.params {
+		printf("push %%%s\n\t", REGS[ri])
+		ri++
 		off += ceil8(ctype_size(v.ctype))
 		v.variable.loff = off
 	}
-	emit_data_section()
-	printf(".text\n\t" +
-		".global mymain\n" +
-		"mymain:\n\t" +
-		"push %%rbp\n\t" +
-		"mov %%rsp, %%rbp\n\t")
+	for _, v := range fn.fnc.locals {
+		off += ceil8(ctype_size(v.ctype))
+		v.variable.loff = off
+	}
 	if off > 0 {
 		printf("sub $%d, %%rsp\n\t", off)
 	}
+}
+
+func emit_func_epilogue() {
+	printf("leave\n\t" +
+		"ret\n")
 }
 
 func emit_block(block []*Ast) {
 	for _,v := range block {
 		emit_expr(v)
 	}
+
+}
+
+func emit_func(fnc *Ast) {
+	assert(fnc.typ == AST_FUNC)
+	emit_func_prologue(fnc)
+	emit_block(fnc.fnc.body)
+	emit_func_epilogue()
 }

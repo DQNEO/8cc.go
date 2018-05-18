@@ -8,8 +8,8 @@ import (
 const MAX_ARGS = 6
 
 var globals []*Ast
+var fparams []*Ast
 var locals []*Ast
-
 var labelseq = 0
 
 var ctype_int = &Ctype{CTYPE_INT, nil, 0}
@@ -60,7 +60,9 @@ func ast_lvar(ctype *Ctype, name []byte) *Ast {
 	r.typ = AST_LVAR
 	r.ctype = ctype
 	r.variable.lname = name
-	locals = append(locals, r)
+	if locals != nil {
+		locals = append(locals, r)
+	}
 	return r
 }
 
@@ -106,12 +108,23 @@ func ast_string(str []byte) *Ast {
 	return r
 }
 
-func ast_funcall(fname []byte, args []*Ast) *Ast {
+func ast_funcall(ctype *Ctype, fname []byte, args []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNCALL
-	r.ctype = ctype_int // WHY??
-	r.funcall.fname = fname
-	r.funcall.args = args
+	r.ctype = ctype
+	r.fnc.fname = fname
+	r.fnc.args = args
+	return r
+}
+
+func ast_func(rettype *Ctype, fname []byte, params []*Ast, locals []*Ast, body []*Ast) *Ast {
+	r := &Ast{}
+	r.typ = AST_FUNC
+	r.ctype = rettype
+	r.fnc.fname = fname
+	r.fnc.params = params
+	r.fnc.locals = locals
+	r.fnc.body = body
 	return r
 }
 
@@ -159,6 +172,12 @@ func make_array_type(ctype *Ctype, size int) *Ctype {
 }
 
 func find_var(name []byte) *Ast {
+	for _, v := range fparams {
+		if strcmp(name, v.variable.lname) == 0 {
+			return v
+		}
+	}
+
 	for _, v := range locals {
 		if strcmp(name, v.variable.lname) == 0 {
 			return v
@@ -215,7 +234,7 @@ func read_func_args(fname []byte) *Ast {
 	if MAX_ARGS < len(args) {
 		_error("Too many arguments: %s", fname)
 	}
-	return ast_funcall(fname, args)
+	return ast_funcall(ctype_int, fname, args)
 }
 
 func read_ident_or_func(name []byte) *Ast {
@@ -316,24 +335,6 @@ func ensure_lvalue(ast *Ast) {
 	return
 }
 
-func read_unary_expr() *Ast {
-	tok := read_token()
-	if is_punct(tok, '&') {
-		operand := read_unary_expr()
-		ensure_lvalue(operand)
-		return ast_uop(AST_ADDR, make_ptr_type(operand.ctype), operand)
-	}
-	if is_punct(tok, '*') {
-		operand := read_unary_expr()
-		if operand.ctype.typ != CTYPE_PTR {
-			_error("pointer type expected, but got %", ast_to_string(operand))
-		}
-		return ast_uop(AST_DEREF, operand.ctype.ptr, operand)
-	}
-	unget_token(tok)
-	return read_prim()
-}
-
 func convert_array(ast *Ast) *Ast {
 	if ast.typ == AST_STRING {
 		return ast_gref(make_ptr_type(ctype_char), ast, 0)
@@ -349,6 +350,24 @@ func convert_array(ast *Ast) *Ast {
 		_error("Internal error: Gvar expected, but got %s", ast_to_string(ast))
 	}
 	return ast_gref(make_ptr_type(ast.ctype.ptr), ast, 0)
+}
+
+func read_unary_expr() *Ast {
+	tok := read_token()
+	if is_punct(tok, '&') {
+		operand := read_unary_expr()
+		ensure_lvalue(operand)
+		return ast_uop(AST_ADDR, make_ptr_type(operand.ctype), operand)
+	}
+	if is_punct(tok, '*') {
+		operand := convert_array(read_unary_expr())
+		if operand.ctype.typ != CTYPE_PTR {
+			_error("pointer type expected, but got %", ast_to_string(operand))
+		}
+		return ast_uop(AST_DEREF, operand.ctype.ptr, operand)
+	}
+	unget_token(tok)
+	return read_prim()
 }
 
 func read_expr(prec int) *Ast {
@@ -393,10 +412,13 @@ func read_expr(prec int) *Ast {
 }
 
 func get_ctype(tok *Token) *Ctype {
+	if tok == nil {
+		return nil
+	}
 	if tok.typ != TTYPE_IDENT {
 		return nil
 	}
-	//@TODO use string literal
+
 	if strcmp(tok.v.sval, []byte("int\x00")) == 0 {
 		return ctype_int
 	}
@@ -458,24 +480,31 @@ func read_declinitializer(ctype *Ctype) *Ast {
 	return read_expr(0)
 }
 
-func read_decl() *Ast {
-	ctype := get_ctype(read_token())
-	var tok *Token
+func read_decl_spec() *Ctype {
+	tok := read_token()
+	ctype := get_ctype(tok)
+	if ctype == nil {
+		_error("Type expected, but got %s", token_to_string(tok))
+	}
 	for {
 		tok = read_token()
 		if !is_punct(tok, '*') {
-			break
+			unget_token(tok)
+			return ctype
 		}
 		// pointer
 		ctype = make_ptr_type(ctype)
 	}
-
-	if tok.typ != TTYPE_IDENT {
-		_error("Identifier expected, but got %s", token_to_string(tok))
+	return ctype
+}
+func read_decl() *Ast {
+	ctype := read_decl_spec()
+	varname := read_token()
+	if varname.typ != TTYPE_IDENT {
+		_error("Identifier expected, but got %s", token_to_string(varname))
 	}
-	varname := tok
 	for { // we need to loop?
-		tok = read_token()
+		tok := read_token()
 		if is_punct(tok, '[') {
 			size := read_expr(0)
 			//                            wny not compare to size.ctype != ctype_int ?
@@ -502,7 +531,6 @@ func read_if_stmt() *Ast {
 	expect(')')
 	expect('{')
 	then := read_block()
-	expect('}')
 	tok := read_token()
 	if tok == nil || tok.typ != TTYPE_IDENT || strcmp(tok.v.sval, []byte("else\x00")) != 0 {
 		unget_token(tok)
@@ -510,7 +538,6 @@ func read_if_stmt() *Ast {
 	}
 	expect('{')
 	els := read_block()
-	expect('}')
 	return ast_if(cond, then, els)
 }
 
@@ -546,13 +573,77 @@ func read_block() []*Ast {
 		if stmt != nil {
 			r = append(r, stmt)
 		}
-		tok := peek_token()
-		if stmt == nil || is_punct(tok, '}'){
+		if stmt == nil {
 			break
 		}
+		tok := read_token()
+		if is_punct(tok, '}'){
+			break
+		}
+		unget_token(tok)
 	}
 
 	return r
+}
+
+func read_params() []*Ast {
+	var params []*Ast
+	pt := read_token()
+	if is_punct(pt, ')') {
+		return nil
+	}
+	unget_token(pt)
+	for {
+		ctype := read_decl_spec()
+		pname := read_token()
+		if pname.typ != TTYPE_IDENT {
+			_error("Identifier expected, but got %s", token_to_string(pname))
+		}
+		params = append(params, ast_lvar(ctype, pname.v.sval))
+		tok := read_token()
+		if is_punct(tok, ')') {
+			return params
+		}
+		if !is_punct(tok, ',') {
+			_error("Comma expected, but got %s", token_to_string(tok))
+		}
+	}
+	return params // this is never reached
+}
+
+func read_func_decl() *Ast {
+	tok := peek_token()
+	if tok == nil {
+		return nil
+	}
+	rettype := read_decl_spec()
+	fname := read_token()
+	if fname.typ != TTYPE_IDENT {
+		_error("Function name expected, but got %s", token_to_string(fname))
+	}
+	expect('(')
+	fparams = read_params()
+	expect('{')
+	locals = make([]*Ast, 0)
+	body := read_block()
+	r := ast_func(rettype, fname.v.sval, fparams, locals, body)
+	locals = nil
+	fparams = nil
+	return r
+}
+
+func read_func_list() []*Ast {
+	var func_list []*Ast
+
+	for {
+		fnc := read_func_decl()
+		if fnc == nil {
+			return func_list
+		}
+		func_list = append(func_list, fnc)
+	}
+
+	return nil
 }
 
 func ctype_to_string(ctype *Ctype) string {
@@ -572,6 +663,16 @@ func ctype_to_string(ctype *Ctype) string {
 	}
 
 	return ""
+}
+
+func block_to_string(block []*Ast) string {
+	s := "{"
+	for _, v := range block {
+		s += ast_to_string(v)
+		s += ";"
+	}
+	s += "}"
+	return s
 }
 
 func ast_to_string_int(ast *Ast) string {
@@ -600,14 +701,27 @@ func ast_to_string_int(ast *Ast) string {
 	case AST_GREF:
 		return fmt.Sprintf("%s[%d]", ast_to_string(ast.gref.ref), ast.gref.off)
 	case AST_FUNCALL:
-		s := fmt.Sprintf("%s(", bytes2string(ast.funcall.fname))
-		for i,v :=  range ast.funcall.args {
+		s := fmt.Sprintf("(%s)%s(", ctype_to_string(ast.ctype), bytes2string(ast.fnc.fname))
+		for i,v :=  range ast.fnc.args {
 			s += ast_to_string_int(v)
-			if i < len(ast.funcall.args) - 1 {
+			if i < len(ast.fnc.args) - 1 {
 				s += ","
 			}
 		}
 		s += ")"
+		return s
+	case AST_FUNC:
+		s := fmt.Sprintf("(%s)%s(",
+			ctype_to_string(ast.ctype),
+			bytes2string(ast.fnc.fname))
+		for i,p := range ast.fnc.params {
+			s += fmt.Sprintf("%s %s", ctype_to_string(p.ctype), ast_to_string(p))
+			if i < (len(ast.fnc.params) - 1) {
+				s += ","
+			}
+		}
+		s += fmt.Sprintf(")%s",
+				block_to_string(ast.fnc.body))
 		return s
 	case AST_DECL:
 		return fmt.Sprintf("(decl %s %s %s)",
@@ -646,14 +760,4 @@ func ast_to_string_int(ast *Ast) string {
 
 func ast_to_string(ast *Ast) string {
 	return ast_to_string_int(ast)
-}
-
-func block_to_string(block []*Ast) string {
-	s := "{"
-	for _, v := range block {
-		s += ast_to_string(v)
-		s += ";"
-	}
-	s += "}"
-	return s
 }

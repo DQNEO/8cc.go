@@ -148,26 +148,24 @@ func read_token_init() *Token {
 		return nil
 	}
 
-	// TODO use switch syntax
-	if '0' <= c && c <= '9' {
+	switch {
+	case '0' <= c && c <= '9':
 		return read_number(c)
-	}
-	if c == '"' {
+	case c == '"':
 		return read_string()
-	}
-	if c == '\'' {
+	case c == '\'':
 		return read_char()
-	}
-	if ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_' {
+	case ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_':
 		return read_ident(c)
-	}
-	if c == '/' || c == '=' || c == '*' ||
+	case c == '/' || c == '=' || c == '*' ||
 		c == '+' || c == '-' || c == '(' ||
 		c == ')' || c == ',' || c == ';' || c == '&' ||
-		c == '[' || c == ']' || c == '{' || c == '}' {
+		c == '[' || c == ']' || c == '{' || c == '}':
 		return make_punct(c)
+	default:
+		_error("Don't know how to handle '%c'", c)
 	}
-	_error("Don't know how to handle '%c'", c)
+
 	return nil
 }
 

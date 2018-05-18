@@ -26,6 +26,7 @@ const (
 	AST_GVAR
 	AST_GREF
 	AST_FUNCALL
+	AST_FUNC
 	AST_DECL
 	AST_ARRAY_INIT
 	AST_ADDR
@@ -89,11 +90,13 @@ type Ast struct {
 	unary struct {
 		operand *Ast
 	}
-	// Function call
-	funcall struct {
+	// Function call or function declaration
+	fnc struct {
 		fname []byte
-		nargs int
 		args  []*Ast
+		params []*Ast
+		locals []*Ast
+		body []*Ast
 	}
 	// Declaration
 	decl struct {

@@ -581,10 +581,10 @@ func read_func_list() []*Ast {
 			return func_list
 		}
 		func_list = append(func_list, fnc)
-		break
+		return func_list // to be removed
 	}
 
-	return func_list
+	return nil
 }
 
 func ctype_to_string(ctype *Ctype) string {

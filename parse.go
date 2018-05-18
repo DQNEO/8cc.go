@@ -412,6 +412,9 @@ func read_expr(prec int) *Ast {
 }
 
 func get_ctype(tok *Token) *Ctype {
+	if tok == nil {
+		return nil
+	}
 	if tok.typ != TTYPE_IDENT {
 		return nil
 	}

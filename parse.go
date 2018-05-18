@@ -470,8 +470,11 @@ func read_declinitializer(ctype *Ctype) *Ast {
 }
 
 func read_decl_spec() *Ctype {
-	ctype := get_ctype(read_token())
-	var tok *Token
+	tok := read_token()
+	ctype := get_ctype(tok)
+	if ctype == nil {
+		_error("Type expected, but got %s", token_to_string(tok))
+	}
 	for {
 		tok = read_token()
 		if !is_punct(tok, '*') {

@@ -29,11 +29,12 @@ func main() {
 		emit_data_section()
 	}
 
-	f := func_list[0]
-	if wantast {
-		printf("%s", block_to_string(f.funcall.body))
-	} else {
-		emit_func(f)
+	for _, fnc := range func_list {
+		if wantast {
+			printf("%s", block_to_string(fnc.funcall.body))
+		} else {
+			emit_func(fnc)
+		}
 	}
 
 	return

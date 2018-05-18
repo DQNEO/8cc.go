@@ -110,18 +110,18 @@ func ast_funcall(fname []byte, args []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNCALL
 	r.ctype = ctype_int // WHY??
-	r.funcall.fname = fname
-	r.funcall.args = args
+	r.fnc.fname = fname
+	r.fnc.args = args
 	return r
 }
 
 func ast_func(fname []byte, params []*Ast, locals []*Ast, body []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNC
-	r.funcall.fname = fname
-	r.funcall.params = params
-	r.funcall.locals = locals
-	r.funcall.body = body
+	r.fnc.fname = fname
+	r.fnc.params = params
+	r.fnc.locals = locals
+	r.fnc.body = body
 	return r
 }
 
@@ -619,12 +619,12 @@ func ast_to_string_int(ast *Ast) string {
 	case AST_GREF:
 		return fmt.Sprintf("%s[%d]", ast_to_string(ast.gref.ref), ast.gref.off)
 	case AST_FUNC:
-		return fmt.Sprintf("%s", block_to_string(ast.funcall.body))
+		return fmt.Sprintf("%s", block_to_string(ast.fnc.body))
 	case AST_FUNCALL:
-		s := fmt.Sprintf("%s(", bytes2string(ast.funcall.fname))
-		for i,v :=  range ast.funcall.args {
+		s := fmt.Sprintf("%s(", bytes2string(ast.fnc.fname))
+		for i,v :=  range ast.fnc.args {
 			s += ast_to_string_int(v)
-			if i < len(ast.funcall.args) - 1 {
+			if i < len(ast.fnc.args) - 1 {
 				s += ","
 			}
 		}

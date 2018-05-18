@@ -198,19 +198,19 @@ func emit_expr(ast *Ast) {
 			emit_gload(ast.gref.ref.ctype, ast.gref.ref.gvar.glabel, ast.gref.off)
 		}
 	case AST_FUNCALL:
-		for i := 1; i < len(ast.funcall.args); i++ {
+		for i := 1; i < len(ast.fnc.args); i++ {
 			printf("push %%%s\n\t", REGS[i])
 		}
-		for _, v := range ast.funcall.args {
+		for _, v := range ast.fnc.args {
 			emit_expr(v)
 			printf("push %%rax\n\t")
 		}
-		for i := len(ast.funcall.args) - 1; i >= 0; i-- {
+		for i := len(ast.fnc.args) - 1; i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 		printf("mov $0, %%eax\n\t")
-		printf("call %s\n\t", bytes2string(ast.funcall.fname))
-		for i := len(ast.funcall.args); i >= 0; i-- {
+		printf("call %s\n\t", bytes2string(ast.fnc.fname))
+		for i := len(ast.fnc.args); i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 	case AST_DECL:
@@ -299,12 +299,12 @@ func ceil8(n int) int {
 func emit_func_prologue(fn *Ast) {
 	printf(".text\n\t" +
 		".global %s\n" +
-		"%s:\n\t", bytes2string(fn.funcall.fname), bytes2string(fn.funcall.fname))
+		"%s:\n\t", bytes2string(fn.fnc.fname), bytes2string(fn.fnc.fname))
 	printf(
 		"push %%rbp\n\t" +
 		"mov %%rsp, %%rbp\n\t")
 	off := 0
-	for _, v := range fn.funcall.locals {
+	for _, v := range fn.fnc.locals {
 		off += ceil8(ctype_size(v.ctype))
 		v.variable.loff = off
 	}
@@ -327,6 +327,6 @@ func emit_block(block []*Ast) {
 
 func emit_func(fn *Ast) {
 	emit_func_prologue(fn)
-	emit_block(fn.funcall.body)
+	emit_block(fn.fnc.body)
 	emit_func_epilogue()
 }

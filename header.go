@@ -90,8 +90,8 @@ type Ast struct {
 	unary struct {
 		operand *Ast
 	}
-	// Function call
-	funcall struct {
+	// Function call or function declaration
+	fnc struct {
 		fname []byte
 		args  []*Ast
 		params []*Ast

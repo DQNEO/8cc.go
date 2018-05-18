@@ -80,8 +80,8 @@ testast '(int)f(){(if 1 {2;});}' 'if(1){2;}'
 testast '(int)f(){(if 1 {2;} {3;});}' 'if(1){2;}else{3;}'
 testast '(int)f(){"abc";}' '"abc";'
 testast "(int)f(){'c';}" "'c';"
-#testast '(int)f(){(int)a();}' 'a();'
-#testast '(int)f(){(int)a(1,2,3,4,5,6);}' 'a(1,2,3,4,5,6);'
+testast '(int)f(){(int)a();}' 'a();'
+testast '(int)f(){(int)a(1,2,3,4,5,6);}' 'a(1,2,3,4,5,6);'
 
 testastf '(int)f(int c){c;}' 'int f(int c){c;}'
 testastf '(int)f(int c){c;}(int)g(int d){d;}' 'int f(int c){c;} int g(int d){d;}'

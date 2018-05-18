@@ -697,7 +697,7 @@ func ast_to_string_int(ast *Ast) string {
 	case AST_GREF:
 		return fmt.Sprintf("%s[%d]", ast_to_string(ast.gref.ref), ast.gref.off)
 	case AST_FUNCALL:
-		s := fmt.Sprintf("%s(", bytes2string(ast.fnc.fname))
+		s := fmt.Sprintf("(%s)%s(", ctype_to_string(ast.ctype), bytes2string(ast.fnc.fname))
 		for i,v :=  range ast.fnc.args {
 			s += ast_to_string_int(v)
 			if i < len(ast.fnc.args) - 1 {

@@ -628,8 +628,6 @@ func ast_to_string_int(ast *Ast) string {
 		return fmt.Sprintf("%s[%d]", ast_to_string(ast.lref.ref), ast.lref.off)
 	case AST_GREF:
 		return fmt.Sprintf("%s[%d]", ast_to_string(ast.gref.ref), ast.gref.off)
-	case AST_FUNC:
-		return fmt.Sprintf("%s", block_to_string(ast.fnc.body))
 	case AST_FUNCALL:
 		s := fmt.Sprintf("%s(", bytes2string(ast.fnc.fname))
 		for i,v :=  range ast.fnc.args {
@@ -640,6 +638,8 @@ func ast_to_string_int(ast *Ast) string {
 		}
 		s += ")"
 		return s
+	case AST_FUNC:
+		return fmt.Sprintf("%s", block_to_string(ast.fnc.body))
 	case AST_DECL:
 		return fmt.Sprintf("(decl %s %s %s)",
 			ctype_to_string(ast.decl.declvar.ctype),

@@ -573,16 +573,47 @@ func read_block() []*Ast {
 	return r
 }
 
-var x int
-func read_func_decl() *Ast {
-	if x > 0 {
+func read_params() []*Ast {
+	var params []*Ast
+	pt := read_token()
+	if is_punct(pt, ')') {
 		return nil
 	}
-	x++
-	block := read_block()
-	params := []*Ast{nil}
-	ctype := ctype_int
-	r := ast_func(ctype, []byte("mymain\x00"), params, locals, block)
+	unget_token(pt)
+	for {
+		ctype := read_decl_spec()
+		pname := read_token()
+		if pname.typ != TTYPE_IDENT {
+			_error("Identifier expected, but got %s", token_to_string(pname))
+		}
+		params = append(params, ast_lvar(ctype, pname.v.sval))
+		tok := read_token()
+		if is_punct(tok, ')') {
+			return params
+		}
+		if !is_punct(tok, ',') {
+			_error("Comma expected, but got %s", token_to_string(tok))
+		}
+	}
+	return params // this is never reached
+}
+
+func read_func_decl() *Ast {
+	tok := peek_token()
+	if tok == nil {
+		return nil
+	}
+	rettype := read_decl_spec()
+	fname := read_token()
+	if fname.typ != TTYPE_IDENT {
+		_error("Function name expected, but got %s", token_to_string(fname))
+	}
+	expect('(')
+	fparams := read_params()
+	expect('{')
+	body := read_block()
+	expect('}')
+	r := ast_func(rettype, fname.v.sval, fparams, locals, body)
 	return r
 }
 
@@ -665,7 +696,18 @@ func ast_to_string_int(ast *Ast) string {
 		s += ")"
 		return s
 	case AST_FUNC:
-		return fmt.Sprintf("%s", block_to_string(ast.fnc.body))
+		s := fmt.Sprintf("(%s)%s(",
+			ctype_to_string(ast.ctype),
+			bytes2string(ast.fnc.fname))
+		for i,p := range ast.fnc.params {
+			s += fmt.Sprintf("%s %s", ctype_to_string(p.ctype), ast_to_string(p))
+			if i < (len(ast.fnc.params) - 1) {
+				s += ","
+			}
+		}
+		s += fmt.Sprintf(")%s",
+				block_to_string(ast.fnc.body))
+		return s
 	case AST_DECL:
 		return fmt.Sprintf("(decl %s %s %s)",
 			ctype_to_string(ast.decl.declvar.ctype),

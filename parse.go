@@ -593,6 +593,16 @@ func ctype_to_string(ctype *Ctype) string {
 	return ""
 }
 
+func block_to_string(block []*Ast) string {
+	s := "{"
+	for _, v := range block {
+		s += ast_to_string(v)
+		s += ";"
+	}
+	s += "}"
+	return s
+}
+
 func ast_to_string_int(ast *Ast) string {
 	if ast == nil {
 		return "(null)"
@@ -667,14 +677,4 @@ func ast_to_string_int(ast *Ast) string {
 
 func ast_to_string(ast *Ast) string {
 	return ast_to_string_int(ast)
-}
-
-func block_to_string(block []*Ast) string {
-	s := "{"
-	for _, v := range block {
-		s += ast_to_string(v)
-		s += ";"
-	}
-	s += "}"
-	return s
 }

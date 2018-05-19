@@ -524,6 +524,9 @@ func read_decl() *Ast {
 		}
 		if ctype.size == -1 {
 			ctype.size = length
+		} else if ctype.size != length {
+			_error("Invalid array initializer: expected %d items but got %d",
+				ctype.size, length)
 		}
 	} else {
 		init = read_expr(0)

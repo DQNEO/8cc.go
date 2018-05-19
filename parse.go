@@ -228,7 +228,7 @@ func read_func_args(fname Cstring) *Ast {
 			break
 		}
 		if !is_punct(tok, ',') {
-			_error("Unexpected token: '%s'", token_to_string(tok))
+			_error("Unexpected token: '%s'", tok)
 		}
 	}
 	if MAX_ARGS < len(args) {
@@ -436,7 +436,7 @@ func is_type_keyword(tok *Token) bool {
 func expect(punct byte) {
 	tok := read_token()
 	if !is_punct(tok, punct) {
-		_error("'%c' expected but got %s", punct, token_to_string(tok))
+		_error("'%c' expected but got %s", punct, tok)
 	}
 }
 
@@ -447,7 +447,7 @@ func read_decl_array_initializer(ctype *Ctype) *Ast {
 	}
 
 	if !is_punct(tok, '{') {
-		_error("Expected an initializer list, but got %s", token_to_string(tok))
+		_error("Expected an initializer list, but got %s", tok)
 	}
 	var initlist []*Ast
 	for i := 0; i < ctype.size; i++ {
@@ -459,12 +459,12 @@ func read_decl_array_initializer(ctype *Ctype) *Ast {
 			break
 		}
 		if !is_punct(tok, ',') {
-			_error("comma expected, but got %s", token_to_string(tok))
+			_error("comma expected, but got %s", tok)
 		}
 		if i == ctype.size-1 {
 			tok = read_token()
 			if !is_punct(tok, '}') {
-				_error("'}' expected, but got %s", token_to_string(tok))
+				_error("'}' expected, but got %s", tok)
 			}
 			//break // we don't need to break
 		}
@@ -484,7 +484,7 @@ func read_decl_spec() *Ctype {
 	tok := read_token()
 	ctype := get_ctype(tok)
 	if ctype == nil {
-		_error("Type expected, but got %s", token_to_string(tok))
+		_error("Type expected, but got %s", tok)
 	}
 	for {
 		tok = read_token()
@@ -501,7 +501,7 @@ func read_decl() *Ast {
 	ctype := read_decl_spec()
 	varname := read_token()
 	if varname.typ != TTYPE_IDENT {
-		_error("Identifier expected, but got %s", token_to_string(varname))
+		_error("Identifier expected, but got %s", varname)
 	}
 	for { // we need to loop?
 		tok := read_token()
@@ -597,7 +597,7 @@ func read_params() []*Ast {
 		ctype := read_decl_spec()
 		pname := read_token()
 		if pname.typ != TTYPE_IDENT {
-			_error("Identifier expected, but got %s", token_to_string(pname))
+			_error("Identifier expected, but got %s", pname)
 		}
 		params = append(params, ast_lvar(ctype, pname.v.sval))
 		tok := read_token()
@@ -605,7 +605,7 @@ func read_params() []*Ast {
 			return params
 		}
 		if !is_punct(tok, ',') {
-			_error("Comma expected, but got %s", token_to_string(tok))
+			_error("Comma expected, but got %s", tok)
 		}
 	}
 	return params // this is never reached
@@ -619,7 +619,7 @@ func read_func_decl() *Ast {
 	rettype := read_decl_spec()
 	fname := read_token()
 	if fname.typ != TTYPE_IDENT {
-		_error("Function name expected, but got %s", token_to_string(fname))
+		_error("Function name expected, but got %s", fname)
 	}
 	expect('(')
 	fparams = read_params()

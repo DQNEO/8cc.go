@@ -169,7 +169,11 @@ func read_token_init() *Token {
 	return nil
 }
 
-func token_to_string(tok *Token) Cstring {
+func (tok *Token) String() string {
+	return tok.ToCtring().String()
+}
+
+func (tok *Token) ToCtring() Cstring {
 	if tok == nil {
 		return NewCstringFromLiteral("(null)")
 	}

@@ -137,11 +137,10 @@ func ast_decl(variable *Ast, init *Ast) *Ast {
 	return r
 }
 
-func ast_array_init(csize int, arrayinit []*Ast) *Ast {
+func ast_array_init(arrayinit []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_ARRAY_INIT
 	r.ctype = nil
-	r.array_initializer.csize = csize
 	r.array_initializer.arrayinit = arrayinit
 	return r
 }
@@ -470,7 +469,7 @@ func read_decl_array_initializer(ctype *Ctype) *Ast {
 		}
 	}
 
-	return ast_array_init(ctype.size, initlist)
+	return ast_array_init(initlist)
 }
 
 func read_decl_spec() *Ctype {

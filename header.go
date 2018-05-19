@@ -105,7 +105,6 @@ type Ast struct {
 	}
 	// Array initializer
 	array_initializer struct {
-		csize      int
 		arrayinit []*Ast
 	}
 	// If statement

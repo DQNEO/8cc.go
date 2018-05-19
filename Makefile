@@ -3,7 +3,7 @@ OBJS=lex.o string.o util.o gen.o parse.o list.o
 
 8cc: 8cc.h main.o $(OBJS)
 	$(CC) $(CFLAGS) -o $@ main.o $(OBJS)
-	$(CC) $(CFLAGS) -o 8cc_c main.o $(OBJS)
+	cp 8cc 8cc_c
 
 $(OBJS) unittest.o main.o: 8cc.h
 

@@ -1,5 +1,4 @@
 #!/bin/bash
-mode=$1
 function compile {
   echo "$1" | ./8cc > tmp.s
   if [ $? -ne 0 ]; then
@@ -51,8 +50,7 @@ function testfail {
   fi
 }
 
-rm -f 8cc
-if [[ $mode == "-c" ]];then
+if [[ $MODE == "c" ]];then
     make 8cc
 else
     make -f MakefileGo 8cc

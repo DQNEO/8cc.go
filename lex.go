@@ -171,7 +171,7 @@ func read_token_init() *Token {
 
 func token_to_string(tok *Token) Cstring {
 	if tok == nil {
-		return Cstring("(null)\x00")
+		return NewCstringFromLiteral("(null)")
 	}
 	switch tok.typ {
 	case TTYPE_IDENT:
@@ -181,7 +181,7 @@ func token_to_string(tok *Token) Cstring {
 	case TTYPE_CHAR:
 		return Cstring{tok.v.c, 0}
 	case TTYPE_INT:
-		return Cstring(strconv.Itoa(tok.v.ival))
+		return NewCstringFromLiteral(strconv.Itoa(tok.v.ival))
 	case TTYPE_STRING:
 		return tok.v.sval
 	default:

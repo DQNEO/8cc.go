@@ -89,6 +89,13 @@ func (b Cstring) String() string {
 	return string(subb)
 }
 
+// "abc" => Cstring("abc\x00")
+func NewCstringFromLiteral(s string) Cstring {
+	b := []byte(s)
+	b = append(b, byte(0))
+	return Cstring(b)
+}
+
 func printf(format string, args ...interface{}) {
 	fmt.Printf(format, args...)
 }

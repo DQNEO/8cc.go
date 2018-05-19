@@ -52,7 +52,7 @@ func make_label() Cstring {
 	seq := labelseq
 	labelseq++
 	s := fmt.Sprintf(".L%d", seq)
-	return Cstring(s + "\x00")
+	return NewCstringFromLiteral(s)
 }
 
 func ast_lvar(ctype *Ctype, name Cstring) *Ast {
@@ -419,10 +419,10 @@ func get_ctype(tok *Token) *Ctype {
 		return nil
 	}
 
-	if strcmp(tok.v.sval, Cstring("int\x00")) == 0 {
+	if strcmp(tok.v.sval, NewCstringFromLiteral("int")) == 0 {
 		return ctype_int
 	}
-	if strcmp(tok.v.sval, Cstring("char\x00")) == 0 {
+	if strcmp(tok.v.sval, NewCstringFromLiteral("char")) == 0 {
 		return ctype_char
 	}
 
@@ -532,7 +532,7 @@ func read_if_stmt() *Ast {
 	expect('{')
 	then := read_block()
 	tok := read_token()
-	if tok == nil || tok.typ != TTYPE_IDENT || strcmp(tok.v.sval, Cstring("else\x00")) != 0 {
+	if tok == nil || tok.typ != TTYPE_IDENT || strcmp(tok.v.sval, NewCstringFromLiteral("else")) != 0 {
 		unget_token(tok)
 		return ast_if(cond, then, nil)
 	}
@@ -543,7 +543,7 @@ func read_if_stmt() *Ast {
 
 func read_stmt() *Ast {
 	tok := read_token()
-	if tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, Cstring("if\x00")) == 0 {
+	if tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, NewCstringFromLiteral("if")) == 0 {
 		return read_if_stmt()
 	}
 	unget_token(tok)

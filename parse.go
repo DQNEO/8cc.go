@@ -675,7 +675,7 @@ func block_to_string(block []*Ast) string {
 	return s
 }
 
-func ast_to_string_int(ast *Ast) string {
+func ast_to_string(ast *Ast) string {
 	if ast == nil {
 		return "(null)"
 	}
@@ -703,7 +703,7 @@ func ast_to_string_int(ast *Ast) string {
 	case AST_FUNCALL:
 		s := fmt.Sprintf("(%s)%s(", ctype_to_string(ast.ctype), ast.fnc.fname)
 		for i,v :=  range ast.fnc.args {
-			s += ast_to_string_int(v)
+			s += ast_to_string(v)
 			if i < len(ast.fnc.args) - 1 {
 				s += ","
 			}
@@ -727,11 +727,11 @@ func ast_to_string_int(ast *Ast) string {
 		return fmt.Sprintf("(decl %s %s %s)",
 			ctype_to_string(ast.decl.declvar.ctype),
 			ast.decl.declvar.variable.lname,
-			ast_to_string_int(ast.decl.declinit))
+			ast_to_string(ast.decl.declinit))
 	case AST_ARRAY_INIT:
 		s := "{"
 		for i, v := range ast.array_initializer.arrayinit {
-			s += ast_to_string_int(v)
+			s += ast_to_string(v)
 			if i != len(ast.array_initializer.arrayinit) - 1 {
 				s += ","
 			}
@@ -752,12 +752,9 @@ func ast_to_string_int(ast *Ast) string {
 		s += ")"
 		return s
 	default:
-		left := ast_to_string_int(ast.binop.left)
-		right := ast_to_string_int(ast.binop.right)
+		left := ast_to_string(ast.binop.left)
+		right := ast_to_string(ast.binop.right)
 		return fmt.Sprintf("(%c %s %s)", ast.typ, left, right)
 	}
 }
 
-func ast_to_string(ast *Ast) string {
-	return ast_to_string_int(ast)
-}

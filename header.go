@@ -92,11 +92,11 @@ type Ast struct {
 	}
 	// Function call or function declaration
 	fnc struct {
-		fname Cstring
-		args  []*Ast
+		fname  Cstring
+		args   []*Ast
 		params []*Ast
 		locals []*Ast
-		body Block
+		body   Block
 	}
 	// Declaration
 	decl struct {

@@ -77,6 +77,7 @@ func strlen(str Cstring) int {
 }
 
 type Cstring []byte
+
 func (b Cstring) String() string {
 	i := 0
 	for {

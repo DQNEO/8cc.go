@@ -98,7 +98,7 @@ func emit_lsave(ctype *Ctype, loff int, off int) {
 	case 8:
 		reg = "rax"
 	}
-	printf("mov %%%s, %d(%%rbp)\n\t", reg, -(loff+off*size))
+	printf("mov %%%s, %d(%%rbp)\n\t", reg, -(loff + off*size))
 }
 
 func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
@@ -210,12 +210,12 @@ func emit_expr(ast *Ast) {
 		}
 		printf("mov $0, %%eax\n\t")
 		printf("call %s\n\t", ast.fnc.fname)
-		for i := len(ast.fnc.args) -1 ; i >= 0; i-- {
+		for i := len(ast.fnc.args) - 1; i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 	case AST_DECL:
 		if ast.decl.declinit.typ == AST_ARRAY_INIT {
-			for i,v := range  ast.decl.declinit.array_initializer.arrayinit {
+			for i, v := range ast.decl.declinit.array_initializer.arrayinit {
 				emit_expr(v)
 				emit_lsave(ast.decl.declvar.ctype.ptr, ast.decl.declvar.variable.loff, -i)
 			}
@@ -223,9 +223,9 @@ func emit_expr(ast *Ast) {
 			assert(ast.decl.declinit.typ == AST_STRING)
 			var i int
 			for i = 0; ast.decl.declinit.str.val[i] != 0; i++ {
-				printf("movb $%d, %d(%%rbp)\n\t", ast.decl.declinit.str.val[i], -(ast.decl.declvar.variable.loff-i))
+				printf("movb $%d, %d(%%rbp)\n\t", ast.decl.declinit.str.val[i], -(ast.decl.declvar.variable.loff - i))
 			}
-			printf("movb $0, %d(%%rbp)\n\t", -(ast.decl.declvar.variable.loff-i))
+			printf("movb $0, %d(%%rbp)\n\t", -(ast.decl.declvar.variable.loff - i))
 		} else if ast.decl.declinit.typ == AST_STRING {
 			emit_gload(ast.decl.declinit.ctype, ast.decl.declinit.str.slabel, 0)
 			emit_lsave(ast.decl.declvar.ctype, ast.decl.declvar.variable.loff, 0)
@@ -278,7 +278,7 @@ func emit_data_section() {
 		return
 	}
 	printf(".data\n")
-	for _,v := range globals {
+	for _, v := range globals {
 		assert(v.typ == AST_STRING)
 		printf("%s:\n\t", v.str.slabel)
 		printf(".string \"%s\"\n", quote_cstring(v.str.val))
@@ -300,12 +300,12 @@ func emit_func_prologue(fn *Ast) {
 	if len(fn.fnc.params) > len(REGS) {
 		_error("Parameter list too long: %s", fn.fnc.fname)
 	}
-	printf(".text\n\t" +
-		".global %s\n" +
+	printf(".text\n\t"+
+		".global %s\n"+
 		"%s:\n\t", fn.fnc.fname, fn.fnc.fname)
 	printf(
 		"push %%rbp\n\t" +
-		"mov %%rsp, %%rbp\n\t")
+			"mov %%rsp, %%rbp\n\t")
 	off := 0
 	ri := 0
 	for _, v := range fn.fnc.params {
@@ -329,7 +329,7 @@ func emit_func_epilogue() {
 }
 
 func emit_block(block Block) {
-	for _,v := range block {
+	for _, v := range block {
 		emit_expr(v)
 	}
 

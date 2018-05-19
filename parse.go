@@ -183,7 +183,7 @@ func find_var(name Cstring) *Ast {
 		}
 	}
 
-	for _,v := range globals {
+	for _, v := range globals {
 		if strcmp(name, v.variable.lname) == 0 {
 			return v
 		}
@@ -451,7 +451,7 @@ func read_decl_array_initializer(ctype *Ctype) *Ast {
 	var initlist []*Ast
 	for {
 		tok := read_token()
-		if is_punct(tok, '}')  {
+		if is_punct(tok, '}') {
 			break
 		}
 		unget_token(tok)
@@ -589,7 +589,7 @@ func read_block() Block {
 			break
 		}
 		tok := read_token()
-		if is_punct(tok, '}'){
+		if is_punct(tok, '}') {
 			break
 		}
 		unget_token(tok)
@@ -716,9 +716,9 @@ func (ast *Ast) String() string {
 		return fmt.Sprintf("%s[%d]", ast.gref.ref, ast.gref.off)
 	case AST_FUNCALL:
 		s := fmt.Sprintf("(%s)%s(", ast.ctype, ast.fnc.fname)
-		for i,v :=  range ast.fnc.args {
+		for i, v := range ast.fnc.args {
 			s += v.String()
-			if i < len(ast.fnc.args) - 1 {
+			if i < len(ast.fnc.args)-1 {
 				s += ","
 			}
 		}
@@ -728,14 +728,14 @@ func (ast *Ast) String() string {
 		s := fmt.Sprintf("(%s)%s(",
 			ast.ctype,
 			ast.fnc.fname)
-		for i,p := range ast.fnc.params {
+		for i, p := range ast.fnc.params {
 			s += fmt.Sprintf("%s %s", p.ctype, p)
 			if i < (len(ast.fnc.params) - 1) {
 				s += ","
 			}
 		}
 		s += fmt.Sprintf(")%s",
-				ast.fnc.body)
+			ast.fnc.body)
 		return s
 	case AST_DECL:
 		return fmt.Sprintf("(decl %s %s %s)",
@@ -746,7 +746,7 @@ func (ast *Ast) String() string {
 		s := "{"
 		for i, v := range ast.array_initializer.arrayinit {
 			s += v.String()
-			if i != len(ast.array_initializer.arrayinit) - 1 {
+			if i != len(ast.array_initializer.arrayinit)-1 {
 				s += ","
 			}
 		}
@@ -759,7 +759,7 @@ func (ast *Ast) String() string {
 	case AST_IF:
 		s := fmt.Sprintf("(if %s %s",
 			ast._if.cond,
-				ast._if.then)
+			ast._if.then)
 		if ast._if.els != nil {
 			s += fmt.Sprintf(" %s", ast._if.els)
 		}
@@ -771,4 +771,3 @@ func (ast *Ast) String() string {
 		return fmt.Sprintf("(%c %s %s)", ast.typ, left, right)
 	}
 }
-

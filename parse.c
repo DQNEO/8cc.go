@@ -431,6 +431,8 @@ static Ast *read_decl(void) {
     if (is_punct(tok, '[')) {
       tok = peek_token();
       if (is_punct(tok, ']')) {
+        if (ctype->size == -1)
+          error("Array size is not specified");
         ctype = make_array_type(ctype, -1);
         expect(']');
         break;

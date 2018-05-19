@@ -59,7 +59,7 @@ func emit_lload(v *Ast, off int) {
 	case 8:
 		printf("mov %d(%%rbp), %%rax\n\t", -v.variable.loff)
 	default:
-		_error("Unknown data size: %s: %d", ast_to_string(v), size)
+		_error("Unknown data size: %s: %d", v, size)
 	}
 	if off > 0 {
 		printf("add $%d, %%rax\n\t", size, off*size)
@@ -81,7 +81,7 @@ func emit_gsave(v *Ast, off int) {
 	case 8:
 		reg = "rax"
 	default:
-		_error("Unknown data size: %s: %d", ast_to_string(v), size)
+		_error("Unknown data size: %s: %d", v, size)
 	}
 	printf("mov %s, %d(%%rbp)\n\t", reg, off*size)
 	printf("pop %%rcx\n\t")

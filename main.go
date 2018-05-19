@@ -15,7 +15,7 @@ func main() {
 
 	for _, fnc := range funcs {
 		if wantast {
-			printf("%s", ast_to_string(fnc))
+			printf("%s", fnc)
 		} else {
 			emit_func(fnc)
 		}

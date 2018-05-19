@@ -331,7 +331,7 @@ func ensure_lvalue(ast *Ast) {
 		AST_GVAR, AST_GREF:
 		return
 	}
-	_error("lvalue expected, but got %s", ast_to_string(ast))
+	_error("lvalue expected, but got %s", ast)
 	return
 }
 
@@ -347,7 +347,7 @@ func convert_array(ast *Ast) *Ast {
 	}
 
 	if ast.typ != AST_GVAR {
-		_error("Internal error: Gvar expected, but got %s", ast_to_string(ast))
+		_error("Internal error: Gvar expected, but got %s", ast)
 	}
 	return ast_gref(make_ptr_type(ast.ctype.ptr), ast, 0)
 }
@@ -362,7 +362,7 @@ func read_unary_expr() *Ast {
 	if is_punct(tok, '*') {
 		operand := convert_array(read_unary_expr())
 		if operand.ctype.typ != CTYPE_PTR {
-			_error("pointer type expected, but got %", ast_to_string(operand))
+			_error("pointer type expected, but got %", operand)
 		}
 		return ast_uop(AST_DEREF, operand.ctype.ptr, operand)
 	}
@@ -509,7 +509,7 @@ func read_decl() *Ast {
 			size := read_expr(0)
 			//                            wny not compare to size.ctype != ctype_int ?
 			if size.typ != AST_LITERAL || size.ctype.typ != CTYPE_INT {
-				_error("Integer expected, but got %s", ast_to_string(size))
+				_error("Integer expected, but got %s", size)
 			}
 			expect(']')
 			ctype = make_array_type(ctype, size.ival)
@@ -668,14 +668,14 @@ func ctype_to_string(ctype *Ctype) string {
 func block_to_string(block []*Ast) string {
 	s := "{"
 	for _, v := range block {
-		s += ast_to_string(v)
+		s += v.String()
 		s += ";"
 	}
 	s += "}"
 	return s
 }
 
-func ast_to_string(ast *Ast) string {
+func (ast *Ast) String() string {
 	if ast == nil {
 		return "(null)"
 	}
@@ -697,13 +697,13 @@ func ast_to_string(ast *Ast) string {
 	case AST_GVAR:
 		return fmt.Sprintf("%s", ast.gvar.gname)
 	case AST_LREF:
-		return fmt.Sprintf("%s[%d]", ast_to_string(ast.lref.ref), ast.lref.off)
+		return fmt.Sprintf("%s[%d]", ast.lref.ref, ast.lref.off)
 	case AST_GREF:
-		return fmt.Sprintf("%s[%d]", ast_to_string(ast.gref.ref), ast.gref.off)
+		return fmt.Sprintf("%s[%d]", ast.gref.ref, ast.gref.off)
 	case AST_FUNCALL:
 		s := fmt.Sprintf("(%s)%s(", ctype_to_string(ast.ctype), ast.fnc.fname)
 		for i,v :=  range ast.fnc.args {
-			s += ast_to_string(v)
+			s += v.String()
 			if i < len(ast.fnc.args) - 1 {
 				s += ","
 			}
@@ -715,7 +715,7 @@ func ast_to_string(ast *Ast) string {
 			ctype_to_string(ast.ctype),
 			ast.fnc.fname)
 		for i,p := range ast.fnc.params {
-			s += fmt.Sprintf("%s %s", ctype_to_string(p.ctype), ast_to_string(p))
+			s += fmt.Sprintf("%s %s", ctype_to_string(p.ctype), p)
 			if i < (len(ast.fnc.params) - 1) {
 				s += ","
 			}
@@ -727,11 +727,11 @@ func ast_to_string(ast *Ast) string {
 		return fmt.Sprintf("(decl %s %s %s)",
 			ctype_to_string(ast.decl.declvar.ctype),
 			ast.decl.declvar.variable.lname,
-			ast_to_string(ast.decl.declinit))
+			ast.decl.declinit)
 	case AST_ARRAY_INIT:
 		s := "{"
 		for i, v := range ast.array_initializer.arrayinit {
-			s += ast_to_string(v)
+			s += v.String()
 			if i != len(ast.array_initializer.arrayinit) - 1 {
 				s += ","
 			}
@@ -739,12 +739,12 @@ func ast_to_string(ast *Ast) string {
 		s += "}"
 		return s
 	case AST_ADDR:
-		return fmt.Sprintf("(& %s)", ast_to_string(ast.unary.operand))
+		return fmt.Sprintf("(& %s)", ast.unary.operand)
 	case AST_DEREF:
-		return fmt.Sprintf("(* %s)", ast_to_string(ast.unary.operand))
+		return fmt.Sprintf("(* %s)", ast.unary.operand)
 	case AST_IF:
 		s := fmt.Sprintf("(if %s %s",
-			ast_to_string(ast._if.cond),
+			ast._if.cond,
 				block_to_string(ast._if.then))
 		if ast._if.els != nil {
 			s += fmt.Sprintf(" %s", block_to_string(ast._if.els))
@@ -752,8 +752,8 @@ func ast_to_string(ast *Ast) string {
 		s += ")"
 		return s
 	default:
-		left := ast_to_string(ast.binop.left)
-		right := ast_to_string(ast.binop.right)
+		left := ast.binop.left
+		right := ast.binop.right
 		return fmt.Sprintf("(%c %s %s)", ast.typ, left, right)
 	}
 }

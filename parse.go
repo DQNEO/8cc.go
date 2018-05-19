@@ -449,23 +449,18 @@ func read_decl_array_initializer(ctype *Ctype) *Ast {
 		_error("Expected an initializer list, but got %s", tok)
 	}
 	var initlist []*Ast
-	for i := 0; i < ctype.size; i++ {
+	for {
+		tok := read_token()
+		if is_punct(tok, '}')  {
+			break
+		}
+		unget_token(tok)
 		init := read_expr(0)
 		initlist = append(initlist, init)
 		result_type('=', init.ctype, ctype.ptr)
 		tok = read_token()
-		if is_punct(tok, '}') && i == ctype.size-1 {
-			break
-		}
 		if !is_punct(tok, ',') {
-			_error("comma expected, but got %s", tok)
-		}
-		if i == ctype.size-1 {
-			tok = read_token()
-			if !is_punct(tok, '}') {
-				_error("'}' expected, but got %s", tok)
-			}
-			//break // we don't need to break
+			unget_token(tok)
 		}
 	}
 
@@ -498,13 +493,21 @@ func read_decl() *Ast {
 	for { // we need to loop?
 		tok := read_token()
 		if is_punct(tok, '[') {
-			size := read_expr(0)
-			//                            wny not compare to size.ctype != ctype_int ?
-			if size.typ != AST_LITERAL || size.ctype.typ != CTYPE_INT {
-				_error("Integer expected, but got %s", size)
+			tok := peek_token()
+			if is_punct(tok, ']') {
+				if ctype.size == -1 {
+					_error("Array size is not specified")
+				}
+				ctype = make_array_type(ctype, -1)
+			} else {
+				size := read_expr(0)
+				//                            wny not compare to size.ctype != ctype_int ?
+				if size.typ != AST_LITERAL || size.ctype.typ != CTYPE_INT {
+					_error("Integer expected, but got %s", size)
+				}
+				ctype = make_array_type(ctype, size.ival)
 			}
 			expect(']')
-			ctype = make_array_type(ctype, size.ival)
 		} else {
 			unget_token(tok)
 			break
@@ -515,6 +518,18 @@ func read_decl() *Ast {
 	expect('=')
 	if ctype.typ == CTYPE_ARRAY {
 		init = read_decl_array_initializer(ctype)
+		var length int
+		if init.typ == AST_STRING {
+			length = strlen(init.str.val) + 1
+		} else {
+			length = len(init.array_initializer.arrayinit)
+		}
+		if ctype.size == -1 {
+			ctype.size = length
+		} else if ctype.size != length {
+			_error("Invalid array initializer: expected %d items but got %d",
+				ctype.size, length)
+		}
 	} else {
 		init = read_expr(0)
 	}

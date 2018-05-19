@@ -456,7 +456,9 @@ static Ast *read_decl(void) {
         : list_len(init->arrayinit);
     if (ctype->size == -1) {
       ctype->size = len;
-    }
+    } else if (ctype->size != len)
+      error("Invalid array initializer: expected %d items but got %d",
+            ctype->size, len);
   } else {
     init = read_expr(0);
   }

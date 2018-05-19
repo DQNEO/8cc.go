@@ -328,7 +328,7 @@ func emit_func_epilogue() {
 		"ret\n")
 }
 
-func emit_block(block []*Ast) {
+func emit_block(block Block) {
 	for _,v := range block {
 		emit_expr(v)
 	}

@@ -1,4 +1,5 @@
 #!/bin/bash
+
 function compile {
   echo "$1" | ./8cc > tmp.s
   if [ $? -ne 0 ]; then
@@ -56,7 +57,6 @@ else
     make -f MakefileGo 8cc
 fi
 
-
 # Parser
 testast '(int)f(){1;}' '1;'
 testast '(int)f(){(+ (- (+ 1 2) 3) 4);}' '1+2-3+4;'
@@ -66,8 +66,8 @@ testast '(int)f(){(+ (/ 4 2) (/ 6 3));}' '4/2+6/3;'
 testast '(int)f(){(/ (/ 24 2) 4);}' '24/2/4;'
 testast '(int)f(){(decl int a 3);}' 'int a=3;'
 testast "(int)f(){(decl char c 'a');}" "char c='a';"
-testast '(int)f(){(decl char* s "abc");}' 'char *s="abc";'
-testast '(int)f(){(decl char[4] s "abc");}' 'char s[4]="abc";'
+testast '(int)f(){(decl char* s "abcd");}' 'char *s="abcd";'
+testast '(int)f(){(decl char[5] s "asdf");}' 'char s[5]="asdf";'
 testast '(int)f(){(decl int[3] a {1,2,3});}' 'int a[3]={1,2,3};'
 testast '(int)f(){(decl int[3] a {1,2,3});}' 'int a[3]={1,2,3,};'
 testast '(int)f(){(decl int a 1);(decl int b 2);(= a (= b 3));}' 'int a=1;int b=2;a=b=3;'
@@ -106,14 +106,14 @@ test 20 'int a[3]={20,30,40};*a;'
 
 # Function call
 test a3 'printf("a");3;'
-test abc5 'printf("%s", "abc");5;'
+test xy5 'printf("%s", "xy");5;'
 test b1 "printf(\"%c\", 'a'+1);1;"
 
 # Pointer
 test 61 'int a=61;int *b=&a;*b;'
 test 97 'char *c="ab";*c;'
 test 98 'char *c="ab"+1;*c;'
-test 99 'char s[4]="abc";char *c=s+2;*c;'
+test 122 'char s[4]="xyz";char *c=s+2;*c;'
 
 # If statement
 test 'a1' 'if(1){printf("a");}1;'

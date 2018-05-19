@@ -12,7 +12,7 @@ type Token struct {
 	typ int
 	v   struct { // wanna be Union
 		ival  int
-		sval  []byte
+		sval  Cstring
 		punct byte
 		c     byte
 	}
@@ -58,18 +58,18 @@ type Ast struct {
 	c byte
 	// String
 	str struct {
-		val    []byte
-		slabel []byte
+		val    Cstring
+		slabel Cstring
 	}
 	// Local variable
 	variable struct {
-		lname []byte
+		lname Cstring
 		loff  int
 	}
 	// Global variable
 	gvar struct {
-		gname  []byte
-		glabel []byte
+		gname  Cstring
+		glabel Cstring
 	}
 	// Local reference
 	lref struct {
@@ -92,7 +92,7 @@ type Ast struct {
 	}
 	// Function call or function declaration
 	fnc struct {
-		fname []byte
+		fname Cstring
 		args  []*Ast
 		params []*Ast
 		locals []*Ast

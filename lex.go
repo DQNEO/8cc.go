@@ -8,14 +8,14 @@ const BUFLEN = 256
 
 var ungotten *Token
 
-func make_ident(s []byte) *Token {
+func make_ident(s Cstring) *Token {
 	r := &Token{}
 	r.typ = TTYPE_IDENT
 	r.v.sval = s
 	return r
 }
 
-func make_strtok(s []byte) *Token {
+func make_strtok(s Cstring) *Token {
 	r := &Token{}
 	r.typ = TTYPE_STRING
 	r.v.sval = s
@@ -118,7 +118,7 @@ func read_string() *Token {
 		}
 	}
 	buf[i] = 0
-	return make_strtok(buf)
+	return make_strtok(Cstring(buf))
 }
 
 func read_ident(c byte) *Token {
@@ -138,7 +138,7 @@ func read_ident(c byte) *Token {
 		}
 	}
 	buf[i] = 0
-	return make_ident(buf)
+	return make_ident(Cstring(buf))
 }
 
 func read_token_init() *Token {
@@ -169,19 +169,19 @@ func read_token_init() *Token {
 	return nil
 }
 
-func token_to_string(tok *Token) []byte {
+func token_to_string(tok *Token) Cstring {
 	if tok == nil {
-		return []byte("(null)\x00")
+		return Cstring("(null)\x00")
 	}
 	switch tok.typ {
 	case TTYPE_IDENT:
 		return tok.v.sval
 	case TTYPE_PUNCT:
-		return []byte{tok.v.punct, 0}
+		return Cstring{tok.v.punct, 0}
 	case TTYPE_CHAR:
-		return []byte{tok.v.c, 0}
+		return Cstring{tok.v.c, 0}
 	case TTYPE_INT:
-		return []byte(strconv.Itoa(tok.v.ival))
+		return Cstring(strconv.Itoa(tok.v.ival))
 	case TTYPE_STRING:
 		return tok.v.sval
 	default:

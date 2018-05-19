@@ -18,9 +18,9 @@ func ctype_size(ctype *Ctype) int {
 	return -1
 }
 
-func emit_gload(ctype *Ctype, label []byte, off int) {
+func emit_gload(ctype *Ctype, label Cstring, off int) {
 	if ctype.typ == CTYPE_ARRAY {
-		printf("lea %s(%%rip), %%rax\n\t", Cstring(label))
+		printf("lea %s(%%rip), %%rax\n\t", label)
 		return
 	}
 	var reg string
@@ -37,7 +37,7 @@ func emit_gload(ctype *Ctype, label []byte, off int) {
 		_error("Unknown data size: %s: %d", ctype_to_string(ctype), size)
 	}
 
-	printf("mov %s(%%rip), %%%s\n\t", Cstring(label), reg)
+	printf("mov %s(%%rip), %%%s\n\t", label, reg)
 	if off > 0 {
 		printf("add $%d, %%rax\n\t", off*size)
 	}
@@ -182,7 +182,7 @@ func emit_expr(ast *Ast) {
 			_error("internal error")
 		}
 	case AST_STRING:
-		printf("lea %s(%%rip), %%rax\n\t", Cstring(ast.str.slabel))
+		printf("lea %s(%%rip), %%rax\n\t", ast.str.slabel)
 	case AST_LVAR:
 		emit_lload(ast, 0)
 	case AST_LREF:
@@ -192,7 +192,7 @@ func emit_expr(ast *Ast) {
 		emit_gload(ast.ctype, ast.gvar.glabel, 0)
 	case AST_GREF:
 		if ast.gref.ref.typ == AST_STRING {
-			printf("lea %s(%%rip), %%rax\n\t", Cstring(ast.gref.ref.str.slabel))
+			printf("lea %s(%%rip), %%rax\n\t", ast.gref.ref.str.slabel)
 		} else {
 			assert(ast.gref.ref.typ == AST_GVAR)
 			emit_gload(ast.gref.ref.ctype, ast.gref.ref.gvar.glabel, ast.gref.off)
@@ -209,7 +209,7 @@ func emit_expr(ast *Ast) {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 		printf("mov $0, %%eax\n\t")
-		printf("call %s\n\t", Cstring(ast.fnc.fname))
+		printf("call %s\n\t", ast.fnc.fname)
 		for i := len(ast.fnc.args) -1 ; i >= 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
@@ -280,7 +280,7 @@ func emit_data_section() {
 	printf(".data\n")
 	for _,v := range globals {
 		assert(v.typ == AST_STRING)
-		printf("%s:\n\t", Cstring(v.str.slabel))
+		printf("%s:\n\t", v.str.slabel)
 		printf(".string \"%s\"\n", quote_cstring(v.str.val))
 	}
 	printf("\t")
@@ -302,7 +302,7 @@ func emit_func_prologue(fn *Ast) {
 	}
 	printf(".text\n\t" +
 		".global %s\n" +
-		"%s:\n\t", Cstring(fn.fnc.fname), Cstring(fn.fnc.fname))
+		"%s:\n\t", fn.fnc.fname, fn.fnc.fname)
 	printf(
 		"push %%rbp\n\t" +
 		"mov %%rsp, %%rbp\n\t")

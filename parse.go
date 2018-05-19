@@ -55,7 +55,7 @@ func make_label() Cstring {
 	return Cstring(s + "\x00")
 }
 
-func ast_lvar(ctype *Ctype, name []byte) *Ast {
+func ast_lvar(ctype *Ctype, name Cstring) *Ast {
 	r := &Ast{}
 	r.typ = AST_LVAR
 	r.ctype = ctype
@@ -75,7 +75,7 @@ func ast_lref(ctype *Ctype, lvar *Ast, off int) *Ast {
 	return r
 }
 
-func ast_gvar(ctype *Ctype, name []byte, filelocal bool) *Ast {
+func ast_gvar(ctype *Ctype, name Cstring, filelocal bool) *Ast {
 	r := &Ast{}
 	r.typ = AST_GVAR
 	r.ctype = ctype
@@ -98,7 +98,7 @@ func ast_gref(ctype *Ctype, gvar *Ast, off int) *Ast {
 	return r
 }
 
-func ast_string(str []byte) *Ast {
+func ast_string(str Cstring) *Ast {
 	r := &Ast{}
 	r.typ = AST_STRING
 	r.ctype = make_array_type(ctype_char, strlen(str)+1)
@@ -108,7 +108,7 @@ func ast_string(str []byte) *Ast {
 	return r
 }
 
-func ast_funcall(ctype *Ctype, fname []byte, args []*Ast) *Ast {
+func ast_funcall(ctype *Ctype, fname Cstring, args []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNCALL
 	r.ctype = ctype
@@ -117,7 +117,7 @@ func ast_funcall(ctype *Ctype, fname []byte, args []*Ast) *Ast {
 	return r
 }
 
-func ast_func(rettype *Ctype, fname []byte, params []*Ast, locals []*Ast, body []*Ast) *Ast {
+func ast_func(rettype *Ctype, fname Cstring, params []*Ast, locals []*Ast, body []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNC
 	r.ctype = rettype
@@ -171,7 +171,7 @@ func make_array_type(ctype *Ctype, size int) *Ctype {
 	return r
 }
 
-func find_var(name []byte) *Ast {
+func find_var(name Cstring) *Ast {
 	for _, v := range fparams {
 		if strcmp(name, v.variable.lname) == 0 {
 			return v
@@ -214,7 +214,7 @@ func priority(op byte) int {
 	}
 }
 
-func read_func_args(fname []byte) *Ast {
+func read_func_args(fname Cstring) *Ast {
 	var args []*Ast
 	for {
 		tok := read_token()
@@ -237,7 +237,7 @@ func read_func_args(fname []byte) *Ast {
 	return ast_funcall(ctype_int, fname, args)
 }
 
-func read_ident_or_func(name []byte) *Ast {
+func read_ident_or_func(name Cstring) *Ast {
 	ch := read_token()
 	if is_punct(ch, '(') {
 		return read_func_args(name)
@@ -419,10 +419,10 @@ func get_ctype(tok *Token) *Ctype {
 		return nil
 	}
 
-	if strcmp(tok.v.sval, []byte("int\x00")) == 0 {
+	if strcmp(tok.v.sval, Cstring("int\x00")) == 0 {
 		return ctype_int
 	}
-	if strcmp(tok.v.sval, []byte("char\x00")) == 0 {
+	if strcmp(tok.v.sval, Cstring("char\x00")) == 0 {
 		return ctype_char
 	}
 
@@ -532,7 +532,7 @@ func read_if_stmt() *Ast {
 	expect('{')
 	then := read_block()
 	tok := read_token()
-	if tok == nil || tok.typ != TTYPE_IDENT || strcmp(tok.v.sval, []byte("else\x00")) != 0 {
+	if tok == nil || tok.typ != TTYPE_IDENT || strcmp(tok.v.sval, Cstring("else\x00")) != 0 {
 		unget_token(tok)
 		return ast_if(cond, then, nil)
 	}
@@ -543,7 +543,7 @@ func read_if_stmt() *Ast {
 
 func read_stmt() *Ast {
 	tok := read_token()
-	if tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, []byte("if\x00")) == 0 {
+	if tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, Cstring("if\x00")) == 0 {
 		return read_if_stmt()
 	}
 	unget_token(tok)
@@ -693,15 +693,15 @@ func ast_to_string_int(ast *Ast) string {
 	case AST_STRING:
 		return fmt.Sprintf("\"%s\"", quote_cstring(ast.str.val))
 	case AST_LVAR:
-		return fmt.Sprintf("%s", Cstring(ast.variable.lname))
+		return fmt.Sprintf("%s", ast.variable.lname)
 	case AST_GVAR:
-		return fmt.Sprintf("%s", Cstring(ast.gvar.gname))
+		return fmt.Sprintf("%s", ast.gvar.gname)
 	case AST_LREF:
 		return fmt.Sprintf("%s[%d]", ast_to_string(ast.lref.ref), ast.lref.off)
 	case AST_GREF:
 		return fmt.Sprintf("%s[%d]", ast_to_string(ast.gref.ref), ast.gref.off)
 	case AST_FUNCALL:
-		s := fmt.Sprintf("(%s)%s(", ctype_to_string(ast.ctype), Cstring(ast.fnc.fname))
+		s := fmt.Sprintf("(%s)%s(", ctype_to_string(ast.ctype), ast.fnc.fname)
 		for i,v :=  range ast.fnc.args {
 			s += ast_to_string_int(v)
 			if i < len(ast.fnc.args) - 1 {
@@ -713,7 +713,7 @@ func ast_to_string_int(ast *Ast) string {
 	case AST_FUNC:
 		s := fmt.Sprintf("(%s)%s(",
 			ctype_to_string(ast.ctype),
-			Cstring(ast.fnc.fname))
+			ast.fnc.fname)
 		for i,p := range ast.fnc.params {
 			s += fmt.Sprintf("%s %s", ctype_to_string(p.ctype), ast_to_string(p))
 			if i < (len(ast.fnc.params) - 1) {
@@ -726,7 +726,7 @@ func ast_to_string_int(ast *Ast) string {
 	case AST_DECL:
 		return fmt.Sprintf("(decl %s %s %s)",
 			ctype_to_string(ast.decl.declvar.ctype),
-			Cstring(ast.decl.declvar.variable.lname),
+			ast.decl.declvar.variable.lname,
 			ast_to_string_int(ast.decl.declinit))
 	case AST_ARRAY_INIT:
 		s := "{"

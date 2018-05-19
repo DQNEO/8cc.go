@@ -12,3 +12,6 @@ clean:
 
 8cc: 8gg.linux
 	cp 8gg.linux 8cc
+
+fmt:
+	gofmt -w *.go

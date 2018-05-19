@@ -436,12 +436,13 @@ static Ast *read_decl(void) {
         ctype = make_array_type(ctype, -1);
         expect(']');
         break;
+      } else {
+        Ast *size = read_expr(0);
+        if (size->type != AST_LITERAL || size->ctype->type != CTYPE_INT)
+          error("Integer expected, but got %s", ast_to_string(size));
+        expect(']');
+        ctype = make_array_type(ctype, size->ival);
       }
-      Ast *size = read_expr(0);
-      if (size->type != AST_LITERAL || size->ctype->type != CTYPE_INT)
-        error("Integer expected, but got %s", ast_to_string(size));
-      expect(']');
-      ctype = make_array_type(ctype, size->ival);
     } else {
       unget_token(tok);
       break;

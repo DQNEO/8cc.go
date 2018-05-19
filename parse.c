@@ -452,7 +452,9 @@ static Ast *read_decl(void) {
   expect('=');
   if (ctype->type == CTYPE_ARRAY) {
     init = read_decl_array_initializer(ctype);
-    int len = list_len(init->arrayinit);
+    int len = (init->type == AST_STRING)
+        ? strlen(init->sval) + 1
+        : list_len(init->arrayinit);
     if (ctype->size == -1) {
       ctype->size = len;
     }

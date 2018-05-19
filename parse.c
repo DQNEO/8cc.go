@@ -395,14 +395,16 @@ static Ast *read_decl_array_initializer(Ctype *ctype) {
           ctype_to_string(ctype), token_to_string(tok));
   List *initlist = make_list();
   for (;;) {
+    Token *tok = read_token();
+    if (is_punct(tok, '}'))
+      break;
+    unget_token(tok);
     Ast *init = read_expr(0);
     list_append(initlist, init);
     result_type('=', init->ctype, ctype->ptr);
     tok = read_token();
-    if (is_punct(tok, '}'))
-      break;
     if (!is_punct(tok, ','))
-      error("comma expected, but got %s", token_to_string(tok));
+      unget_token(tok);
   }
   return ast_array_init(initlist);
 }

@@ -450,15 +450,17 @@ func read_decl_array_initializer(ctype *Ctype) *Ast {
 	}
 	var initlist []*Ast
 	for {
+		tok := read_token()
+		if is_punct(tok, '}')  {
+			break
+		}
+		unget_token(tok)
 		init := read_expr(0)
 		initlist = append(initlist, init)
 		result_type('=', init.ctype, ctype.ptr)
 		tok = read_token()
-		if is_punct(tok, '}') {
-			break
-		}
 		if !is_punct(tok, ',') {
-			_error("comma expected, but got %s", tok)
+			unget_token(tok)
 		}
 	}
 

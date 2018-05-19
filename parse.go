@@ -473,13 +473,6 @@ func read_decl_array_initializer(ctype *Ctype) *Ast {
 	return ast_array_init(ctype.size, initlist)
 }
 
-func read_declinitializer(ctype *Ctype) *Ast {
-	if ctype.typ == CTYPE_ARRAY {
-		return read_decl_array_initializer(ctype)
-	}
-	return read_expr(0)
-}
-
 func read_decl_spec() *Ctype {
 	tok := read_token()
 	ctype := get_ctype(tok)
@@ -519,8 +512,13 @@ func read_decl() *Ast {
 		}
 	}
 	variable := ast_lvar(ctype, varname.v.sval)
+	var init *Ast
 	expect('=')
-	init := read_declinitializer(ctype)
+	if ctype.typ == CTYPE_ARRAY {
+		init = read_decl_array_initializer(ctype)
+	} else {
+		init = read_expr(0)
+	}
 	expect(';')
 	return ast_decl(variable, init)
 }

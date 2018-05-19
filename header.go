@@ -96,7 +96,7 @@ type Ast struct {
 		args  []*Ast
 		params []*Ast
 		locals []*Ast
-		body []*Ast
+		body Block
 	}
 	// Declaration
 	decl struct {
@@ -111,7 +111,7 @@ type Ast struct {
 	// If statement
 	_if struct {
 		cond *Ast
-		then []*Ast
-		els  []*Ast
+		then Block
+		els  Block
 	}
 }

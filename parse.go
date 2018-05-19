@@ -117,7 +117,7 @@ func ast_funcall(ctype *Ctype, fname Cstring, args []*Ast) *Ast {
 	return r
 }
 
-func ast_func(rettype *Ctype, fname Cstring, params []*Ast, locals []*Ast, body []*Ast) *Ast {
+func ast_func(rettype *Ctype, fname Cstring, params []*Ast, locals []*Ast, body Block) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNC
 	r.ctype = rettype
@@ -146,7 +146,7 @@ func ast_array_init(csize int, arrayinit []*Ast) *Ast {
 	return r
 }
 
-func ast_if(cond *Ast, then []*Ast, els []*Ast) *Ast {
+func ast_if(cond *Ast, then Block, els Block) *Ast {
 	r := &Ast{}
 	r.typ = AST_IF
 	r.ctype = nil
@@ -565,7 +565,7 @@ func read_decl_or_stmt() *Ast {
 	}
 }
 
-func read_block() []*Ast {
+func read_block() Block {
 	var r []*Ast
 
 	for {
@@ -583,7 +583,7 @@ func read_block() []*Ast {
 		unget_token(tok)
 	}
 
-	return r
+	return Block(r)
 }
 
 func read_params() []*Ast {
@@ -665,7 +665,9 @@ func (ctype *Ctype) String() string {
 	return ""
 }
 
-func block_to_string(block []*Ast) string {
+type Block []*Ast
+
+func (block Block) String() string {
 	s := "{"
 	for _, v := range block {
 		s += v.String()
@@ -721,7 +723,7 @@ func (ast *Ast) String() string {
 			}
 		}
 		s += fmt.Sprintf(")%s",
-				block_to_string(ast.fnc.body))
+				ast.fnc.body)
 		return s
 	case AST_DECL:
 		return fmt.Sprintf("(decl %s %s %s)",
@@ -745,9 +747,9 @@ func (ast *Ast) String() string {
 	case AST_IF:
 		s := fmt.Sprintf("(if %s %s",
 			ast._if.cond,
-				block_to_string(ast._if.then))
+				ast._if.then)
 		if ast._if.els != nil {
-			s += fmt.Sprintf(" %s", block_to_string(ast._if.els))
+			s += fmt.Sprintf(" %s", ast._if.els)
 		}
 		s += ")"
 		return s

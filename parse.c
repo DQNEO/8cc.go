@@ -393,21 +393,15 @@ static Ast *read_decl_array_initializer(Ctype *ctype) {
   if (!is_punct(tok, '{'))
     error("Expected an initializer list, but got %s", token_to_string(tok));
   List *initlist = make_list();
-  for (int i = 0; i < ctype->size; i++) {
+  for (;;) {
     Ast *init = read_expr(0);
     list_append(initlist, init);
     result_type('=', init->ctype, ctype->ptr);
     tok = read_token();
-    if (is_punct(tok, '}') && (i == ctype->size - 1))
+    if (is_punct(tok, '}'))
       break;
     if (!is_punct(tok, ','))
       error("comma expected, but got %s", token_to_string(tok));
-    if (i == ctype->size - 1) {
-      tok = read_token();
-      if (!is_punct(tok, '}'))
-        error("'}' expected, but got %s", token_to_string(tok));
-      break;
-    }
   }
   return ast_array_init(initlist);
 }
@@ -435,11 +429,18 @@ static Ast *read_decl(void) {
   for (;;) {
     Token *tok = read_token();
     if (is_punct(tok, '[')) {
-      Ast *size = read_expr(0);
-      if (size->type != AST_LITERAL || size->ctype->type != CTYPE_INT)
-        error("Integer expected, but got %s", ast_to_string(size));
+      tok = peek_token();
+      if (is_punct(tok, ']')) {
+        if (ctype->size == -1)
+          error("Array size is not specified");
+        ctype = make_array_type(ctype, -1);
+      } else {
+        Ast *size = read_expr(0);
+        if (size->type != AST_LITERAL || size->ctype->type != CTYPE_INT)
+          error("Integer expected, but got %s", ast_to_string(size));
+        ctype = make_array_type(ctype, size->ival);
+      }
       expect(']');
-      ctype = make_array_type(ctype, size->ival);
     } else {
       unget_token(tok);
       break;
@@ -450,6 +451,12 @@ static Ast *read_decl(void) {
   expect('=');
   if (ctype->type == CTYPE_ARRAY) {
     init = read_decl_array_initializer(ctype);
+    int len = (init->type == AST_STRING)
+        ? strlen(init->sval) + 1
+        : list_len(init->arrayinit);
+    if (ctype->size == -1) {
+      ctype->size = len;
+    }
   } else {
     init = read_expr(0);
   }

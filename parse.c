@@ -413,12 +413,6 @@ static Ast *read_decl_array_initializer(Ctype *ctype) {
   return ast_array_init(ctype->size, initlist);
 }
 
-static Ast *read_declinitializer(Ctype *ctype) {
-  if (ctype->type == CTYPE_ARRAY)
-    return read_decl_array_initializer(ctype);
-  return read_expr(0);
-}
-
 static Ctype *read_decl_spec(void) {
   Token *tok = read_token();
   Ctype *ctype = get_ctype(tok);
@@ -453,8 +447,13 @@ static Ast *read_decl(void) {
     }
   }
   Ast *var = ast_lvar(ctype, varname->sval);
+  Ast *init;
   expect('=');
-  Ast *init = read_declinitializer(ctype);
+  if (ctype->type == CTYPE_ARRAY) {
+    init = read_decl_array_initializer(ctype);
+  } else {
+    init = read_expr(0);
+  }
   expect(';');
   return ast_decl(var, init);
 }

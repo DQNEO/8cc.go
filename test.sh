@@ -69,6 +69,7 @@ testast "(int)f(){(decl char c 'a');}" "char c='a';"
 testast '(int)f(){(decl char* s "abcd");}' 'char *s="abcd";'
 testast '(int)f(){(decl char[5] s "asdf");}' 'char s[5]="asdf";'
 testast '(int)f(){(decl int[3] a {1,2,3});}' 'int a[3]={1,2,3};'
+testast '(int)f(){(decl int[3] a {1,2,3});}' 'int a[]={1,2,3};'
 testast '(int)f(){(decl int a 1);(decl int b 2);(= a (= b 3));}' 'int a=1;int b=2;a=b=3;'
 testast '(int)f(){(decl int a 3);(& a);}' 'int a=3;&a;'
 testast '(int)f(){(decl int a 3);(* (& a));}' 'int a=3;*&a;'
@@ -79,7 +80,6 @@ testast '(int)f(){"abc";}' '"abc";'
 testast "(int)f(){'c';}" "'c';"
 testast '(int)f(){(int)a();}' 'a();'
 testast '(int)f(){(int)a(1,2,3,4,5,6);}' 'a(1,2,3,4,5,6);'
-
 testastf '(int)f(int c){c;}' 'int f(int c){c;}'
 testastf '(int)f(int c){c;}(int)g(int d){d;}' 'int f(int c){c;} int g(int d){d;}'
 

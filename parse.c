@@ -391,7 +391,8 @@ static Ast *read_decl_array_initializer(Ctype *ctype) {
   if (ctype->ptr->type == CTYPE_CHAR && tok->type == TTYPE_STRING)
     return ast_string(tok->sval);
   if (!is_punct(tok, '{'))
-    error("Expected an initializer list, but got %s", token_to_string(tok));
+    error("Expected an initializer list for %s, but got %s",
+          ctype_to_string(ctype), token_to_string(tok));
   List *initlist = make_list();
   for (;;) {
     Ast *init = read_expr(0);

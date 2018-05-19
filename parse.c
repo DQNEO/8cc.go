@@ -136,11 +136,10 @@ static Ast *ast_decl(Ast *var, Ast *init) {
   return r;
 }
 
-static Ast *ast_array_init(int csize, List *arrayinit) {
+static Ast *ast_array_init(List *arrayinit) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_ARRAY_INIT;
   r->ctype = NULL;
-  r->csize = csize;
   r->arrayinit = arrayinit;
   return r;
 }
@@ -410,7 +409,7 @@ static Ast *read_decl_array_initializer(Ctype *ctype) {
       break;
     }
   }
-  return ast_array_init(ctype->size, initlist);
+  return ast_array_init(initlist);
 }
 
 static Ctype *read_decl_spec(void) {

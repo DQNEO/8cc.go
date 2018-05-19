@@ -120,7 +120,6 @@ typedef struct Ast {
     };
     // Array initializer
     struct {
-      int csize;
       struct List *arrayinit;
     };
     // If statement

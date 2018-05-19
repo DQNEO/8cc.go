@@ -76,7 +76,8 @@ func strlen(str []byte) int {
 	return i
 }
 
-func bytes2string(b []byte) string {
+type Cstring []byte
+func (b Cstring) String() string {
 	i := 0
 	for {
 		if b[i] == byte(0) {

@@ -48,11 +48,11 @@ func ast_char(c byte) *Ast {
 	return r
 }
 
-func make_label() []byte {
+func make_label() Cstring {
 	seq := labelseq
 	labelseq++
 	s := fmt.Sprintf(".L%d", seq)
-	return []byte(s + "\x00")
+	return Cstring(s + "\x00")
 }
 
 func ast_lvar(ctype *Ctype, name []byte) *Ast {
@@ -693,15 +693,15 @@ func ast_to_string_int(ast *Ast) string {
 	case AST_STRING:
 		return fmt.Sprintf("\"%s\"", quote_cstring(ast.str.val))
 	case AST_LVAR:
-		return fmt.Sprintf("%s", bytes2string(ast.variable.lname))
+		return fmt.Sprintf("%s", Cstring(ast.variable.lname))
 	case AST_GVAR:
-		return fmt.Sprintf("%s", bytes2string(ast.gvar.gname))
+		return fmt.Sprintf("%s", Cstring(ast.gvar.gname))
 	case AST_LREF:
 		return fmt.Sprintf("%s[%d]", ast_to_string(ast.lref.ref), ast.lref.off)
 	case AST_GREF:
 		return fmt.Sprintf("%s[%d]", ast_to_string(ast.gref.ref), ast.gref.off)
 	case AST_FUNCALL:
-		s := fmt.Sprintf("(%s)%s(", ctype_to_string(ast.ctype), bytes2string(ast.fnc.fname))
+		s := fmt.Sprintf("(%s)%s(", ctype_to_string(ast.ctype), Cstring(ast.fnc.fname))
 		for i,v :=  range ast.fnc.args {
 			s += ast_to_string_int(v)
 			if i < len(ast.fnc.args) - 1 {
@@ -713,7 +713,7 @@ func ast_to_string_int(ast *Ast) string {
 	case AST_FUNC:
 		s := fmt.Sprintf("(%s)%s(",
 			ctype_to_string(ast.ctype),
-			bytes2string(ast.fnc.fname))
+			Cstring(ast.fnc.fname))
 		for i,p := range ast.fnc.params {
 			s += fmt.Sprintf("%s %s", ctype_to_string(p.ctype), ast_to_string(p))
 			if i < (len(ast.fnc.params) - 1) {
@@ -726,7 +726,7 @@ func ast_to_string_int(ast *Ast) string {
 	case AST_DECL:
 		return fmt.Sprintf("(decl %s %s %s)",
 			ctype_to_string(ast.decl.declvar.ctype),
-			bytes2string(ast.decl.declvar.variable.lname),
+			Cstring(ast.decl.declvar.variable.lname),
 			ast_to_string_int(ast.decl.declinit))
 	case AST_ARRAY_INIT:
 		s := "{"

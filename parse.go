@@ -320,7 +320,7 @@ func result_type(op byte, a *Ctype, b *Ctype) *Ctype {
 	ret, err := result_type_int(op, a, b)
 	if err != nil {
 		_error("incompatible operands: %c: <%s> and <%s>",
-			op, ctype_to_string(a), ctype_to_string(b))
+			op, a, b)
 	}
 	return ret
 }
@@ -646,7 +646,7 @@ func read_func_list() []*Ast {
 	return nil
 }
 
-func ctype_to_string(ctype *Ctype) string {
+func (ctype *Ctype) String() string {
 	switch ctype.typ {
 	case CTYPE_VOID:
 		return "void"
@@ -655,9 +655,9 @@ func ctype_to_string(ctype *Ctype) string {
 	case CTYPE_CHAR:
 		return "char"
 	case CTYPE_PTR:
-		return fmt.Sprintf("%s*", ctype_to_string(ctype.ptr))
+		return fmt.Sprintf("%s*", ctype.ptr)
 	case CTYPE_ARRAY:
-		return fmt.Sprintf("%s[%d]", ctype_to_string(ctype.ptr), ctype.size)
+		return fmt.Sprintf("%s[%d]", ctype.ptr, ctype.size)
 	default:
 		_error("Unknown ctype: %d", ctype)
 	}
@@ -701,7 +701,7 @@ func (ast *Ast) String() string {
 	case AST_GREF:
 		return fmt.Sprintf("%s[%d]", ast.gref.ref, ast.gref.off)
 	case AST_FUNCALL:
-		s := fmt.Sprintf("(%s)%s(", ctype_to_string(ast.ctype), ast.fnc.fname)
+		s := fmt.Sprintf("(%s)%s(", ast.ctype, ast.fnc.fname)
 		for i,v :=  range ast.fnc.args {
 			s += v.String()
 			if i < len(ast.fnc.args) - 1 {
@@ -712,10 +712,10 @@ func (ast *Ast) String() string {
 		return s
 	case AST_FUNC:
 		s := fmt.Sprintf("(%s)%s(",
-			ctype_to_string(ast.ctype),
+			ast.ctype,
 			ast.fnc.fname)
 		for i,p := range ast.fnc.params {
-			s += fmt.Sprintf("%s %s", ctype_to_string(p.ctype), p)
+			s += fmt.Sprintf("%s %s", p.ctype, p)
 			if i < (len(ast.fnc.params) - 1) {
 				s += ","
 			}
@@ -725,7 +725,7 @@ func (ast *Ast) String() string {
 		return s
 	case AST_DECL:
 		return fmt.Sprintf("(decl %s %s %s)",
-			ctype_to_string(ast.decl.declvar.ctype),
+			ast.decl.declvar.ctype,
 			ast.decl.declvar.variable.lname,
 			ast.decl.declinit)
 	case AST_ARRAY_INIT:

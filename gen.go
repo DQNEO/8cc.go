@@ -34,7 +34,7 @@ func emit_gload(ctype *Ctype, label Cstring, off int) {
 	case 8:
 		reg = "rax"
 	default:
-		_error("Unknown data size: %s: %d", ctype_to_string(ctype), size)
+		_error("Unknown data size: %s: %d", ctype, size)
 	}
 
 	printf("mov %s(%%rip), %%%s\n\t", label, reg)

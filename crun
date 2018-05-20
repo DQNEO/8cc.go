@@ -1,6 +1,6 @@
 #!/bin/bash
 
 cat > /tmp/input
-make 8cc
+make -s 8cc
 cat /tmp/input | ./8cc "$@"
-
+echo

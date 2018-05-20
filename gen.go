@@ -132,6 +132,16 @@ func emit_assign(variable *Ast, value *Ast) {
 	printf("mov %%rax, %d(%%rbp)\n\t", -variable.variable.loff)
 }
 
+func emit_comp(a *Ast, b *Ast) {
+	emit_expr(a)
+	printf("push %%rax\n\t")
+	emit_expr(b)
+	printf("pop %%rcx\n\t")
+	printf("cmp %%rax, %%rcx\n\t")
+	printf("setl %%al\n\t")
+	printf("movzb %%al, %%eax\n\t")
+}
+
 func emit_binop(ast *Ast) {
 	if ast.typ == '=' {
 		emit_assign(ast.binop.left, ast.binop.right)
@@ -144,6 +154,12 @@ func emit_binop(ast *Ast) {
 	}
 	var op string
 	switch ast.typ {
+	case '<':
+		emit_comp(ast.binop.left, ast.binop.right)
+		return
+	case '>':
+		emit_comp(ast.binop.right, ast.binop.left)
+		return
 	case '+':
 		op = "add"
 	case '-':
@@ -255,18 +271,18 @@ func emit_expr(ast *Ast) {
 		printf("mov %%rcx, %%rax\n\t")
 	case AST_IF:
 		emit_expr(ast._if.cond)
-		l1 := make_label()
+		ne := make_label()
 		printf("test %%rax, %%rax\n\t")
-		printf("je %s\n\t", l1)
+		printf("je %s\n\t", ne)
 		emit_block(ast._if.then)
 		if ast._if.els != nil {
-			l2 := make_label()
-			printf("jmp %s\n\t", l2)
-			printf("%s:\n\t", l1)
+			end := make_label()
+			printf("jmp %s\n\t", end)
+			printf("%s:\n\t", ne)
 			emit_block(ast._if.els)
-			printf("%s:\n\t", l2)
+			printf("%s:\n\t", end)
 		} else {
-			printf("%s:\n\t", l1)
+			printf("%s:\n\t", ne)
 		}
 	default:
 		emit_binop(ast)

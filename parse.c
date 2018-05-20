@@ -156,7 +156,7 @@ static Ast *ast_if(Ast *cond, List *then, List *els) {
 }
 
 static Ast *ast_for(Ast *init, Ast *cond, Ast *step, List *body) {
-  Ast *r= malloc(sizeof(Ast));
+  Ast *r = malloc(sizeof(Ast));
   r->type = AST_FOR;
   r->ctype = NULL;
   r->forinit = init;
@@ -499,42 +499,34 @@ static Ast *read_if_stmt(void) {
   return ast_if(cond, then, els);
 }
 
-
 static Ast *read_opt_decl_or_stmt(void) {
   Token *tok = read_token();
-  if (is_punct(tok, ';')) {
+  if (is_punct(tok, ';'))
     return NULL;
-  }
   unget_token(tok);
   return read_decl_or_stmt();
 }
 
 static Ast *read_opt_expr(void) {
   Token *tok = read_token();
-  if (is_punct(tok, ';')) {
-    unget_token(tok);
+  if (is_punct(tok, ';'))
     return NULL;
-  }
   unget_token(tok);
-  return read_expr(0);
+  Ast *r = read_expr(0);
+  expect(';');
+  return r;
 }
 
 static Ast *read_for_stmt(void) {
   expect('(');
   Ast *init = read_opt_decl_or_stmt();
   Ast *cond = read_opt_expr();
-  expect(';');
-  Token *tok = peek_token();
-  Ast *step; 
-  if (is_punct(tok, ')')) {
-    step = NULL;
-  } else {
-    step = read_expr(0);
-  }
+  Ast *step = is_punct(peek_token(), ')')
+      ? NULL : read_expr(0);
   expect(')');
   expect('{');
-  List *block = read_block();
-  return ast_for(init, cond, step, block);
+  List *body = read_block();
+  return ast_for(init, cond, step, body);
 }
 
 static Ast *read_stmt(void) {
@@ -731,11 +723,11 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       string_appendf(buf, ")");
       break;
     case AST_FOR:
-      string_appendf(buf, "(for %s %s %s %s)",
+      string_appendf(buf, "(for %s %s %s ",
                      ast_to_string(ast->forinit),
                      ast_to_string(ast->forcond),
-                     ast_to_string(ast->forstep),
-                     block_to_string(ast->forbody));
+                     ast_to_string(ast->forstep));
+      string_appendf(buf, "%s)", block_to_string(ast->forbody));
       break;
     default: {
       char *left = ast_to_string(ast->left);

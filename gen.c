@@ -273,6 +273,20 @@ static void emit_expr(Ast *ast) {
       }
       break;
     }
+    case AST_FOR: {
+      emit_expr(ast->forinit);
+      char *begin = make_label();
+      char *end = make_label();
+      printf("%s:\n\t", begin);
+      emit_expr(ast->forcond);
+      printf("test %%rax, %%rax\n\t");
+      printf("je %s\n\t", end);
+      emit_block(ast->forbody);
+      emit_expr(ast->forstep);
+      printf("jmp %s\n\t", begin);
+      printf("%s:\n\t", end);
+      break;
+    }
     default:
       emit_binop(ast);
   }

@@ -32,6 +32,7 @@ const (
 	AST_ADDR
 	AST_DEREF
 	AST_IF
+	AST_FOR
 )
 
 const (
@@ -112,5 +113,12 @@ type Ast struct {
 		cond *Ast
 		then Block
 		els  Block
+	}
+	// For statement
+	_for struct {
+		init *Ast
+		cond *Ast
+		step *Ast
+		body Block
 	}
 }

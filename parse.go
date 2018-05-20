@@ -155,6 +155,17 @@ func ast_if(cond *Ast, then Block, els Block) *Ast {
 	return r
 }
 
+func ast_for(init *Ast, cond *Ast, step *Ast, body Block) *Ast {
+	r := &Ast{}
+	r.typ = AST_FOR
+	r.ctype = nil
+	r._for.init = init
+	r._for.cond = cond
+	r._for.step = step
+	r._for.body = body
+	return r
+}
+
 func make_ptr_type(ctype *Ctype) *Ctype {
 	r := &Ctype{}
 	r.typ = CTYPE_PTR
@@ -551,10 +562,49 @@ func read_if_stmt() *Ast {
 	return ast_if(cond, then, els)
 }
 
+func read_opt_decl_or_stmt() *Ast {
+	tok := read_token()
+	if is_punct(tok, ';') {
+		return nil
+	}
+	unget_token(tok)
+	return read_decl_or_stmt()
+}
+
+func read_opt_expr() *Ast {
+	tok := read_token()
+	if is_punct(tok, ';') {
+		return nil
+	}
+	unget_token(tok)
+	r := read_expr(0)
+	expect(';')
+	return r
+}
+
+func read_for_stmt() *Ast {
+	expect('(')
+	init := read_opt_decl_or_stmt()
+	cond := read_opt_expr()
+	var step *Ast
+	if is_punct(peek_token(), ')') {
+		step = nil
+	} else {
+		step = read_expr(0)
+	}
+	expect(')')
+	expect('{')
+	body := read_block()
+	return ast_for(init, cond, step, body)
+}
+
 func read_stmt() *Ast {
 	tok := read_token()
 	if tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, NewCstringFromLiteral("if")) == 0 {
 		return read_if_stmt()
+	}
+	if tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, NewCstringFromLiteral("for")) == 0 {
+		return read_for_stmt();
 	}
 	unget_token(tok)
 	r := read_expr(0)
@@ -762,6 +812,13 @@ func (ast *Ast) String() string {
 			s += fmt.Sprintf(" %s", ast._if.els)
 		}
 		s += ")"
+		return s
+	case AST_FOR:
+		s := fmt.Sprintf("(for %s %s %s %s)",
+			ast._for.init,
+			ast._for.cond,
+			ast._for.step,
+			ast._for.body)
 		return s
 	default:
 		left := ast.binop.left

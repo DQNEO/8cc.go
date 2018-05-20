@@ -284,6 +284,24 @@ func emit_expr(ast *Ast) {
 		} else {
 			printf("%s:\n\t", ne)
 		}
+	case AST_FOR:
+		if ast._for.init != nil {
+			emit_expr(ast._for.init)
+		}
+		begin := make_label()
+		end := make_label()
+		printf("%s:\n\t", begin)
+		if ast._for.cond != nil {
+			emit_expr(ast._for.cond)
+			printf("test %%rax, %%rax\n\t")
+			printf("je %s\n\t", end)
+		}
+		emit_block(ast._for.body)
+		if ast._for.step != nil {
+			emit_expr(ast._for.step)
+		}
+		printf("jmp %s\n\t", begin)
+		printf("%s:\n\t", end)
 	default:
 		emit_binop(ast)
 	}

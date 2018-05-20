@@ -226,7 +226,7 @@ func emit_expr(ast *Ast) {
 		}
 		printf("mov $0, %%eax\n\t")
 		printf("call %s\n\t", ast.fnc.fname)
-		for i := len(ast.fnc.args) - 1; i >= 0; i-- {
+		for i := len(ast.fnc.args) - 1; i > 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 	case AST_DECL:
@@ -284,6 +284,24 @@ func emit_expr(ast *Ast) {
 		} else {
 			printf("%s:\n\t", ne)
 		}
+	case AST_FOR:
+		if ast._for.init != nil {
+			emit_expr(ast._for.init)
+		}
+		begin := make_label()
+		end := make_label()
+		printf("%s:\n\t", begin)
+		if ast._for.cond != nil {
+			emit_expr(ast._for.cond)
+			printf("test %%rax, %%rax\n\t")
+			printf("je %s\n\t", end)
+		}
+		emit_block(ast._for.body)
+		if ast._for.step != nil {
+			emit_expr(ast._for.step)
+		}
+		printf("jmp %s\n\t", begin)
+		printf("%s:\n\t", end)
 	default:
 		emit_binop(ast)
 	}

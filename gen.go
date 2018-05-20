@@ -260,11 +260,11 @@ func emit_expr(ast *Ast) {
 		printf("je %s\n\t", ne)
 		emit_block(ast._if.then)
 		if ast._if.els != nil {
-			l2 := make_label()
-			printf("jmp %s\n\t", l2)
+			end := make_label()
+			printf("jmp %s\n\t", end)
 			printf("%s:\n\t", ne)
 			emit_block(ast._if.els)
-			printf("%s:\n\t", l2)
+			printf("%s:\n\t", end)
 		} else {
 			printf("%s:\n\t", ne)
 		}

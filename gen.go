@@ -255,18 +255,18 @@ func emit_expr(ast *Ast) {
 		printf("mov %%rcx, %%rax\n\t")
 	case AST_IF:
 		emit_expr(ast._if.cond)
-		l1 := make_label()
+		ne := make_label()
 		printf("test %%rax, %%rax\n\t")
-		printf("je %s\n\t", l1)
+		printf("je %s\n\t", ne)
 		emit_block(ast._if.then)
 		if ast._if.els != nil {
 			l2 := make_label()
 			printf("jmp %s\n\t", l2)
-			printf("%s:\n\t", l1)
+			printf("%s:\n\t", ne)
 			emit_block(ast._if.els)
 			printf("%s:\n\t", l2)
 		} else {
-			printf("%s:\n\t", l1)
+			printf("%s:\n\t", ne)
 		}
 	default:
 		emit_binop(ast)

@@ -200,6 +200,8 @@ func priority(op byte) int {
 	switch op {
 	case '=':
 		return 1
+	case '<','>':
+		return 2
 	case '+','-':
 		return 2
 	case '*', '/':

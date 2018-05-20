@@ -3,4 +3,4 @@
 cat > /tmp/input
 make 8cc
 cat /tmp/input | ./8cc "$@"
-
+echo

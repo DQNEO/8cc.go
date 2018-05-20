@@ -499,12 +499,38 @@ static Ast *read_if_stmt(void) {
   return ast_if(cond, then, els);
 }
 
+
+static Ast *read_opt_decl_or_stmt(void) {
+  Token *tok = read_token();
+  if (is_punct(tok, ';')) {
+    return NULL;
+  }
+  unget_token(tok);
+  return read_decl_or_stmt();
+}
+
+static Ast *read_opt_expr(void) {
+  Token *tok = read_token();
+  if (is_punct(tok, ';')) {
+    unget_token(tok);
+    return NULL;
+  }
+  unget_token(tok);
+  return read_expr(0);
+}
+
 static Ast *read_for_stmt(void) {
   expect('(');
-  Ast *init = read_decl_or_stmt();
-  Ast *cond = read_expr(0);
+  Ast *init = read_opt_decl_or_stmt();
+  Ast *cond = read_opt_expr();
   expect(';');
-  Ast *step = read_expr(0);
+  Token *tok = peek_token();
+  Ast *step; 
+  if (is_punct(tok, ')')) {
+    step = NULL;
+  } else {
+    step = read_expr(0);
+  }
   expect(')');
   expect('{');
   List *block = read_block();

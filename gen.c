@@ -247,11 +247,11 @@ static void emit_expr(Ast *ast) {
       printf("je %s\n\t", ne);
       emit_block(ast->then);
       if (ast->els) {
-        char *l2 = make_label();
-        printf("jmp %s\n\t", l2);
+        char *end = make_label();
+        printf("jmp %s\n\t", end);
         printf("%s:\n\t", ne);
         emit_block(ast->els);
-        printf("%s:\n\t", l2);
+        printf("%s:\n\t", end);
       } else {
         printf("%s:\n\t", ne);
       }

@@ -96,6 +96,10 @@ test 4 '24/2/3;'
 test 98 "'a'+1;"
 test 2 '1;2;'
 
+# Comparison
+test 1 '1<2;'
+test 0 '2<1;'
+
 # Declaration
 test 3 'int a=1;a+2;'
 test 102 'int a=1;int b=48+2;int c=a+b;c*2;'

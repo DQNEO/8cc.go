@@ -226,7 +226,7 @@ func emit_expr(ast *Ast) {
 		}
 		printf("mov $0, %%eax\n\t")
 		printf("call %s\n\t", ast.fnc.fname)
-		for i := len(ast.fnc.args) - 1; i >= 0; i-- {
+		for i := len(ast.fnc.args) - 1; i > 0; i-- {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 	case AST_DECL:

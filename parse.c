@@ -195,10 +195,11 @@ static int priority(char op) {
     case '=':
       return 1;
     case '<': case '>':
-    case '+': case '-':
       return 2;
-    case '*': case '/':
+    case '+': case '-':
       return 3;
+    case '*': case '/':
+      return 4;
     default:
       return -1;
   }

@@ -194,6 +194,7 @@ static int priority(char op) {
   switch (op) {
     case '=':
       return 1;
+    case '<': case '>':
     case '+': case '-':
       return 2;
     case '*': case '/':

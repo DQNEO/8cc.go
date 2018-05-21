@@ -543,14 +543,15 @@ static Ast *read_return_stmt(void) {
   return ast_return(retval);
 }
 
+static bool is_ident(Token *tok, char *s) {
+  return tok->type == TTYPE_IDENT && !strcmp(tok->sval, s);
+}
+
 static Ast *read_stmt(void) {
   Token *tok = read_token();
-  if (tok->type == TTYPE_IDENT && !strcmp(tok->sval, "if"))
-    return read_if_stmt();
-  if (tok->type == TTYPE_IDENT && !strcmp(tok->sval, "for"))
-    return read_for_stmt();
-  if (tok->type == TTYPE_IDENT && !strcmp(tok->sval, "return"))
-    return read_return_stmt();
+  if (is_ident(tok, "if"))     return read_if_stmt();
+  if (is_ident(tok, "for"))    return read_for_stmt();
+  if (is_ident(tok, "return")) return read_return_stmt();
   unget_token(tok);
   Ast *r = read_expr(0);
   expect(';');

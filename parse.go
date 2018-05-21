@@ -297,6 +297,9 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 
 	default_err := errors.New("")
 	if b.typ == CTYPE_PTR {
+		if op == '=' {
+			return a, nil
+		}
 		if op != '+' && op != '-' {
 			return nil, default_err
 		}
@@ -344,7 +347,8 @@ func result_type(op byte, a *Ctype, b *Ctype) *Ctype {
 func ensure_lvalue(ast *Ast) {
 	switch ast.typ {
 	case AST_LVAR, AST_LREF,
-		AST_GVAR, AST_GREF:
+		AST_GVAR, AST_GREF,
+		AST_DEREF:
 		return
 	}
 	_error("lvalue expected, but got %s", ast)

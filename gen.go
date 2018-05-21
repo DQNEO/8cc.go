@@ -101,6 +101,26 @@ func emit_lsave(ctype *Ctype, loff int, off int) {
 	printf("mov %%%s, %d(%%rbp)\n\t", reg, -(loff + off*size))
 }
 
+func emit_deref(variable *Ast, value *Ast) {
+	emit_expr(variable.unary.operand)
+	printf("push %%rax\n\t")
+	emit_expr(value)
+	printf("pop %%rcx\n\t")
+	var reg string
+	size := ctype_size(variable.unary.operand.ctype)
+	switch size {
+	case 1:
+		reg = "al"
+	case 4:
+		reg = "eax"
+	case 8:
+		reg = "rax"
+	}
+
+	printf("mov %%%s, (%%rcx)\n\t", reg)
+
+}
+
 func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
 	assert(left.ctype.typ == CTYPE_PTR)
 	emit_expr(left)
@@ -126,10 +146,11 @@ func emit_assign(variable *Ast, value *Ast) {
 		emit_gsave(variable, 0)
 	case AST_GREF:
 		emit_gsave(variable.gref.ref, variable.gref.off)
+	case AST_DEREF:
+		emit_deref(variable, value)
 	default:
 		_error("internal error")
 	}
-	printf("mov %%rax, %d(%%rbp)\n\t", -variable.variable.loff)
 }
 
 func emit_comp(a *Ast, b *Ast) {

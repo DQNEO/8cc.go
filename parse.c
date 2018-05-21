@@ -323,6 +323,7 @@ static void ensure_lvalue(Ast *ast) {
   switch (ast->type) {
     case AST_LVAR: case AST_LREF:
     case AST_GVAR: case AST_GREF:
+    case AST_DEREF:
       return;
     default:
       error("lvalue expected, but got %s", ast_to_string(ast));

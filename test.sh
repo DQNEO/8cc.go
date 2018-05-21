@@ -121,6 +121,7 @@ test 61 'int a=61;int *b=&a;*b;'
 test 97 'char *c="ab";*c;'
 test 98 'char *c="ab"+1;*c;'
 test 122 'char s[]="xyz";char *c=s+2;*c;'
+test 65 'char s[]="xyz";*s=65;*s;'
 
 # If statement
 test 'a1' 'if(1){printf("a");}1;'

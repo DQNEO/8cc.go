@@ -291,6 +291,11 @@ static void emit_expr(Ast *ast) {
       printf("%s:\n\t", end);
       break;
     }
+    case AST_RETURN:
+      emit_expr(ast->retval);
+      printf("leave\n\t"
+             "ret\n");
+      break;
     default:
       emit_binop(ast);
   }

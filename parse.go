@@ -611,15 +611,20 @@ func read_return_stmt() *Ast {
 	expect(';')
 	return ast_return(retval)
 }
+
+func is_ident(tok *Token, s string) bool {
+	return tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, NewCstringFromLiteral(s)) == 0
+}
+
 func read_stmt() *Ast {
 	tok := read_token()
-	if tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, NewCstringFromLiteral("if")) == 0 {
+	if is_ident(tok, "if") {
 		return read_if_stmt()
 	}
-	if tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, NewCstringFromLiteral("for")) == 0 {
+	if is_ident(tok, "for") {
 		return read_for_stmt();
 	}
-	if tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, NewCstringFromLiteral("return")) == 0 {
+	if is_ident(tok, "return") {
 		return read_return_stmt();
 	}
 	unget_token(tok)

@@ -33,6 +33,7 @@ const (
 	AST_DEREF
 	AST_IF
 	AST_FOR
+	AST_RETURN
 )
 
 const (
@@ -120,5 +121,8 @@ type Ast struct {
 		cond *Ast
 		step *Ast
 		body Block
+	}
+	_return  struct {
+		retval *Ast
 	}
 }

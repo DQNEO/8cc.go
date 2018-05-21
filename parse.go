@@ -166,6 +166,14 @@ func ast_for(init *Ast, cond *Ast, step *Ast, body Block) *Ast {
 	return r
 }
 
+func ast_return(retval *Ast) *Ast {
+	r := &Ast{}
+	r.typ = AST_RETURN
+	r.ctype = nil
+	r._return.retval = retval
+	return r
+}
+
 func make_ptr_type(ctype *Ctype) *Ctype {
 	r := &Ctype{}
 	r.typ = CTYPE_PTR
@@ -598,6 +606,11 @@ func read_for_stmt() *Ast {
 	return ast_for(init, cond, step, body)
 }
 
+func read_return_stmt() *Ast {
+	retval := read_expr(0)
+	expect(';')
+	return ast_return(retval)
+}
 func read_stmt() *Ast {
 	tok := read_token()
 	if tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, NewCstringFromLiteral("if")) == 0 {
@@ -605,6 +618,9 @@ func read_stmt() *Ast {
 	}
 	if tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, NewCstringFromLiteral("for")) == 0 {
 		return read_for_stmt();
+	}
+	if tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, NewCstringFromLiteral("return")) == 0 {
+		return read_return_stmt();
 	}
 	unget_token(tok)
 	r := read_expr(0)
@@ -820,6 +836,8 @@ func (ast *Ast) String() string {
 			ast._for.step,
 			ast._for.body)
 		return s
+	case AST_RETURN:
+		return fmt.Sprintf("(return %s)", ast._return.retval)
 	default:
 		left := ast.binop.left
 		right := ast.binop.right

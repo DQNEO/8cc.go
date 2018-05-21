@@ -302,6 +302,11 @@ func emit_expr(ast *Ast) {
 		}
 		printf("jmp %s\n\t", begin)
 		printf("%s:\n\t", end)
+	case AST_RETURN:
+		emit_expr(ast._return.retval)
+		printf("leave\n\t" +
+			"ret\n")
+		break
 	default:
 		emit_binop(ast)
 	}

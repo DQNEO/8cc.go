@@ -297,6 +297,9 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 
 	default_err := errors.New("")
 	if b.typ == CTYPE_PTR {
+		if op == '=' {
+			return a, nil
+		}
 		if op != '+' && op != '-' {
 			return nil, default_err
 		}

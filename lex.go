@@ -110,6 +110,13 @@ func read_string() *Token {
 			if err != nil {
 				_error("Unterminated \\")
 			}
+			switch c {
+			case '"':
+			case 'n':
+				c = '\n'
+			default:
+				_error("Unknown quote: %c", c)
+			}
 		}
 		buf[i] = c
 		i++

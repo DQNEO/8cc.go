@@ -196,12 +196,11 @@ func emit_binop(ast *Ast) {
 		_error("invalid operator '%c", ast.typ)
 	}
 
-	emit_expr(ast.binop.left)
-	printf("push %%rax\n\t")
 	emit_expr(ast.binop.right)
+	printf("push %%rax\n\t")
+	emit_expr(ast.binop.left)
 	if ast.typ == '/' {
-		printf("mov %%rax, %%rcx\n\t")
-		printf("pop %%rax\n\t")
+		printf("pop %%rcx\n\t")
 		printf("mov $0, %%edx\n\t")
 		printf("idiv %%rcx\n\t")
 	} else {

@@ -101,6 +101,8 @@ test 4 '4/2+6/3;'
 test 4 '24/2/3;'
 test 98 "'a'+1;"
 test 2 '1;2;'
+test -1 'int a=0-1;a;'
+test 0 'int a=0-1;1+a;'
 
 # Comparison
 test 1 '1<2;'

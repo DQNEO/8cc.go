@@ -175,6 +175,9 @@ func emit_binop(ast *Ast) {
 	}
 	var op string
 	switch ast.typ {
+	case '@':
+		emit_comp("sete", ast.binop.left, ast.binop.right)
+		return
 	case '<':
 		emit_comp("setl", ast.binop.left, ast.binop.right)
 		return

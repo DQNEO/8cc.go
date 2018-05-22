@@ -219,7 +219,7 @@ func priority(tok *Token) int {
 	switch tok.v.punct {
 	case '=':
 		return 1
-	case '<','>':
+	case '<','>','@':
 		return 2
 	case '+','-':
 		return 3
@@ -850,6 +850,13 @@ func (ast *Ast) String() string {
 	default:
 		left := ast.binop.left
 		right := ast.binop.right
-		return fmt.Sprintf("(%c %s %s)", ast.typ, left, right)
+		var s string
+		if ast.typ == byte('@') {
+			s += "(== "
+		} else {
+			s += fmt.Sprintf("(%c ", ast.typ)
+		}
+		s += fmt.Sprintf("%s %s)", left, right)
+		return s
 	}
 }

@@ -83,6 +83,9 @@ testast "(int)f(){'c';}" "'c';"
 testast '(int)f(){(int)a();}' 'a();'
 testast '(int)f(){(int)a(1,2,3,4,5,6);}' 'a(1,2,3,4,5,6);'
 testast '(int)f(){(return 1);}' 'return 1;'
+testast '(int)f(){(< 1 2);}' '1<2;'
+testast '(int)f(){(> 1 2);}' '1>2;'
+testast '(int)f(){(== 1 2);}' '1==2;'
 
 testastf '(int)f(int c){c;}' 'int f(int c){c;}'
 testastf '(int)f(int c){c;}(int)g(int d){d;}' 'int f(int c){c;} int g(int d){d;}'
@@ -102,6 +105,8 @@ test 2 '1;2;'
 # Comparison
 test 1 '1<2;'
 test 0 '2<1;'
+test 1 '1==1;'
+test 0 '1==2;'
 
 # Declaration
 test 3 'int a=1;a+2;'

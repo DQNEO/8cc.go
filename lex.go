@@ -165,7 +165,12 @@ func read_token_init() *Token {
 	case ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_':
 		return read_ident(c)
 	case c == '=':
-		return make_punct(c)
+		c, _ = getc(stdin)
+		if c == '=' {
+			return make_punct('@')
+		}
+		ungetc(c, stdin)
+		return make_punct('=')
 	case c == '/' || c == '*' ||
 		c == '+' || c == '-' || c == '(' ||
 		c == ')' || c == ',' || c == ';' || c == '&' ||

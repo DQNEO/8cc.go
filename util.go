@@ -28,9 +28,12 @@ func quote_cstring(sval Cstring) string {
 			break
 		}
 		if c == '"' || c == '\\' {
-			s += "\\"
+			s += fmt.Sprintf("\\%c", c)
+		} else if c == '\n' {
+			s += "\\n"
+		} else {
+			s += fmt.Sprintf("%c", c)
 		}
-		s += fmt.Sprintf("%c", c)
 	}
 	return s
 }

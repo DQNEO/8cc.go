@@ -136,6 +136,10 @@ static Token *read_token_int(void) {
     case 'X': case 'Y': case 'Z': case '_':
       return read_ident(c);
     case '=': {
+      c = getc(stdin);
+      if (c == '=')
+        return make_punct('@');
+      ungetc(c, stdin);
       return make_punct('=');
     }
     case '/': case '*': case '+': case '-': case '(': case ')': case ',':

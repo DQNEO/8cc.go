@@ -159,6 +159,9 @@ static void emit_binop(Ast *ast) {
     case '>':
       emit_comp("setg", ast->left, ast->right);
       return;
+    case '@':
+      emit_comp("sete", ast->left, ast->right);
+      return;
     case '+': op = "add"; break;
     case '-': op = "sub"; break;
     case '*': op = "imul"; break;

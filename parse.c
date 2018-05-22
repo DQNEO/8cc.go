@@ -214,6 +214,7 @@ static int priority(Token *tok) {
   switch (tok->punct) {
     case '=':
       return 1;
+   case '@':
     case '<': case '>':
       return 2;
     case '+': case '-':
@@ -755,7 +756,11 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     default: {
       char *left = ast_to_string(ast->left);
       char *right = ast_to_string(ast->right);
-      string_appendf(buf, "(%c %s %s)", ast->type, left, right);
+      if (ast->type == '@')
+        string_appendf(buf, "(== ");
+      else
+        string_appendf(buf, "(%c ", ast->type);
+      string_appendf(buf, "%s %s)", left, right);
     }
   }
 }

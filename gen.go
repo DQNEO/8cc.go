@@ -168,16 +168,16 @@ func emit_binop(ast *Ast) {
 		emit_assign(ast.binop.left, ast.binop.right)
 		return
 	}
-
+	if ast.typ == '@' {
+		emit_comp("sete", ast.binop.left, ast.binop.right)
+		return
+	}
 	if ast.ctype.typ == CTYPE_PTR {
 		emit_pointer_arith(ast.typ, ast.binop.left, ast.binop.right)
 		return
 	}
 	var op string
 	switch ast.typ {
-	case '@':
-		emit_comp("sete", ast.binop.left, ast.binop.right)
-		return
 	case '<':
 		emit_comp("setl", ast.binop.left, ast.binop.right)
 		return

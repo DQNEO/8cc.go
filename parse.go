@@ -211,12 +211,12 @@ func find_var(name Cstring) *Ast {
 	return nil
 }
 
-func is_right_assoc(op byte) bool {
-	return op == '='
+func is_right_assoc(tok *Token) bool {
+	return tok.v.punct == '='
 }
 
-func priority(op byte) int {
-	switch op {
+func priority(tok *Token) int {
+	switch tok.v.punct {
 	case '=':
 		return 1
 	case '<','>':
@@ -401,7 +401,7 @@ func read_expr(prec int) *Ast {
 			unget_token(tok)
 			return ast
 		}
-		prec2 := priority(tok.v.punct)
+		prec2 := priority(tok)
 		if prec2 < 0 || prec2 < prec {
 			unget_token(tok)
 			return ast
@@ -414,7 +414,7 @@ func read_expr(prec int) *Ast {
 		}
 
 		var prec_incr int
-		if is_right_assoc(tok.v.punct) {
+		if is_right_assoc(tok) {
 			prec_incr = 0
 		} else {
 			prec_incr = 1

@@ -147,6 +147,10 @@ static void emit_binop(Ast *ast) {
     emit_assign(ast->left, ast->right);
     return;
   }
+  if (ast->type == '@') {
+    emit_comp("sete", ast->left, ast->right);
+    return;
+  }
   if (ast->ctype->type == CTYPE_PTR) {
     emit_pointer_arith(ast->type, ast->left, ast->right);
     return;
@@ -158,9 +162,6 @@ static void emit_binop(Ast *ast) {
       return;
     case '>':
       emit_comp("setg", ast->left, ast->right);
-      return;
-    case '@':
-      emit_comp("sete", ast->left, ast->right);
       return;
     case '+': op = "add"; break;
     case '-': op = "sub"; break;

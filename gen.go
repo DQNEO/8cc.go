@@ -153,13 +153,13 @@ func emit_assign(variable *Ast, value *Ast) {
 	}
 }
 
-func emit_comp(a *Ast, b *Ast) {
+func emit_comp(inst string, a *Ast, b *Ast) {
 	emit_expr(a)
 	printf("push %%rax\n\t")
 	emit_expr(b)
 	printf("pop %%rcx\n\t")
 	printf("cmp %%rax, %%rcx\n\t")
-	printf("setl %%al\n\t")
+	printf("%s %%al\n\t", inst)
 	printf("movzb %%al, %%eax\n\t")
 }
 
@@ -176,10 +176,10 @@ func emit_binop(ast *Ast) {
 	var op string
 	switch ast.typ {
 	case '<':
-		emit_comp(ast.binop.left, ast.binop.right)
+		emit_comp("setl", ast.binop.left, ast.binop.right)
 		return
 	case '>':
-		emit_comp(ast.binop.right, ast.binop.left)
+		emit_comp("setg", ast.binop.left, ast.binop.right)
 		return
 	case '+':
 		op = "add"

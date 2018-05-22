@@ -168,12 +168,11 @@ static void emit_binop(Ast *ast) {
     case '/': break;
     default: error("invalid operator '%c'", ast->type);
   }
-  emit_expr(ast->left);
-  printf("push %%rax\n\t");
   emit_expr(ast->right);
+  printf("push %%rax\n\t");
+  emit_expr(ast->left);
   if (ast->type == '/') {
-    printf("mov %%rax, %%rcx\n\t");
-    printf("pop %%rax\n\t");
+    printf("pop %%rcx\n\t");
     printf("mov $0, %%edx\n\t");
     printf("idiv %%rcx\n\t");
   } else {

@@ -214,13 +214,14 @@ static int priority(Token *tok) {
   switch (tok->punct) {
     case '=':
       return 1;
-   case '@':
-    case '<': case '>':
+    case '@':
       return 2;
-    case '+': case '-':
+    case '<': case '>':
       return 3;
-    case '*': case '/':
+    case '+': case '-':
       return 4;
+    case '*': case '/':
+      return 5;
     default:
       return -1;
   }

@@ -206,12 +206,12 @@ static Ast *find_var(char *name) {
   return find_var_sub(globals, name);
 }
 
-static bool is_right_assoc(char op) {
-  return op == '=';
+static bool is_right_assoc(Token *tok) {
+  return tok->punct == '=';
 }
 
-static int priority(char op) {
-  switch (op) {
+static int priority(Token *tok) {
+  switch (tok->punct) {
     case '=':
       return 1;
     case '<': case '>':
@@ -370,7 +370,7 @@ static Ast *read_expr(int prec) {
       unget_token(tok);
       return ast;
     }
-    int prec2 = priority(tok->punct);
+    int prec2 = priority(tok);
     if (prec2 < 0 || prec2 < prec) {
       unget_token(tok);
       return ast;
@@ -379,7 +379,7 @@ static Ast *read_expr(int prec) {
       ensure_lvalue(ast);
     else
       ast = convert_array(ast);
-    Ast *rest = read_expr(prec2 + (is_right_assoc(tok->punct) ? 0 : 1));
+    Ast *rest = read_expr(prec2 + (is_right_assoc(tok) ? 0 : 1));
     rest = convert_array(rest);
     Ctype *ctype = result_type(tok->punct, ast->ctype, rest->ctype);
     if (!is_punct(tok, '=') &&

@@ -152,22 +152,20 @@ static Token *read_token_int(void) {
 char *token_to_string(Token *tok) {
   if (!tok)
     return "(null)";
+  String *s = make_string();
   switch (tok->type) {
     case TTYPE_IDENT:
       return tok->sval;
     case TTYPE_PUNCT:
     case TTYPE_CHAR: {
-      String *s = make_string();
       string_append(s, tok->c);
       return get_cstring(s);
     }
     case TTYPE_INT: {
-      String *s = make_string();
       string_appendf(s, "%d", tok->ival);
       return get_cstring(s);
     }
     case TTYPE_STRING: {
-      String *s = make_string();
       string_appendf(s, "\"%s\"", tok->sval);
       return get_cstring(s);
     }

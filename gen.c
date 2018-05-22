@@ -132,13 +132,13 @@ static void emit_assign(Ast *var, Ast *value) {
   }
 }
 
-static void emit_comp(Ast *a, Ast *b) {
+static void emit_comp(char *inst, Ast *a, Ast *b) {
   emit_expr(a);
   printf("push %%rax\n\t");
   emit_expr(b);
   printf("pop %%rcx\n\t");
   printf("cmp %%rax, %%rcx\n\t");
-  printf("setl %%al\n\t");
+  printf("%s %%al\n\t", inst);
   printf("movzb %%al, %%eax\n\t");
 }
 
@@ -154,10 +154,10 @@ static void emit_binop(Ast *ast) {
   char *op;
   switch (ast->type) {
     case '<':
-      emit_comp(ast->left, ast->right);
+      emit_comp("setl", ast->left, ast->right);
       return;
     case '>':
-      emit_comp(ast->right, ast->left);
+      emit_comp("setg", ast->left, ast->right);
       return;
     case '+': op = "add"; break;
     case '-': op = "sub"; break;

@@ -413,7 +413,7 @@ static void expect(char punct) {
     error("'%c' expected, but got %s", punct, token_to_string(tok));
 }
 
-static Ast *read_decl_array_initializer(Ctype *ctype) {
+static Ast *read_decl_array_init_int(Ctype *ctype) {
   Token *tok = read_token();
   if (ctype->ptr->type == CTYPE_CHAR && tok->type == TTYPE_STRING)
     return ast_string(tok->sval);
@@ -454,7 +454,7 @@ static Ctype *read_decl_spec(void) {
 static Ast *read_decl_array_init(Ast *var) {
   Ast *init;
   if (var->ctype->type == CTYPE_ARRAY) {
-    init = read_decl_array_initializer(ctype);
+    init = read_decl_array_init_int(var->ctype);
     int len = (init->type == AST_STRING)
         ? strlen(init->sval) + 1
         : list_len(init->arrayinit);

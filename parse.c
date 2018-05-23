@@ -477,8 +477,13 @@ static Ast *read_decl(void) {
     }
   }
   Ast *var = ast_lvar(ctype, varname->sval);
+  Token *tok = read_token();
+  if (!is_punct(tok, '=')) {
+    unget_token(tok);
+    expect(';');
+    return ast_decl(var, NULL);
+  }
   Ast *init;
-  expect('=');
   if (ctype->type == CTYPE_ARRAY) {
     init = read_decl_array_initializer(ctype);
     int len = (init->type == AST_STRING)

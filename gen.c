@@ -234,6 +234,8 @@ static void emit_expr(Ast *ast) {
       break;
     }
     case AST_DECL: {
+      if (!ast->declinit)
+        return;
       if (ast->declinit->type == AST_ARRAY_INIT) {
         int i = 0;
         for (Iter *iter = list_iter(ast->declinit->arrayinit); !iter_end(iter);) {

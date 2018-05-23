@@ -219,12 +219,14 @@ func priority(tok *Token) int {
 	switch tok.v.punct {
 	case '=':
 		return 1
-	case '<','>','@':
+	case '@':
 		return 2
-	case '+','-':
+	case '<','>':
 		return 3
-	case '*', '/':
+	case '+','-':
 		return 4
+	case '*', '/':
+		return 5
 	default:
 		return -1
 	}

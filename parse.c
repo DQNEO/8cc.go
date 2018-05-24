@@ -349,7 +349,7 @@ static Ast *convert_array(Ast *ast) {
     return ast_lref(make_ptr_type(ast->ctype->ptr), ast, 0);
   if (ast->type != AST_GVAR)
     error("Internal error: Gvar expected, but got %s", ast_to_string(ast));
-  return ast_gref(make_ptr_type(ast->ctype->ptr), ast, 0);
+  error("Unexpected Ast");
 }
 
 static Ast *read_unary_expr(void) {

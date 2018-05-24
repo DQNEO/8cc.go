@@ -15,3 +15,10 @@ clean:
 
 fmt:
 	gofmt -w *.go
+
+test: ./nqueen
+	./gotest.sh
+
+nqueen: 8gg.linux
+	./8gg.linux < sample/nqueen.c > nqueen.s
+	gcc -no-pie -o nqueen nqueen.s

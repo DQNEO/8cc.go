@@ -342,7 +342,7 @@ static void ensure_lvalue(Ast *ast) {
 
 static Ast *convert_array(Ast *ast) {
   if (ast->type == AST_STRING)
-    return ast_gref(make_ptr_type(ctype_char), ast, 0);
+    return ast;
   if (ast->ctype->type != CTYPE_ARRAY)
     return ast;
   if (ast->type == AST_LVAR)

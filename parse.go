@@ -462,7 +462,7 @@ func expect(punct byte) {
 	}
 }
 
-func read_decl_array_initializer(ctype *Ctype) *Ast {
+func read_decl_array_init_int(ctype *Ctype) *Ast {
 	tok := read_token()
 	if ctype.ptr.typ == CTYPE_CHAR && tok.typ == TTYPE_STRING {
 		return ast_string(tok.v.sval)
@@ -511,7 +511,7 @@ func read_decl_spec() *Ctype {
 func read_decl_array_init(v *Ast) *Ast {
 	var init *Ast
 	if v.ctype.typ == CTYPE_ARRAY {
-		init = read_decl_array_initializer(v.ctype)
+		init = read_decl_array_init_int(v.ctype)
 		var length int
 		if init.typ == AST_STRING {
 			length = strlen(init.str.val) + 1

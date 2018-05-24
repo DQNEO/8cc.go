@@ -538,31 +538,31 @@ func read_decl() *Ast {
 	}
 	variable := ast_lvar(ctype, varname.v.sval)
 	tok := read_token()
-	if !is_punct(tok,'=') {
-		unget_token(tok)
-		expect(';')
-		return ast_decl(variable, nil)
-	}
-	var init *Ast
-	if ctype.typ == CTYPE_ARRAY {
-		init = read_decl_array_initializer(ctype)
-		var length int
-		if init.typ == AST_STRING {
-			length = strlen(init.str.val) + 1
+	if is_punct(tok,'=') {
+		var init *Ast
+		if ctype.typ == CTYPE_ARRAY {
+			init = read_decl_array_initializer(ctype)
+			var length int
+			if init.typ == AST_STRING {
+				length = strlen(init.str.val) + 1
+			} else {
+				length = len(init.array_initializer.arrayinit)
+			}
+			if ctype.size == -1 {
+				ctype.size = length
+			} else if ctype.size != length {
+				_error("Invalid array initializer: expected %d items but got %d",
+					ctype.size, length)
+			}
 		} else {
-			length = len(init.array_initializer.arrayinit)
+			init = read_expr(0)
 		}
-		if ctype.size == -1 {
-			ctype.size = length
-		} else if ctype.size != length {
-			_error("Invalid array initializer: expected %d items but got %d",
-				ctype.size, length)
-		}
-	} else {
-		init = read_expr(0)
+		expect(';')
+		return ast_decl(variable, init)
 	}
+	unget_token(tok)
 	expect(';')
-	return ast_decl(variable, init)
+	return ast_decl(variable, nil)
 }
 
 func read_if_stmt() *Ast {

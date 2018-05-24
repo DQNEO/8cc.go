@@ -134,18 +134,15 @@ func read_ident(c byte) *Token {
 	i := 1
 	for {
 		c2, _ := getc(stdin)
-		if !isalnum(c2) {
+		if isalnum(c2) || c2 == '_' {
+			buf[i] = c2
+			i++
+		} else {
 			ungetc(c2, stdin)
-			break
-		}
-		buf[i] = c2
-		i++
-		if i == (BUFLEN - 1) {
-			_error("Identifier too long")
+			buf[i] = 0
+			return make_ident(Cstring(buf))
 		}
 	}
-	buf[i] = 0
-	return make_ident(Cstring(buf))
 }
 
 func read_token_init() *Token {

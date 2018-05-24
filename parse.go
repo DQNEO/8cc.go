@@ -753,7 +753,7 @@ func (ctype *Ctype) String() string {
 	case CTYPE_CHAR:
 		return "char"
 	case CTYPE_PTR:
-		return fmt.Sprintf("%s*", ctype.ptr)
+		return fmt.Sprintf("*%s", ctype.ptr)
 	case CTYPE_ARRAY:
 		return fmt.Sprintf("%s[%d]", ctype.ptr, ctype.size)
 	default:

@@ -207,9 +207,8 @@ func (tok *Token) ToCtring() Cstring {
 		return NewCstringFromLiteral(strconv.Itoa(tok.v.ival))
 	case TTYPE_STRING:
 		return tok.v.sval
-	default:
-		_error("internal error: unknown token type: %d", tok.typ)
 	}
+	_error("internal error: unknown token type: %d", tok.typ)
 	return nil
 }
 

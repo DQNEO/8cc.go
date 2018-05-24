@@ -537,8 +537,13 @@ func read_decl() *Ast {
 		}
 	}
 	variable := ast_lvar(ctype, varname.v.sval)
+	tok := read_token()
+	if !is_punct(tok,'=') {
+		unget_token(tok)
+		expect(';')
+		return ast_decl(variable, nil)
+	}
 	var init *Ast
-	expect('=')
 	if ctype.typ == CTYPE_ARRAY {
 		init = read_decl_array_initializer(ctype)
 		var length int

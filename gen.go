@@ -253,6 +253,9 @@ func emit_expr(ast *Ast) {
 			printf("pop %%%s\n\t", REGS[i])
 		}
 	case AST_DECL:
+		if ast.decl.declinit == nil {
+			return
+		}
 		if ast.decl.declinit.typ == AST_ARRAY_INIT {
 			for i, v := range ast.decl.declinit.array_initializer.arrayinit {
 				emit_expr(v)

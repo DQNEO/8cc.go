@@ -89,15 +89,6 @@ func ast_gvar(ctype *Ctype, name Cstring, filelocal bool) *Ast {
 	return r
 }
 
-func ast_gref(ctype *Ctype, gvar *Ast, off int) *Ast {
-	r := &Ast{}
-	r.typ = AST_GREF
-	r.ctype = ctype
-	r.gref.ref = gvar
-	r.gref.off = off
-	return r
-}
-
 func ast_string(str Cstring) *Ast {
 	r := &Ast{}
 	r.typ = AST_STRING
@@ -349,7 +340,7 @@ func result_type(op byte, a *Ctype, b *Ctype) *Ctype {
 func ensure_lvalue(ast *Ast) {
 	switch ast.typ {
 	case AST_LVAR, AST_LREF,
-		AST_GVAR, AST_GREF,
+		AST_GVAR,
 		AST_DEREF:
 		return
 	}
@@ -359,7 +350,7 @@ func ensure_lvalue(ast *Ast) {
 
 func convert_array(ast *Ast) *Ast {
 	if ast.typ == AST_STRING {
-		return ast_gref(make_ptr_type(ctype_char), ast, 0)
+		return ast
 	}
 	if ast.ctype.typ != CTYPE_ARRAY {
 		return ast
@@ -371,7 +362,8 @@ func convert_array(ast *Ast) *Ast {
 	if ast.typ != AST_GVAR {
 		_error("Internal error: Gvar expected, but got %s", ast)
 	}
-	return ast_gref(make_ptr_type(ast.ctype.ptr), ast, 0)
+	_error("error")
+	return nil
 }
 
 func read_unary_expr() *Ast {
@@ -798,8 +790,6 @@ func (ast *Ast) String() string {
 		return fmt.Sprintf("%s", ast.gvar.gname)
 	case AST_LREF:
 		return fmt.Sprintf("%s[%d]", ast.lref.ref, ast.lref.off)
-	case AST_GREF:
-		return fmt.Sprintf("%s[%d]", ast.gref.ref, ast.gref.off)
 	case AST_FUNCALL:
 		s := fmt.Sprintf("(%s)%s(", ast.ctype, ast.fnc.fname)
 		for i, v := range ast.fnc.args {

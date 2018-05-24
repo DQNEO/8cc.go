@@ -148,8 +148,6 @@ func emit_assign(variable *Ast, value *Ast) {
 		emit_lsave(variable.lref.ref.ctype, variable.lref.ref.variable.loff, variable.lref.off)
 	case AST_GVAR:
 		emit_gsave(variable, 0)
-	case AST_GREF:
-		emit_gsave(variable.gref.ref, variable.gref.off)
 	case AST_DEREF:
 		emit_deref(variable, value)
 	default:
@@ -233,13 +231,6 @@ func emit_expr(ast *Ast) {
 		emit_lload(ast.lref.ref, ast.lref.off)
 	case AST_GVAR:
 		emit_gload(ast.ctype, ast.gvar.glabel, 0)
-	case AST_GREF:
-		if ast.gref.ref.typ == AST_STRING {
-			emit("lea %s(%%rip), %%rax", ast.gref.ref.str.slabel)
-		} else {
-			assert(ast.gref.ref.typ == AST_GVAR)
-			emit_gload(ast.gref.ref.ctype, ast.gref.ref.gvar.glabel, ast.gref.off)
-		}
 	case AST_FUNCALL:
 		for i := 1; i < len(ast.fnc.args); i++ {
 			emit("push %%%s", REGS[i])

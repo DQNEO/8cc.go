@@ -196,7 +196,11 @@ func (tok *Token) ToCtring() Cstring {
 	case TTYPE_IDENT:
 		return tok.v.sval
 	case TTYPE_PUNCT:
-		return Cstring{tok.v.punct, 0}
+		if is_punct(tok, '@') {
+			return Cstring("==")
+		} else {
+			return Cstring{tok.v.punct, 0}
+		}
 	case TTYPE_CHAR:
 		return Cstring{tok.v.c, 0}
 	case TTYPE_INT:

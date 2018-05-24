@@ -219,12 +219,14 @@ func priority(tok *Token) int {
 	switch tok.v.punct {
 	case '=':
 		return 1
-	case '<','>','@':
+	case '@':
 		return 2
-	case '+','-':
+	case '<','>':
 		return 3
-	case '*', '/':
+	case '+','-':
 		return 4
+	case '*', '/':
+		return 5
 	default:
 		return -1
 	}
@@ -460,7 +462,7 @@ func expect(punct byte) {
 	}
 }
 
-func read_decl_array_initializer(ctype *Ctype) *Ast {
+func read_decl_array_init_int(ctype *Ctype) *Ast {
 	tok := read_token()
 	if ctype.ptr.typ == CTYPE_CHAR && tok.typ == TTYPE_STRING {
 		return ast_string(tok.v.sval)
@@ -505,6 +507,31 @@ func read_decl_spec() *Ctype {
 	}
 	return ctype
 }
+
+func read_decl_array_init(v *Ast) *Ast {
+	var init *Ast
+	if v.ctype.typ == CTYPE_ARRAY {
+		init = read_decl_array_init_int(v.ctype)
+		var length int
+		if init.typ == AST_STRING {
+			length = strlen(init.str.val) + 1
+		} else {
+			length = len(init.array_initializer.arrayinit)
+		}
+		if v.ctype.size == -1 {
+			v.ctype.size = length
+		} else if v.ctype.size != length {
+			_error("Invalid array initializer: expected %d items but got %d",
+				v.ctype.size, length)
+		}
+	} else {
+		init = read_expr(0)
+	}
+	expect(';')
+	return ast_decl(v, init)
+}
+
+
 func read_decl() *Ast {
 	ctype := read_decl_spec()
 	varname := read_token()
@@ -535,27 +562,13 @@ func read_decl() *Ast {
 		}
 	}
 	variable := ast_lvar(ctype, varname.v.sval)
-	var init *Ast
-	expect('=')
-	if ctype.typ == CTYPE_ARRAY {
-		init = read_decl_array_initializer(ctype)
-		var length int
-		if init.typ == AST_STRING {
-			length = strlen(init.str.val) + 1
-		} else {
-			length = len(init.array_initializer.arrayinit)
-		}
-		if ctype.size == -1 {
-			ctype.size = length
-		} else if ctype.size != length {
-			_error("Invalid array initializer: expected %d items but got %d",
-				ctype.size, length)
-		}
-	} else {
-		init = read_expr(0)
+	tok := read_token()
+	if is_punct(tok,'=') {
+		return read_decl_array_init(variable);
 	}
+	unget_token(tok)
 	expect(';')
-	return ast_decl(variable, init)
+	return ast_decl(variable, nil)
 }
 
 func read_if_stmt() *Ast {

@@ -413,7 +413,7 @@ static void expect(char punct) {
     error("'%c' expected, but got %s", punct, token_to_string(tok));
 }
 
-static Ast *read_decl_array_initializer(Ctype *ctype) {
+static Ast *read_decl_array_init_int(Ctype *ctype) {
   Token *tok = read_token();
   if (ctype->ptr->type == CTYPE_CHAR && tok->type == TTYPE_STRING)
     return ast_string(tok->sval);
@@ -451,6 +451,25 @@ static Ctype *read_decl_spec(void) {
   }
 }
 
+static Ast *read_decl_array_init(Ast *var) {
+  Ast *init;
+  if (var->ctype->type == CTYPE_ARRAY) {
+    init = read_decl_array_init_int(var->ctype);
+    int len = (init->type == AST_STRING)
+        ? strlen(init->sval) + 1
+        : list_len(init->arrayinit);
+    if (var->ctype->size == -1) {
+      var->ctype->size = len;
+    } else if (var->ctype->size != len)
+      error("Invalid array initializer: expected %d items but got %d",
+            var->ctype->size, len);
+  } else {
+    init = read_expr(0);
+  }
+  expect(';');
+  return ast_decl(var, init);
+}
+
 static Ast *read_decl(void) {
   Ctype *ctype = read_decl_spec();
   Token *varname = read_token();
@@ -478,27 +497,11 @@ static Ast *read_decl(void) {
   }
   Ast *var = ast_lvar(ctype, varname->sval);
   Token *tok = read_token();
-  if (!is_punct(tok, '=')) {
-    unget_token(tok);
-    expect(';');
-    return ast_decl(var, NULL);
-  }
-  Ast *init;
-  if (ctype->type == CTYPE_ARRAY) {
-    init = read_decl_array_initializer(ctype);
-    int len = (init->type == AST_STRING)
-        ? strlen(init->sval) + 1
-        : list_len(init->arrayinit);
-    if (ctype->size == -1) {
-      ctype->size = len;
-    } else if (ctype->size != len)
-      error("Invalid array initializer: expected %d items but got %d",
-            ctype->size, len);
-  } else {
-    init = read_expr(0);
-  }
+  if (is_punct(tok, '='))
+    return read_decl_array_init(var);
+  unget_token(tok);
   expect(';');
-  return ast_decl(var, init);
+  return ast_decl(var, NULL);
 }
 
 static Ast *read_if_stmt(void) {

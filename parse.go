@@ -755,7 +755,7 @@ func (ctype *Ctype) String() string {
 	case CTYPE_PTR:
 		return fmt.Sprintf("*%s", ctype.ptr)
 	case CTYPE_ARRAY:
-		return fmt.Sprintf("%s[%d]", ctype.ptr, ctype.size)
+		return fmt.Sprintf("[%d]%s", ctype.size, ctype.ptr)
 	default:
 		_error("Unknown ctype: %d", ctype)
 	}

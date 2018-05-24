@@ -2,6 +2,10 @@ package main
 
 var REGS = []string{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}
 
+func emit(format string, args ...interface{}) {
+	printf(format+"\n\t", args...)
+}
+
 func ctype_size(ctype *Ctype) int {
 	switch ctype.typ {
 	case CTYPE_CHAR:
@@ -20,7 +24,7 @@ func ctype_size(ctype *Ctype) int {
 
 func emit_gload(ctype *Ctype, label Cstring, off int) {
 	if ctype.typ == CTYPE_ARRAY {
-		printf("lea %s(%%rip), %%rax\n\t", label)
+		emit("lea %s(%%rip), %%rax", label)
 		return
 	}
 	var reg string
@@ -28,7 +32,7 @@ func emit_gload(ctype *Ctype, label Cstring, off int) {
 	switch size {
 	case 1:
 		reg = "al"
-		printf("mov $0, %%eax\n\t")
+		emit("mov $0, %%eax")
 	case 4:
 		reg = "eax"
 	case 8:
@@ -37,40 +41,40 @@ func emit_gload(ctype *Ctype, label Cstring, off int) {
 		_error("Unknown data size: %s: %d", ctype, size)
 	}
 
-	printf("mov %s(%%rip), %%%s\n\t", label, reg)
+	emit("mov %s(%%rip), %%%s", label, reg)
 	if off > 0 {
-		printf("add $%d, %%rax\n\t", off*size)
+		emit("add $%d, %%rax", off*size)
 	}
-	printf("mov (%%rax), %%%s\n\t", reg)
+	emit("mov (%%rax), %%%s", reg)
 }
 
 func emit_lload(v *Ast, off int) {
 	if v.ctype.typ == CTYPE_ARRAY {
-		printf("lea %d(%%rbp), %%rax\n\t", -v.variable.loff)
+		emit("lea %d(%%rbp), %%rax", -v.variable.loff)
 		return
 	}
 	size := ctype_size(v.ctype)
 	switch size {
 	case 1:
-		printf("mov $0, %%eax\n\t")
-		printf("mov %d(%%rbp), %%al\n\t", -v.variable.loff)
+		emit("mov $0, %%eax")
+		emit("mov %d(%%rbp), %%al", -v.variable.loff)
 	case 4:
-		printf("mov %d(%%rbp), %%eax\n\t", -v.variable.loff)
+		emit("mov %d(%%rbp), %%eax", -v.variable.loff)
 	case 8:
-		printf("mov %d(%%rbp), %%rax\n\t", -v.variable.loff)
+		emit("mov %d(%%rbp), %%rax", -v.variable.loff)
 	default:
 		_error("Unknown data size: %s: %d", v, size)
 	}
 	if off > 0 {
-		printf("add $%d, %%rax\n\t", size, off*size)
+		emit("add $%d, %%rax", size, off*size)
 	}
 }
 
 func emit_gsave(v *Ast, off int) {
 	assert(v.ctype.typ != CTYPE_ARRAY)
 	var reg string
-	printf("push %%rcx\n\t")
-	printf("mov %s(%%rip) %%rcx\n\t", v.gvar.glabel)
+	emit("push %%rcx")
+	emit("mov %s(%%rip) %%rcx", v.gvar.glabel)
 
 	size := ctype_size(v.ctype)
 	switch size {
@@ -83,8 +87,8 @@ func emit_gsave(v *Ast, off int) {
 	default:
 		_error("Unknown data size: %s: %d", v, size)
 	}
-	printf("mov %s, %d(%%rbp)\n\t", reg, off*size)
-	printf("pop %%rcx\n\t")
+	emit("mov %s, %d(%%rbp)", reg, off*size)
+	emit("pop %%rcx")
 }
 
 func emit_lsave(ctype *Ctype, loff int, off int) {
@@ -98,14 +102,14 @@ func emit_lsave(ctype *Ctype, loff int, off int) {
 	case 8:
 		reg = "rax"
 	}
-	printf("mov %%%s, %d(%%rbp)\n\t", reg, -(loff + off*size))
+	emit("mov %%%s, %d(%%rbp)", reg, -(loff + off*size))
 }
 
 func emit_deref(variable *Ast, value *Ast) {
 	emit_expr(variable.unary.operand)
-	printf("push %%rax\n\t")
+	emit("push %%rax")
 	emit_expr(value)
-	printf("pop %%rcx\n\t")
+	emit("pop %%rcx")
 	var reg string
 	size := ctype_size(variable.unary.operand.ctype)
 	switch size {
@@ -117,22 +121,22 @@ func emit_deref(variable *Ast, value *Ast) {
 		reg = "rax"
 	}
 
-	printf("mov %%%s, (%%rcx)\n\t", reg)
+	emit("mov %%%s, (%%rcx)", reg)
 
 }
 
 func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
 	assert(left.ctype.typ == CTYPE_PTR)
 	emit_expr(left)
-	printf("push %%rax\n\t")
+	emit("push %%rax")
 	emit_expr(right)
 	size := ctype_size(left.ctype.ptr)
 	if size > 1 {
-		printf("imul $%d, %%rax\n\t", size)
+		emit("imul $%d, %%rax", size)
 	}
-	printf("mov %%rax, %%rcx\n\t" +
-		"pop %%rax\n\t" +
-		"add %%rcx, %%rax\n\t")
+	emit("mov %%rax, %%rcx")
+	emit("pop %%rax")
+	emit("add %%rcx, %%rax")
 }
 
 func emit_assign(variable *Ast, value *Ast) {
@@ -155,12 +159,12 @@ func emit_assign(variable *Ast, value *Ast) {
 
 func emit_comp(inst string, a *Ast, b *Ast) {
 	emit_expr(a)
-	printf("push %%rax\n\t")
+	emit("push %%rax")
 	emit_expr(b)
-	printf("pop %%rcx\n\t")
-	printf("cmp %%rax, %%rcx\n\t")
-	printf("%s %%al\n\t", inst)
-	printf("movzb %%al, %%eax\n\t")
+	emit("pop %%rcx")
+	emit("cmp %%rax, %%rcx")
+	emit("%s %%al", inst)
+	emit("movzb %%al, %%eax")
 }
 
 func emit_binop(ast *Ast) {
@@ -197,15 +201,15 @@ func emit_binop(ast *Ast) {
 	}
 
 	emit_expr(ast.binop.right)
-	printf("push %%rax\n\t")
+	emit("push %%rax")
 	emit_expr(ast.binop.left)
 	if ast.typ == '/' {
-		printf("pop %%rcx\n\t")
-		printf("mov $0, %%edx\n\t")
-		printf("idiv %%rcx\n\t")
+		emit("pop %%rcx")
+		emit("mov $0, %%edx")
+		emit("idiv %%rcx")
 	} else {
-		printf("pop %%rcx\n\t")
-		printf("%s %%rcx, %%rax\n\t", op)
+		emit("pop %%rcx")
+		emit("%s %%rcx, %%rax", op)
 	}
 }
 
@@ -214,14 +218,14 @@ func emit_expr(ast *Ast) {
 	case AST_LITERAL:
 		switch ast.ctype.typ {
 		case CTYPE_INT:
-			printf("mov $%d, %%eax\n\t", ast.ival)
+			emit("mov $%d, %%eax", ast.ival)
 		case CTYPE_CHAR:
-			printf("mov $%d, %%rax\n\t", ast.c)
+			emit("mov $%d, %%rax", ast.c)
 		default:
 			_error("internal error")
 		}
 	case AST_STRING:
-		printf("lea %s(%%rip), %%rax\n\t", ast.str.slabel)
+		emit("lea %s(%%rip), %%rax", ast.str.slabel)
 	case AST_LVAR:
 		emit_lload(ast, 0)
 	case AST_LREF:
@@ -231,26 +235,26 @@ func emit_expr(ast *Ast) {
 		emit_gload(ast.ctype, ast.gvar.glabel, 0)
 	case AST_GREF:
 		if ast.gref.ref.typ == AST_STRING {
-			printf("lea %s(%%rip), %%rax\n\t", ast.gref.ref.str.slabel)
+			emit("lea %s(%%rip), %%rax", ast.gref.ref.str.slabel)
 		} else {
 			assert(ast.gref.ref.typ == AST_GVAR)
 			emit_gload(ast.gref.ref.ctype, ast.gref.ref.gvar.glabel, ast.gref.off)
 		}
 	case AST_FUNCALL:
 		for i := 1; i < len(ast.fnc.args); i++ {
-			printf("push %%%s\n\t", REGS[i])
+			emit("push %%%s", REGS[i])
 		}
 		for _, v := range ast.fnc.args {
 			emit_expr(v)
-			printf("push %%rax\n\t")
+			emit("push %%rax")
 		}
 		for i := len(ast.fnc.args) - 1; i >= 0; i-- {
-			printf("pop %%%s\n\t", REGS[i])
+			emit("pop %%%s", REGS[i])
 		}
-		printf("mov $0, %%eax\n\t")
-		printf("call %s\n\t", ast.fnc.fname)
+		emit("mov $0, %%eax")
+		emit("call %s", ast.fnc.fname)
 		for i := len(ast.fnc.args) - 1; i > 0; i-- {
-			printf("pop %%%s\n\t", REGS[i])
+			emit("pop %%%s", REGS[i])
 		}
 	case AST_DECL:
 		if ast.decl.declinit == nil {
@@ -265,9 +269,9 @@ func emit_expr(ast *Ast) {
 			assert(ast.decl.declinit.typ == AST_STRING)
 			var i int
 			for i = 0; ast.decl.declinit.str.val[i] != 0; i++ {
-				printf("movb $%d, %d(%%rbp)\n\t", ast.decl.declinit.str.val[i], -(ast.decl.declvar.variable.loff - i))
+				emit("movb $%d, %d(%%rbp)", ast.decl.declinit.str.val[i], -(ast.decl.declvar.variable.loff - i))
 			}
-			printf("movb $0, %d(%%rbp)\n\t", -(ast.decl.declvar.variable.loff - i))
+			emit("movb $0, %d(%%rbp)", -(ast.decl.declvar.variable.loff - i))
 		} else if ast.decl.declinit.typ == AST_STRING {
 			emit_gload(ast.decl.declinit.ctype, ast.decl.declinit.str.slabel, 0)
 			emit_lsave(ast.decl.declvar.ctype, ast.decl.declvar.variable.loff, 0)
@@ -277,7 +281,7 @@ func emit_expr(ast *Ast) {
 		}
 	case AST_ADDR:
 		assert(ast.unary.operand.typ == AST_LVAR)
-		printf("lea %d(%%rbp), %%rax\n\t", -ast.unary.operand.variable.loff)
+		emit("lea %d(%%rbp), %%rax", -ast.unary.operand.variable.loff)
 	case AST_DEREF:
 		assert(ast.unary.operand.ctype.typ == CTYPE_PTR)
 		emit_expr(ast.unary.operand)
@@ -292,23 +296,23 @@ func emit_expr(ast *Ast) {
 		default:
 			_error("internal error")
 		}
-		printf("mov $0, %%ecx\n\t")
-		printf("mov (%%rax), %s\n\t", reg)
-		printf("mov %%rcx, %%rax\n\t")
+		emit("mov $0, %%ecx")
+		emit("mov (%%rax), %s", reg)
+		emit("mov %%rcx, %%rax")
 	case AST_IF:
 		emit_expr(ast._if.cond)
 		ne := make_label()
-		printf("test %%rax, %%rax\n\t")
-		printf("je %s\n\t", ne)
+		emit("test %%rax, %%rax")
+		emit("je %s", ne)
 		emit_block(ast._if.then)
 		if ast._if.els != nil {
 			end := make_label()
-			printf("jmp %s\n\t", end)
-			printf("%s:\n\t", ne)
+			emit("jmp %s", end)
+			emit("%s:", ne)
 			emit_block(ast._if.els)
-			printf("%s:\n\t", end)
+			emit("%s:", end)
 		} else {
-			printf("%s:\n\t", ne)
+			emit("%s:", ne)
 		}
 	case AST_FOR:
 		if ast._for.init != nil {
@@ -316,22 +320,22 @@ func emit_expr(ast *Ast) {
 		}
 		begin := make_label()
 		end := make_label()
-		printf("%s:\n\t", begin)
+		emit("%s:", begin)
 		if ast._for.cond != nil {
 			emit_expr(ast._for.cond)
-			printf("test %%rax, %%rax\n\t")
-			printf("je %s\n\t", end)
+			emit("test %%rax, %%rax")
+			emit("je %s", end)
 		}
 		emit_block(ast._for.body)
 		if ast._for.step != nil {
 			emit_expr(ast._for.step)
 		}
-		printf("jmp %s\n\t", begin)
-		printf("%s:\n\t", end)
+		emit("jmp %s", begin)
+		emit("%s:", end)
 	case AST_RETURN:
 		emit_expr(ast._return.retval)
-		printf("leave\n\t" +
-			"ret\n")
+		emit("leave")
+		emit("ret")
 		break
 	default:
 		emit_binop(ast)
@@ -342,14 +346,12 @@ func emit_data_section() {
 	if globals == nil {
 		return
 	}
-	printf(".data\n")
+	emit(".data")
 	for _, v := range globals {
 		assert(v.typ == AST_STRING)
-		printf("%s:\n\t", v.str.slabel)
-		printf(".string \"%s\"\n", quote_cstring(v.str.val))
+		emit("%s:", v.str.slabel)
+		emit(".string \"%s\"", quote_cstring(v.str.val))
 	}
-	printf("\t")
-
 }
 
 func ceil8(n int) int {
@@ -365,16 +367,15 @@ func emit_func_prologue(fn *Ast) {
 	if len(fn.fnc.params) > len(REGS) {
 		_error("Parameter list too long: %s", fn.fnc.fname)
 	}
-	printf(".text\n\t"+
-		".global %s\n"+
-		"%s:\n\t", fn.fnc.fname, fn.fnc.fname)
-	printf(
-		"push %%rbp\n\t" +
-			"mov %%rsp, %%rbp\n\t")
+	emit(".text")
+	emit(".global %s\n", fn.fnc.fname)
+	emit("%s:", fn.fnc.fname)
+	emit("push %%rbp")
+	emit("mov %%rsp, %%rbp")
 	off := 0
 	ri := 0
 	for _, v := range fn.fnc.params {
-		printf("push %%%s\n\t", REGS[ri])
+		emit("push %%%s", REGS[ri])
 		ri++
 		off += ceil8(ctype_size(v.ctype))
 		v.variable.loff = off
@@ -384,13 +385,13 @@ func emit_func_prologue(fn *Ast) {
 		v.variable.loff = off
 	}
 	if off > 0 {
-		printf("sub $%d, %%rsp\n\t", off)
+		emit("sub $%d, %%rsp", off)
 	}
 }
 
 func emit_func_epilogue() {
-	printf("leave\n\t" +
-		"ret\n")
+	emit("leave")
+	emit("ret")
 }
 
 func emit_block(block Block) {

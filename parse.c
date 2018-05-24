@@ -644,8 +644,7 @@ char *ctype_to_string(Ctype *ctype) {
     case CTYPE_CHAR: return "char";
     case CTYPE_PTR: {
       String *s = make_string();
-      string_appendf(s, "%s", ctype_to_string(ctype->ptr));
-      string_append(s, '*');
+      string_appendf(s, "*%s", ctype_to_string(ctype->ptr));
       return get_cstring(s);
     }
     case CTYPE_ARRAY: {

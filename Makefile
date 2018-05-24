@@ -19,4 +19,4 @@ clean:
 
 nqueen: 8cc sample/nqueen.c
 	./8cc < sample/nqueen.c > nqueen.s
-	gcc -o nqueen nqueen.s
+	gcc -no-pie -o nqueen nqueen.s

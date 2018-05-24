@@ -90,15 +90,6 @@ static Ast *ast_gvar(Ctype *ctype, char *name, bool filelocal) {
   return r;
 }
 
-static Ast *ast_gref(Ctype *ctype, Ast *gvar, int off) {
-  Ast *r = malloc(sizeof(Ast));
-  r->type = AST_GREF;
-  r->ctype = ctype;
-  r->gref = gvar;
-  r->goff = off;
-  return r;
-}
-
 static Ast *ast_string(char *str) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_STRING;
@@ -332,7 +323,7 @@ static Ctype *result_type(char op, Ctype *a, Ctype *b) {
 static void ensure_lvalue(Ast *ast) {
   switch (ast->type) {
     case AST_LVAR: case AST_LREF:
-    case AST_GVAR: case AST_GREF:
+    case AST_GVAR:
     case AST_DEREF:
       return;
     default:
@@ -696,9 +687,6 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       break;
     case AST_LREF:
       string_appendf(buf, "%s[%d]", ast_to_string(ast->lref), ast->lrefoff);
-      break;
-    case AST_GREF:
-      string_appendf(buf, "%s[%d]", ast_to_string(ast->gref), ast->goff);
       break;
     case AST_FUNCALL: {
       string_appendf(buf, "(%s)%s(", ctype_to_string(ast->ctype), ast->fname);

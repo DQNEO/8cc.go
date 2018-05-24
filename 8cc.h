@@ -35,7 +35,6 @@ enum {
   AST_LVAR,
   AST_LREF,
   AST_GVAR,
-  AST_GREF,
   AST_FUNCALL,
   AST_FUNC,
   AST_DECL,
@@ -88,11 +87,6 @@ typedef struct Ast {
     struct {
       struct Ast *lref;
       int lrefoff;
-    };
-    // Global reference
-    struct {
-      struct Ast *gref;
-      int goff;
     };
     // Binary operator
     struct {

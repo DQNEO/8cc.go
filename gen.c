@@ -144,7 +144,6 @@ static void emit_assign(Ast *var, Ast *value) {
     case AST_LVAR: emit_lsave(var->ctype, var->loff, 0); break;
     case AST_LREF: emit_lsave(var->lref->ctype, var->lref->loff, var->loff); break;
     case AST_GVAR: emit_gsave(var, 0); break;
-    case AST_GREF: emit_gsave(var->gref, var->goff); break;
     case AST_DEREF: emit_deref(var, value); break;
     default: error("internal error");
   }
@@ -227,15 +226,6 @@ static void emit_expr(Ast *ast) {
     case AST_GVAR:
       emit_gload(ast->ctype, ast->glabel, 0);
       break;
-    case AST_GREF: {
-      if (ast->gref->type == AST_STRING) {
-        emit("lea %s(%%rip), %%rax", ast->gref->slabel);
-      } else {
-        assert(ast->gref->type == AST_GVAR);
-        emit_gload(ast->gref->ctype, ast->gref->glabel, ast->goff);
-      }
-      break;
-    }
     case AST_FUNCALL: {
       for (int i = 1; i < list_len(ast->args); i++)
         emit("push %%%s", REGS[i]);

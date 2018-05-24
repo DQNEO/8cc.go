@@ -206,6 +206,12 @@ static Ast *find_var(char *name) {
   return find_var_sub(globals, name);
 }
 
+static void expect(char punct) {
+  Token *tok = read_token();
+  if (!is_punct(tok, punct))
+    error("'%c' expected, but got %s", punct, token_to_string(tok));
+}
+
 static bool is_right_assoc(Token *tok) {
   return tok->punct == '=';
 }
@@ -405,12 +411,6 @@ static Ctype *get_ctype(Token *tok) {
 
 static bool is_type_keyword(Token *tok) {
   return get_ctype(tok) != NULL;
-}
-
-static void expect(char punct) {
-  Token *tok = read_token();
-  if (!is_punct(tok, punct))
-    error("'%c' expected, but got %s", punct, token_to_string(tok));
 }
 
 static Ast *read_decl_array_init_int(Ctype *ctype) {

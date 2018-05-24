@@ -649,8 +649,7 @@ char *ctype_to_string(Ctype *ctype) {
     }
     case CTYPE_ARRAY: {
       String *s = make_string();
-      string_appendf(s, "%s", ctype_to_string(ctype->ptr));
-      string_appendf(s, "[%d]", ctype->size);
+      string_appendf(s, "[%d]%s", ctype->size, ctype_to_string(ctype->ptr));
       return get_cstring(s);
     }
     default: error("Unknown ctype: %d", ctype);

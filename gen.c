@@ -1,10 +1,28 @@
+#include <stdarg.h>
 #include <stdio.h>
 #include "8cc.h"
 
 static char *REGS[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+static int TAB = 8;
 
 static void emit_expr(Ast *ast);
 static void emit_block(List *block);
+
+#define emit(...)        emitf(__LINE__, "\t" __VA_ARGS__)
+#define emit_label(...)  emitf(__LINE__, __VA_ARGS__)
+
+void emitf(int line, char *fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  int col = vprintf(fmt, args);
+  va_end(args);
+
+  for (char *p = fmt; *p; p++)
+    if (*p == '\t')
+      col += TAB - 1;
+  int space = (30 - col) > 0 ? (30 - col) : 2;
+  printf("%*c %d\n", space, '#', line);
+}
 
 static int ctype_size(Ctype *ctype) {
   switch (ctype->type) {
@@ -20,55 +38,55 @@ static int ctype_size(Ctype *ctype) {
 
 static void emit_gload(Ctype *ctype, char *label, int off) {
   if (ctype->type == CTYPE_ARRAY) {
-    printf("lea %s(%%rip), %%rax\n\t", label);
+    emit("lea %s(%%rip), %%rax", label);
     if (off)
-      printf("add $%d, %%rax\n\t", ctype_size(ctype->ptr) * off);
+      emit("add $%d, %%rax", ctype_size(ctype->ptr) * off);
     return;
   }
   char *reg;
   int size = ctype_size(ctype);
   switch (size) {
-    case 1: reg = "al"; printf("mov $0, %%eax\n\t"); break;
+    case 1: reg = "al"; emit("mov $0, %%eax"); break;
     case 4: reg = "eax"; break;
     case 8: reg = "rax"; break;
     default:
       error("Unknown data size: %s: %d", ctype_to_string(ctype), size);
   }
-  printf("mov %s(%%rip), %%%s\n\t", label, reg);
+  emit("mov %s(%%rip), %%%s", label, reg);
   if (off)
-    printf("add $%d, %%rax\n\t", off * size);
-  printf("mov (%%rax), %%%s\n\t", reg);
+    emit("add $%d, %%rax", off * size);
+  emit("mov (%%rax), %%%s", reg);
 }
 
 static void emit_lload(Ast *var, int off) {
   if (var->ctype->type == CTYPE_ARRAY) {
-    printf("lea %d(%%rbp), %%rax\n\t", -var->loff);
+    emit("lea %d(%%rbp), %%rax", -var->loff);
     return;
   }
   int size = ctype_size(var->ctype);
   switch (size) {
     case 1:
-      printf("mov $0, %%eax\n\t");
-      printf("mov %d(%%rbp), %%al\n\t", -var->loff);
+      emit("mov $0, %%eax");
+      emit("mov %d(%%rbp), %%al", -var->loff);
       break;
     case 4:
-      printf("mov %d(%%rbp), %%eax\n\t", -var->loff);
+      emit("mov %d(%%rbp), %%eax", -var->loff);
       break;
     case 8:
-      printf("mov %d(%%rbp), %%rax\n\t", -var->loff);
+      emit("mov %d(%%rbp), %%rax", -var->loff);
       break;
     default:
       error("Unknown data size: %s: %d", ast_to_string(var), size);
   }
   if (off)
-    printf("add $%d, %%rax\n\t", var->loff * size);
+    emit("add $%d, %%rax", var->loff * size);
 }
 
 static void emit_gsave(Ast *var, int off) {
   assert(var->ctype->type != CTYPE_ARRAY);
   char *reg;
-  printf("push %%rcx\n\t");
-  printf("mov %s(%%rip), %%rcx\n\t", var->glabel);
+  emit("push %%rcx");
+  emit("mov %s(%%rip), %%rcx", var->glabel);
   int size = ctype_size(var->ctype);
   switch (size) {
     case 1: reg = "al";  break;
@@ -77,8 +95,8 @@ static void emit_gsave(Ast *var, int off) {
     default:
       error("Unknown data size: %s: %d", ast_to_string(var), size);
   }
-  printf("mov %s, %d(%%rbp)\n\t", reg, off * size);
-  printf("pop %%rcx\n\t");
+  emit("mov %s, %d(%%rbp)", reg, off * size);
+  emit("pop %%rcx");
 }
 
 static void emit_lsave(Ctype *ctype, int loff, int off) {
@@ -89,14 +107,14 @@ static void emit_lsave(Ctype *ctype, int loff, int off) {
     case 4: reg = "eax"; break;
     case 8: reg = "rax"; break;
   }
-  printf("mov %%%s, %d(%%rbp)\n\t", reg, -(loff + off * size));
+  emit("mov %%%s, %d(%%rbp)", reg, -(loff + off * size));
 }
 
 static void emit_deref(Ast *var, Ast *value) {
   emit_expr(var->operand);
-  printf("push %%rax\n\t");
+  emit("push %%rax");
   emit_expr(value);  // this is done in the beginning of emit_assign. is it a waste of time?
-  printf("pop %%rcx\n\t");
+  emit("pop %%rcx");
   char *reg;
   int size = ctype_size(var->operand->ctype);
   switch (size) {
@@ -104,20 +122,20 @@ static void emit_deref(Ast *var, Ast *value) {
     case 4: reg = "eax"; break;
     case 8: reg = "rax"; break;
   }
-  printf("mov %%%s, (%%rcx)\n\t", reg);
+  emit("mov %%%s, (%%rcx)", reg);
 }
 
 static void emit_pointer_arith(char op, Ast *left, Ast *right) {
   assert(left->ctype->type == CTYPE_PTR);
   emit_expr(left);
-  printf("push %%rax\n\t");
+  emit("push %%rax");
   emit_expr(right);
   int size = ctype_size(left->ctype->ptr);
   if (size > 1)
-    printf("imul $%d, %%rax\n\t", size);
-  printf("mov %%rax, %%rcx\n\t"
-         "pop %%rax\n\t"
-         "add %%rcx, %%rax\n\t");
+    emit("imul $%d, %%rax", size);
+  emit("mov %%rax, %%rcx");
+  emit("pop %%rax");
+  emit("add %%rcx, %%rax");
 }
 
 static void emit_assign(Ast *var, Ast *value) {
@@ -134,12 +152,12 @@ static void emit_assign(Ast *var, Ast *value) {
 
 static void emit_comp(char *inst, Ast *a, Ast *b) {
   emit_expr(a);
-  printf("push %%rax\n\t");
+  emit("push %%rax");
   emit_expr(b);
-  printf("pop %%rcx\n\t");
-  printf("cmp %%rax, %%rcx\n\t");
-  printf("%s %%al\n\t", inst);
-  printf("movzb %%al, %%eax\n\t");
+  emit("pop %%rcx");
+  emit("cmp %%rax, %%rcx");
+  emit("%s %%al", inst);
+  emit("movzb %%al, %%eax");
 }
 
 static void emit_binop(Ast *ast) {
@@ -170,15 +188,15 @@ static void emit_binop(Ast *ast) {
     default: error("invalid operator '%c'", ast->type);
   }
   emit_expr(ast->right);
-  printf("push %%rax\n\t");
+  emit("push %%rax");
   emit_expr(ast->left);
   if (ast->type == '/') {
-    printf("pop %%rcx\n\t");
-    printf("mov $0, %%edx\n\t");
-    printf("idiv %%rcx\n\t");
+    emit("pop %%rcx");
+    emit("mov $0, %%edx");
+    emit("idiv %%rcx");
   } else {
-    printf("pop %%rcx\n\t");
-    printf("%s %%rcx, %%rax\n\t", op);
+    emit("pop %%rcx");
+    emit("%s %%rcx, %%rax", op);
   }
 }
 
@@ -187,17 +205,17 @@ static void emit_expr(Ast *ast) {
     case AST_LITERAL:
       switch (ast->ctype->type) {
         case CTYPE_INT:
-          printf("mov $%d, %%eax\n\t", ast->ival);
+          emit("mov $%d, %%eax", ast->ival);
           break;
         case CTYPE_CHAR:
-          printf("mov $%d, %%rax\n\t", ast->c);
+          emit("mov $%d, %%rax", ast->c);
           break;
         default:
           error("internal error");
       }
       break;
     case AST_STRING:
-      printf("lea %s(%%rip), %%rax\n\t", ast->slabel);
+      emit("lea %s(%%rip), %%rax", ast->slabel);
       break;
     case AST_LVAR:
       emit_lload(ast, 0);
@@ -211,7 +229,7 @@ static void emit_expr(Ast *ast) {
       break;
     case AST_GREF: {
       if (ast->gref->type == AST_STRING) {
-        printf("lea %s(%%rip), %%rax\n\t", ast->gref->slabel);
+        emit("lea %s(%%rip), %%rax", ast->gref->slabel);
       } else {
         assert(ast->gref->type == AST_GVAR);
         emit_gload(ast->gref->ctype, ast->gref->glabel, ast->goff);
@@ -220,17 +238,17 @@ static void emit_expr(Ast *ast) {
     }
     case AST_FUNCALL: {
       for (int i = 1; i < list_len(ast->args); i++)
-        printf("push %%%s\n\t", REGS[i]);
+        emit("push %%%s", REGS[i]);
       for (Iter *i = list_iter(ast->args); !iter_end(i);) {
         emit_expr(iter_next(i));
-        printf("push %%rax\n\t");
+        emit("push %%rax");
       }
       for (int i = list_len(ast->args) - 1; i >= 0; i--)
-        printf("pop %%%s\n\t", REGS[i]);
-      printf("mov $0, %%eax\n\t");
-      printf("call %s\n\t", ast->fname);
+        emit("pop %%%s", REGS[i]);
+      emit("mov $0, %%eax");
+      emit("call %s", ast->fname);
       for (int i = list_len(ast->args) - 1; i > 0; i--)
-        printf("pop %%%s\n\t", REGS[i]);
+        emit("pop %%%s", REGS[i]);
       break;
     }
     case AST_DECL: {
@@ -247,8 +265,8 @@ static void emit_expr(Ast *ast) {
         assert(ast->declinit->type == AST_STRING);
         int i = 0;
         for (char *p = ast->declinit->sval; *p; p++, i++)
-          printf("movb $%d, %d(%%rbp)\n\t", *p, -(ast->declvar->loff - i));
-        printf("movb $0, %d(%%rbp)\n\t", -(ast->declvar->loff - i));
+          emit("movb $%d, %d(%%rbp)", *p, -(ast->declvar->loff - i));
+        emit("movb $0, %d(%%rbp)", -(ast->declvar->loff - i));
       } else if (ast->declinit->type == AST_STRING) {
         emit_gload(ast->declinit->ctype, ast->declinit->slabel, 0);
         emit_lsave(ast->declvar->ctype, ast->declvar->loff, 0);
@@ -260,7 +278,7 @@ static void emit_expr(Ast *ast) {
     }
     case AST_ADDR:
       assert(ast->operand->type == AST_LVAR);
-      printf("lea %d(%%rbp), %%rax\n\t", -ast->operand->loff);
+      emit("lea %d(%%rbp), %%rax", -ast->operand->loff);
       break;
     case AST_DEREF: {
       assert(ast->operand->ctype->type == CTYPE_PTR);
@@ -272,25 +290,25 @@ static void emit_expr(Ast *ast) {
         case 8: reg = "%rcx"; break;
         default: error("internal error");
       }
-      printf("mov $0, %%ecx\n\t");
-      printf("mov (%%rax), %s\n\t", reg);
-      printf("mov %%rcx, %%rax\n\t");
+      emit("mov $0, %%ecx");
+      emit("mov (%%rax), %s", reg);
+      emit("mov %%rcx, %%rax");
       break;
     }
     case AST_IF: {
       emit_expr(ast->cond);
       char *ne = make_label();
-      printf("test %%rax, %%rax\n\t");
-      printf("je %s\n\t", ne);
+      emit("test %%rax, %%rax");
+      emit("je %s", ne);
       emit_block(ast->then);
       if (ast->els) {
         char *end = make_label();
-        printf("jmp %s\n\t", end);
-        printf("%s:\n\t", ne);
+        emit("jmp %s", end);
+        emit("%s:", ne);
         emit_block(ast->els);
-        printf("%s:\n\t", end);
+        emit("%s:", end);
       } else {
-        printf("%s:\n\t", ne);
+        emit("%s:", ne);
       }
       break;
     }
@@ -299,23 +317,23 @@ static void emit_expr(Ast *ast) {
         emit_expr(ast->forinit);
       char *begin = make_label();
       char *end = make_label();
-      printf("%s:\n\t", begin);
+      emit("%s:", begin);
       if (ast->forcond) {
         emit_expr(ast->forcond);
-        printf("test %%rax, %%rax\n\t");
-        printf("je %s\n\t", end);
+        emit("test %%rax, %%rax");
+        emit("je %s", end);
       }
       emit_block(ast->forbody);
       if (ast->forstep)
         emit_expr(ast->forstep);
-      printf("jmp %s\n\t", begin);
-      printf("%s:\n\t", end);
+      emit("jmp %s", begin);
+      emit("%s:", end);
       break;
     }
     case AST_RETURN:
       emit_expr(ast->retval);
-      printf("leave\n\t"
-             "ret\n");
+      emit("leave");
+      emit("ret");
       break;
     default:
       emit_binop(ast);
@@ -324,14 +342,13 @@ static void emit_expr(Ast *ast) {
 
 void emit_data_section(void) {
   if (!globals) return;
-  printf(".data\n");
+  emit(".data");
   for (Iter *i = list_iter(globals); !iter_end(i);) {
     Ast *v = iter_next(i);
     assert(v->type == AST_STRING);
-    printf("%s:\n\t", v->slabel);
-    printf(".string \"%s\"\n", quote_cstring(v->sval));
+    emit_label("%s:", v->slabel);
+    emit(".string \"%s\"", quote_cstring(v->sval));
   }
-  printf("\t");
 }
 
 static int ceil8(int n) {
@@ -342,15 +359,15 @@ static int ceil8(int n) {
 static void emit_func_prologue(Ast *func) {
   if (list_len(func->params) > sizeof(REGS) / sizeof(*REGS))
     error("Parameter list too long: %s", func->fname);
-  printf(".text\n\t"
-         ".global %s\n"
-         "%s:\n\t", func->fname, func->fname);
-  printf("push %%rbp\n\t"
-         "mov %%rsp, %%rbp\n\t");
+  emit(".text");
+  emit_label(".global %s", func->fname);
+  emit_label("%s:", func->fname);
+  emit("push %%rbp");
+  emit("mov %%rsp, %%rbp");
   int off = 0;
   int ri = 0;
   for (Iter *i = list_iter(func->params); !iter_end(i); ri++) {
-    printf("push %%%s\n\t", REGS[ri]);
+    emit("push %%%s", REGS[ri]);
     Ast *v = iter_next(i);
     off += ceil8(ctype_size(v->ctype));
     v->loff = off;
@@ -361,12 +378,12 @@ static void emit_func_prologue(Ast *func) {
     v->loff = off;
   }
   if (off)
-    printf("sub $%d, %%rsp\n\t", off);
+    emit("sub $%d, %%rsp", off);
 }
 
 static void emit_func_epilogue(void) {
-  printf("leave\n\t"
-         "ret\n");
+  emit("leave");
+  emit("ret");
 }
 
 static void emit_block(List *block) {

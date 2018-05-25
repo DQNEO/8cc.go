@@ -458,11 +458,7 @@ static Ast *read_decl_array_init(Ast *var) {
   return ast_decl(var, init);
 }
 
-static Ast *read_decl(void) {
-  Ctype *ctype = read_decl_spec();
-  Token *varname = read_token();
-  if (varname->type != TTYPE_IDENT)
-    error("Identifier expected, but got %s", token_to_string(varname));
+static Ctype *read_array_dimensions(Ctype *ctype) {
   for (;;) {
     Token *tok = read_token();
     if (is_punct(tok, '[')) {
@@ -483,6 +479,15 @@ static Ast *read_decl(void) {
       break;
     }
   }
+  return ctype;
+}
+
+static Ast *read_decl(void) {
+  Ctype *ctype = read_decl_spec();
+  Token *varname = read_token();
+  if (varname->type != TTYPE_IDENT)
+    error("Identifier expected, but got %s", token_to_string(varname));
+  ctype = read_array_dimensions(ctype);
   Ast *var = ast_lvar(ctype, varname->sval);
   Token *tok = read_token();
   if (is_punct(tok, '='))

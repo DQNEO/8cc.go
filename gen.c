@@ -109,7 +109,7 @@ static void emit_lsave(Ctype *ctype, int loff, int off) {
 static void emit_deref(Ast *var, Ast *value) {
   emit_expr(var->operand);
   emit("push %%rax");
-  emit_expr(value);  // this is done in the beginning of emit_assign. is it a waste of time?
+  emit_expr(value);
   emit("pop %%rcx");
   char *reg;
   int size = ctype_size(var->operand->ctype);

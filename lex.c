@@ -164,8 +164,8 @@ char *token_to_string(Token *tok) {
       if (is_punct(tok, '@'))
         string_appendf(s, "==");
       else
-        string_appendf(s, "%c", tok->punct);
-      return get_cstring(s);
+        string_appendf(s, "%c", tok);
+      break;
     case TTYPE_CHAR: {
       string_append(s, tok->c);
       return get_cstring(s);

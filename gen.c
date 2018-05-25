@@ -36,11 +36,9 @@ static int ctype_size(Ctype *ctype) {
   }
 }
 
-static void emit_gload(Ctype *ctype, char *label, int off) {
+static void emit_gload(Ctype *ctype, char *label) {
   if (ctype->type == CTYPE_ARRAY) {
     emit("lea %s(%%rip), %%rax", label);
-    if (off)
-      emit("add $%d, %%rax", ctype_size(ctype->ptr) * off);
     return;
   }
   char *reg;
@@ -53,8 +51,6 @@ static void emit_gload(Ctype *ctype, char *label, int off) {
       error("Unknown data size: %s: %d", ctype_to_string(ctype), size);
   }
   emit("mov %s(%%rip), %%%s", label, reg);
-  if (off)
-    emit("add $%d, %%rax", off * size);
   emit("mov (%%rax), %%%s", reg);
 }
 
@@ -224,7 +220,7 @@ static void emit_expr(Ast *ast) {
       emit_lload(ast->lref, ast->lrefoff);
       break;
     case AST_GVAR:
-      emit_gload(ast->ctype, ast->glabel, 0);
+      emit_gload(ast->ctype, ast->glabel);
       break;
     case AST_FUNCALL: {
       for (int i = 1; i < list_len(ast->args); i++)
@@ -258,7 +254,7 @@ static void emit_expr(Ast *ast) {
           emit("movb $%d, %d(%%rbp)", *p, -(ast->declvar->loff - i));
         emit("movb $0, %d(%%rbp)", -(ast->declvar->loff - i));
       } else if (ast->declinit->type == AST_STRING) {
-        emit_gload(ast->declinit->ctype, ast->declinit->slabel, 0);
+        emit_gload(ast->declinit->ctype, ast->declinit->slabel);
         emit_lsave(ast->declvar->ctype, ast->declvar->loff, 0);
       } else {
         emit_expr(ast->declinit);

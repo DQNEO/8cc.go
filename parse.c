@@ -70,12 +70,11 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
   return r;
 }
 
-static Ast *ast_lref(Ctype *ctype, Ast *lvar, int off) {
+static Ast *ast_lref(Ctype *ctype, Ast *lvar) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_LREF;
   r->ctype = ctype;
   r->lref = lvar;
-  r->lrefoff = off;
   return r;
 }
 
@@ -338,7 +337,7 @@ static Ast *convert_array(Ast *ast) {
   if (ast->ctype->type != CTYPE_ARRAY)
     return ast;
   if (ast->type == AST_LVAR)
-    return ast_lref(make_ptr_type(ast->ctype->ptr), ast, 0);
+    return ast_lref(make_ptr_type(ast->ctype->ptr), ast);
   if (ast->type != AST_GVAR)
     error("Internal error: Gvar expected, but got %s", ast_to_string(ast));
   error("Unexpected Ast");
@@ -687,7 +686,7 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       string_appendf(buf, "%s", ast->gname);
       break;
     case AST_LREF:
-      string_appendf(buf, "%s[%d]", ast_to_string(ast->lref), ast->lrefoff);
+      string_appendf(buf, "%s[0]", ast->lref->lname);
       break;
     case AST_FUNCALL: {
       string_appendf(buf, "(%s)%s(", ctype_to_string(ast->ctype), ast->fname);

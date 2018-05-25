@@ -86,7 +86,6 @@ typedef struct Ast {
     // Local reference
     struct {
       struct Ast *lref;
-      int lrefoff;
     };
     // Binary operator
     struct {

@@ -336,11 +336,8 @@ static Ast *convert_array(Ast *ast) {
     return ast;
   if (ast->ctype->type != CTYPE_ARRAY)
     return ast;
-  if (ast->type == AST_LVAR)
-    return ast_lref(make_ptr_type(ast->ctype->ptr), ast);
-  if (ast->type != AST_GVAR)
-    error("Internal error: Gvar expected, but got %s", ast_to_string(ast));
-  error("Unexpected Ast");
+
+  return ast_lref(make_ptr_type(ast->ctype->ptr), ast);
 }
 
 static Ast *read_unary_expr(void) {

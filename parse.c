@@ -586,11 +586,11 @@ static List *read_params(void) {
     return params;
   unget_token(tok);
   for (;;) {
-    Ctype *type = read_decl_spec();
+    Ctype *ctype = read_decl_spec();
     Token *pname = read_token();
     if (pname->type != TTYPE_IDENT)
       error("Identifier expected, but got %s", token_to_string(pname));
-    list_append(params, ast_lvar(type, pname->sval));
+    list_append(params, ast_lvar(ctype, pname->sval));
     Token *tok = read_token();
     if (is_punct(tok, ')'))
       return params;

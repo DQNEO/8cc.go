@@ -78,7 +78,7 @@ static void emit_lload(Ast *var, int off) {
     emit("add $%d, %%rax", var->loff * size);
 }
 
-static void emit_gsave(Ast *var, int off) {
+static void emit_gsave(Ast *var) {
   assert(var->ctype->type != CTYPE_ARRAY);
   char *reg;
   emit("push %%rcx");
@@ -91,7 +91,7 @@ static void emit_gsave(Ast *var, int off) {
     default:
       error("Unknown data size: %s: %d", ast_to_string(var), size);
   }
-  emit("mov %s, %d(%%rbp)", reg, off * size);
+  emit("mov %s, (%%rbp)", reg);
   emit("pop %%rcx");
 }
 
@@ -139,7 +139,7 @@ static void emit_assign(Ast *var, Ast *value) {
   switch (var->type) {
     case AST_LVAR: emit_lsave(var->ctype, var->loff, 0); break;
     case AST_LREF: emit_lsave(var->lref->ctype, var->lref->loff, var->loff); break;
-    case AST_GVAR: emit_gsave(var, 0); break;
+    case AST_GVAR: emit_gsave(var); break;
     case AST_DEREF: emit_assign_deref(var, value); break;
     default: error("internal error");
   }

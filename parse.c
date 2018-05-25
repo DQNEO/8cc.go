@@ -162,6 +162,7 @@ static Ast *ast_for(Ast *init, Ast *cond, Ast *step, List *body) {
   r->forinit = init;
   r->forcond = cond;
   r->forstep = step;
+  r->forstep = step;
   r->forbody = body;
   return r;
 }
@@ -192,7 +193,7 @@ static Ctype* make_array_type(Ctype *ctype, int size) {
 static Ast *find_var_sub(List *list, char *name) {
   for (Iter *i = list_iter(list); !iter_end(i);) {
     Ast *v = iter_next(i);
-    if (!strcmp(name, v->lname)) // not gname to look up globals ??
+    if (!strcmp(name, v->lname))
       return v;
   }
   return NULL;

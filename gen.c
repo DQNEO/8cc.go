@@ -106,7 +106,7 @@ static void emit_lsave(Ctype *ctype, int loff, int off) {
   emit("mov %%%s, %d(%%rbp)", reg, -(loff + off * size));
 }
 
-static void emit_deref(Ast *var, Ast *value) {
+static void emit_assign_deref(Ast *var, Ast *value) {
   emit_expr(var->operand);
   emit("push %%rax");
   emit_expr(value);
@@ -140,7 +140,7 @@ static void emit_assign(Ast *var, Ast *value) {
     case AST_LVAR: emit_lsave(var->ctype, var->loff, 0); break;
     case AST_LREF: emit_lsave(var->lref->ctype, var->lref->loff, var->loff); break;
     case AST_GVAR: emit_gsave(var, 0); break;
-    case AST_DEREF: emit_deref(var, value); break;
+    case AST_DEREF: emit_assign_deref(var, value); break;
     default: error("internal error");
   }
 }

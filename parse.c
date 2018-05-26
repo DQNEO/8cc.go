@@ -329,6 +329,11 @@ static Ctype *convert_array(Ast *ast) {
 
 static Ast *read_unary_expr(void) {
   Token *tok = read_token();
+  if (is_punct(tok, '(')) {
+    Ast *r = read_expr(0);
+    expect(')');
+    return r;
+  }
   if (is_punct(tok, '&')) {
     Ast *operand = read_unary_expr();
     ensure_lvalue(operand);

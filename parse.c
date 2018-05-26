@@ -314,9 +314,7 @@ static Ctype *result_type(char op, Ctype *a, Ctype *b) {
 
 static void ensure_lvalue(Ast *ast) {
   switch (ast->type) {
-    case AST_LVAR:
-    case AST_GVAR:
-    case AST_DEREF:
+    case AST_LVAR: case AST_GVAR: case AST_DEREF:
       return;
     default:
       error("lvalue expected, but got %s", ast_to_string(ast));

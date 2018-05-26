@@ -340,6 +340,12 @@ static Ast *convert_array(Ast *ast) {
   return ast_lref(make_ptr_type(ast->ctype->ptr), ast);
 }
 
+static Ctype *convert_array2(Ast *ast) {
+  if (ast->ctype->type != CTYPE_ARRAY)
+    return ast->ctype;
+  return make_ptr_type(ast->ctype->ptr);
+}
+
 static Ast *read_unary_expr(void) {
   Token *tok = read_token();
   if (is_punct(tok, '&')) {
@@ -348,10 +354,11 @@ static Ast *read_unary_expr(void) {
     return ast_uop(AST_ADDR, make_ptr_type(operand->ctype), operand);
   }
   if (is_punct(tok, '*')) {
-    Ast *operand = convert_array(read_unary_expr());
-    if (operand->ctype->type != CTYPE_PTR)
+    Ast *operand = read_unary_expr();
+    Ctype *ctype = convert_array2(operand);
+    if (ctype->type != CTYPE_PTR)
       error("pointer type expected, but got %s", ast_to_string(operand));
-    return ast_uop(AST_DEREF, operand->ctype->ptr, operand);
+    return ast_uop(AST_DEREF, ctype->ptr, operand);
   }
   unget_token(tok);
   return read_prim();

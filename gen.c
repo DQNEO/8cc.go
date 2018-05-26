@@ -265,7 +265,6 @@ static void emit_expr(Ast *ast) {
       emit("lea %d(%%rbp), %%rax", -ast->operand->loff);
       break;
     case AST_DEREF: {
-      assert(ast->operand->ctype->type == CTYPE_PTR);
       emit_expr(ast->operand);
       char *reg;
       switch (ctype_size(ast->ctype)) {

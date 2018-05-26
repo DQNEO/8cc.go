@@ -331,7 +331,7 @@ static void ensure_lvalue(Ast *ast) {
   }
 }
 
-static Ast *convert_array(Ast *ast) {
+static Ast *convert_array_old(Ast *ast) {
   if (ast->type == AST_STRING)
     return ast;
   if (ast->ctype->type != CTYPE_ARRAY)
@@ -340,7 +340,7 @@ static Ast *convert_array(Ast *ast) {
   return ast_lref(make_ptr_type(ast->ctype->ptr), ast);
 }
 
-static Ctype *convert_array2(Ast *ast) {
+static Ctype *convert_array(Ast *ast) {
   if (ast->ctype->type != CTYPE_ARRAY)
     return ast->ctype;
   return make_ptr_type(ast->ctype->ptr);
@@ -355,7 +355,7 @@ static Ast *read_unary_expr(void) {
   }
   if (is_punct(tok, '*')) {
     Ast *operand = read_unary_expr();
-    Ctype *ctype = convert_array2(operand);
+    Ctype *ctype = convert_array(operand);
     if (ctype->type != CTYPE_PTR)
       error("pointer type expected, but got %s", ast_to_string(operand));
     return ast_uop(AST_DEREF, ctype->ptr, operand);
@@ -381,9 +381,9 @@ static Ast *read_expr(int prec) {
     if (is_punct(tok, '='))
       ensure_lvalue(ast);
     else
-      ast = convert_array(ast);
+      ast = convert_array_old(ast);
     Ast *rest = read_expr(prec2 + (is_right_assoc(tok) ? 0 : 1));
-    rest = convert_array(rest);
+    rest = convert_array_old(rest);
     Ctype *ctype = result_type(tok->punct, ast->ctype, rest->ctype);
     if (!is_punct(tok, '=') &&
         ast->ctype->type != CTYPE_PTR &&

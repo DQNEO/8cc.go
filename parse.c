@@ -339,7 +339,7 @@ static Ast *read_unary_expr(void) {
     Ctype *ctype = convert_array(operand);
     if (ctype->type != CTYPE_PTR)
       error("pointer type expected, but got %s", ast_to_string(operand));
-    return ast_uop(AST_DEREF, ctype->ptr, operand);
+    return ast_uop(AST_DEREF, operand->ctype->ptr, operand);
   }
   unget_token(tok);
   return read_prim();

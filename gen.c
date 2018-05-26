@@ -135,7 +135,6 @@ static void emit_assign(Ast *var, Ast *value) {
   emit_expr(value);
   switch (var->type) {
     case AST_LVAR: emit_lsave(var->ctype, var->loff, 0); break;
-    case AST_LREF: emit_lsave(var->lref->ctype, var->lref->loff, var->loff); break;
     case AST_GVAR: emit_gsave(var); break;
     case AST_DEREF: emit_assign_deref(var, value); break;
     default: error("internal error");
@@ -211,10 +210,6 @@ static void emit_expr(Ast *ast) {
       break;
     case AST_LVAR:
       emit_lload(ast);
-      break;
-    case AST_LREF:
-      assert(ast->lref->type == AST_LVAR);
-      emit_lload(ast->lref);
       break;
     case AST_GVAR:
       emit_gload(ast->ctype, ast->glabel);

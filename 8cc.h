@@ -33,7 +33,6 @@ enum {
   AST_LITERAL,
   AST_STRING,
   AST_LVAR,
-  AST_LREF,
   AST_GVAR,
   AST_FUNCALL,
   AST_FUNC,
@@ -82,10 +81,6 @@ typedef struct Ast {
     struct {
       char *gname;
       char *glabel;
-    };
-    // Local reference
-    struct {
-      struct Ast *lref;
     };
     // Binary operator
     struct {

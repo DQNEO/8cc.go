@@ -70,20 +70,6 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
   return r;
 }
 
-static Ast *ast_lref(Ctype *ctype, Ast *lvar) {
-  Ast *r = malloc(sizeof(Ast));
-  r->type = AST_LREF;
-  r->ctype = ctype;
-  r->lref = lvar;
-  return r;
-}
-
-static Ast *lref_to_var(Ast *r) {
-  if (r->type != AST_LREF)
-    return r;
-  return r->lref;
-}
-
 static Ast *ast_gvar(Ctype *ctype, char *name, bool filelocal) __attribute__((unused));
 static Ast *ast_gvar(Ctype *ctype, char *name, bool filelocal) {
   Ast *r = malloc(sizeof(Ast));
@@ -328,7 +314,7 @@ static Ctype *result_type(char op, Ctype *a, Ctype *b) {
 
 static void ensure_lvalue(Ast *ast) {
   switch (ast->type) {
-    case AST_LVAR: case AST_LREF:
+    case AST_LVAR:
     case AST_GVAR:
     case AST_DEREF:
       return;
@@ -702,9 +688,6 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       break;
     case AST_GVAR:
       string_appendf(buf, "%s", ast->gname);
-      break;
-    case AST_LREF:
-      string_appendf(buf, "%s[0]", ast->lref->lname);
       break;
     case AST_FUNCALL: {
       string_appendf(buf, "(%s)%s(", ctype_to_string(ast->ctype), ast->fname);

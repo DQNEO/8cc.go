@@ -701,10 +701,13 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       break;
     }
     case AST_DECL:
-      string_appendf(buf, "(decl %s %s %s)",
+      string_appendf(buf, "(decl %s %s",
                      ctype_to_string(ast->declvar->ctype),
-                     ast->declvar->lname,
-                     ast_to_string(ast->declinit));
+                     ast->declvar->lname);
+      if (ast->declinit)
+        string_appendf(buf, " %s)", ast_to_string(ast->declinit));
+      else
+        string_appendf(buf, ")");
       break;
     case AST_ARRAY_INIT:
       string_appendf(buf, "{");

@@ -450,27 +450,37 @@ static Ast *read_decl_array_init(Ast *var) {
   return ast_decl(var, init);
 }
 
-static Ctype *read_array_dimensions(Ctype *ctype) {
-  for (;;) {
-    Token *tok = read_token();
-    if (is_punct(tok, '[')) {
-      tok = peek_token();
-      if (is_punct(tok, ']')) {
-        if (ctype->size == -1)
-          error("Array size is not specified");
-        ctype = make_array_type(ctype, -1);
-      } else {
-        Ast *size = read_expr(0);
-        if (size->type != AST_LITERAL || size->ctype->type != CTYPE_INT)
-          error("Integer expected, but got %s", ast_to_string(size));
-        ctype = make_array_type(ctype, size->ival);
-      }
-      expect(']');
-    } else {
-      unget_token(tok);
-      break;
-    }
+static Ctype *read_array_dimensions_int(void) {
+  Token *tok = read_token();
+  if (!is_punct(tok, '[')) {
+    unget_token(tok);
+    return NULL;
   }
+  int dim = -1;
+  tok = peek_token();
+  if (!is_punct(tok, ']')) {
+    Ast *size = read_expr(0);
+    if (size->type != AST_LITERAL || size->ctype->type != CTYPE_INT)
+      error("Integer expected, but got %s", ast_to_string(size));
+    dim = size->ival;
+  }
+  expect(']');
+  Ctype *sub = read_array_dimensions_int();
+  if (sub) {
+    if (sub->size == -1 && dim == -1)
+      error("Array size is not specified");
+    return make_array_type(sub, dim);
+  }
+  return make_array_type(NULL, dim);
+}
+
+static Ctype *read_array_dimensions(Ctype *basetype) {
+  Ctype *ctype = read_array_dimensions_int();
+  if (!ctype)
+    return basetype;
+  Ctype *p = ctype;
+  for (; p->ptr; p = p->ptr);
+  p->ptr = basetype;
   return ctype;
 }
 

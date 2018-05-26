@@ -337,13 +337,13 @@ static void ensure_lvalue(Ast *ast) {
   }
 }
 
-static Ast *convert_array_old(Ast *ast) {
+static Ctype *convert_array_old(Ast *ast) {
   if (ast->type == AST_STRING)
-    return ast;
+    return ast->ctype;
   if (ast->ctype->type != CTYPE_ARRAY)
-    return ast;
+    return ast->ctype;
 
-  return ast_lref(make_ptr_type(ast->ctype->ptr), ast);
+  return make_ptr_type(ast->ctype->ptr);
 }
 
 static Ctype *convert_array(Ast *ast) {
@@ -384,21 +384,19 @@ static Ast *read_expr(int prec) {
       unget_token(tok);
       return ast;
     }
-    Ctype *astctype;
+    Ctype *asttype;
     if (is_punct(tok, '=')) {
       ensure_lvalue(ast);
-      astctype = ast->ctype;
+      asttype = ast->ctype;
     } else {
-      Ast *ast2 = convert_array_old(ast);
-      astctype = ast2->ctype;
+      asttype = convert_array_old(ast);
     }
     Ast *rest = read_expr(prec2 + (is_right_assoc(tok) ? 0 : 1));
-    Ast *rest2 = convert_array_old(rest);
-    Ctype *restctype = rest2->ctype;
-    Ctype *ctype = result_type(tok->punct, astctype, restctype);
+    Ctype *resttype = convert_array_old(rest);
+    Ctype *ctype = result_type(tok->punct, asttype, resttype);
     if (!is_punct(tok, '=') &&
-        astctype->type != CTYPE_PTR &&
-        restctype->type == CTYPE_PTR)
+        asttype->type != CTYPE_PTR &&
+        resttype->type == CTYPE_PTR)
       swap(ast, rest);
     ast = ast_binop(tok->punct, ctype, ast, rest);
   }

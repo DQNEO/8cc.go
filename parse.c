@@ -323,15 +323,6 @@ static void ensure_lvalue(Ast *ast) {
   }
 }
 
-static Ctype *convert_array_old(Ast *ast) {
-  if (ast->type == AST_STRING)
-    return ast->ctype;
-  if (ast->ctype->type != CTYPE_ARRAY)
-    return ast->ctype;
-
-  return make_ptr_type(ast->ctype->ptr);
-}
-
 static Ctype *convert_array(Ast *ast) {
   if (ast->ctype->type != CTYPE_ARRAY)
     return ast->ctype;
@@ -375,10 +366,10 @@ static Ast *read_expr(int prec) {
       ensure_lvalue(ast);
       asttype = ast->ctype;
     } else {
-      asttype = convert_array_old(ast);
+      asttype = convert_array(ast);
     }
     Ast *rest = read_expr(prec2 + (is_right_assoc(tok) ? 0 : 1));
-    Ctype *resttype = convert_array_old(rest);
+    Ctype *resttype = convert_array(rest);
     Ctype *ctype = result_type(tok->punct, asttype, resttype);
     if (!is_punct(tok, '=') &&
         asttype->type != CTYPE_PTR &&

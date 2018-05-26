@@ -359,14 +359,10 @@ static Ast *read_expr(int prec) {
       unget_token(tok);
       return ast;
     }
-    Ctype *asttype;
-    if (is_punct(tok, '=')) {
+    if (is_punct(tok, '='))
       ensure_lvalue(ast);
-      asttype = ast->ctype;
-    } else {
-      asttype = convert_array(ast);
-    }
     Ast *rest = read_expr(prec2 + (is_right_assoc(tok) ? 0 : 1));
+    Ctype *asttype = convert_array(ast);
     Ctype *resttype = convert_array(rest);
     Ctype *ctype = result_type(tok->punct, asttype, resttype);
     if (!is_punct(tok, '=') &&

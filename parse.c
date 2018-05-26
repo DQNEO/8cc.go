@@ -384,18 +384,23 @@ static Ast *read_expr(int prec) {
       unget_token(tok);
       return ast;
     }
-    if (is_punct(tok, '='))
+    Ctype *astctype;
+    if (is_punct(tok, '=')) {
       ensure_lvalue(ast);
-    else
-      ast = convert_array_old(ast);
+      astctype = ast->ctype;
+    } else {
+      Ast *ast2 = convert_array_old(ast);
+      astctype = ast2->ctype;
+    }
     Ast *rest = read_expr(prec2 + (is_right_assoc(tok) ? 0 : 1));
-    rest = convert_array_old(rest);
-    Ctype *ctype = result_type(tok->punct, ast->ctype, rest->ctype);
+    Ast *rest2 = convert_array_old(rest);
+    Ctype *restctype = rest2->ctype;
+    Ctype *ctype = result_type(tok->punct, astctype, restctype);
     if (!is_punct(tok, '=') &&
-        ast->ctype->type != CTYPE_PTR &&
-        rest->ctype->type == CTYPE_PTR)
+        astctype->type != CTYPE_PTR &&
+        restctype->type == CTYPE_PTR)
       swap(ast, rest);
-    ast = ast_binop(tok->punct, ctype, lref_to_var(ast), lref_to_var(rest));
+    ast = ast_binop(tok->punct, ctype, ast, rest);
   }
 }
 

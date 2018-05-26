@@ -120,7 +120,6 @@ static void emit_assign_deref(Ast *var, Ast *value) {
 }
 
 static void emit_pointer_arith(char op, Ast *left, Ast *right) {
-  assert(left->ctype->type == CTYPE_PTR);
   emit_expr(left);
   emit("push %%rax");
   emit_expr(right);

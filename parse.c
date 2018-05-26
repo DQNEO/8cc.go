@@ -78,6 +78,12 @@ static Ast *ast_lref(Ctype *ctype, Ast *lvar) {
   return r;
 }
 
+static Ast *lref_to_var(Ast *r) {
+  if (r->type != AST_LREF)
+    return r;
+  return r->lref;
+}
+
 static Ast *ast_gvar(Ctype *ctype, char *name, bool filelocal) __attribute__((unused));
 static Ast *ast_gvar(Ctype *ctype, char *name, bool filelocal) {
   Ast *r = malloc(sizeof(Ast));
@@ -389,7 +395,7 @@ static Ast *read_expr(int prec) {
         ast->ctype->type != CTYPE_PTR &&
         rest->ctype->type == CTYPE_PTR)
       swap(ast, rest);
-    ast = ast_binop(tok->punct, ctype, ast, rest);
+    ast = ast_binop(tok->punct, ctype, lref_to_var(ast), lref_to_var(rest));
   }
 }
 

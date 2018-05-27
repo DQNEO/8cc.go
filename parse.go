@@ -514,13 +514,7 @@ func read_decl_array_init(v *Ast) *Ast {
 	return ast_decl(v, init)
 }
 
-
-func read_decl() *Ast {
-	ctype := read_decl_spec()
-	varname := read_token()
-	if varname.typ != TTYPE_IDENT {
-		_error("Identifier expected, but got %s", varname)
-	}
+func read_array_dimensions(ctype *Ctype) *Ctype {
 	for { // we need to loop?
 		tok := read_token()
 		if is_punct(tok, '[') {
@@ -544,6 +538,16 @@ func read_decl() *Ast {
 			break
 		}
 	}
+	return ctype
+}
+
+func read_decl() *Ast {
+	ctype := read_decl_spec()
+	varname := read_token()
+	if varname.typ != TTYPE_IDENT {
+		_error("Identifier expected, but got %s", varname)
+	}
+	ctype = read_array_dimensions(ctype)
 	variable := ast_lvar(ctype, varname.v.sval)
 	tok := read_token()
 	if is_punct(tok,'=') {

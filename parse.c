@@ -597,6 +597,9 @@ static List *read_params(void) {
     Token *pname = read_token();
     if (pname->type != TTYPE_IDENT)
       error("Identifier expected, but got %s", token_to_string(pname));
+    ctype = read_array_dimensions(ctype);
+    if (ctype->type == CTYPE_ARRAY)
+      ctype = make_ptr_type(ctype->ptr);
     list_append(params, ast_lvar(ctype, pname->sval));
     Token *tok = read_token();
     if (is_punct(tok, ')'))

@@ -407,10 +407,12 @@ func read_expr(prec int) *Ast {
 			return ast
 		}
 
+		var astctype *Ctype
 		if is_punct(tok, '=') {
 			ensure_lvalue(ast)
+			astctype = ast.ctype
 		} else {
-			ast = convert_array_old(ast)
+			astctype = convert_array_old(ast).ctype
 		}
 
 		var prec_incr int
@@ -420,13 +422,13 @@ func read_expr(prec int) *Ast {
 			prec_incr = 1
 		}
 		rest := read_expr(prec2 + prec_incr)
-		rest = convert_array_old(rest)
-		ctype := result_type(tok.v.punct, ast.ctype, rest.ctype)
-		if !is_punct(tok, '=') && ast.ctype.typ != CTYPE_PTR &&
-			rest.ctype.typ == CTYPE_PTR {
+		restctype := convert_array_old(rest).ctype
+		ctype := result_type(tok.v.punct, astctype, restctype)
+		if !is_punct(tok, '=') && astctype.typ != CTYPE_PTR &&
+			restctype.typ == CTYPE_PTR {
 			ast, rest = rest, ast
 		}
-		ast = ast_binop(tok.v.punct, ctype, lref_to_var(ast), lref_to_var(rest))
+		ast = ast_binop(tok.v.punct, ctype, ast, rest)
 	}
 	return ast
 }

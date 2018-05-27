@@ -353,11 +353,11 @@ func read_unary_expr() *Ast {
 	}
 	if is_punct(tok, '*') {
 		operand := read_unary_expr()
-		ctype := convert_array(operand)
+		ctype := convert_array(operand) // looks no need to call convert_array.
 		if ctype.typ != CTYPE_PTR {
 			_error("pointer type expected, but got %", ctype)
 		}
-		return ast_uop(AST_DEREF, ctype.ptr, operand)
+		return ast_uop(AST_DEREF, operand.ctype.ptr, operand)
 	}
 	unget_token(tok)
 	return read_prim()

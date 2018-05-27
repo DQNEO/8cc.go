@@ -354,15 +354,7 @@ func convert_array(ast *Ast) *Ast {
 	if ast.ctype.typ != CTYPE_ARRAY {
 		return ast
 	}
-	if ast.typ == AST_LVAR {
-		return ast_lref(make_ptr_type(ast.ctype.ptr), ast, 0)
-	}
-
-	if ast.typ != AST_GVAR {
-		_error("Internal error: Gvar expected, but got %s", ast)
-	}
-	_error("error")
-	return nil
+	return ast_lref(make_ptr_type(ast.ctype.ptr), ast, 0)
 }
 
 func read_unary_expr() *Ast {

@@ -22,7 +22,6 @@ const (
 	AST_LITERAL byte = iota
 	AST_STRING
 	AST_LVAR
-	AST_LREF
 	AST_GVAR
 	AST_FUNCALL
 	AST_FUNC
@@ -71,10 +70,6 @@ type Ast struct {
 	gvar struct {
 		gname  Cstring
 		glabel Cstring
-	}
-	// Local reference
-	lref struct {
-		ref *Ast
 	}
 	// Global reference
 	gref struct {

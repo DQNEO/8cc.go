@@ -137,8 +137,6 @@ func emit_assign(variable *Ast, value *Ast) {
 	switch variable.typ {
 	case AST_LVAR:
 		emit_lsave(variable.ctype, variable.variable.loff, 0)
-	case AST_LREF:
-		emit_lsave(variable.lref.ref.ctype, variable.lref.ref.variable.loff, 0)
 	case AST_GVAR:
 		emit_gsave(variable)
 	case AST_DEREF:
@@ -219,9 +217,6 @@ func emit_expr(ast *Ast) {
 		emit("lea %s(%%rip), %%rax", ast.str.slabel)
 	case AST_LVAR:
 		emit_lload(ast)
-	case AST_LREF:
-		assert(ast.lref.ref.typ == AST_LVAR)
-		emit_lload(ast.lref.ref)
 	case AST_GVAR:
 		emit_gload(ast.ctype, ast.gvar.glabel)
 	case AST_FUNCALL:

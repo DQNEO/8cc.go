@@ -66,21 +66,6 @@ func ast_lvar(ctype *Ctype, name Cstring) *Ast {
 	return r
 }
 
-func ast_lref(ctype *Ctype, lvar *Ast, off int) *Ast {
-	r := &Ast{}
-	r.typ = AST_LREF
-	r.ctype = ctype
-	r.lref.ref = lvar
-	return r
-}
-
-func lref_to_var(ast *Ast) *Ast {
-	if ast.typ == AST_LREF {
-		return ast.lref.ref
-	}
-	return ast
-}
-
 func ast_gvar(ctype *Ctype, name Cstring, filelocal bool) *Ast {
 	r := &Ast{}
 	r.typ = AST_GVAR
@@ -345,7 +330,7 @@ func result_type(op byte, a *Ctype, b *Ctype) *Ctype {
 
 func ensure_lvalue(ast *Ast) {
 	switch ast.typ {
-	case AST_LVAR, AST_LREF,
+	case AST_LVAR,
 		AST_GVAR,
 		AST_DEREF:
 		return
@@ -800,8 +785,6 @@ func (ast *Ast) String() string {
 		return fmt.Sprintf("%s", ast.variable.lname)
 	case AST_GVAR:
 		return fmt.Sprintf("%s", ast.gvar.gname)
-	case AST_LREF:
-		return fmt.Sprintf("%s[0]", ast.lref.ref)
 	case AST_FUNCALL:
 		s := fmt.Sprintf("(%s)%s(", ast.ctype, ast.fnc.fname)
 		for i, v := range ast.fnc.args {

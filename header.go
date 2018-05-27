@@ -75,7 +75,6 @@ type Ast struct {
 	// Local reference
 	lref struct {
 		ref *Ast
-		off int
 	}
 	// Global reference
 	gref struct {

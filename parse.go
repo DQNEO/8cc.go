@@ -71,7 +71,6 @@ func ast_lref(ctype *Ctype, lvar *Ast, off int) *Ast {
 	r.typ = AST_LREF
 	r.ctype = ctype
 	r.lref.ref = lvar
-	r.lref.off = off
 	return r
 }
 
@@ -789,7 +788,7 @@ func (ast *Ast) String() string {
 	case AST_GVAR:
 		return fmt.Sprintf("%s", ast.gvar.gname)
 	case AST_LREF:
-		return fmt.Sprintf("%s[%d]", ast.lref.ref, ast.lref.off)
+		return fmt.Sprintf("%s[0]", ast.lref.ref)
 	case AST_FUNCALL:
 		s := fmt.Sprintf("(%s)%s(", ast.ctype, ast.fnc.fname)
 		for i, v := range ast.fnc.args {

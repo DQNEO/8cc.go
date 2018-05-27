@@ -45,7 +45,7 @@ func emit_gload(ctype *Ctype, label Cstring) {
 	emit("mov (%%rax), %%%s", reg)
 }
 
-func emit_lload(v *Ast, off int) {
+func emit_lload(v *Ast) {
 	if v.ctype.typ == CTYPE_ARRAY {
 		emit("lea %d(%%rbp), %%rax", -v.variable.loff)
 		return
@@ -61,9 +61,6 @@ func emit_lload(v *Ast, off int) {
 		emit("mov %d(%%rbp), %%rax", -v.variable.loff)
 	default:
 		_error("Unknown data size: %s: %d", v, size)
-	}
-	if off > 0 {
-		emit("add $%d, %%rax", size, off*size)
 	}
 }
 
@@ -142,7 +139,7 @@ func emit_assign(variable *Ast, value *Ast) {
 	case AST_LVAR:
 		emit_lsave(variable.ctype, variable.variable.loff, 0)
 	case AST_LREF:
-		emit_lsave(variable.lref.ref.ctype, variable.lref.ref.variable.loff, variable.lref.off)
+		emit_lsave(variable.lref.ref.ctype, variable.lref.ref.variable.loff, 0)
 	case AST_GVAR:
 		emit_gsave(variable)
 	case AST_DEREF:
@@ -222,10 +219,10 @@ func emit_expr(ast *Ast) {
 	case AST_STRING:
 		emit("lea %s(%%rip), %%rax", ast.str.slabel)
 	case AST_LVAR:
-		emit_lload(ast, 0)
+		emit_lload(ast)
 	case AST_LREF:
 		assert(ast.lref.ref.typ == AST_LVAR)
-		emit_lload(ast.lref.ref, ast.lref.off)
+		emit_lload(ast.lref.ref)
 	case AST_GVAR:
 		emit_gload(ast.ctype, ast.gvar.glabel)
 	case AST_FUNCALL:

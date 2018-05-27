@@ -347,7 +347,7 @@ func ensure_lvalue(ast *Ast) {
 	return
 }
 
-func convert_array(ast *Ast) *Ast {
+func convert_array_old(ast *Ast) *Ast {
 	if ast.typ == AST_STRING {
 		return ast
 	}
@@ -357,7 +357,7 @@ func convert_array(ast *Ast) *Ast {
 	return ast_lref(make_ptr_type(ast.ctype.ptr), ast, 0)
 }
 
-func convert_array2(ast *Ast) *Ctype {
+func convert_array(ast *Ast) *Ctype {
 	if ast.ctype.typ != CTYPE_ARRAY {
 		return ast.ctype
 	}
@@ -373,7 +373,7 @@ func read_unary_expr() *Ast {
 	}
 	if is_punct(tok, '*') {
 		operand := read_unary_expr()
-		ctype := convert_array2(operand)
+		ctype := convert_array(operand)
 		if ctype.typ != CTYPE_PTR {
 			_error("pointer type expected, but got %", ctype)
 		}
@@ -403,7 +403,7 @@ func read_expr(prec int) *Ast {
 		if is_punct(tok, '=') {
 			ensure_lvalue(ast)
 		} else {
-			ast = convert_array(ast)
+			ast = convert_array_old(ast)
 		}
 
 		var prec_incr int
@@ -413,7 +413,7 @@ func read_expr(prec int) *Ast {
 			prec_incr = 1
 		}
 		rest := read_expr(prec2 + prec_incr)
-		rest = convert_array(rest)
+		rest = convert_array_old(rest)
 		ctype := result_type(tok.v.punct, ast.ctype, rest.ctype)
 		if !is_punct(tok, '=') && ast.ctype.typ != CTYPE_PTR &&
 			rest.ctype.typ == CTYPE_PTR {

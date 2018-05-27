@@ -67,7 +67,7 @@ func emit_lload(v *Ast, off int) {
 	}
 }
 
-func emit_gsave(v *Ast, off int) {
+func emit_gsave(v *Ast) {
 	assert(v.ctype.typ != CTYPE_ARRAY)
 	var reg string
 	emit("push %%rcx")
@@ -84,7 +84,7 @@ func emit_gsave(v *Ast, off int) {
 	default:
 		_error("Unknown data size: %s: %d", v, size)
 	}
-	emit("mov %s, %d(%%rbp)", reg, off*size)
+	emit("mov %s, (%%rbp)", reg)
 	emit("pop %%rcx")
 }
 
@@ -144,7 +144,7 @@ func emit_assign(variable *Ast, value *Ast) {
 	case AST_LREF:
 		emit_lsave(variable.lref.ref.ctype, variable.lref.ref.variable.loff, variable.lref.off)
 	case AST_GVAR:
-		emit_gsave(variable, 0)
+		emit_gsave(variable)
 	case AST_DEREF:
 		emit_assign_deref(variable, value)
 	default:

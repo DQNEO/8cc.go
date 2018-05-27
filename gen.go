@@ -268,7 +268,6 @@ func emit_expr(ast *Ast) {
 		assert(ast.unary.operand.typ == AST_LVAR)
 		emit("lea %d(%%rbp), %%rax", -ast.unary.operand.variable.loff)
 	case AST_DEREF:
-		assert(ast.unary.operand.ctype.typ == CTYPE_PTR)
 		emit_expr(ast.unary.operand)
 		var reg string
 		switch ctype_size(ast.ctype) {

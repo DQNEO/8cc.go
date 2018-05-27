@@ -357,6 +357,13 @@ func convert_array(ast *Ast) *Ast {
 	return ast_lref(make_ptr_type(ast.ctype.ptr), ast, 0)
 }
 
+func convert_array2(ast *Ast) *Ctype {
+	if ast.ctype.typ != CTYPE_ARRAY {
+		return ast.ctype
+	}
+	return make_ptr_type(ast.ctype.ptr)
+}
+
 func read_unary_expr() *Ast {
 	tok := read_token()
 	if is_punct(tok, '&') {
@@ -365,11 +372,12 @@ func read_unary_expr() *Ast {
 		return ast_uop(AST_ADDR, make_ptr_type(operand.ctype), operand)
 	}
 	if is_punct(tok, '*') {
-		operand := convert_array(read_unary_expr())
-		if operand.ctype.typ != CTYPE_PTR {
-			_error("pointer type expected, but got %", operand)
+		operand := read_unary_expr()
+		ctype := convert_array2(operand)
+		if ctype.typ != CTYPE_PTR {
+			_error("pointer type expected, but got %", ctype)
 		}
-		return ast_uop(AST_DEREF, operand.ctype.ptr, operand)
+		return ast_uop(AST_DEREF, ctype.ptr, operand)
 	}
 	unget_token(tok)
 	return read_prim()

@@ -354,14 +354,14 @@ func ensure_lvalue(ast *Ast) {
 	return
 }
 
-func convert_array_old(ast *Ast) *Ast {
+func convert_array_old(ast *Ast) *Ctype {
 	if ast.typ == AST_STRING {
-		return ast
+		return ast.ctype
 	}
 	if ast.ctype.typ != CTYPE_ARRAY {
-		return ast
+		return ast.ctype
 	}
-	return ast_lref(make_ptr_type(ast.ctype.ptr), ast, 0)
+	return make_ptr_type(ast.ctype.ptr)
 }
 
 func convert_array(ast *Ast) *Ctype {
@@ -407,12 +407,12 @@ func read_expr(prec int) *Ast {
 			return ast
 		}
 
-		var astctype *Ctype
+		var asttype *Ctype
 		if is_punct(tok, '=') {
 			ensure_lvalue(ast)
-			astctype = ast.ctype
+			asttype = ast.ctype
 		} else {
-			astctype = convert_array_old(ast).ctype
+			asttype = convert_array_old(ast)
 		}
 
 		var prec_incr int
@@ -422,10 +422,10 @@ func read_expr(prec int) *Ast {
 			prec_incr = 1
 		}
 		rest := read_expr(prec2 + prec_incr)
-		restctype := convert_array_old(rest).ctype
-		ctype := result_type(tok.v.punct, astctype, restctype)
-		if !is_punct(tok, '=') && astctype.typ != CTYPE_PTR &&
-			restctype.typ == CTYPE_PTR {
+		resttype := convert_array_old(rest)
+		ctype := result_type(tok.v.punct, asttype, resttype)
+		if !is_punct(tok, '=') && asttype.typ != CTYPE_PTR &&
+			resttype.typ == CTYPE_PTR {
 			ast, rest = rest, ast
 		}
 		ast = ast_binop(tok.v.punct, ctype, ast, rest)

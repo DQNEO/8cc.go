@@ -339,16 +339,6 @@ func ensure_lvalue(ast *Ast) {
 	return
 }
 
-func convert_array_old(ast *Ast) *Ctype {
-	if ast.typ == AST_STRING {
-		return ast.ctype
-	}
-	if ast.ctype.typ != CTYPE_ARRAY {
-		return ast.ctype
-	}
-	return make_ptr_type(ast.ctype.ptr)
-}
-
 func convert_array(ast *Ast) *Ctype {
 	if ast.ctype.typ != CTYPE_ARRAY {
 		return ast.ctype
@@ -397,7 +387,7 @@ func read_expr(prec int) *Ast {
 			ensure_lvalue(ast)
 			asttype = ast.ctype
 		} else {
-			asttype = convert_array_old(ast)
+			asttype = convert_array(ast)
 		}
 
 		var prec_incr int
@@ -407,7 +397,7 @@ func read_expr(prec int) *Ast {
 			prec_incr = 1
 		}
 		rest := read_expr(prec2 + prec_incr)
-		resttype := convert_array_old(rest)
+		resttype := convert_array(rest)
 		ctype := result_type(tok.v.punct, asttype, resttype)
 		if !is_punct(tok, '=') && asttype.typ != CTYPE_PTR &&
 			resttype.typ == CTYPE_PTR {

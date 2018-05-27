@@ -102,7 +102,7 @@ func emit_lsave(ctype *Ctype, loff int, off int) {
 	emit("mov %%%s, %d(%%rbp)", reg, -(loff + off*size))
 }
 
-func emit_deref(variable *Ast, value *Ast) {
+func emit_assign_deref(variable *Ast, value *Ast) {
 	emit_expr(variable.unary.operand)
 	emit("push %%rax")
 	emit_expr(value)
@@ -146,7 +146,7 @@ func emit_assign(variable *Ast, value *Ast) {
 	case AST_GVAR:
 		emit_gsave(variable, 0)
 	case AST_DEREF:
-		emit_deref(variable, value)
+		emit_assign_deref(variable, value)
 	default:
 		_error("internal error")
 	}

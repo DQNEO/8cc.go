@@ -132,11 +132,14 @@ static void emit_pointer_arith(char op, Ast *left, Ast *right) {
 }
 
 static void emit_assign(Ast *var, Ast *value) {
+  if (var->type == AST_DEREF) {
+    emit_assign_deref(var, value);
+    return;
+  }
   emit_expr(value);
   switch (var->type) {
     case AST_LVAR: emit_lsave(var->ctype, var->loff, 0); break;
     case AST_GVAR: emit_gsave(var); break;
-    case AST_DEREF: emit_assign_deref(var, value); break;
     default: error("internal error");
   }
 }
@@ -262,14 +265,14 @@ static void emit_expr(Ast *ast) {
       emit_expr(ast->operand);
       char *reg;
       switch (ctype_size(ast->ctype)) {
-        case 1: reg = "%cl";  break;
+        case 1: reg = "%cl"; emit("mov $0, %%ecx"); break;
         case 4: reg = "%ecx"; break;
-        case 8: reg = "%rcx"; break;
-        default: error("internal error");
+        default: reg = "%rcx"; break;
       }
-      emit("mov $0, %%ecx");
-      emit("mov (%%rax), %s", reg);
-      emit("mov %%rcx, %%rax");
+      if (ast->operand->ctype->ptr->type != CTYPE_ARRAY) {
+        emit("mov (%%rax), %s", reg);
+        emit("mov %%rcx, %%rax");
+      }
       break;
     }
     case AST_IF: {

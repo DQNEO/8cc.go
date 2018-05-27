@@ -74,6 +74,13 @@ func ast_lref(ctype *Ctype, lvar *Ast, off int) *Ast {
 	return r
 }
 
+func lref_to_var(ast *Ast) *Ast {
+	if ast.typ == AST_LREF {
+		return ast.lref.ref
+	}
+	return ast
+}
+
 func ast_gvar(ctype *Ctype, name Cstring, filelocal bool) *Ast {
 	r := &Ast{}
 	r.typ = AST_GVAR
@@ -419,7 +426,7 @@ func read_expr(prec int) *Ast {
 			rest.ctype.typ == CTYPE_PTR {
 			ast, rest = rest, ast
 		}
-		ast = ast_binop(tok.v.punct, ctype, ast, rest)
+		ast = ast_binop(tok.v.punct, ctype, lref_to_var(ast), lref_to_var(rest))
 	}
 	return ast
 }

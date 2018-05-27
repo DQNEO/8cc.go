@@ -120,7 +120,6 @@ func emit_assign_deref(variable *Ast, value *Ast) {
 }
 
 func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
-	assert(left.ctype.typ == CTYPE_PTR)
 	emit_expr(left)
 	emit("push %%rax")
 	emit_expr(right)

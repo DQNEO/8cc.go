@@ -319,8 +319,15 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 	return nil, default_err
 }
 
+func convert_array(ctype *Ctype) *Ctype {
+	if ctype.typ != CTYPE_ARRAY {
+		return ctype
+	}
+	return make_ptr_type(ctype.ptr)
+}
+
 func result_type(op byte, a *Ctype, b *Ctype) *Ctype {
-	ret, err := result_type_int(op, a, b)
+	ret, err := result_type_int(op, convert_array(a), convert_array(b))
 	if err != nil {
 		_error("incompatible operands: %c: <%s> and <%s>",
 			op, a, b)
@@ -335,13 +342,6 @@ func ensure_lvalue(ast *Ast) {
 	}
 	_error("lvalue expected, but got %s", ast)
 	return
-}
-
-func convert_array(ctype *Ctype) *Ctype {
-	if ctype.typ != CTYPE_ARRAY {
-		return ctype
-	}
-	return make_ptr_type(ctype.ptr)
 }
 
 func read_unary_expr() *Ast {
@@ -388,8 +388,6 @@ func read_expr(prec int) *Ast {
 		if is_punct(tok, '=') {
 			ensure_lvalue(ast)
 		}
-		asttype := convert_array(ast.ctype)
-
 		var prec_incr int
 		if is_right_assoc(tok) {
 			prec_incr = 0
@@ -397,10 +395,9 @@ func read_expr(prec int) *Ast {
 			prec_incr = 1
 		}
 		rest := read_expr(prec2 + prec_incr)
-		resttype := convert_array(rest.ctype)
-		ctype := result_type(tok.v.punct, asttype, resttype)
-		if !is_punct(tok, '=') && asttype.typ != CTYPE_PTR &&
-			resttype.typ == CTYPE_PTR {
+		ctype := result_type(tok.v.punct, ast.ctype, rest.ctype)
+		if !is_punct(tok, '=') && convert_array(ast.ctype).typ != CTYPE_PTR &&
+			convert_array(rest.ctype).typ == CTYPE_PTR {
 			ast, rest = rest, ast
 		}
 		ast = ast_binop(tok.v.punct, ctype, ast, rest)

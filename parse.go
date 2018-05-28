@@ -346,6 +346,11 @@ func convert_array(ast *Ast) *Ctype {
 
 func read_unary_expr() *Ast {
 	tok := read_token()
+	if is_punct(tok, '(') {
+		r := read_expr(0)
+		expect(')')
+		return r
+	}
 	if is_punct(tok, '&') {
 		operand := read_unary_expr()
 		ensure_lvalue(operand)

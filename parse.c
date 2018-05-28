@@ -313,6 +313,28 @@ err:
   longjmp(*jmpbuf, 1);
 }
 
+static Ast *read_subscript_expr(Ast *ast) {
+  Ast *sub = read_expr(0);
+  expect(']');
+  Ast *t = ast_binop('+', ast, sub);
+  return ast_uop(AST_DEREF, t->ctype->ptr, t);
+}
+
+static Ast *read_postfix_expr(void) {
+  Ast *r = read_prim();
+  for (;;) {
+    Token *tok = read_token();
+    if (!tok)
+      return r;
+    if (is_punct(tok, '[')) {
+      r = read_subscript_expr(r);
+    } else {
+      unget_token(tok);
+      return r;
+    }
+  }
+}
+
 static Ctype *convert_array(Ctype *ctype) {
   if (ctype->type != CTYPE_ARRAY)
     return ctype;
@@ -338,6 +360,10 @@ static void ensure_lvalue(Ast *ast) {
 
 static Ast *read_unary_expr(void) {
   Token *tok = read_token();
+  if (tok->type != TTYPE_PUNCT) {
+    unget_token(tok);
+    return read_postfix_expr();
+  }
   if (is_punct(tok, '(')) {
     Ast *r = read_expr(0);
     expect(')');

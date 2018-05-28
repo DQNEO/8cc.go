@@ -20,6 +20,8 @@ static Ctype* make_array_type(Ctype *ctype, int size);
 static void ast_to_string_int(Ast *ast, String *buf);
 static List *read_block(void);
 static Ast *read_decl_or_stmt(void);
+static Ctype *result_type(char op, Ctype *a, Ctype *b);
+static Ctype *convert_array(Ctype *ctype);
 
 static Ast *ast_uop(char type, Ctype *ctype, Ast *operand) {
   Ast *r = malloc(sizeof(Ast));
@@ -29,12 +31,19 @@ static Ast *ast_uop(char type, Ctype *ctype, Ast *operand) {
   return r;
 }
 
-static Ast *ast_binop(char type, Ctype *ctype, Ast *left, Ast *right) {
+static Ast *ast_binop(char type, Ast *left, Ast *right) {
   Ast *r = malloc(sizeof(Ast));
   r->type = type;
-  r->ctype = ctype;
-  r->left = left;
-  r->right = right;
+  r->ctype = result_type(type, left->ctype, right->ctype);
+  if (type != '=' &&
+      convert_array(left->ctype)->type != CTYPE_PTR &&
+      convert_array(right->ctype)->type == CTYPE_PTR) {
+    r->left = right;
+    r->right = left;
+  } else {
+    r->left = left;
+    r->right = right;
+  }
   return r;
 }
 
@@ -367,12 +376,7 @@ static Ast *read_expr(int prec) {
     if (is_punct(tok, '='))
       ensure_lvalue(ast);
     Ast *rest = read_expr(prec2 + (is_right_assoc(tok) ? 0 : 1));
-    Ctype *ctype = result_type(tok->punct, ast->ctype, rest->ctype);
-    if (!is_punct(tok, '=') &&
-        convert_array(ast->ctype)->type != CTYPE_PTR &&
-        convert_array(rest->ctype)->type == CTYPE_PTR)
-      swap(ast, rest);
-    ast = ast_binop(tok->punct, ctype, ast, rest);
+    ast = ast_binop(tok->punct, ast, rest);
   }
 }
 

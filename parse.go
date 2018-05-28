@@ -506,30 +506,41 @@ func read_decl_array_init(v *Ast) *Ast {
 	return ast_decl(v, init)
 }
 
-func read_array_dimensions(ctype *Ctype) *Ctype {
-	for { // we need to loop?
-		tok := read_token()
-		if is_punct(tok, '[') {
-			tok := peek_token()
-			if is_punct(tok, ']') {
-				if ctype.size == -1 {
-					_error("Array size is not specified")
-				}
-				ctype = make_array_type(ctype, -1)
-			} else {
-				size := read_expr(0)
-				//                            wny not compare to size.ctype != ctype_int ?
-				if size.typ != AST_LITERAL || size.ctype.typ != CTYPE_INT {
-					_error("Integer expected, but got %s", size)
-				}
-				ctype = make_array_type(ctype, size.ival)
-			}
-			expect(']')
-		} else {
-			unget_token(tok)
-			break
-		}
+func read_array_dimensions_int() *Ctype {
+	tok := read_token()
+	if !is_punct(tok, '[') {
+		unget_token(tok)
+		return nil;
 	}
+	dim := -1
+	tok = peek_token()
+	if !is_punct(tok, ']') {
+		size := read_expr(0)
+		if size.typ != AST_LITERAL || size.ctype.typ != CTYPE_INT {
+			_error("Integer expected, but got %s", size)
+		}
+		dim = size.ival
+	}
+	expect(']')
+	sub := read_array_dimensions_int()
+	if sub != nil {
+		if sub.size == -1 && dim == -1 {
+			_error("Array size is not specified")
+		}
+		return make_array_type(sub, dim)
+	}
+
+	return  make_array_type(nil, dim)
+}
+
+func read_array_dimensions(basetype *Ctype) *Ctype {
+	ctype := read_array_dimensions_int()
+	if ctype == nil {
+		return basetype
+	}
+	p := ctype
+	for ; p.ptr != nil; p = p.ptr {}
+	p.ptr = basetype
 	return ctype
 }
 

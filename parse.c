@@ -304,10 +304,16 @@ err:
   longjmp(*jmpbuf, 1);
 }
 
+static Ctype *convert_array(Ctype *ctype) {
+  if (ctype->type != CTYPE_ARRAY)
+    return ctype;
+  return make_ptr_type(ctype->ptr);
+}
+
 static Ctype *result_type(char op, Ctype *a, Ctype *b) {
   jmp_buf jmpbuf;
   if (setjmp(jmpbuf) == 0)
-    return result_type_int(&jmpbuf, op, a, b);
+    return result_type_int(&jmpbuf, op, convert_array(a), convert_array(b));
   error("incompatible operands: %c: <%s> and <%s>",
         op, ctype_to_string(a), ctype_to_string(b));
 }
@@ -319,12 +325,6 @@ static void ensure_lvalue(Ast *ast) {
     default:
       error("lvalue expected, but got %s", ast_to_string(ast));
   }
-}
-
-static Ctype *convert_array(Ctype *ctype) {
-  if (ctype->type != CTYPE_ARRAY)
-    return ctype;
-  return make_ptr_type(ctype->ptr);
 }
 
 static Ast *read_unary_expr(void) {
@@ -367,12 +367,10 @@ static Ast *read_expr(int prec) {
     if (is_punct(tok, '='))
       ensure_lvalue(ast);
     Ast *rest = read_expr(prec2 + (is_right_assoc(tok) ? 0 : 1));
-    Ctype *asttype = convert_array(ast->ctype);
-    Ctype *resttype = convert_array(rest->ctype);
-    Ctype *ctype = result_type(tok->punct, asttype, resttype);
+    Ctype *ctype = result_type(tok->punct, ast->ctype, rest->ctype);
     if (!is_punct(tok, '=') &&
-        asttype->type != CTYPE_PTR &&
-        resttype->type == CTYPE_PTR)
+        convert_array(ast->ctype)->type != CTYPE_PTR &&
+        convert_array(rest->ctype)->type == CTYPE_PTR)
       swap(ast, rest);
     ast = ast_binop(tok->punct, ctype, ast, rest);
   }

@@ -133,14 +133,16 @@ func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
 }
 
 func emit_assign(variable *Ast, value *Ast) {
+    if variable.typ == AST_DEREF {
+		emit_assign_deref(variable, value)
+		return
+	}
 	emit_expr(value)
 	switch variable.typ {
 	case AST_LVAR:
 		emit_lsave(variable.ctype, variable.variable.loff, 0)
 	case AST_GVAR:
 		emit_gsave(variable)
-	case AST_DEREF:
-		emit_assign_deref(variable, value)
 	default:
 		_error("internal error")
 	}
@@ -267,16 +269,16 @@ func emit_expr(ast *Ast) {
 		switch ctype_size(ast.ctype) {
 		case 1:
 			reg = "%cl"
+			emit("mov $0, %%ecx")
 		case 4:
 			reg = "%ecx"
-		case 8:
-			reg = "%rcx"
 		default:
-			_error("internal error")
+			reg = "%rcx"
 		}
-		emit("mov $0, %%ecx")
-		emit("mov (%%rax), %s", reg)
-		emit("mov %%rcx, %%rax")
+		if ast.unary.operand.ctype.ptr.typ != CTYPE_ARRAY {
+			emit("mov (%%rax), %s", reg)
+			emit("mov %%rcx, %%rax")
+		}
 	case AST_IF:
 		emit_expr(ast._if.cond)
 		ne := make_label()

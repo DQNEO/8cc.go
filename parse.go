@@ -23,12 +23,18 @@ func ast_uop(typ byte, ctype *Ctype, operand *Ast) *Ast {
 	return r
 }
 
-func ast_binop(typ byte, ctype *Ctype, left *Ast, right *Ast) *Ast {
+func ast_binop(typ byte, left *Ast, right *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
-	r.ctype = ctype
-	r.binop.left = left
-	r.binop.right = right
+	r.ctype = result_type(typ, left.ctype, right.ctype)
+	if typ != '=' && convert_array(left.ctype).typ != CTYPE_PTR &&
+		convert_array(right.ctype).typ == CTYPE_PTR {
+		r.binop.left = right
+		r.binop.right = left
+	} else {
+		r.binop.left = left
+		r.binop.right = right
+	}
 	return r
 }
 
@@ -395,12 +401,7 @@ func read_expr(prec int) *Ast {
 			prec_incr = 1
 		}
 		rest := read_expr(prec2 + prec_incr)
-		ctype := result_type(tok.v.punct, ast.ctype, rest.ctype)
-		if !is_punct(tok, '=') && convert_array(ast.ctype).typ != CTYPE_PTR &&
-			convert_array(rest.ctype).typ == CTYPE_PTR {
-			ast, rest = rest, ast
-		}
-		ast = ast_binop(tok.v.punct, ctype, ast, rest)
+		ast = ast_binop(tok.v.punct, ast, rest)
 	}
 	return ast
 }

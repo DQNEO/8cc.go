@@ -325,6 +325,29 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 	return nil, default_err
 }
 
+func read_subscript_expr(ast *Ast) *Ast {
+	sub := read_expr(0)
+	expect(']')
+	t := ast_binop('+', ast, sub)
+	return ast_uop(AST_DEREF, t.ctype.ptr, t)
+}
+
+func read_postfix_expr() *Ast {
+	r := read_prim()
+	for  {
+		tok := read_token()
+		if tok == nil {
+			return r
+		}
+		if is_punct(tok, '[') {
+			r = read_subscript_expr(r)
+		} else {
+			unget_token(tok)
+			return r
+		}
+	}
+}
+
 func convert_array(ctype *Ctype) *Ctype {
 	if ctype.typ != CTYPE_ARRAY {
 		return ctype
@@ -350,8 +373,13 @@ func ensure_lvalue(ast *Ast) {
 	return
 }
 
+
 func read_unary_expr() *Ast {
 	tok := read_token()
+	if tok.typ != TTYPE_PUNCT {
+		unget_token(tok)
+		return read_postfix_expr()
+	}
 	if is_punct(tok, '(') {
 		r := read_expr(0)
 		expect(')')

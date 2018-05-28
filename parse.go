@@ -380,13 +380,10 @@ func read_expr(prec int) *Ast {
 			return ast
 		}
 
-		var asttype *Ctype
 		if is_punct(tok, '=') {
 			ensure_lvalue(ast)
-			asttype = ast.ctype
-		} else {
-			asttype = convert_array(ast)
 		}
+		asttype := convert_array(ast)
 
 		var prec_incr int
 		if is_right_assoc(tok) {

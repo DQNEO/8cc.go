@@ -136,7 +136,7 @@ test 65 'char s[]="xyz";*s=65;*s;'
 test 1 'int a[2][3];int *p=a;*p=1;*p;'
 test 32 'int a[2][3];int *p=a+1;*p=1;int *q=a;*p=32;*(q+3);'
 test 62 'int a[4][5];int *p=a;*(*(a+1)+2)=62;*(p+7);'
-#testf '65 1' 'int g(int x[][3]){printf("%d ",*(*(x+1)+1));} int f(){int a[2][3];int *p=a;*(p+4)=65;g(a);1;}'
+testf '65 1' 'int g(int x[][3]){printf("%d ",*(*(x+1)+1));} int f(){int a[2][3];int *p=a;*(p+4)=65;g(a);1;}'
 
 # If statement
 test 'a1' 'if(1){printf("a");}1;'

@@ -687,6 +687,10 @@ func read_params() []*Ast {
 		if pname.typ != TTYPE_IDENT {
 			_error("Identifier expected, but got %s", pname)
 		}
+		ctype = read_array_dimensions(ctype)
+		if ctype.typ == CTYPE_ARRAY {
+			ctype = make_ptr_type(ctype.ptr)
+		}
 		params = append(params, ast_lvar(ctype, pname.v.sval))
 		tok := read_token()
 		if is_punct(tok, ')') {

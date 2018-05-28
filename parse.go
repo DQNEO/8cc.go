@@ -799,10 +799,14 @@ func (ast *Ast) String() string {
 			ast.fnc.body)
 		return s
 	case AST_DECL:
-		return fmt.Sprintf("(decl %s %s %s)",
+		s := fmt.Sprintf("(decl %s %s",
 			ast.decl.declvar.ctype,
-			ast.decl.declvar.variable.lname,
-			ast.decl.declinit)
+			ast.decl.declvar.variable.lname)
+		if ast.decl.declinit != nil {
+			s += fmt.Sprintf(" %s", ast.decl.declinit)
+		}
+		s += ")"
+		return s
 	case AST_ARRAY_INIT:
 		s := "{"
 		for i, v := range ast.array_initializer.arrayinit {

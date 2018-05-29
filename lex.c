@@ -116,12 +116,12 @@ static Token *read_ident(char c) {
   }
 }
 
-static Token *read_rep() {
-  char c = getc(stdin);
-  if (c == '=')
-    return make_punct(PUNCT_EQ);
+static Token *read_rep(int expect, int t1, int t2) {
+  int c = getc(stdin);
+  if (c == expect)
+    return make_punct(t2);
   ungetc(c, stdin);
-  return make_punct('=');
+  return make_punct(t1);
 }
 
 static Token *read_token_int(void) {
@@ -144,7 +144,7 @@ static Token *read_token_int(void) {
     case 'X': case 'Y': case 'Z': case '_':
       return read_ident(c);
     case '=': {
-      return read_rep();
+      return read_rep('=', '=', PUNCT_EQ);
     }
     case '/': case '*': case '+': case '-': case '(': case ')': case ',':
     case ';': case '&': case '[': case ']': case '{': case '}': case '<':

@@ -144,9 +144,10 @@ static Token *read_token_int(void) {
     case 'X': case 'Y': case 'Z': case '_':
       return read_ident(c);
     case '=': return read_rep('=', '=', PUNCT_EQ);
-    case '/': case '*': case '+': case '-': case '(': case ')': case ',':
-    case ';': case '&': case '[': case ']': case '{': case '}': case '<':
-    case '>':
+    case '+': return read_rep('+', '+', 0);
+    case '-': return read_rep('-', '-', 0);
+    case '/': case '*': case '(': case ')': case ',': case ';': case '&':
+    case '[': case ']': case '{': case '}': case '<': case '>':
       return make_punct(c);
     case EOF:
       return NULL;

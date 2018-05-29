@@ -178,7 +178,7 @@ static void emit_binop(Ast *ast) {
     case '-': op = "sub"; break;
     case '*': op = "imul"; break;
     case '/': break;
-    default: error("invalid operator '%c'", ast->type);
+    default: error("invalid operator '%d'", ast->type);
   }
   emit_expr(ast->right);
   emit("push %%rax");

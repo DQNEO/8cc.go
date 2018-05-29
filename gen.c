@@ -158,7 +158,7 @@ static void emit_binop(Ast *ast) {
     emit_assign(ast->left);
     return;
   }
-  if (ast->type == '@') {
+  if (ast->type == PUNCT_EQ) {
     emit_comp("sete", ast->left, ast->right);
     return;
   }

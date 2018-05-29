@@ -23,7 +23,7 @@ static Ast *read_decl_or_stmt(void);
 static Ctype *result_type(char op, Ctype *a, Ctype *b);
 static Ctype *convert_array(Ctype *ctype);
 
-static Ast *ast_uop(char type, Ctype *ctype, Ast *operand) {
+static Ast *ast_uop(int type, Ctype *ctype, Ast *operand) {
   Ast *r = malloc(sizeof(Ast));
   r->type = type;
   r->ctype = ctype;
@@ -31,7 +31,7 @@ static Ast *ast_uop(char type, Ctype *ctype, Ast *operand) {
   return r;
 }
 
-static Ast *ast_binop(char type, Ast *left, Ast *right) {
+static Ast *ast_binop(int type, Ast *left, Ast *right) {
   Ast *r = malloc(sizeof(Ast));
   r->type = type;
   r->ctype = result_type(type, left->ctype, right->ctype);
@@ -212,7 +212,7 @@ static int priority(Token *tok) {
   switch (tok->punct) {
     case '=':
       return 1;
-    case '@':
+    case PUNCT_EQ:
       return 2;
     case '<': case '>':
       return 3;
@@ -786,7 +786,7 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     default: {
       char *left = ast_to_string(ast->left);
       char *right = ast_to_string(ast->right);
-      if (ast->type == '@')
+      if (ast->type == PUNCT_EQ)
         string_appendf(buf, "(== ");
       else
         string_appendf(buf, "(%c ", ast->type);

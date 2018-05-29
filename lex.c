@@ -21,7 +21,7 @@ static Token *make_strtok(String *s) {
   return r;
 }
 
-static Token *make_punct(char punct) {
+static Token *make_punct(int punct) {
   Token *r = malloc(sizeof(Token));
   r->type = TTYPE_PUNCT;
   r->punct = punct;
@@ -138,7 +138,7 @@ static Token *read_token_int(void) {
     case '=': {
       c = getc(stdin);
       if (c == '=')
-        return make_punct('@');
+        return make_punct(PUNCT_EQ);
       ungetc(c, stdin);
       return make_punct('=');
     }
@@ -161,7 +161,7 @@ char *token_to_string(Token *tok) {
     case TTYPE_IDENT:
       return tok->sval;
     case TTYPE_PUNCT:
-      if (is_punct(tok, '@'))
+      if (is_punct(tok, PUNCT_EQ))
         string_appendf(s, "==");
       else
         string_appendf(s, "%c", tok);
@@ -182,7 +182,7 @@ char *token_to_string(Token *tok) {
   error("internal error: unknown token type: %d", tok->type);
 }
 
-bool is_punct(Token *tok, char c) {
+bool is_punct(Token *tok, int c) {
   return tok && (tok->type == TTYPE_PUNCT) && (tok->punct == c);
 }
 

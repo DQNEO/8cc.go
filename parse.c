@@ -198,6 +198,15 @@ static Ast *find_var(char *name) {
   return find_var_sub(globals, name);
 }
 
+static void ensure_lvalue(Ast *ast) {
+  switch (ast->type) {
+    case AST_LVAR: case AST_GVAR: case AST_DEREF:
+      return;
+    default:
+      error("lvalue expected, but got %s", ast_to_string(ast));
+  }
+}
+
 static void expect(char punct) {
   Token *tok = read_token();
   if (!is_punct(tok, punct))
@@ -347,15 +356,6 @@ static Ctype *result_type(char op, Ctype *a, Ctype *b) {
     return result_type_int(&jmpbuf, op, convert_array(a), convert_array(b));
   error("incompatible operands: %c: <%s> and <%s>",
         op, ctype_to_string(a), ctype_to_string(b));
-}
-
-static void ensure_lvalue(Ast *ast) {
-  switch (ast->type) {
-    case AST_LVAR: case AST_GVAR: case AST_DEREF:
-      return;
-    default:
-      error("lvalue expected, but got %s", ast_to_string(ast));
-  }
 }
 
 static Ast *read_unary_expr(void) {

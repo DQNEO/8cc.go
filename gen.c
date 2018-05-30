@@ -193,6 +193,14 @@ static void emit_binop(Ast *ast) {
   }
 }
 
+static void emit_inc_dec(Ast *ast, char *op) {
+  emit_expr(ast->operand);
+  emit("push %%rax");
+  emit("%s $1, %%rax", op);
+  emit_assign(ast->operand);
+  emit("pop %%rax");
+}
+
 static void emit_expr(Ast *ast) {
   switch (ast->type) {
     case AST_LITERAL:
@@ -313,6 +321,12 @@ static void emit_expr(Ast *ast) {
       emit_expr(ast->retval);
       emit("leave");
       emit("ret");
+      break;
+    case PUNCT_INC:
+      emit_inc_dec(ast, "add");
+      break;
+    case PUNCT_DEC:
+      emit_inc_dec(ast, "sub");
       break;
     default:
       emit_binop(ast);

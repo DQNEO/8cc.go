@@ -44,6 +44,8 @@ enum {
   AST_FOR,
   AST_RETURN,
   PUNCT_EQ,
+  PUNCT_INC,
+  PUNCT_DEC,
 };
 
 enum {

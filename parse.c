@@ -337,6 +337,12 @@ static Ast *read_postfix_expr(void) {
       return r;
     if (is_punct(tok, '[')) {
       r = read_subscript_expr(r);
+    } else if (is_punct(tok, PUNCT_INC)) {
+      r = ast_uop(PUNCT_INC, r->ctype, r);
+      return r;
+    } else if (is_punct(tok, PUNCT_DEC)) {
+      r = ast_uop(PUNCT_DEC, r->ctype, r);
+      return r;
     } else {
       unget_token(tok);
       return r;
@@ -782,6 +788,12 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       break;
     case AST_RETURN:
       string_appendf(buf, "(return %s)", ast_to_string(ast->retval));
+      break;
+    case PUNCT_INC:
+      string_appendf(buf, "(%s ++)", ast_to_string(ast->operand));
+      break;
+    case PUNCT_DEC:
+      string_appendf(buf, "(%s --)", ast_to_string(ast->operand));
       break;
     default: {
       char *left = ast_to_string(ast->left);

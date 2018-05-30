@@ -104,19 +104,18 @@ static void emit_lsave(Ctype *ctype, int loff, int off) {
   emit("mov %%%s, %d(%%rbp)", reg, -(loff + off * size));
 }
 
-static void emit_assign_deref(Ast *var, Ast *value) {
-  emit_expr(var->operand);
+static void emit_assign_deref(Ast *var) {
   emit("push %%rax");
-  emit_expr(value);
+  emit_expr(var->operand);
   emit("pop %%rcx");
   char *reg;
   int size = ctype_size(var->operand->ctype);
   switch (size) {
-    case 1: reg = "al";  break;
-    case 4: reg = "eax"; break;
-    case 8: reg = "rax"; break;
+    case 1: reg = "cl";  break;
+    case 4: reg = "ecx"; break;
+    case 8: reg = "rcx"; break;
   }
-  emit("mov %%%s, (%%rcx)", reg);
+  emit("mov %%%s, (%%rax)", reg);
 }
 
 static void emit_pointer_arith(char op, Ast *left, Ast *right) {
@@ -131,12 +130,11 @@ static void emit_pointer_arith(char op, Ast *left, Ast *right) {
   emit("add %%rcx, %%rax");
 }
 
-static void emit_assign(Ast *var, Ast *value) {
+static void emit_assign(Ast *var) {
   if (var->type == AST_DEREF) {
-    emit_assign_deref(var, value);
+    emit_assign_deref(var);
     return;
   }
-  emit_expr(value);
   switch (var->type) {
     case AST_LVAR: emit_lsave(var->ctype, var->loff, 0); break;
     case AST_GVAR: emit_gsave(var); break;
@@ -156,7 +154,8 @@ static void emit_comp(char *inst, Ast *a, Ast *b) {
 
 static void emit_binop(Ast *ast) {
   if (ast->type == '=') {
-    emit_assign(ast->left, ast->right);
+    emit_expr(ast->right);
+    emit_assign(ast->left);
     return;
   }
   if (ast->type == '@') {

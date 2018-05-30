@@ -340,7 +340,6 @@ static Ast *read_postfix_expr(void) {
     } else if (is_punct(tok, PUNCT_INC) || is_punct(tok, PUNCT_DEC)) {
       ensure_lvalue(r);
       r = ast_uop(tok->punct, r->ctype, r);
-      return r;
     } else {
       unget_token(tok);
       return r;

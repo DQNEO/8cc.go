@@ -337,11 +337,8 @@ static Ast *read_postfix_expr(void) {
       return r;
     if (is_punct(tok, '[')) {
       r = read_subscript_expr(r);
-    } else if (is_punct(tok, PUNCT_INC)) {
-      r = ast_uop(PUNCT_INC, r->ctype, r);
-      return r;
-    } else if (is_punct(tok, PUNCT_DEC)) {
-      r = ast_uop(PUNCT_DEC, r->ctype, r);
+    } else if (is_punct(tok, PUNCT_INC) || is_punct(tok, PUNCT_DEC)) {
+      r = ast_uop(tok->punct, r->ctype, r);
       return r;
     } else {
       unget_token(tok);

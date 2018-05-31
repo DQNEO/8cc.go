@@ -6,7 +6,7 @@ static char *REGS[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 static int TAB = 8;
 
 static void emit_expr(Ast *ast);
-static void emit_block(List *block);
+static void emit_block(Ast *block);
 
 #define emit(...)        emitf(__LINE__, "\t" __VA_ARGS__)
 #define emit_label(...)  emitf(__LINE__, __VA_ARGS__)
@@ -385,8 +385,8 @@ static void emit_func_epilogue(void) {
   emit("ret");
 }
 
-static void emit_block(List *block) {
-  for (Iter *i = list_iter(block); !iter_end(i);)
+static void emit_block(Ast *ast) {
+  for (Iter *i = list_iter(ast->stmts); !iter_end(i);)
     emit_expr(iter_next(i));
 }
 

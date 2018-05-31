@@ -18,7 +18,7 @@ static Ast *read_expr(int prec);
 static Ctype* make_ptr_type(Ctype *ctype);
 static Ctype* make_array_type(Ctype *ctype, int size);
 static void ast_to_string_int(Ast *ast, String *buf);
-static List *read_block(void);
+static Ast *read_block(void);
 static Ast *read_decl_or_stmt(void);
 static Ctype *result_type(char op, Ctype *a, Ctype *b);
 static Ctype *convert_array(Ctype *ctype);
@@ -108,7 +108,7 @@ static Ast *ast_funcall(Ctype *ctype, char *fname, List *args) {
   return r;
 }
 
-static Ast *ast_func(Ctype *rettype, char *fname, List *params, List *body, List *locals) {
+static Ast *ast_func(Ctype *rettype, char *fname, List *params, Ast *body, List *locals) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_FUNC;
   r->ctype = rettype;
@@ -136,7 +136,7 @@ static Ast *ast_array_init(List *arrayinit) {
   return r;
 }
 
-static Ast *ast_if(Ast *cond, List *then, List *els) {
+static Ast *ast_if(Ast *cond, Ast *then, Ast *els) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_IF;
   r->ctype = NULL;
@@ -146,7 +146,7 @@ static Ast *ast_if(Ast *cond, List *then, List *els) {
   return r;
 }
 
-static Ast *ast_for(Ast *init, Ast *cond, Ast *step, List *body) {
+static Ast *ast_for(Ast *init, Ast *cond, Ast *step, Ast *body) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_FOR;
   r->ctype = NULL;
@@ -163,6 +163,14 @@ static Ast *ast_return(Ast *retval) {
   r->type = AST_RETURN;
   r->ctype = NULL;
   r->retval = retval;
+  return r;
+}
+
+static Ast *ast_compound_stmt(List *stmts) {
+  Ast *r = malloc(sizeof(Ast));
+  r->type = AST_COMPOUND_STMT;
+  r->ctype = NULL;
+  r->stmts = stmts;
   return r;
 }
 
@@ -539,14 +547,14 @@ static Ast *read_if_stmt(void) {
   Ast *cond = read_expr(0);
   expect(')');
   expect('{');
-  List *then = read_block();
+  Ast *then = read_block();
   Token *tok = read_token();
   if (!tok || tok->type != TTYPE_IDENT || strcmp(tok->sval, "else")) {
     unget_token(tok);
     return ast_if(cond, then, NULL);
   }
   expect('{');
-  List *els = read_block();
+  Ast *els = read_block();
   return ast_if(cond, then, els);
 }
 
@@ -576,7 +584,7 @@ static Ast *read_for_stmt(void) {
       ? NULL : read_expr(0);
   expect(')');
   expect('{');
-  List *body = read_block();
+  Ast *body = read_block();
   return ast_for(init, cond, step, body);
 }
 
@@ -607,7 +615,7 @@ static Ast *read_decl_or_stmt(void) {
   return is_type_keyword(tok) ? read_decl() : read_stmt();
 }
 
-static List *read_block(void) {
+static Ast *read_block(void) {
   List *r = make_list();
   for (;;) {
     Ast *stmt = read_decl_or_stmt();
@@ -618,7 +626,7 @@ static List *read_block(void) {
       break;
     unget_token(tok);
   }
-  return r;
+  return ast_compound_stmt(r);
 }
 
 static List *read_params(void) {
@@ -655,7 +663,7 @@ static Ast *read_func_decl(void) {
   fparams = read_params();
   expect('{');
   locals = make_list();
-  List *body = read_block();
+  Ast *body = read_block();
   Ast *r = ast_func(rettype, fname->sval, fparams, body, locals);
   fparams = locals = NULL;
   return r;
@@ -689,10 +697,10 @@ char *ctype_to_string(Ctype *ctype) {
   }
 }
 
-static char *block_to_string(List *block) {
+static char *block_to_string(Ast *ast) {
   String *s = make_string();
   string_appendf(s, "{");
-  for (Iter *i = list_iter(block); !iter_end(i);) {
+  for (Iter *i = list_iter(ast->stmts); !iter_end(i);) {
     ast_to_string_int(iter_next(i), s);
     string_appendf(s, ";");
   }

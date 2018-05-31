@@ -742,7 +742,8 @@ static void ast_to_string_int(Ast *ast, String *buf) {
         if (!iter_end(i))
           string_appendf(buf, ",");
       }
-      string_appendf(buf, ")%s", ast_to_string(ast->body));
+      string_appendf(buf, ")");
+      ast_to_string_int(ast->body, buf); // why ??
       break;
     }
     case AST_DECL:

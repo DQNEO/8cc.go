@@ -697,17 +697,6 @@ char *ctype_to_string(Ctype *ctype) {
   }
 }
 
-static char *block_to_string(Ast *ast) {
-  String *s = make_string();
-  string_appendf(s, "{");
-  for (Iter *i = list_iter(ast->stmts); !iter_end(i);) {
-    ast_to_string_int(iter_next(i), s);
-    string_appendf(s, ";");
-  }
-  string_appendf(s, "}");
-  return get_cstring(s);
-}
-
 static void ast_to_string_int(Ast *ast, String *buf) {
   if (!ast) {
     string_appendf(buf, "(null)");
@@ -753,7 +742,7 @@ static void ast_to_string_int(Ast *ast, String *buf) {
         if (!iter_end(i))
           string_appendf(buf, ",");
       }
-      string_appendf(buf, ")%s", block_to_string(ast->body));
+      string_appendf(buf, ")%s", ast_to_string(ast->body));
       break;
     }
     case AST_DECL:
@@ -783,9 +772,9 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     case AST_IF:
       string_appendf(buf, "(if %s %s",
                      ast_to_string(ast->cond),
-                     block_to_string(ast->then));
+                     ast_to_string(ast->then));
       if (ast->els)
-        string_appendf(buf, " %s", block_to_string(ast->els));
+        string_appendf(buf, " %s", ast_to_string(ast->els));
       string_appendf(buf, ")");
       break;
     case AST_FOR:
@@ -793,10 +782,18 @@ static void ast_to_string_int(Ast *ast, String *buf) {
                      ast_to_string(ast->forinit),
                      ast_to_string(ast->forcond),
                      ast_to_string(ast->forstep));
-      string_appendf(buf, "%s)", block_to_string(ast->forbody));
+      string_appendf(buf, "%s)", ast_to_string(ast->forbody));
       break;
     case AST_RETURN:
       string_appendf(buf, "(return %s)", ast_to_string(ast->retval));
+      break;
+    case AST_COMPOUND_STMT:
+      string_appendf(buf, "{");
+      for (Iter *i = list_iter(ast->stmts); !iter_end(i);) {
+        ast_to_string_int(iter_next(i), buf);
+        string_appendf(buf, ";");
+      }
+      string_appendf(buf, "}");
       break;
     case PUNCT_INC:
       string_appendf(buf, "(%s ++)", ast_to_string(ast->operand));

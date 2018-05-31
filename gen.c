@@ -388,9 +388,12 @@ static void emit_func_epilogue(void) {
   emit("ret");
 }
 
-void emit_func(Ast *func) {
-  assert(func->type == AST_FUNC);
-  emit_func_prologue(func);
-  emit_expr(func->body);
-  emit_func_epilogue();
+void emit_toplevel(Ast *v) {
+  if (v->type == AST_FUNC) {
+    emit_func_prologue(v);
+    emit_expr(v->body);
+    emit_func_epilogue();
+  } else {
+    1;
+  }
 }

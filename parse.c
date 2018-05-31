@@ -651,7 +651,7 @@ static List *read_params(void) {
   }
 }
 
-static Ast *read_func_decl(void) {
+static Ast *read_func_def(void) {
   Token *tok = peek_token();
   if (!tok) return NULL;
   void *rettype = read_decl_spec();
@@ -668,12 +668,16 @@ static Ast *read_func_decl(void) {
   return r;
 }
 
+static Ast *read_decl_or_func_def(void) {
+  return read_func_def();
+}
+
 List *read_func_list(void) {
   List *r = make_list();
   for (;;) {
-    Ast *func = read_func_decl();
-    if (!func) return r;
-    list_append(r, func);
+    Ast *ast = read_decl_or_func_def();
+    if (!ast) return r;
+    list_append(r, ast);
   }
 }
 

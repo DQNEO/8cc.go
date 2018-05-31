@@ -787,7 +787,7 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     case AST_RETURN:
       string_appendf(buf, "(return %s)", ast_to_string(ast->retval));
       break;
-    case AST_COMPOUND_STMT:
+    case AST_COMPOUND_STMT: {
       string_appendf(buf, "{");
       for (Iter *i = list_iter(ast->stmts); !iter_end(i);) {
         ast_to_string_int(iter_next(i), buf);
@@ -795,6 +795,7 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       }
       string_appendf(buf, "}");
       break;
+    }
     case PUNCT_INC:
       string_appendf(buf, "(%s ++)", ast_to_string(ast->operand));
       break;

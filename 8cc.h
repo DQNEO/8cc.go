@@ -139,7 +139,7 @@ typedef struct Ast {
     };
     // Return statement
     struct Ast *retval;
-    // Compount Statement
+    // Compound statement
     struct List *stmts;
   };
 } Ast;

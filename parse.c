@@ -743,7 +743,7 @@ static void ast_to_string_int(Ast *ast, String *buf) {
           string_appendf(buf, ",");
       }
       string_appendf(buf, ")");
-      ast_to_string_int(ast->body, buf); // why ??
+      ast_to_string_int(ast->body, buf);
       break;
     }
     case AST_DECL:
@@ -798,10 +798,10 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       break;
     }
     case PUNCT_INC:
-      string_appendf(buf, "(%s ++)", ast_to_string(ast->operand));
+      string_appendf(buf, "(++ %s)", ast_to_string(ast->operand));
       break;
     case PUNCT_DEC:
-      string_appendf(buf, "(%s --)", ast_to_string(ast->operand));
+      string_appendf(buf, "(-- %s)", ast_to_string(ast->operand));
       break;
     case '!':
       string_appendf(buf, "(! %s)", ast_to_string(ast->operand));

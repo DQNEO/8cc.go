@@ -18,7 +18,7 @@ static Ast *read_expr(int prec);
 static Ctype* make_ptr_type(Ctype *ctype);
 static Ctype* make_array_type(Ctype *ctype, int size);
 static void ast_to_string_int(Ast *ast, String *buf);
-static Ast *read_block(void);
+static Ast *read_compound_stmt(void);
 static Ast *read_decl_or_stmt(void);
 static Ctype *result_type(char op, Ctype *a, Ctype *b);
 static Ctype *convert_array(Ctype *ctype);
@@ -547,14 +547,14 @@ static Ast *read_if_stmt(void) {
   Ast *cond = read_expr(0);
   expect(')');
   expect('{');
-  Ast *then = read_block();
+  Ast *then = read_compound_stmt();
   Token *tok = read_token();
   if (!tok || tok->type != TTYPE_IDENT || strcmp(tok->sval, "else")) {
     unget_token(tok);
     return ast_if(cond, then, NULL);
   }
   expect('{');
-  Ast *els = read_block();
+  Ast *els = read_compound_stmt();
   return ast_if(cond, then, els);
 }
 
@@ -584,7 +584,7 @@ static Ast *read_for_stmt(void) {
       ? NULL : read_expr(0);
   expect(')');
   expect('{');
-  Ast *body = read_block();
+  Ast *body = read_compound_stmt();
   return ast_for(init, cond, step, body);
 }
 
@@ -615,18 +615,18 @@ static Ast *read_decl_or_stmt(void) {
   return is_type_keyword(tok) ? read_decl() : read_stmt();
 }
 
-static Ast *read_block(void) {
-  List *r = make_list();
+static Ast *read_compound_stmt(void) {
+  List *list = make_list();
   for (;;) {
     Ast *stmt = read_decl_or_stmt();
-    if (stmt) list_append(r, stmt);
+    if (stmt) list_append(list, stmt);
     if (!stmt) break;
     Token *tok = read_token();
     if (is_punct(tok, '}'))
       break;
     unget_token(tok);
   }
-  return ast_compound_stmt(r);
+  return ast_compound_stmt(list);
 }
 
 static List *read_params(void) {
@@ -663,7 +663,7 @@ static Ast *read_func_decl(void) {
   fparams = read_params();
   expect('{');
   locals = make_list();
-  Ast *body = read_block();
+  Ast *body = read_compound_stmt();
   Ast *r = ast_func(rettype, fname->sval, fparams, body, locals);
   fparams = locals = NULL;
   return r;

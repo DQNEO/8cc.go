@@ -669,11 +669,16 @@ static Ast *read_decl_or_func_def(void) {
   Token *name = read_token();
   if (name->type != TTYPE_IDENT)
     error("Identifier expected, but got %s", token_to_string(name));
+  ctype = read_array_dimensions(ctype);
   tok = peek_token();
+  if (is_punct(tok, '='))
+    return NULL; // decl init
   if (is_punct(tok, '('))
     return read_func_def(ctype, name->sval);
+  if (is_punct(tok, ';'))
+    return NULL; // decl
 
-  return NULL;
+  error("Don't know haw to handle");
 }
 
 List *read_func_list(void) {

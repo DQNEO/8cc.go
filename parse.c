@@ -651,25 +651,29 @@ static List *read_params(void) {
   }
 }
 
-static Ast *read_func_def(void) {
-  Token *tok = peek_token();
-  if (!tok) return NULL;
-  void *rettype = read_decl_spec();
-  Token *fname = read_token();
-  if (fname->type != TTYPE_IDENT)
-    error("Function name expected, but got %s", token_to_string(fname));
+static Ast *read_func_def(Ctype *rettype, char *fname) {
   expect('(');
   fparams = read_params();
   expect('{');
   locals = make_list();
   Ast *body = read_compound_stmt();
-  Ast *r = ast_func(rettype, fname->sval, fparams, body, locals);
+  Ast *r = ast_func(rettype, fname, fparams, body, locals);
   fparams = locals = NULL;
   return r;
 }
 
 static Ast *read_decl_or_func_def(void) {
-  return read_func_def();
+  Token *tok = peek_token();
+  if (!tok) return NULL;
+  Ctype *ctype = read_decl_spec();
+  Token *name = read_token();
+  if (name->type != TTYPE_IDENT)
+    error("Identifier expected, but got %s", token_to_string(name));
+  tok = peek_token();
+  if (is_punct(tok, '('))
+    return read_func_def(ctype, name->sval);
+
+  return NULL;
 }
 
 List *read_func_list(void) {

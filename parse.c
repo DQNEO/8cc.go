@@ -80,7 +80,6 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
   return r;
 }
 
-static Ast *ast_gvar(Ctype *ctype, char *name, bool filelocal) __attribute__((unused));
 static Ast *ast_gvar(Ctype *ctype, char *name, bool filelocal) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_GVAR;

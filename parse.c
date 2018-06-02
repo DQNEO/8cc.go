@@ -475,6 +475,11 @@ static Ctype *read_decl_spec(void) {
   }
 }
 
+static void check_intexp(Ast *ast) {
+  if (ast->type != AST_LITERAL || ast->ctype->type != CTYPE_INT)
+    error("Integer expected, but got %s", ast_to_string(ast));
+}
+
 static Ast *read_decl_array_init(Ast *var) {
   Ast *init;
   if (var->ctype->type == CTYPE_ARRAY) {
@@ -504,8 +509,7 @@ static Ctype *read_array_dimensions_int(void) {
   tok = peek_token();
   if (!is_punct(tok, ']')) {
     Ast *size = read_expr(0);
-    if (size->type != AST_LITERAL || size->ctype->type != CTYPE_INT)
-      error("Integer expected, but got %s", ast_to_string(size));
+    check_intexp(size);
     dim = size->ival;
   }
   expect(']');

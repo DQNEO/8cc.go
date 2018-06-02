@@ -479,7 +479,7 @@ static void check_intexp(Ast *ast) {
     error("Integer expected, but got %s", ast_to_string(ast));
 }
 
-static Ast *read_decl_array_init(Ast *var) {
+static Ast *read_decl_init_val(Ast *var) {
   Ast *init;
   if (var->ctype->type == CTYPE_ARRAY) {
     init = read_decl_array_init_int(var->ctype);
@@ -540,7 +540,7 @@ static Ast *read_decl(void) {
   Ast *var = ast_lvar(ctype, varname->sval);
   Token *tok = read_token();
   if (is_punct(tok, '='))
-    return read_decl_array_init(var);
+    return read_decl_init_val(var);
   unget_token(tok);
   expect(';');
   return ast_decl(var, NULL);

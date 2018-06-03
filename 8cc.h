@@ -86,16 +86,6 @@ typedef struct Ast {
       char *gname;
       char *glabel;
     };
-    // Local reference
-    struct {
-      struct Ast *lref;
-      int lrefoff;
-    };
-    // Global reference
-    struct {
-      struct Ast *gref;
-      int goff;
-    };
     // Binary operator
     struct {
       struct Ast *left;

@@ -8,9 +8,9 @@
 
 List *globals = EMPTY_LIST;
 List *fparams = NULL;
-List *localvars = NULL;
-Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL };
-Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL };
+static List *localvars = NULL;
+static Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL };
+static Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL };
 
 static int labelseq = 0;
 

@@ -152,8 +152,5 @@ extern void emit_data_section(void);
 extern void emit_toplevel(Ast *v);
 
 extern List *globals;
-extern List *localvars;
-extern Ctype *ctype_int;
-extern Ctype *ctype_char;
 
 #endif /* ECC_H */

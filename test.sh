@@ -95,6 +95,7 @@ testast '(int)f(){(* (+ 1 2));}' '1[2];'
 
 testastf '(int)f(int c){c;}' 'int f(int c){c;}'
 testastf '(int)f(int c){c;}(int)g(int d){d;}' 'int f(int c){c;} int g(int d){d;}'
+#testastf '(decl int a 3)' 'int a=3;'
 
 # Basic arithmetic
 test 0 '0;'

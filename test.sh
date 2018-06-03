@@ -89,13 +89,13 @@ testast '(int)f(){(< 1 2);}' '1<2;'
 testast '(int)f(){(> 1 2);}' '1>2;'
 testast '(int)f(){(== 1 2);}' '1==2;'
 testast '(int)f(){(* (+ 1 2));}' '1[2];'
-#testast '(int)f(){(decl int a 1);(++ a);}' 'int a=1;a++;'
-#testast '(int)f(){(decl int a 1);(-- a);}' 'int a=1;a--;'
-#testast '(int)f(){(! 1);}' '!1;'
+testast '(int)f(){(decl int a 1);(++ a);}' 'int a=1;a++;'
+testast '(int)f(){(decl int a 1);(-- a);}' 'int a=1;a--;'
+testast '(int)f(){(! 1);}' '!1;'
 
 testastf '(int)f(int c){c;}' 'int f(int c){c;}'
 testastf '(int)f(int c){c;}(int)g(int d){d;}' 'int f(int c){c;} int g(int d){d;}'
-#testastf '(decl int a 3)' 'int a=3;'
+testastf '(decl int a 3)' 'int a=3;'
 
 # Basic arithmetic
 test 0 '0;'
@@ -150,10 +150,10 @@ test 'a1' 'if(1){printf("a");}1;'
 test '1' 'if(0){printf("a");}1;'
 test 'x1' 'if(1){printf("x");}else{printf("y");}1;'
 test 'y1' 'if(0){printf("x");}else{printf("y");}1;'
-#test 'a1' 'if(1)printf("a");1;'
-#test '1' 'if(0)printf("a");1;'
-#test 'x1' 'if(1)printf("x");else printf("y");1;'
-#test 'y1' 'if(0)printf("x");else printf("y");1;'
+test 'a1' 'if(1)printf("a");1;'
+test '1' 'if(0)printf("a");1;'
+test 'x1' 'if(1)printf("x");else printf("y");1;'
+test 'y1' 'if(0)printf("x");else printf("y");1;'
 
 # For statement
 test 012340 'for(int i=0; i<5; i=i+1){printf("%d",i);}0;'
@@ -162,20 +162,20 @@ test 012340 'for(int i=0; i<5; i=i+1){printf("%d",i);}0;'
 test 33 'return 33; return 10;'
 
 # Increment or decrement
-#test 15 'int a=15;a++;'
-#test 16 'int a=15;a++;a;'
-#test 15 'int a=15;a--;'
-#test 14 'int a=15;a--;a;'
+test 15 'int a=15;a++;'
+test 16 'int a=15;a++;a;'
+test 15 'int a=15;a--;'
+test 14 'int a=15;a--;a;'
 
 # Boolean operators
-#test 0 '!1;'
-#test 1 '!0;'
+test 0 '!1;'
+test 1 '!0;'
 
 # Global variable
-#testf 21 'int a=21;int f(){a;}'
-#testf 22 'int a;int f(){a=22;a;}'
-#testf 23 'int a[3];int f(){a[1]=23;a[1];}'
-#testf 25 'int a[3]={24,25,26};int f(){a[1];}'
+testf 21 'int a=21;int f(){a;}'
+testf 22 'int a;int f(){a=22;a;}'
+testf 23 'int a[3];int f(){a[1]=23;a[1];}'
+testf 25 'int a[3]={24,25,26};int f(){a[1];}'
 
 # Function parameter
 testf '102' 'int f(int n){n;}'

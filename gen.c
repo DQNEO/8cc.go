@@ -347,9 +347,12 @@ void emit_data_section(void) {
   emit(".data");
   for (Iter *i = list_iter(globals); !iter_end(i);) {
     Ast *v = iter_next(i);
-    assert(v->type == AST_STRING);
-    emit_label("%s:", v->slabel);
-    emit(".string \"%s\"", quote_cstring(v->sval));
+    if (v->type == AST_STRING) {
+      emit_label("%s:", v->slabel);
+      emit(".string \"%s\"", quote_cstring(v->sval));
+    } else if (v->type != AST_GVAR) {
+      error("internal error: %s", ast_to_string(v));
+    }
   }
 }
 

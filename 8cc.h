@@ -79,8 +79,10 @@ typedef struct Ast {
     // Global/Local variable
     struct {
       char *varname;
-      int loff;
-      char *glabel;
+      struct {
+        int loff;
+        char *glabel;
+      };
     };
     // Binary operator
     struct {

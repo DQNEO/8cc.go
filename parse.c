@@ -683,9 +683,9 @@ static Ast *read_decl_or_func_def(void) {
     return NULL; // decl init
   if (is_punct(tok, '('))
     return read_func_def(ctype, name->sval);
-  if (is_punct(tok, ';'))
+  if (is_punct(tok, ';')) {
     return NULL; // decl
-
+  }
   error("Don't know how to handle %s", token_to_string(tok));
 }
 

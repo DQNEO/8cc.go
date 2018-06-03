@@ -532,6 +532,15 @@ static Ctype *read_array_dimensions(Ctype *basetype) {
   return ctype;
 }
 
+static Ast *read_decl_init(Ast *var) {
+  Token *tok = read_token();
+  if (is_punct(tok, '='))
+    return read_decl_init_val(var);
+  unget_token(tok);
+  expect(';');
+  return ast_decl(var, NULL);
+}
+
 static Ast *read_decl(void) {
   Ctype *ctype = read_decl_spec();
   Token *varname = read_token();
@@ -539,12 +548,7 @@ static Ast *read_decl(void) {
     error("Identifier expected, but got %s", token_to_string(varname));
   ctype = read_array_dimensions(ctype);
   Ast *var = ast_lvar(ctype, varname->sval);
-  Token *tok = read_token();
-  if (is_punct(tok, '='))
-    return read_decl_init_val(var);
-  unget_token(tok);
-  expect(';');
-  return ast_decl(var, NULL);
+  return read_decl_init(var);
 }
 
 static Ast *read_if_stmt(void) {

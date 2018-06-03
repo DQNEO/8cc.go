@@ -50,7 +50,6 @@ static void emit_gload(Ctype *ctype, char *label) {
       error("Unknown data size: %s: %d", ctype_to_string(ctype), size);
   }
   emit("mov %s(%%rip), %%%s", label, reg);
-  emit("mov (%%rax), %%%s", reg);
 }
 
 static void emit_lload(Ast *var) {
@@ -78,8 +77,6 @@ static void emit_lload(Ast *var) {
 static void emit_gsave(Ast *var) {
   assert(var->ctype->type != CTYPE_ARRAY);
   char *reg;
-  emit("push %%rcx");
-  emit("mov %s(%%rip), %%rcx", var->glabel);
   int size = ctype_size(var->ctype);
   switch (size) {
     case 1: reg = "al";  break;
@@ -88,8 +85,7 @@ static void emit_gsave(Ast *var) {
     default:
       error("Unknown data size: %s: %d", ast_to_string(var), size);
   }
-  emit("mov %s, (%%rbp)", reg);
-  emit("pop %%rcx");
+  emit("mov %%%s, %s(%%rip)", reg, var->gname);
 }
 
 static void emit_lsave(Ctype *ctype, int loff, int off) {
@@ -361,6 +357,40 @@ static int ceil8(int n) {
   return (rem == 0) ? n : n - rem + 8;
 }
 
+static void emit_data_int(Ast *data) {
+  assert(data->ctype->type != CTYPE_ARRAY);
+  switch (ctype_size(data->ctype)) {
+    case 1: emit(".byte %d", data->ival); break;
+    case 4: emit(".long %d", data->ival); break;
+    case 8: emit(".quad %d", data->ival); break;
+    default: error("internal error");
+  }
+}
+
+static void emit_data(Ast *v) {
+  emit_label(".global %s", v->declvar->gname);
+  emit_label("%s:", v->declvar->gname);
+  if (v->declinit->type == AST_ARRAY_INIT) {
+    for (Iter *iter = list_iter(v->declinit->arrayinit); !iter_end(iter);) {
+      emit_data_int(iter_next(iter));
+    }
+    return;
+  }
+  assert(v->declinit->type == AST_LITERAL && v->declinit->ctype->type == CTYPE_INT);
+  emit_data_int(v->declinit);
+}
+
+static void emit_bss(Ast *v) {
+  emit(".lcomm %s, %d", v->declvar->gname, ctype_size(v->declvar->ctype));
+}
+
+static void emit_global_var(Ast *v) {
+  if (v->declinit)
+    emit_data(v);
+  else
+    emit_bss(v);
+}
+
 static void emit_func_prologue(Ast *func) {
   if (list_len(func->params) > sizeof(REGS) / sizeof(*REGS))
     error("Parameter list too long: %s", func->fname);
@@ -396,7 +426,9 @@ void emit_toplevel(Ast *v) {
     emit_func_prologue(v);
     emit_expr(v->body);
     emit_func_epilogue();
+  } else if (v->type == AST_DECL) {
+    emit_global_var(v);
   } else {
-    1;
+    error("internal error");
   }
 }

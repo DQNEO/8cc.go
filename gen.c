@@ -85,7 +85,7 @@ static void emit_gsave(Ast *var) {
     default:
       error("Unknown data size: %s: %d", ast_to_string(var), size);
   }
-  emit("mov %%%s, %s(%%rip)", reg, var->gname);
+  emit("mov %%%s, %s(%%rip)", reg, var->varname);
 }
 
 static void emit_lsave(Ctype *ctype, int loff, int off) {
@@ -368,8 +368,8 @@ static void emit_data_int(Ast *data) {
 }
 
 static void emit_data(Ast *v) {
-  emit_label(".global %s", v->declvar->gname);
-  emit_label("%s:", v->declvar->gname);
+  emit_label(".global %s", v->declvar->varname);
+  emit_label("%s:", v->declvar->varname);
   if (v->declinit->type == AST_ARRAY_INIT) {
     for (Iter *iter = list_iter(v->declinit->arrayinit); !iter_end(iter);) {
       emit_data_int(iter_next(iter));
@@ -381,7 +381,7 @@ static void emit_data(Ast *v) {
 }
 
 static void emit_bss(Ast *v) {
-  emit(".lcomm %s, %d", v->declvar->gname, ctype_size(v->declvar->ctype));
+  emit(".lcomm %s, %d", v->declvar->varname, ctype_size(v->declvar->ctype));
 }
 
 static void emit_global_var(Ast *v) {

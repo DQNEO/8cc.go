@@ -74,7 +74,7 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_LVAR;
   r->ctype = ctype;
-  r->lname = name;
+  r->varname = name;
   if (locals)
     list_append(locals, r);
   return r;
@@ -84,7 +84,7 @@ static Ast *ast_gvar(Ctype *ctype, char *name, bool filelocal) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_GVAR;
   r->ctype = ctype;
-  r->gname = name;
+  r->varname = name;
   r->glabel = filelocal ? make_label() : name;
   list_append(globals, r);
   return r;
@@ -192,7 +192,7 @@ static Ctype* make_array_type(Ctype *ctype, int size) {
 static Ast *find_var_sub(List *list, char *name) {
   for (Iter *i = list_iter(list); !iter_end(i);) {
     Ast *v = iter_next(i);
-    if (!strcmp(name, v->lname))
+    if (!strcmp(name, v->varname))
       return v;
   }
   return NULL;
@@ -745,10 +745,8 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       string_appendf(buf, "\"%s\"", quote_cstring(ast->sval));
       break;
     case AST_LVAR:
-      string_appendf(buf, "%s", ast->lname);
-      break;
     case AST_GVAR:
-      string_appendf(buf, "%s", ast->gname);
+      string_appendf(buf, "%s", ast->varname);
       break;
     case AST_FUNCALL: {
       string_appendf(buf, "(%s)%s(", ctype_to_string(ast->ctype), ast->fname);
@@ -775,7 +773,7 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     case AST_DECL:
       string_appendf(buf, "(decl %s %s",
                      ctype_to_string(ast->declvar->ctype),
-                     ast->declvar->lname);
+                     ast->declvar->varname);
       if (ast->declinit)
         string_appendf(buf, " %s)", ast_to_string(ast->declinit));
       else

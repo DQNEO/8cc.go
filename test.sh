@@ -170,6 +170,12 @@ test 33 'return 33; return 10;'
 #test 0 '!1;'
 #test 1 '!0;'
 
+# Global variable
+#testf 21 'int a=21;int f(){a;}'
+#testf 22 'int a;int f(){a=22;a;}'
+#testf 23 'int a[3];int f(){a[1]=23;a[1];}'
+#testf 25 'int a[3]={24,25,26};int f(){a[1];}'
+
 # Function parameter
 testf '102' 'int f(int n){n;}'
 testf 77 'int g(){77;} int f(){g();}'

@@ -76,7 +76,7 @@ typedef struct Ast {
       char *sval;
       char *slabel;
     };
-    // Global/Local variable
+    // Local/global variable
     struct {
       char *varname;
       struct {

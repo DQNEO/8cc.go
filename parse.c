@@ -679,8 +679,9 @@ static Ast *read_decl_or_func_def(void) {
     error("Identifier expected, but got %s", token_to_string(name));
   ctype = read_array_dimensions(ctype);
   tok = peek_token();
-  if (is_punct(tok, '='))
+  if (is_punct(tok, '=')) {
     return NULL; // decl init
+  }
   if (is_punct(tok, '('))
     return read_func_def(ctype, name->sval);
   if (is_punct(tok, ';')) {

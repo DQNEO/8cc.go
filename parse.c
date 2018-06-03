@@ -114,7 +114,7 @@ static Ast *ast_func(Ctype *rettype, char *fname, List *params, Ast *body, List 
   r->ctype = rettype;
   r->fname = fname;
   r->params = params;
-  r->locals = locals;
+  r->localvars = locals;
   r->body = body;
   return r;
 }

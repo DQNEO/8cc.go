@@ -100,7 +100,7 @@ typedef struct Ast {
         struct List *args;
         struct {
           struct List *params;
-          struct List *locals;
+          struct List *localvars;
           struct Ast *body;
         };
       };

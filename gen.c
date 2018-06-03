@@ -407,7 +407,7 @@ static void emit_func_prologue(Ast *func) {
     off += ceil8(ctype_size(v->ctype));
     v->loff = off;
   }
-  for (Iter *i = list_iter(func->locals); !iter_end(i);) {
+  for (Iter *i = list_iter(func->localvars); !iter_end(i);) {
     Ast *v = iter_next(i);
     off += ceil8(ctype_size(v->ctype));
     v->loff = off;

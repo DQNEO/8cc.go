@@ -492,11 +492,10 @@ static Ast *read_decl_init_val(Ast *var) {
             var->ctype->size, len);
     expect(';');
     return ast_decl(var, init);
-  } else {
-    Ast *init = read_expr(0);
-    expect(';');
-    return ast_decl(var, init);
   }
+  Ast *init = read_expr(0);
+  expect(';');
+  return ast_decl(var, init);
 }
 
 static Ctype *read_array_dimensions_int(void) {

@@ -8,7 +8,7 @@
 
 List *globals = EMPTY_LIST;
 List *fparams = NULL;
-List *locals = NULL;
+List *localvars = NULL;
 Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL };
 Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL };
 
@@ -75,8 +75,8 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
   r->type = AST_LVAR;
   r->ctype = ctype;
   r->varname = name;
-  if (locals)
-    list_append(locals, r);
+  if (localvars)
+    list_append(localvars, r);
   return r;
 }
 
@@ -108,13 +108,13 @@ static Ast *ast_funcall(Ctype *ctype, char *fname, List *args) {
   return r;
 }
 
-static Ast *ast_func(Ctype *rettype, char *fname, List *params, Ast *body, List *locals) {
+static Ast *ast_func(Ctype *rettype, char *fname, List *params, Ast *body, List *localvars) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_FUNC;
   r->ctype = rettype;
   r->fname = fname;
   r->params = params;
-  r->localvars = locals;
+  r->localvars = localvars;
   r->body = body;
   return r;
 }
@@ -199,7 +199,7 @@ static Ast *find_var_sub(List *list, char *name) {
 }
 
 static Ast *find_var(char *name) {
-  Ast *r = find_var_sub(locals, name);
+  Ast *r = find_var_sub(localvars, name);
   if (r) return r;
   r = find_var_sub(fparams, name);
   if (r) return r;
@@ -665,10 +665,10 @@ static Ast *read_func_def(Ctype *rettype, char *fname) {
   expect('(');
   fparams = read_params();
   expect('{');
-  locals = make_list();
+  localvars = make_list();
   Ast *body = read_compound_stmt();
-  Ast *r = ast_func(rettype, fname, fparams, body, locals);
-  fparams = locals = NULL;
+  Ast *r = ast_func(rettype, fname, fparams, body, localvars);
+  fparams = localvars = NULL;
   return r;
 }
 

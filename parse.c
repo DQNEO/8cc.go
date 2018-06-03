@@ -487,9 +487,10 @@ static Ast *read_decl_init_val(Ast *var) {
         : list_len(init->arrayinit);
     if (var->ctype->size == -1) {
       var->ctype->size = len;
-    } else if (var->ctype->size != len)
+    } else if (var->ctype->size != len) {
       error("Invalid array initializer: expected %d items but got %d",
             var->ctype->size, len);
+    }
     expect(';');
     return ast_decl(var, init);
   }

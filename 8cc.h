@@ -132,6 +132,14 @@ typedef struct Ast {
   };
 } Ast;
 
+typedef struct Env {
+  List *vars;
+  struct Env *next;
+} Env;
+
+#define EMPTY_ENV                               \
+  (((Env){ .vars = &EMPTY_LIST, .next = NULL }))
+
 extern String *make_string(void);
 extern char *get_cstring(String *s);
 extern void string_append(String *s, char c);
@@ -151,6 +159,6 @@ extern List *read_func_list(void);
 extern void emit_data_section(void);
 extern void emit_toplevel(Ast *v);
 
-extern List *globals;
+extern Env *globalenv;
 
 #endif /* ECC_H */

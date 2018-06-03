@@ -6,7 +6,7 @@
 
 #define MAX_ARGS 6
 
-List *globals = EMPTY_LIST;
+Env *globalenv = &EMPTY_ENV;
 List *fparams = NULL;
 static List *localvars = NULL;
 static Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL };
@@ -86,7 +86,7 @@ static Ast *ast_gvar(Ctype *ctype, char *name, bool filelocal) {
   r->ctype = ctype;
   r->varname = name;
   r->glabel = filelocal ? make_label() : name;
-  list_append(globals, r);
+  list_append(globalenv->vars, r);
   return r;
 }
 
@@ -203,7 +203,7 @@ static Ast *find_var(char *name) {
   if (r) return r;
   r = find_var_sub(fparams, name);
   if (r) return r;
-  return find_var_sub(globals, name);
+  return find_var_sub(globalenv->vars, name);
 }
 
 static void ensure_lvalue(Ast *ast) {
@@ -282,7 +282,7 @@ static Ast *read_prim(void) {
       return ast_char(tok->c);
     case TTYPE_STRING: {
       Ast *r = ast_string(tok->sval);
-      list_append(globals, r);
+      list_append(globalenv->vars, r);
       return r;
     }
     case TTYPE_PUNCT:

@@ -339,9 +339,9 @@ static void emit_expr(Ast *ast) {
 }
 
 void emit_data_section(void) {
-  if (!globals) return;
+  if (list_len(globalenv->vars) == 0) return;
   emit(".data");
-  for (Iter *i = list_iter(globals); !iter_end(i);) {
+  for (Iter *i = list_iter(globalenv->vars); !iter_end(i);) {
     Ast *v = iter_next(i);
     if (v->type == AST_STRING) {
       emit_label("%s:", v->slabel);

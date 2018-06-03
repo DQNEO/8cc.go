@@ -480,9 +480,8 @@ static void check_intexp(Ast *ast) {
 }
 
 static Ast *read_decl_init_val(Ast *var) {
-  Ast *init;
   if (var->ctype->type == CTYPE_ARRAY) {
-    init = read_decl_array_init_int(var->ctype);
+    Ast *init = read_decl_array_init_int(var->ctype);
     int len = (init->type == AST_STRING)
         ? strlen(init->sval) + 1
         : list_len(init->arrayinit);
@@ -491,11 +490,13 @@ static Ast *read_decl_init_val(Ast *var) {
     } else if (var->ctype->size != len)
       error("Invalid array initializer: expected %d items but got %d",
             var->ctype->size, len);
+    expect(';');
+    return ast_decl(var, init);
   } else {
-    init = read_expr(0);
+    Ast *init = read_expr(0);
+    expect(';');
+    return ast_decl(var, init);
   }
-  expect(';');
-  return ast_decl(var, init);
 }
 
 static Ctype *read_array_dimensions_int(void) {

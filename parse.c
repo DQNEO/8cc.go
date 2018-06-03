@@ -686,7 +686,7 @@ static Ast *read_decl_or_func_def(void) {
   if (is_punct(tok, ';'))
     return NULL; // decl
 
-  error("Don't know haw to handle");
+  error("Don't know how to handle %s", token_to_string(tok));
 }
 
 List *read_func_list(void) {

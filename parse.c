@@ -496,6 +496,8 @@ static Ast *read_decl_init_val(Ast *var) {
   }
   Ast *init = read_expr(0);
   expect(';');
+  if (var->type == AST_GVAR)
+    check_intexp(init);
   return ast_decl(var, init);
 }
 

@@ -24,6 +24,12 @@ static Ctype *result_type(char op, Ctype *a, Ctype *b);
 static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
 
+static void env_append(Env *env, Ast *var) {
+  assert(var->type == AST_LVAR || var->type == AST_GVAR ||
+         var->type == AST_STRING);
+  list_append(env->vars, var);
+}
+
 static Ast *ast_uop(int type, Ctype *ctype, Ast *operand) {
   Ast *r = malloc(sizeof(Ast));
   r->type = type;
@@ -86,7 +92,7 @@ static Ast *ast_gvar(Ctype *ctype, char *name, bool filelocal) {
   r->ctype = ctype;
   r->varname = name;
   r->glabel = filelocal ? make_label() : name;
-  list_append(globalenv->vars, r);
+  env_append(globalenv, r);
   return r;
 }
 
@@ -282,7 +288,7 @@ static Ast *read_prim(void) {
       return ast_char(tok->c);
     case TTYPE_STRING: {
       Ast *r = ast_string(tok->sval);
-      list_append(globalenv->vars, r);
+      env_append(globalenv, r);
       return r;
     }
     case TTYPE_PUNCT:

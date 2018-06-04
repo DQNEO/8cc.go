@@ -1,7 +1,9 @@
+8cc_c
 8gg.linux
 8gg.mac
 8cc
 *.o
 tmp.*
 unittest
-8cc_c
+nqueen.s
+nqueen

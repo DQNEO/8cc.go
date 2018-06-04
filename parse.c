@@ -7,7 +7,7 @@
 #define MAX_ARGS 6
 
 Env *globalenv = &EMPTY_ENV;
-List *fparams = NULL;
+static Env *localenv = NULL;
 static List *localvars = NULL;
 static Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL };
 static Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL };
@@ -23,6 +23,13 @@ static Ast *read_decl_or_stmt(void);
 static Ctype *result_type(char op, Ctype *a, Ctype *b);
 static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
+
+static Env *make_env(Env *next) {
+  Env *r = malloc(sizeof(Env));
+  r->next = next;
+  r->vars = make_list();
+  return r;
+}
 
 static void env_append(Env *env, Ast *var) {
   assert(var->type == AST_LVAR || var->type == AST_GVAR ||
@@ -81,6 +88,7 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
   r->type = AST_LVAR;
   r->ctype = ctype;
   r->varname = name;
+  env_append(localenv, r);
   if (localvars)
     list_append(localvars, r);
   return r;
@@ -195,21 +203,15 @@ static Ctype* make_array_type(Ctype *ctype, int size) {
   return r;
 }
 
-static Ast *find_var_sub(List *list, char *name) {
-  for (Iter *i = list_iter(list); !iter_end(i);) {
-    Ast *v = iter_next(i);
-    if (!strcmp(name, v->varname))
-      return v;
+static Ast *find_var(char *name) {
+  for (Env *p = localenv; p; p = p->next) {
+    for (Iter *i = list_iter(p->vars); !iter_end(i);) {
+      Ast *v = iter_next(i);
+      if (!strcmp(name, v->varname))
+        return v;
+    }
   }
   return NULL;
-}
-
-static Ast *find_var(char *name) {
-  Ast *r = find_var_sub(localvars, name);
-  if (r) return r;
-  r = find_var_sub(fparams, name);
-  if (r) return r;
-  return find_var_sub(globalenv->vars, name);
 }
 
 static void ensure_lvalue(Ast *ast) {
@@ -593,12 +595,14 @@ static Ast *read_opt_expr(void) {
 
 static Ast *read_for_stmt(void) {
   expect('(');
+  localenv = make_env(localenv);
   Ast *init = read_opt_decl_or_stmt();
   Ast *cond = read_opt_expr();
   Ast *step = is_punct(peek_token(), ')')
       ? NULL : read_expr(0);
   expect(')');
   Ast *body = read_stmt();
+  localenv = localenv->next;
   return ast_for(init, cond, step, body);
 }
 
@@ -631,6 +635,7 @@ static Ast *read_decl_or_stmt(void) {
 }
 
 static Ast *read_compound_stmt(void) {
+  localenv = make_env(localenv);
   List *list = make_list();
   for (;;) {
     Ast *stmt = read_decl_or_stmt();
@@ -641,6 +646,7 @@ static Ast *read_compound_stmt(void) {
       break;
     unget_token(tok);
   }
+  localenv = localenv->next;
   return ast_compound_stmt(list);
 }
 
@@ -669,14 +675,14 @@ static List *read_params(void) {
 
 static Ast *read_func_def(Ctype *rettype, char *fname) {
   expect('(');
+  localenv = make_env(globalenv);
   List *params = read_params();
   expect('{');
+  localenv = make_env(localenv);
   localvars = make_list();
-  fparams = params;
   Ast *body = read_compound_stmt();
   Ast *r = ast_func(rettype, fname, params, body, localvars);
   localvars = NULL;
-  fparams = NULL;
   return r;
 }
 

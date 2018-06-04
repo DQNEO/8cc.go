@@ -37,6 +37,16 @@ static void env_append(Env *env, Ast *var) {
   list_append(env->vars, var);
 }
 
+static Ast *ast_top(Ctype *ctype, Ast *cond, Ast *then, Ast *els) {
+  Ast *r = malloc(sizeof(Ast));
+  r->type = AST_TENARY_OP;
+  r->ctype = ctype;
+  r->cond = cond;
+  r->then = then;
+  r->els = els;
+  return r;
+}
+
 static Ast *ast_uop(int type, Ctype *ctype, Ast *operand) {
   Ast *r = malloc(sizeof(Ast));
   r->type = type;
@@ -245,6 +255,9 @@ static int priority(Token *tok) {
       return 4;
     case '*': case '/':
       return 5;
+    case ':':
+    case '?':
+      return 6;
     default:
       return -1;
   }
@@ -424,8 +437,15 @@ static Ast *read_expr(int prec) {
     }
     if (is_punct(tok, '='))
       ensure_lvalue(ast);
+    if (is_punct(tok, '?')) {
+      Ast *then = read_unary_expr();
+      expect(':');
+      Ast *els = read_unary_expr();
+      ast = ast_top(then->ctype, ast, then, els);
+    } else {
     Ast *rest = read_expr(prec2 + (is_right_assoc(tok) ? 0 : 1));
     ast = ast_binop(tok->punct, ast, rest);
+    }
   }
 }
 
@@ -807,6 +827,12 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       break;
     case AST_DEREF:
       string_appendf(buf, "(* %s)", ast_to_string(ast->operand));
+      break;
+    case AST_TENARY_OP:
+      string_appendf(buf, "(? %s %s %s)",
+                     ast_to_string(ast->cond),
+                     ast_to_string(ast->then),
+                     ast_to_string(ast->els));
       break;
     case AST_IF:
       string_appendf(buf, "(if %s %s",

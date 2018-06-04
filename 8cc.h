@@ -44,6 +44,7 @@ enum {
   AST_FOR,
   AST_RETURN,
   AST_COMPOUND_STMT,
+  AST_TENARY_OP,
   PUNCT_EQ,
   PUNCT_INC,
   PUNCT_DEC,
@@ -112,7 +113,7 @@ typedef struct Ast {
     };
     // Array initializer
     struct List *arrayinit;
-    // If statement
+    // If statement/Tenary Operator
     struct {
       struct Ast *cond;
       struct Ast *then;

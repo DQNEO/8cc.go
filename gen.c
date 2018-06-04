@@ -277,7 +277,7 @@ static void emit_expr(Ast *ast) {
       }
       break;
     }
-    case AST_IF: {
+  case AST_IF: case AST_TENARY_OP: {
       emit_expr(ast->cond);
       char *ne = make_label();
       emit("test %%rax, %%rax");

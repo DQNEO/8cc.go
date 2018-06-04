@@ -663,12 +663,14 @@ static List *read_params(void) {
 
 static Ast *read_func_def(Ctype *rettype, char *fname) {
   expect('(');
-  fparams = read_params();
+  List *params = read_params();
   expect('{');
   localvars = make_list();
+  fparams = params;
   Ast *body = read_compound_stmt();
-  Ast *r = ast_func(rettype, fname, fparams, body, localvars);
-  fparams = localvars = NULL;
+  Ast *r = ast_func(rettype, fname, params, body, localvars);
+  localvars = NULL;
+  fparams = NULL;
   return r;
 }
 

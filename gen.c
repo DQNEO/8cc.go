@@ -161,6 +161,21 @@ static void emit_logical_and(Ast *left, Ast *right) {
   emit("%s:", end);
 }
 
+static void emit_logical_or(Ast *left, Ast *right) {
+  char *end = make_label();
+  emit_expr(left);
+  emit("test %%rax, %%rax"); // 0 => set zf
+  emit("mov $1, %%rax");
+  emit("jne %s", end); // exit when not zf
+  emit("mov $0, %%rax");
+  emit_expr(right);
+  emit("test %%rax, %%rax");
+  emit("mov $0, %%rax");
+  emit("je %s", end);
+  emit("mov $1, %%rax");
+  emit("%s:", end);
+}
+
 static void emit_binop(Ast *ast) {
   if (ast->type == '=') {
     emit_expr(ast->right);
@@ -179,6 +194,9 @@ static void emit_binop(Ast *ast) {
   switch (ast->type) {
     case PUNCT_LOGAND:
       emit_logical_and(ast->left, ast->right);
+      return;
+    case PUNCT_LOGOR:
+      emit_logical_or(ast->left, ast->right);
       return;
     case '<':
       emit_comp("setl", ast->left, ast->right);

@@ -342,7 +342,9 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
       }
       error("internal error");
     case CTYPE_ARRAY:
-      goto err;
+      if (b->type != CTYPE_ARRAY)
+        goto err;
+      return result_type_int(jmpbuf, op, a->ptr, b->ptr);
     default:
       error("internal error: %s %s", ctype_to_string(a), ctype_to_string(b));
   }

@@ -39,7 +39,7 @@ static void env_append(Env *env, Ast *var) {
 
 static Ast *ast_top(Ctype *ctype, Ast *cond, Ast *then, Ast *els) {
   Ast *r = malloc(sizeof(Ast));
-  r->type = AST_TENARY_OP;
+  r->type = AST_TERNARY,
   r->ctype = ctype;
   r->cond = cond;
   r->then = then;
@@ -828,7 +828,7 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     case AST_DEREF:
       string_appendf(buf, "(* %s)", ast_to_string(ast->operand));
       break;
-    case AST_TENARY_OP:
+    case AST_TERNARY:
       string_appendf(buf, "(? %s %s %s)",
                      ast_to_string(ast->cond),
                      ast_to_string(ast->then),

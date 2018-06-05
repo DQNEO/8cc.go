@@ -764,7 +764,7 @@ char *ctype_to_string(Ctype *ctype) {
 
 static void ast_to_string_int(Ast *ast, String *buf) {
   if (!ast) {
-    string_appendf(buf, "(null)");
+    string_appendf(buf, "(nil)");
     return;
   }
   switch (ast->type) {

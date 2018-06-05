@@ -885,9 +885,9 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       if (ast->type == PUNCT_EQ) {
         string_appendf(buf, "(== ");
       } else if (ast->type == PUNCT_LOGAND) {
-        string_appendf(buf, "(&& ");
+        string_appendf(buf, "(and ");
       } else if (ast->type == PUNCT_LOGOR) {
-        string_appendf(buf, "(|| ");
+        string_appendf(buf, "(or ");
       } else {
         string_appendf(buf, "(%c ", ast->type);
       }

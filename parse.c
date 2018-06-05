@@ -742,6 +742,8 @@ List *read_func_list(void) {
 }
 
 char *ctype_to_string(Ctype *ctype) {
+  if (!ctype)
+    return "(nil)";
   switch (ctype->type) {
     case CTYPE_VOID: return "void";
     case CTYPE_INT:  return "int";

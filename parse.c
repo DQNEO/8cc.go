@@ -420,6 +420,13 @@ static Ast *read_unary_expr(void) {
   return read_prim();
 }
 
+static Ast *read_cond_expr(Ast *cond) {
+  Ast *then = read_unary_expr();
+  expect(':');
+  Ast *els = read_unary_expr();
+  return ast_ternary(then->ctype, cond, then, els);
+}
+
 static Ast *read_expr(int prec) {
   Ast *ast = read_unary_expr();
   if (!ast) return NULL;
@@ -435,10 +442,7 @@ static Ast *read_expr(int prec) {
       return ast;
     }
     if (is_punct(tok, '?')) {
-      Ast *then = read_unary_expr();
-      expect(':');
-      Ast *els = read_unary_expr();
-      ast = ast_ternary(then->ctype, ast, then, els);
+      ast = read_cond_expr(ast);
       continue;
     }
     if (is_punct(tok, '='))

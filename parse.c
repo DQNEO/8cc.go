@@ -37,16 +37,6 @@ static void env_append(Env *env, Ast *var) {
   list_append(env->vars, var);
 }
 
-static Ast *ast_top(Ctype *ctype, Ast *cond, Ast *then, Ast *els) {
-  Ast *r = malloc(sizeof(Ast));
-  r->type = AST_TERNARY,
-  r->ctype = ctype;
-  r->cond = cond;
-  r->then = then;
-  r->els = els;
-  return r;
-}
-
 static Ast *ast_uop(int type, Ctype *ctype, Ast *operand) {
   Ast *r = malloc(sizeof(Ast));
   r->type = type;
@@ -164,6 +154,16 @@ static Ast *ast_if(Ast *cond, Ast *then, Ast *els) {
   Ast *r = malloc(sizeof(Ast));
   r->type = AST_IF;
   r->ctype = NULL;
+  r->cond = cond;
+  r->then = then;
+  r->els = els;
+  return r;
+}
+
+static Ast *ast_ternary(Ctype *ctype, Ast *cond, Ast *then, Ast *els) {
+  Ast *r = malloc(sizeof(Ast));
+  r->type = AST_TERNARY;
+  r->ctype = ctype;
   r->cond = cond;
   r->then = then;
   r->els = els;
@@ -441,7 +441,7 @@ static Ast *read_expr(int prec) {
       Ast *then = read_unary_expr();
       expect(':');
       Ast *els = read_unary_expr();
-      ast = ast_top(then->ctype, ast, then, els);
+      ast = ast_ternary(then->ctype, ast, then, els);
     } else {
     Ast *rest = read_expr(prec2 + (is_right_assoc(tok) ? 0 : 1));
     ast = ast_binop(tok->punct, ast, rest);

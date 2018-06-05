@@ -113,7 +113,7 @@ typedef struct Ast {
     };
     // Array initializer
     struct List *arrayinit;
-    // If statement/Tenary Operator
+    // If statement or ternary operator
     struct {
       struct Ast *cond;
       struct Ast *then;

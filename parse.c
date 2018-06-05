@@ -831,12 +831,6 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     case AST_DEREF:
       string_appendf(buf, "(* %s)", ast_to_string(ast->operand));
       break;
-    case AST_TERNARY:
-      string_appendf(buf, "(? %s %s %s)",
-                     ast_to_string(ast->cond),
-                     ast_to_string(ast->then),
-                     ast_to_string(ast->els));
-      break;
     case AST_IF:
       string_appendf(buf, "(if %s %s",
                      ast_to_string(ast->cond),
@@ -844,6 +838,12 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       if (ast->els)
         string_appendf(buf, " %s", ast_to_string(ast->els));
       string_appendf(buf, ")");
+      break;
+    case AST_TERNARY:
+      string_appendf(buf, "(? %s %s %s)",
+                     ast_to_string(ast->cond),
+                     ast_to_string(ast->then),
+                     ast_to_string(ast->els));
       break;
     case AST_FOR:
       string_appendf(buf, "(for %s %s %s ",

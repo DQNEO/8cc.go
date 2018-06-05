@@ -434,17 +434,17 @@ static Ast *read_expr(int prec) {
       unget_token(tok);
       return ast;
     }
-    if (is_punct(tok, '='))
-      ensure_lvalue(ast);
     if (is_punct(tok, '?')) {
       Ast *then = read_unary_expr();
       expect(':');
       Ast *els = read_unary_expr();
       ast = ast_ternary(then->ctype, ast, then, els);
-    } else {
+      continue;
+    }
+    if (is_punct(tok, '='))
+      ensure_lvalue(ast);
     Ast *rest = read_expr(prec2 + (is_right_assoc(tok) ? 0 : 1));
     ast = ast_binop(tok->punct, ast, rest);
-    }
   }
 }
 

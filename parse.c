@@ -344,7 +344,7 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
     case CTYPE_ARRAY:
       goto err;
     default:
-      error("internal error");
+      error("internal error: %s %s", ctype_to_string(a), ctype_to_string(b));
   }
 err:
   longjmp(*jmpbuf, 1);

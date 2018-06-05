@@ -876,6 +876,12 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     case PUNCT_DEC:
       string_appendf(buf, "(-- %s)", ast_to_string(ast->operand));
       break;
+    case PUNCT_LOGAND:
+      string_appendf(buf, "(and %s %s)", ast_to_string(ast->left), ast_to_string(ast->right));
+      break;
+    case PUNCT_LOGOR:
+      string_appendf(buf, "(or %s %s)", ast_to_string(ast->left), ast_to_string(ast->right));
+      break;
     case '!':
       string_appendf(buf, "(! %s)", ast_to_string(ast->operand));
       break;
@@ -884,10 +890,6 @@ static void ast_to_string_int(Ast *ast, String *buf) {
       char *right = ast_to_string(ast->right);
       if (ast->type == PUNCT_EQ) {
         string_appendf(buf, "(== ");
-      } else if (ast->type == PUNCT_LOGAND) {
-        string_appendf(buf, "(and ");
-      } else if (ast->type == PUNCT_LOGOR) {
-        string_appendf(buf, "(or ");
       } else {
         string_appendf(buf, "(%c ", ast->type);
       }

@@ -255,7 +255,6 @@ static int priority(Token *tok) {
       return 4;
     case '*': case '/':
       return 5;
-    case ':':
     case '?':
       return 6;
     default:

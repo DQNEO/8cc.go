@@ -257,6 +257,8 @@ static int priority(Token *tok) {
       return 5;
     case '?':
       return 6;
+  case PUNCT_LOGAND: case PUNCT_LOGOR:
+    return 12;
     default:
       return -1;
   }
@@ -880,10 +882,15 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     default: {
       char *left = ast_to_string(ast->left);
       char *right = ast_to_string(ast->right);
-      if (ast->type == PUNCT_EQ)
+      if (ast->type == PUNCT_EQ) {
         string_appendf(buf, "(== ");
-      else
+      } else if (ast->type == PUNCT_LOGAND) {
+        string_appendf(buf, "(&& ");
+      } else if (ast->type == PUNCT_LOGOR) {
+        string_appendf(buf, "(|| ");
+      } else {
         string_appendf(buf, "(%c ", ast->type);
+      }
       string_appendf(buf, "%s %s)", left, right);
     }
   }

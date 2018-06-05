@@ -147,6 +147,20 @@ static void emit_comp(char *inst, Ast *a, Ast *b) {
   emit("movzb %%al, %%eax");
 }
 
+static void emit_logical_and(Ast *left, Ast *right) {
+  char *end = make_label();
+  emit_expr(left);
+  emit("test %%rax, %%rax");
+  emit("mov $0, %%rax");
+  emit("je %s", end);
+  emit_expr(right);
+  emit("test %%rax, %%rax");
+  emit("mov $0, %%rax");
+  emit("je %s", end);
+  emit("mov $1, %%rax");
+  emit("%s:", end);
+}
+
 static void emit_binop(Ast *ast) {
   if (ast->type == '=') {
     emit_expr(ast->right);
@@ -163,6 +177,9 @@ static void emit_binop(Ast *ast) {
   }
   char *op;
   switch (ast->type) {
+    case PUNCT_LOGAND:
+      emit_logical_and(ast->left, ast->right);
+      return;
     case '<':
       emit_comp("setl", ast->left, ast->right);
       return;

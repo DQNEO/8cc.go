@@ -168,7 +168,7 @@ char *token_to_string(Token *tok) {
       if (is_punct(tok, PUNCT_EQ))
         string_appendf(s, "==");
       else
-        string_appendf(s, "%c", tok);
+        string_appendf(s, "%c", tok->c);
       return get_cstring(s);
     case TTYPE_CHAR: {
       string_append(s, tok->c);

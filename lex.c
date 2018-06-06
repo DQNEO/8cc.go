@@ -130,8 +130,6 @@ static Token *read_token_int(void) {
     case '0': case '1': case '2': case '3': case '4':
     case '5': case '6': case '7': case '8': case '9':
       return read_number(c);
-    case '"': return read_string();
-    case '\'': return read_char();
     case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g':
     case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
     case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u':
@@ -146,6 +144,8 @@ static Token *read_token_int(void) {
     case '-': return read_rep('-', '-', PUNCT_DEC);
     case '&': return read_rep('&', '&', PUNCT_LOGAND);
     case '|': return read_rep('|', '|', PUNCT_LOGOR);
+    case '"': return read_string();
+    case '\'': return read_char();
     case '/': case '*': case '(': case ')': case ',': case ';':
     case '[': case ']': case '{': case '}': case '<': case '>': case '!':
     case '?': case ':':

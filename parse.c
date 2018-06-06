@@ -5,6 +5,7 @@
 #include "8cc.h"
 
 #define MAX_ARGS 6
+#define MAX_OP_PRIO 16
 
 Env *globalenv = &EMPTY_ENV;
 static Env *localenv = NULL;
@@ -461,7 +462,7 @@ static Ast *read_expr_int(int prec) {
 }
 
 static Ast *read_expr(void) {
-  return read_expr_int(16);
+  return read_expr_int(MAX_OP_PRIO);
 }
 
 static Ctype *get_ctype(Token *tok) {

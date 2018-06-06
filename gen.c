@@ -356,9 +356,9 @@ static void emit_expr(Ast *ast) {
       emit("jne %s", end);
       emit_expr(ast->right);
       emit("test %%rax, %%rax");
-      emit("mov $0, %%rax");
-      emit("je %s", end);
       emit("mov $1, %%rax");
+      emit("jne %s", end);
+      emit("mov $0, %%rax");
       emit("%s:", end);
       break;
     }

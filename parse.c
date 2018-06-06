@@ -14,7 +14,7 @@ static Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL };
 
 static int labelseq = 0;
 
-static Ast *read_expr(int prec);
+static Ast *read_expr(void);
 static Ctype* make_ptr_type(Ctype *ctype);
 static Ctype* make_array_type(Ctype *ctype, int size);
 static void ast_to_string_int(Ast *ast, String *buf);
@@ -270,7 +270,7 @@ static Ast *read_func_args(char *fname) {
     Token *tok = read_token();
     if (is_punct(tok, ')')) break;
     unget_token(tok);
-    list_append(args, read_expr(0));
+    list_append(args, read_expr());
     tok = read_token();
     if (is_punct(tok, ')')) break;
     if (!is_punct(tok, ','))
@@ -355,7 +355,7 @@ err:
 }
 
 static Ast *read_subscript_expr(Ast *ast) {
-  Ast *sub = read_expr(0);
+  Ast *sub = read_expr();
   expect(']');
   Ast *t = ast_binop('+', ast, sub);
   return ast_uop(AST_DEREF, t->ctype->ptr, t);
@@ -400,7 +400,7 @@ static Ast *read_unary_expr(void) {
     return read_postfix_expr();
   }
   if (is_punct(tok, '(')) {
-    Ast *r = read_expr(0);
+    Ast *r = read_expr();
     expect(')');
     return r;
   }
@@ -431,7 +431,7 @@ static Ast *read_cond_expr(Ast *cond) {
   return ast_ternary(then->ctype, cond, then, els);
 }
 
-static Ast *read_expr(int prec) {
+static Ast *read_expr_int(int prec) {
   Ast *ast = read_unary_expr();
   if (!ast) return NULL;
   for (;;) {
@@ -451,9 +451,13 @@ static Ast *read_expr(int prec) {
     }
     if (is_punct(tok, '='))
       ensure_lvalue(ast);
-    Ast *rest = read_expr(prec2 + (is_right_assoc(tok) ? 0 : 1));
+    Ast *rest = read_expr_int(prec2 + (is_right_assoc(tok) ? 0 : 1));
     ast = ast_binop(tok->punct, ast, rest);
   }
+}
+
+static Ast *read_expr(void) {
+  return read_expr_int(0);
 }
 
 static Ctype *get_ctype(Token *tok) {
@@ -484,7 +488,7 @@ static Ast *read_decl_array_init_int(Ctype *ctype) {
     if (is_punct(tok, '}'))
       break;
     unget_token(tok);
-    Ast *init = read_expr(0);
+    Ast *init = read_expr();
     list_append(initlist, init);
     result_type('=', init->ctype, ctype->ptr);
     tok = read_token();
@@ -529,7 +533,7 @@ static Ast *read_decl_init_val(Ast *var) {
     expect(';');
     return ast_decl(var, init);
   }
-  Ast *init = read_expr(0);
+  Ast *init = read_expr();
   expect(';');
   if (var->type == AST_GVAR)
     check_intexp(init);
@@ -545,7 +549,7 @@ static Ctype *read_array_dimensions_int(void) {
   int dim = -1;
   tok = peek_token();
   if (!is_punct(tok, ']')) {
-    Ast *size = read_expr(0);
+    Ast *size = read_expr();
     check_intexp(size);
     dim = size->ival;
   }
@@ -590,7 +594,7 @@ static Ast *read_decl(void) {
 
 static Ast *read_if_stmt(void) {
   expect('(');
-  Ast *cond = read_expr(0);
+  Ast *cond = read_expr();
   expect(')');
   Ast *then = read_stmt();
   Token *tok = read_token();
@@ -615,7 +619,7 @@ static Ast *read_opt_expr(void) {
   if (is_punct(tok, ';'))
     return NULL;
   unget_token(tok);
-  Ast *r = read_expr(0);
+  Ast *r = read_expr();
   expect(';');
   return r;
 }
@@ -626,7 +630,7 @@ static Ast *read_for_stmt(void) {
   Ast *init = read_opt_decl_or_stmt();
   Ast *cond = read_opt_expr();
   Ast *step = is_punct(peek_token(), ')')
-      ? NULL : read_expr(0);
+      ? NULL : read_expr();
   expect(')');
   Ast *body = read_stmt();
   localenv = localenv->next;
@@ -634,7 +638,7 @@ static Ast *read_for_stmt(void) {
 }
 
 static Ast *read_return_stmt(void) {
-  Ast *retval = read_expr(0);
+  Ast *retval = read_expr();
   expect(';');
   return ast_return(retval);
 }
@@ -650,7 +654,7 @@ static Ast *read_stmt(void) {
   if (is_ident(tok, "return")) return read_return_stmt();
   if (is_punct(tok, '{'))      return read_compound_stmt();
   unget_token(tok);
-  Ast *r = read_expr(0);
+  Ast *r = read_expr();
   expect(';');
   return r;
 }

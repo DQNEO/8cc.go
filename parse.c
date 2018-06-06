@@ -245,6 +245,8 @@ static bool is_right_assoc(Token *tok) {
 
 static int priority(Token *tok) {
   switch (tok->punct) {
+    case PUNCT_INC: case PUNCT_DEC:
+      return 2;
     case '*': case '/':
       return 3;
     case '+': case '-':

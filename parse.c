@@ -246,19 +246,19 @@ static bool is_right_assoc(Token *tok) {
 static int priority(Token *tok) {
   switch (tok->punct) {
     case '=':
-      return 1;
+      return 14;
     case PUNCT_EQ:
-      return 2;
+      return 13;
     case '<': case '>':
-      return 3;
+      return 12;
     case '+': case '-':
-      return 4;
+      return 11;
     case '*': case '/':
-      return 5;
+      return 10;
     case '?':
-      return 6;
+      return 9;
   case PUNCT_LOGAND: case PUNCT_LOGOR:
-    return 12;
+    return 8;
     default:
       return -1;
   }
@@ -441,7 +441,7 @@ static Ast *read_expr_int(int prec) {
       return ast;
     }
     int prec2 = priority(tok);
-    if (prec2 < 0 || prec2 < prec) {
+    if (prec2 < 0 || prec <= prec2) {
       unget_token(tok);
       return ast;
     }
@@ -451,13 +451,13 @@ static Ast *read_expr_int(int prec) {
     }
     if (is_punct(tok, '='))
       ensure_lvalue(ast);
-    Ast *rest = read_expr_int(prec2 + (is_right_assoc(tok) ? 0 : 1));
+    Ast *rest = read_expr_int(prec2 + (is_right_assoc(tok) ? 1 : 0));
     ast = ast_binop(tok->punct, ast, rest);
   }
 }
 
 static Ast *read_expr(void) {
-  return read_expr_int(0);
+  return read_expr_int(16);
 }
 
 static Ctype *get_ctype(Token *tok) {

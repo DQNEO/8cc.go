@@ -894,11 +894,10 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     default: {
       char *left = ast_to_string(ast->left);
       char *right = ast_to_string(ast->right);
-      if (ast->type == PUNCT_EQ) {
+      if (ast->type == PUNCT_EQ)
         string_appendf(buf, "(== ");
-      } else {
+      else
         string_appendf(buf, "(%c ", ast->type);
-      }
       string_appendf(buf, "%s %s)", left, right);
     }
   }

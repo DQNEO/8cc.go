@@ -95,6 +95,8 @@ testast '(int)f(){(! 1);}' '!1;'
 testast '(int)f(){(? 1 2 3);}' '1?2:3;'
 testast '(int)f(){(and 1 2);}' '1&&2;'
 testast '(int)f(){(or 1 2);}' '1||2;'
+testast '(int)f(){(& 1 2);}' '1&2;'
+testast '(int)f(){(| 1 2);}' '1|2;'
 
 testastf '(int)f(int c){c;}' 'int f(int c){c;}'
 testastf '(int)f(int c){c;}(int)g(int d){d;}' 'int f(int c){c;} int g(int d){d;}'

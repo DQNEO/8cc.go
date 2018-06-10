@@ -291,12 +291,12 @@ func emit_expr(ast *Ast) {
 		ne := make_label()
 		emit("test %%rax, %%rax")
 		emit("je %s", ne)
-		emit_block(ast._if.then)
+		emit_expr(ast._if.then)
 		if ast._if.els != nil {
 			end := make_label()
 			emit("jmp %s", end)
 			emit("%s:", ne)
-			emit_block(ast._if.els)
+			emit_expr(ast._if.els)
 			emit("%s:", end)
 		} else {
 			emit("%s:", ne)
@@ -313,7 +313,7 @@ func emit_expr(ast *Ast) {
 			emit("test %%rax, %%rax")
 			emit("je %s", end)
 		}
-		emit_block(ast._for.body)
+		emit_expr(ast._for.body)
 		if ast._for.step != nil {
 			emit_expr(ast._for.step)
 		}
@@ -324,6 +324,10 @@ func emit_expr(ast *Ast) {
 		emit("leave")
 		emit("ret")
 		break
+	case AST_COMPOUND_STMT:
+		for _, v := range ast.compound.stmts {
+			emit_expr(v)
+		}
 	case PUNCT_INC:
 		emit_inc_dec(ast, "add")
 	case PUNCT_DEC:
@@ -390,16 +394,9 @@ func emit_func_epilogue() {
 	emit("ret")
 }
 
-func emit_block(ast *Ast) {
-	for _, v := range ast.compound.stmts {
-		emit_expr(v)
-	}
-
-}
-
 func emit_func(fnc *Ast) {
 	assert(fnc.typ == AST_FUNC)
 	emit_func_prologue(fnc)
-	emit_block(fnc.fnc.body)
+	emit_expr(fnc.fnc.body)
 	emit_func_epilogue()
 }

@@ -400,6 +400,10 @@ func read_unary_expr() *Ast {
 		}
 		return ast_uop(AST_DEREF, operand.ctype.ptr, operand)
 	}
+	if is_punct(tok, '!') {
+		operand := read_unary_expr()
+		return ast_uop(int('!'), ctype_int, operand)
+	}
 	unget_token(tok)
 	return read_prim()
 }
@@ -886,6 +890,8 @@ func (ast *Ast) String() string {
 		return fmt.Sprintf("(%s ++)", ast.unary.operand)
 	case PUNCT_DEC:
 		return fmt.Sprintf("(%s --)", ast.unary.operand)
+	case '!':
+		return fmt.Sprintf("(! %s)", ast.unary.operand)
 	default:
 		left := ast.binop.left
 		right := ast.binop.right

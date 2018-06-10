@@ -328,6 +328,11 @@ func emit_expr(ast *Ast) {
 		emit_inc_dec(ast, "add")
 	case PUNCT_DEC:
 		emit_inc_dec(ast, "sub")
+	case '!':
+		emit_expr(ast.unary.operand)
+		emit("cmp $0, %%rax")
+		emit("sete %%al")
+		emit("movzb %%al, %%eax")
 	default:
 		emit_binop(ast)
 	}

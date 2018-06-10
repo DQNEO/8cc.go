@@ -205,6 +205,10 @@ test 1 '55 && 2;'
 test 0 '55 && 0;'
 test 0 '0 && 55;'
 
+# Bit operators
+test 3 '1|2;'
+test 1 '1&3;'
+
 testfail '0abc;'
 testfail '1+;'
 testfail '1=2;'

@@ -203,6 +203,14 @@ func emit_binop(ast *Ast) {
 	}
 }
 
+func emit_inc_dec(ast *Ast, op string) {
+	emit_expr(ast.unary.operand)
+	emit("push %%rax")
+	emit("%s $1, %%rax", op)
+	emit_assign(ast.unary.operand)
+	emit("pop %%rax")
+}
+
 func emit_expr(ast *Ast) {
 	switch ast.typ {
 	case AST_LITERAL:
@@ -316,6 +324,10 @@ func emit_expr(ast *Ast) {
 		emit("leave")
 		emit("ret")
 		break
+	case PUNCT_INC:
+		emit_inc_dec(ast, "add")
+	case PUNCT_DEC:
+		emit_inc_dec(ast, "sub")
 	default:
 		emit_binop(ast)
 	}

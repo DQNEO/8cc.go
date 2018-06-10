@@ -173,9 +173,9 @@ func read_token_init() *Token {
 	case c == '=':
 		return read_rep(int('='), int('='), PUNCT_EQ)
 	case c == '+':
-		return read_rep(int('+'), int('+'), 0)
+		return read_rep(int('+'), int('+'), PUNCT_INC)
 	case c == '-':
-		return read_rep(int('-'), int('-'), 0)
+		return read_rep(int('-'), int('-'), PUNCT_DEC)
 	case c == '/' || c == '*' || c == '(' ||
 		c == ')' || c == ',' || c == ';' || c == '&' ||
 		c == '[' || c == ']' || c == '{' || c == '}' ||

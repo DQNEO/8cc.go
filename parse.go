@@ -350,6 +350,12 @@ func read_postfix_expr() *Ast {
 		}
 		if is_punct(tok, '[') {
 			r = read_subscript_expr(r)
+		} else if is_punct(tok, PUNCT_INC) {
+			r = ast_uop(PUNCT_INC, r.ctype, r)
+			return r
+		} else if is_punct(tok, PUNCT_DEC) {
+			r = ast_uop(PUNCT_DEC, r.ctype, r)
+			return r
 		} else {
 			unget_token(tok)
 			return r
@@ -879,6 +885,10 @@ func (ast *Ast) String() string {
 		return s
 	case AST_RETURN:
 		return fmt.Sprintf("(return %s)", ast._return.retval)
+	case PUNCT_INC:
+		return fmt.Sprintf("(%s ++)", ast.unary.operand)
+	case PUNCT_DEC:
+		return fmt.Sprintf("(%s --)", ast.unary.operand)
 	default:
 		left := ast.binop.left
 		right := ast.binop.right

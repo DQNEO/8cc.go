@@ -840,8 +840,8 @@ func (ast *Ast) String() string {
 				s += ","
 			}
 		}
-		s += fmt.Sprintf(")%s",
-			ast.fnc.body)
+		s += ")"
+		s += ast.fnc.body.String()
 		return s
 	case AST_DECL:
 		s := fmt.Sprintf("(decl %s %s",

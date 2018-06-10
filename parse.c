@@ -748,7 +748,7 @@ static Ast *read_decl_or_func_def(void) {
   error("Don't know how to handle %s", token_to_string(tok));
 }
 
-List *read_func_list(void) {
+List *read_toplevels(void) {
   List *r = make_list();
   for (;;) {
     Ast *ast = read_decl_or_func_def();

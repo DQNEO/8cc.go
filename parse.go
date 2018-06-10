@@ -606,14 +606,14 @@ func read_if_stmt() *Ast {
 	cond := read_expr(0)
 	expect(')')
 	expect('{')
-	then := read_block()
+	then := read_compound_stmt()
 	tok := read_token()
 	if tok == nil || tok.typ != TTYPE_IDENT || strcmp(tok.v.sval, NewCstringFromLiteral("else")) != 0 {
 		unget_token(tok)
 		return ast_if(cond, then, nil)
 	}
 	expect('{')
-	els := read_block()
+	els := read_compound_stmt()
 	return ast_if(cond, then, els)
 }
 
@@ -649,7 +649,7 @@ func read_for_stmt() *Ast {
 	}
 	expect(')')
 	expect('{')
-	body := read_block()
+	body := read_compound_stmt()
 	return ast_for(init, cond, step, body)
 }
 
@@ -693,13 +693,13 @@ func read_decl_or_stmt() *Ast {
 	}
 }
 
-func read_block() *Ast {
-	var r []*Ast
+func read_compound_stmt() *Ast {
+	var list []*Ast
 
 	for {
 		stmt := read_decl_or_stmt()
 		if stmt != nil {
-			r = append(r, stmt)
+			list = append(list, stmt)
 		}
 		if stmt == nil {
 			break
@@ -711,7 +711,7 @@ func read_block() *Ast {
 		unget_token(tok)
 	}
 
-	return ast_compound_stmt(r)
+	return ast_compound_stmt(list)
 }
 
 func read_params() []*Ast {
@@ -757,7 +757,7 @@ func read_func_decl() *Ast {
 	fparams = read_params()
 	expect('{')
 	locals = make([]*Ast, 0)
-	body := read_block()
+	body := read_compound_stmt()
 	r := ast_func(rettype, fname.v.sval, fparams, locals, body)
 	locals = nil
 	fparams = nil

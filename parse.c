@@ -779,6 +779,15 @@ char *ctype_to_string(Ctype *ctype) {
   }
 }
 
+static void uop_to_string(String *buf, char *op, Ast *ast) {
+  string_appendf(buf, "(%s %s)", op, ast_to_string(ast->operand));
+}
+
+static void binop_to_string(String *buf, char *op, Ast *ast) {
+  string_appendf(buf, "(%s %s %s)",
+                 op, ast_to_string(ast->left), ast_to_string(ast->right));
+}
+
 static void ast_to_string_int(String *buf, Ast *ast) {
   if (!ast) {
     string_appendf(buf, "(nil)");
@@ -845,10 +854,10 @@ static void ast_to_string_int(String *buf, Ast *ast) {
       string_appendf(buf, "}");
       break;
     case AST_ADDR:
-      string_appendf(buf, "(& %s)", ast_to_string(ast->operand));
+      uop_to_string(buf, "&", ast);
       break;
     case AST_DEREF:
-      string_appendf(buf, "(* %s)", ast_to_string(ast->operand));
+      uop_to_string(buf, "*", ast);
       break;
     case AST_IF:
       string_appendf(buf, "(if %s %s",
@@ -890,15 +899,13 @@ static void ast_to_string_int(String *buf, Ast *ast) {
       string_appendf(buf, "(-- %s)", ast_to_string(ast->operand));
       break;
     case PUNCT_LOGAND:
-      string_appendf(buf, "(and %s %s)",
-                     ast_to_string(ast->left), ast_to_string(ast->right));
+      binop_to_string(buf, "and", ast);
       break;
     case PUNCT_LOGOR:
-      string_appendf(buf, "(or %s %s)",
-                     ast_to_string(ast->left), ast_to_string(ast->right));
+      binop_to_string(buf, "or", ast);
       break;
     case '!':
-      string_appendf(buf, "(! %s)", ast_to_string(ast->operand));
+      uop_to_string(buf, "!", ast);
       break;
     default: {
       char *left = ast_to_string(ast->left);

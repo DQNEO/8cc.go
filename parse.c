@@ -893,6 +893,8 @@ static void ast_to_string_int(String *buf, Ast *ast) {
     case PUNCT_LOGAND: binop_to_string(buf, "and", ast); break;
     case PUNCT_LOGOR:  binop_to_string(buf, "or", ast); break;
     case '!': uop_to_string(buf, "!", ast); break;
+    case '&': binop_to_string(buf, "&", ast); break;
+    case '|': binop_to_string(buf, "|", ast); break;
     default: {
       char *left = ast_to_string(ast->left);
       char *right = ast_to_string(ast->right);

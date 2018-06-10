@@ -162,12 +162,12 @@ func emit_binop(ast *Ast) {
 		emit_assign(ast.binop.left)
 		return
 	}
-	if ast.typ == '@' {
+	if ast.typ == PUNCT_EQ {
 		emit_comp("sete", ast.binop.left, ast.binop.right)
 		return
 	}
 	if ast.ctype.typ == CTYPE_PTR {
-		emit_pointer_arith(ast.typ, ast.binop.left, ast.binop.right)
+		emit_pointer_arith(byte(ast.typ), ast.binop.left, ast.binop.right)
 		return
 	}
 	var op string

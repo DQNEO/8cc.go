@@ -13,13 +13,13 @@ type Token struct {
 	v   struct { // wanna be Union
 		ival  int
 		sval  Cstring
-		punct byte
+		punct int
 		c     byte
 	}
 }
 
 const (
-	AST_LITERAL byte = iota
+	AST_LITERAL int = iota
 	AST_STRING
 	AST_LVAR
 	AST_GVAR
@@ -32,6 +32,7 @@ const (
 	AST_IF
 	AST_FOR
 	AST_RETURN
+	PUNCT_EQ
 )
 
 const (
@@ -49,7 +50,7 @@ type Ctype struct {
 }
 
 type Ast struct {
-	typ   byte
+	typ   int
 	ctype *Ctype
 	// want to be "union"
 	// Integer

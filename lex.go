@@ -25,7 +25,7 @@ func make_strtok(s Cstring) *Token {
 func make_punct(punct byte) *Token {
 	r := &Token{}
 	r.typ = TTYPE_PUNCT
-	r.v.punct = punct
+	r.v.punct = int(punct)
 	return r
 }
 
@@ -164,7 +164,7 @@ func read_token_init() *Token {
 	case c == '=':
 		c, _ = getc(stdin)
 		if c == '=' {
-			return make_punct('@')
+			return make_punct(byte(PUNCT_EQ))
 		}
 		ungetc(c, stdin)
 		return make_punct('=')
@@ -193,10 +193,10 @@ func (tok *Token) ToCtring() Cstring {
 	case TTYPE_IDENT:
 		return tok.v.sval
 	case TTYPE_PUNCT:
-		if is_punct(tok, '@') {
+		if is_punct(tok, PUNCT_EQ) {
 			return Cstring("==")
 		} else {
-			return Cstring{tok.v.punct, 0}
+			return Cstring{byte(tok.v.punct), 0}
 		}
 	case TTYPE_CHAR:
 		return Cstring{tok.v.c, 0}
@@ -209,7 +209,7 @@ func (tok *Token) ToCtring() Cstring {
 	return nil
 }
 
-func is_punct(tok *Token, c byte) bool {
+func is_punct(tok *Token, c int) bool {
 	return tok != nil && (tok.typ == TTYPE_PUNCT && tok.v.punct == c)
 }
 

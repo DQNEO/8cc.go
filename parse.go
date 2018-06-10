@@ -15,7 +15,7 @@ var labelseq = 0
 var ctype_int = &Ctype{CTYPE_INT, nil, 0}
 var ctype_char = &Ctype{CTYPE_CHAR, nil, 0}
 
-func ast_uop(typ byte, ctype *Ctype, operand *Ast) *Ast {
+func ast_uop(typ int, ctype *Ctype, operand *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
 	r.ctype = ctype
@@ -23,10 +23,10 @@ func ast_uop(typ byte, ctype *Ctype, operand *Ast) *Ast {
 	return r
 }
 
-func ast_binop(typ byte, left *Ast, right *Ast) *Ast {
+func ast_binop(typ int, left *Ast, right *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
-	r.ctype = result_type(typ, left.ctype, right.ctype)
+	r.ctype = result_type(byte(typ), left.ctype, right.ctype)
 	if typ != '=' && convert_array(left.ctype).typ != CTYPE_PTR &&
 		convert_array(right.ctype).typ == CTYPE_PTR {
 		r.binop.left = right
@@ -207,7 +207,7 @@ func priority(tok *Token) int {
 	switch tok.v.punct {
 	case '=':
 		return 1
-	case '@':
+	case PUNCT_EQ:
 		return 2
 	case '<','>':
 		return 3
@@ -458,7 +458,7 @@ func is_type_keyword(tok *Token) bool {
 
 func expect(punct byte) {
 	tok := read_token()
-	if !is_punct(tok, punct) {
+	if !is_punct(tok, int(punct)) {
 		_error("'%c' expected but got %s", punct, tok)
 	}
 }
@@ -884,7 +884,7 @@ func (ast *Ast) String() string {
 		left := ast.binop.left
 		right := ast.binop.right
 		var s string
-		if ast.typ == byte('@') {
+		if ast.typ == PUNCT_EQ {
 			s += "(== "
 		} else {
 			s += fmt.Sprintf("(%c ", ast.typ)

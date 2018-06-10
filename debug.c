@@ -1,7 +1,5 @@
 #include "8cc.h"
 
-static void ast_to_string_int(String *buf, Ast *ast);
-
 char *ctype_to_string(Ctype *ctype) {
   if (!ctype)
     return "(nil)";

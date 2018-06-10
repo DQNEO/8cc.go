@@ -254,12 +254,12 @@ static int priority(Token *tok) {
       return 4;
     case '<': case '>':
       return 6;
-    case PUNCT_EQ:
-      return 7;
     case '&':
       return 8;
     case '|':
       return 10;
+    case PUNCT_EQ:
+      return 7;
     case PUNCT_LOGAND:
       return 11;
     case PUNCT_LOGOR:

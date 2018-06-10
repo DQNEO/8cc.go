@@ -18,7 +18,7 @@ static int labelseq = 0;
 static Ast *read_expr(void);
 static Ctype* make_ptr_type(Ctype *ctype);
 static Ctype* make_array_type(Ctype *ctype, int size);
-static void ast_to_string_int(Ast *ast, String *buf);
+static void ast_to_string_int(String *buf, Ast *ast);
 static Ast *read_compound_stmt(void);
 static Ast *read_decl_or_stmt(void);
 static Ctype *result_type(char op, Ctype *a, Ctype *b);
@@ -779,7 +779,7 @@ char *ctype_to_string(Ctype *ctype) {
   }
 }
 
-static void ast_to_string_int(Ast *ast, String *buf) {
+static void ast_to_string_int(String *buf, Ast *ast) {
   if (!ast) {
     string_appendf(buf, "(nil)");
     return;
@@ -823,7 +823,7 @@ static void ast_to_string_int(Ast *ast, String *buf) {
           string_appendf(buf, ",");
       }
       string_appendf(buf, ")");
-      ast_to_string_int(ast->body, buf);
+      ast_to_string_int(buf, ast->body);
       break;
     }
     case AST_DECL:
@@ -838,7 +838,7 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     case AST_ARRAY_INIT:
       string_appendf(buf, "{");
       for (Iter *i = list_iter(ast->arrayinit); !iter_end(i);) {
-        ast_to_string_int(iter_next(i), buf);
+        ast_to_string_int(buf, iter_next(i));
         if (!iter_end(i))
           string_appendf(buf, ",");
       }
@@ -877,7 +877,7 @@ static void ast_to_string_int(Ast *ast, String *buf) {
     case AST_COMPOUND_STMT: {
       string_appendf(buf, "{");
       for (Iter *i = list_iter(ast->stmts); !iter_end(i);) {
-        ast_to_string_int(iter_next(i), buf);
+        ast_to_string_int(buf, iter_next(i));
         string_appendf(buf, ";");
       }
       string_appendf(buf, "}");
@@ -914,6 +914,6 @@ static void ast_to_string_int(Ast *ast, String *buf) {
 
 char *ast_to_string(Ast *ast) {
   String *s = make_string();
-  ast_to_string_int(ast, s);
+  ast_to_string_int(s, ast);
   return get_cstring(s);
 }

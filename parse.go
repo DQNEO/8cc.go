@@ -351,6 +351,7 @@ func read_postfix_expr() *Ast {
 		if is_punct(tok, '[') {
 			r = read_subscript_expr(r)
 		} else if is_punct(tok, PUNCT_INC) || is_punct(tok, PUNCT_DEC)  {
+			ensure_lvalue(r)
 			r = ast_uop(tok.v.punct, r.ctype, r)
 			return r
 		} else {

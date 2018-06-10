@@ -89,8 +89,8 @@ testast '(int)f(){(< 1 2);}' '1<2;'
 testast '(int)f(){(> 1 2);}' '1>2;'
 testast '(int)f(){(== 1 2);}' '1==2;'
 testast '(int)f(){(* (+ 1 2));}' '1[2];'
-#testast '(int)f(){(decl int a 1);(a ++);}' 'int a=1;a++;'
-#testast '(int)f(){(decl int a 1);(a --);}' 'int a=1;a--;'
+testast '(int)f(){(decl int a 1);(a ++);}' 'int a=1;a++;'
+testast '(int)f(){(decl int a 1);(a --);}' 'int a=1;a--;'
 
 testastf '(int)f(int c){c;}' 'int f(int c){c;}'
 testastf '(int)f(int c){c;}(int)g(int d){d;}' 'int f(int c){c;} int g(int d){d;}'
@@ -156,10 +156,10 @@ test 012340 'for(int i=0; i<5; i=i+1){printf("%d",i);}0;'
 test 33 'return 33; return 10;'
 
 # Increment or decrement
-#test 15 'int a=15;a++;'
-#test 16 'int a=15;a++;a;'
-#test 15 'int a=15;a--;'
-#test 14 'int a=15;a--;a;'
+test 15 'int a=15;a++;'
+test 16 'int a=15;a++;a;'
+test 15 'int a=15;a--;'
+test 14 'int a=15;a--;a;'
 
 
 # Function parameter

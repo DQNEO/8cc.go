@@ -390,8 +390,8 @@ func emit_func_epilogue() {
 	emit("ret")
 }
 
-func emit_block(block Block) {
-	for _, v := range block {
+func emit_block(ast *Ast) {
+	for _, v := range ast.compound.stmts {
 		emit_expr(v)
 	}
 

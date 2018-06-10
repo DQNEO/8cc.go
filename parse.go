@@ -105,7 +105,7 @@ func ast_funcall(ctype *Ctype, fname Cstring, args []*Ast) *Ast {
 	return r
 }
 
-func ast_func(rettype *Ctype, fname Cstring, params []*Ast, locals []*Ast, body Block) *Ast {
+func ast_func(rettype *Ctype, fname Cstring, params []*Ast, locals []*Ast, body *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNC
 	r.ctype = rettype
@@ -133,7 +133,7 @@ func ast_array_init(arrayinit []*Ast) *Ast {
 	return r
 }
 
-func ast_if(cond *Ast, then Block, els Block) *Ast {
+func ast_if(cond *Ast, then *Ast, els *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_IF
 	r.ctype = nil
@@ -143,7 +143,7 @@ func ast_if(cond *Ast, then Block, els Block) *Ast {
 	return r
 }
 
-func ast_for(init *Ast, cond *Ast, step *Ast, body Block) *Ast {
+func ast_for(init *Ast, cond *Ast, step *Ast, body *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FOR
 	r.ctype = nil
@@ -159,6 +159,14 @@ func ast_return(retval *Ast) *Ast {
 	r.typ = AST_RETURN
 	r.ctype = nil
 	r._return.retval = retval
+	return r
+}
+
+func ast_compound_stmt(stmts []*Ast) *Ast {
+	r := &Ast{}
+	r.typ = AST_COMPOUND_STMT
+	r.ctype = nil;
+	r.compound.stmts = stmts
 	return r
 }
 
@@ -685,7 +693,7 @@ func read_decl_or_stmt() *Ast {
 	}
 }
 
-func read_block() Block {
+func read_block() *Ast {
 	var r []*Ast
 
 	for {
@@ -703,7 +711,7 @@ func read_block() Block {
 		unget_token(tok)
 	}
 
-	return Block(r)
+	return ast_compound_stmt(r)
 }
 
 func read_params() []*Ast {
@@ -791,9 +799,9 @@ func (ctype *Ctype) String() string {
 
 type Block []*Ast
 
-func (block Block) String() string {
+func (ast *Ast) blockToString() string {
 	s := "{"
-	for _, v := range block {
+	for _, v := range ast.compound.stmts {
 		s += v.String()
 		s += ";"
 	}
@@ -843,7 +851,7 @@ func (ast *Ast) String() string {
 			}
 		}
 		s += fmt.Sprintf(")%s",
-			ast.fnc.body)
+			ast.fnc.body.blockToString())
 		return s
 	case AST_DECL:
 		s := fmt.Sprintf("(decl %s %s",
@@ -871,9 +879,9 @@ func (ast *Ast) String() string {
 	case AST_IF:
 		s := fmt.Sprintf("(if %s %s",
 			ast._if.cond,
-			ast._if.then)
+			ast._if.then.blockToString())
 		if ast._if.els != nil {
-			s += fmt.Sprintf(" %s", ast._if.els)
+			s += fmt.Sprintf(" %s", ast._if.els.blockToString())
 		}
 		s += ")"
 		return s
@@ -882,7 +890,7 @@ func (ast *Ast) String() string {
 			ast._for.init,
 			ast._for.cond,
 			ast._for.step,
-			ast._for.body)
+			ast._for.body.blockToString())
 		return s
 	case AST_RETURN:
 		return fmt.Sprintf("(return %s)", ast._return.retval)

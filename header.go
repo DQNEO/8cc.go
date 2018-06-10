@@ -32,6 +32,7 @@ const (
 	AST_IF
 	AST_FOR
 	AST_RETURN
+	AST_COMPOUND_STMT
 	PUNCT_EQ
 	PUNCT_INC
 	PUNCT_DEC
@@ -94,7 +95,7 @@ type Ast struct {
 		args   []*Ast
 		params []*Ast
 		locals []*Ast
-		body   Block
+		body   *Ast
 	}
 	// Declaration
 	decl struct {
@@ -108,17 +109,20 @@ type Ast struct {
 	// If statement
 	_if struct {
 		cond *Ast
-		then Block
-		els  Block
+		then *Ast
+		els  *Ast
 	}
 	// For statement
 	_for struct {
 		init *Ast
 		cond *Ast
 		step *Ast
-		body Block
+		body *Ast
 	}
 	_return  struct {
 		retval *Ast
+	}
+	compound struct {
+		stmts []*Ast
 	}
 }

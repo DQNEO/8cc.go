@@ -199,6 +199,15 @@ func find_var(name Cstring) *Ast {
 	return nil
 }
 
+func ensure_lvalue(ast *Ast) {
+	switch ast.typ {
+	case AST_LVAR, AST_GVAR,AST_DEREF:
+		return
+	}
+	_error("lvalue expected, but got %s", ast)
+	return
+}
+
 func is_right_assoc(tok *Token) bool {
 	return tok.v.punct == '='
 }
@@ -363,16 +372,6 @@ func result_type(op byte, a *Ctype, b *Ctype) *Ctype {
 	}
 	return ret
 }
-
-func ensure_lvalue(ast *Ast) {
-	switch ast.typ {
-	case AST_LVAR, AST_GVAR,AST_DEREF:
-		return
-	}
-	_error("lvalue expected, but got %s", ast)
-	return
-}
-
 
 func read_unary_expr() *Ast {
 	tok := read_token()

@@ -799,16 +799,6 @@ func (ctype *Ctype) String() string {
 
 type Block []*Ast
 
-func (ast *Ast) blockToString() string {
-	s := "{"
-	for _, v := range ast.compound.stmts {
-		s += v.String()
-		s += ";"
-	}
-	s += "}"
-	return s
-}
-
 func (ast *Ast) String() string {
 	if ast == nil {
 		return "(null)"
@@ -851,7 +841,7 @@ func (ast *Ast) String() string {
 			}
 		}
 		s += fmt.Sprintf(")%s",
-			ast.fnc.body.blockToString())
+			ast.fnc.body)
 		return s
 	case AST_DECL:
 		s := fmt.Sprintf("(decl %s %s",
@@ -879,9 +869,9 @@ func (ast *Ast) String() string {
 	case AST_IF:
 		s := fmt.Sprintf("(if %s %s",
 			ast._if.cond,
-			ast._if.then.blockToString())
+			ast._if.then)
 		if ast._if.els != nil {
-			s += fmt.Sprintf(" %s", ast._if.els.blockToString())
+			s += fmt.Sprintf(" %s", ast._if.els)
 		}
 		s += ")"
 		return s
@@ -890,10 +880,18 @@ func (ast *Ast) String() string {
 			ast._for.init,
 			ast._for.cond,
 			ast._for.step,
-			ast._for.body.blockToString())
+			ast._for.body)
 		return s
 	case AST_RETURN:
 		return fmt.Sprintf("(return %s)", ast._return.retval)
+	case AST_COMPOUND_STMT:
+		s := "{"
+		for _, v := range ast.compound.stmts {
+			s += v.String()
+			s += ";"
+		}
+		s += "}"
+		return s
 	case PUNCT_INC:
 		return fmt.Sprintf("(%s ++)", ast.unary.operand)
 	case PUNCT_DEC:

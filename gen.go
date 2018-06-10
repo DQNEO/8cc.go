@@ -99,23 +99,22 @@ func emit_lsave(ctype *Ctype, loff int, off int) {
 	emit("mov %%%s, %d(%%rbp)", reg, -(loff + off*size))
 }
 
-func emit_assign_deref(variable *Ast, value *Ast) {
-	emit_expr(variable.unary.operand)
+func emit_assign_deref(variable *Ast) {
 	emit("push %%rax")
-	emit_expr(value)
+	emit_expr(variable.unary.operand)
 	emit("pop %%rcx")
 	var reg string
 	size := ctype_size(variable.unary.operand.ctype)
 	switch size {
 	case 1:
-		reg = "al"
+		reg = "cl"
 	case 4:
-		reg = "eax"
+		reg = "ecx"
 	case 8:
-		reg = "rax"
+		reg = "rcx"
 	}
 
-	emit("mov %%%s, (%%rcx)", reg)
+	emit("mov %%%s, (%%rax)", reg)
 
 }
 
@@ -132,12 +131,11 @@ func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
 	emit("add %%rcx, %%rax")
 }
 
-func emit_assign(variable *Ast, value *Ast) {
+func emit_assign(variable *Ast) {
     if variable.typ == AST_DEREF {
-		emit_assign_deref(variable, value)
+		emit_assign_deref(variable)
 		return
 	}
-	emit_expr(value)
 	switch variable.typ {
 	case AST_LVAR:
 		emit_lsave(variable.ctype, variable.variable.loff, 0)
@@ -160,7 +158,8 @@ func emit_comp(inst string, a *Ast, b *Ast) {
 
 func emit_binop(ast *Ast) {
 	if ast.typ == '=' {
-		emit_assign(ast.binop.left, ast.binop.right)
+		emit_expr(ast.binop.right)
+		emit_assign(ast.binop.left)
 		return
 	}
 	if ast.typ == '@' {

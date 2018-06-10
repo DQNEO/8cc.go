@@ -3,8 +3,6 @@
 #include <ctype.h>
 #include "8cc.h"
 
-#define BUFLEN 256
-
 static Token *ungotten = NULL;
 
 static Token *make_ident(String *s) {
@@ -155,35 +153,6 @@ static Token *read_token_int(void) {
     default:
       error("Unexpected character: '%c'", c);
   }
-}
-
-char *token_to_string(Token *tok) {
-  if (!tok)
-    return "(null)";
-  String *s = make_string();
-  switch (tok->type) {
-    case TTYPE_IDENT:
-      return tok->sval;
-    case TTYPE_PUNCT:
-      if (is_punct(tok, PUNCT_EQ))
-        string_appendf(s, "==");
-      else
-        string_appendf(s, "%c", tok->c);
-      return get_cstring(s);
-    case TTYPE_CHAR: {
-      string_append(s, tok->c);
-      return get_cstring(s);
-    }
-    case TTYPE_INT: {
-      string_appendf(s, "%d", tok->ival);
-      return get_cstring(s);
-    }
-    case TTYPE_STRING: {
-      string_appendf(s, "\"%s\"", tok->sval);
-      return get_cstring(s);
-    }
-  }
-  error("internal error: unknown token type: %d", tok->type);
 }
 
 bool is_punct(Token *tok, int c) {

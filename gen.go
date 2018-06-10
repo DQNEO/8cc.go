@@ -187,7 +187,7 @@ func emit_binop(ast *Ast) {
 	case '/':
 		break
 	default:
-		_error("invalid operator '%c", ast.typ)
+		_error("invalid operator '%d", ast.typ)
 	}
 
 	emit_expr(ast.binop.right)

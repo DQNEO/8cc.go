@@ -22,6 +22,7 @@ static Ast *read_compound_stmt(void);
 static Ast *read_decl_or_stmt(void);
 static Ctype *result_type(char op, Ctype *a, Ctype *b);
 static Ctype *convert_array(Ctype *ctype);
+static Ast *read_stmt(void);
 
 static Ast *ast_uop(int type, Ctype *ctype, Ast *operand) {
   Ast *r = malloc(sizeof(Ast));
@@ -546,15 +547,13 @@ static Ast *read_if_stmt(void) {
   expect('(');
   Ast *cond = read_expr(0);
   expect(')');
-  expect('{');
-  Ast *then = read_compound_stmt();
+  Ast *then = read_stmt();
   Token *tok = read_token();
   if (!tok || tok->type != TTYPE_IDENT || strcmp(tok->sval, "else")) {
     unget_token(tok);
     return ast_if(cond, then, NULL);
   }
-  expect('{');
-  Ast *els = read_compound_stmt();
+  Ast *els = read_stmt();
   return ast_if(cond, then, els);
 }
 
@@ -583,8 +582,7 @@ static Ast *read_for_stmt(void) {
   Ast *step = is_punct(peek_token(), ')')
       ? NULL : read_expr(0);
   expect(')');
-  expect('{');
-  Ast *body = read_compound_stmt();
+  Ast *body = read_stmt();
   return ast_for(init, cond, step, body);
 }
 
@@ -603,6 +601,7 @@ static Ast *read_stmt(void) {
   if (is_ident(tok, "if"))     return read_if_stmt();
   if (is_ident(tok, "for"))    return read_for_stmt();
   if (is_ident(tok, "return")) return read_return_stmt();
+  if (is_punct(tok, '{'))      return read_compound_stmt();
   unget_token(tok);
   Ast *r = read_expr(0);
   expect(';');

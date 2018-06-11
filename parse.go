@@ -893,9 +893,9 @@ func (ast *Ast) String() string {
 		s += "}"
 		return s
 	case PUNCT_INC:
-		return fmt.Sprintf("(%s ++)", ast.unary.operand)
+		return fmt.Sprintf("(++ %s)", ast.unary.operand)
 	case PUNCT_DEC:
-		return fmt.Sprintf("(%s --)", ast.unary.operand)
+		return fmt.Sprintf("(-- %s)", ast.unary.operand)
 	case '!':
 		return fmt.Sprintf("(! %s)", ast.unary.operand)
 	default:

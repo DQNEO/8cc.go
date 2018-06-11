@@ -16,7 +16,7 @@ clean:
 fmt:
 	gofmt -w *.go
 
-test: ./nqueen
+test:
 	./gotest.sh
 
 nqueen: 8gg.linux

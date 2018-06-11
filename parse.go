@@ -605,15 +605,13 @@ func read_if_stmt() *Ast {
 	expect('(')
 	cond := read_expr(0)
 	expect(')')
-	expect('{')
-	then := read_compound_stmt()
+	then := read_stmt()
 	tok := read_token()
 	if tok == nil || tok.typ != TTYPE_IDENT || strcmp(tok.v.sval, NewCstringFromLiteral("else")) != 0 {
 		unget_token(tok)
 		return ast_if(cond, then, nil)
 	}
-	expect('{')
-	els := read_compound_stmt()
+	els := read_stmt();
 	return ast_if(cond, then, els)
 }
 
@@ -648,8 +646,7 @@ func read_for_stmt() *Ast {
 		step = read_expr(0)
 	}
 	expect(')')
-	expect('{')
-	body := read_compound_stmt()
+	body := read_stmt()
 	return ast_for(init, cond, step, body)
 }
 
@@ -673,6 +670,9 @@ func read_stmt() *Ast {
 	}
 	if is_ident(tok, "return") {
 		return read_return_stmt();
+	}
+	if is_punct(tok, '{') {
+		return read_compound_stmt();
 	}
 	unget_token(tok)
 	r := read_expr(0)

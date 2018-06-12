@@ -394,9 +394,12 @@ func emit_func_epilogue() {
 	emit("ret")
 }
 
-func emit_func(fnc *Ast) {
-	assert(fnc.typ == AST_FUNC)
-	emit_func_prologue(fnc)
-	emit_expr(fnc.fnc.body)
-	emit_func_epilogue()
+func emit_toplevel(fnc *Ast) {
+	if fnc.typ == AST_FUNC {
+		emit_func_prologue(fnc)
+		emit_expr(fnc.fnc.body)
+		emit_func_epilogue()
+	} else {
+
+	}
 }

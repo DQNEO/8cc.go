@@ -13,11 +13,11 @@ func main() {
 		emit_data_section()
 	}
 
-	for _, fnc := range funcs {
+	for _, v := range funcs {
 		if wantast {
-			printf("%s", fnc)
+			printf("%s", v)
 		} else {
-			emit_func(fnc)
+			emit_toplevel(v)
 		}
 	}
 

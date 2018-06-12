@@ -743,7 +743,7 @@ func read_params() []*Ast {
 	return params // this is never reached
 }
 
-func read_func_decl() *Ast {
+func read_func_def() *Ast {
 	tok := peek_token()
 	if tok == nil {
 		return nil
@@ -764,15 +764,19 @@ func read_func_decl() *Ast {
 	return r
 }
 
+func read_decl_or_func_def() *Ast {
+	return read_func_def()
+}
+
 func read_func_list() []*Ast {
 	var func_list []*Ast
 
 	for {
-		fnc := read_func_decl()
-		if fnc == nil {
+		ast := read_decl_or_func_def()
+		if ast == nil {
 			return func_list
 		}
-		func_list = append(func_list, fnc)
+		func_list = append(func_list, ast)
 	}
 
 	return nil

@@ -743,29 +743,33 @@ func read_params() []*Ast {
 	return params // this is never reached
 }
 
-func read_func_def() *Ast {
-	tok := peek_token()
-	if tok == nil {
-		return nil
-	}
-	rettype := read_decl_spec()
-	fname := read_token()
-	if fname.typ != TTYPE_IDENT {
-		_error("Function name expected, but got %s", fname)
-	}
+func read_func_def(rettype *Ctype, fname []byte) *Ast {
 	expect('(')
 	fparams = read_params()
 	expect('{')
 	locals = make([]*Ast, 0)
 	body := read_compound_stmt()
-	r := ast_func(rettype, fname.v.sval, fparams, locals, body)
+	r := ast_func(rettype, fname, fparams, locals, body)
 	locals = nil
 	fparams = nil
 	return r
 }
 
 func read_decl_or_func_def() *Ast {
-	return read_func_def()
+	tok := peek_token()
+	if tok == nil {
+		return nil
+	}
+	ctype := read_decl_spec()
+	name := read_token()
+	if name.typ != TTYPE_IDENT {
+		_error("Identifier name expected, but got %s", name)
+	}
+	tok = peek_token()
+	if is_punct(tok, '(') {
+		return read_func_def(ctype, name.v.sval)
+	}
+	return nil
 }
 
 func read_func_list() []*Ast {

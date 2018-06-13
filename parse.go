@@ -775,14 +775,17 @@ func read_decl_or_func_def() *Ast {
 	}
 	ctype = read_array_dimensions(ctype)
 	tok = peek_token()
-	if is_punct(tok, '=') {
-		return nil; // decl init
+	if is_punct(tok, '=') || ctype.typ == CTYPE_ARRAY {
+		gvar := ast_gvar(ctype, name.v.sval, false)
+		return read_decl_init(gvar);
 	}
 	if is_punct(tok, '(') {
 		return read_func_def(ctype, name.v.sval)
 	}
 	if is_punct(tok,';') {
-		return nil; // decl
+		read_token()
+		gvar := ast_gvar(ctype, name.v.sval, false)
+		return ast_decl(gvar, nil)
 	}
 	_error("Don't know how to handle %s", tok)
 	return nil

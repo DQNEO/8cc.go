@@ -57,6 +57,9 @@ func isalnum(c byte) bool {
 }
 
 func strcmp(a Cstring, b Cstring) int {
+	if strlen(a) != strlen(b) {
+		return -1
+	}
 	for i := 0; i < len(a); i++ {
 		if a[i] != b[i] {
 			return -1
@@ -69,6 +72,9 @@ func strcmp(a Cstring, b Cstring) int {
 }
 
 func strlen(str Cstring) int {
+	if len(str) == 0 {
+		return 0
+	}
 	var i int
 	for i = 0; str[i] != 0; i++ {
 

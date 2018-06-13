@@ -523,7 +523,7 @@ func read_decl_spec() *Ctype {
 	return ctype
 }
 
-func read_decl_array_init(v *Ast) *Ast {
+func read_decl_init_val(v *Ast) *Ast {
 	var init *Ast
 	if v.ctype.typ == CTYPE_ARRAY {
 		init = read_decl_array_init_int(v.ctype)
@@ -598,7 +598,7 @@ func read_decl() *Ast {
 	variable := ast_lvar(ctype, varname.v.sval)
 	tok := read_token()
 	if is_punct(tok,'=') {
-		return read_decl_array_init(variable);
+		return read_decl_init_val(variable);
 	}
 	unget_token(tok)
 	expect(';')

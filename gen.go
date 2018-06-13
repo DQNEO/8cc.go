@@ -348,9 +348,12 @@ func emit_data_section() {
 	}
 	emit(".data")
 	for _, v := range globals {
-		assert(v.typ == AST_STRING)
-		emit("%s:", v.str.slabel)
-		emit(".string \"%s\"", quote_cstring(v.str.val))
+		if v.typ == AST_STRING {
+			emit("%s:", v.str.slabel)
+			emit(".string \"%s\"", quote_cstring(v.str.val))
+		} else if v.typ  != AST_GVAR {
+			_error("internal error: %s", v)
+		}
 	}
 }
 

@@ -874,9 +874,15 @@ func (ast *Ast) String() string {
 		s += ast.fnc.body.String()
 		return s
 	case AST_DECL:
+		var vname Cstring
+		if ast.decl.declvar.typ == AST_GVAR {
+			vname = ast.decl.declvar.gvar.gname
+		} else {
+			vname = ast.decl.declvar.variable.lname
+		}
 		s := fmt.Sprintf("(decl %s %s",
 			ast.decl.declvar.ctype,
-			ast.decl.declvar.variable.lname)
+			vname)
 		if ast.decl.declinit != nil {
 			s += fmt.Sprintf(" %s", ast.decl.declinit)
 		}

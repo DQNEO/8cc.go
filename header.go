@@ -75,11 +75,6 @@ type Ast struct {
 		gname  Cstring
 		glabel Cstring
 	}
-	// Global reference
-	gref struct {
-		ref *Ast
-		off int
-	}
 	// Binary operator
 	binop struct {
 		left  *Ast

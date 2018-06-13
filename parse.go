@@ -65,7 +65,7 @@ func ast_lvar(ctype *Ctype, name Cstring) *Ast {
 	r := &Ast{}
 	r.typ = AST_LVAR
 	r.ctype = ctype
-	r.variable.lname = name
+	r.variable.varname = name
 	if locals != nil {
 		locals = append(locals, r)
 	}
@@ -76,11 +76,11 @@ func ast_gvar(ctype *Ctype, name Cstring, filelocal bool) *Ast {
 	r := &Ast{}
 	r.typ = AST_GVAR
 	r.ctype = ctype
-	r.gvar.gname = name
+	r.variable.varname = name
 	if filelocal {
-		r.gvar.glabel = make_label()
+		r.variable.glabel = make_label()
 	} else {
-		r.gvar.glabel = name
+		r.variable.glabel = name
 	}
 	globals = append(globals, r)
 	return r
@@ -187,19 +187,19 @@ func make_array_type(ctype *Ctype, size int) *Ctype {
 
 func find_var(name Cstring) *Ast {
 	for _, v := range fparams {
-		if strcmp(name, v.variable.lname) == 0 {
+		if strcmp(name, v.variable.varname) == 0 {
 			return v
 		}
 	}
 
 	for _, v := range locals {
-		if strcmp(name, v.variable.lname) == 0 {
+		if strcmp(name, v.variable.varname) == 0 {
 			return v
 		}
 	}
 
 	for _, v := range globals {
-		if strcmp(name, v.gvar.gname) == 0 {
+		if strcmp(name, v.variable.varname) == 0 {
 			return v
 		}
 	}
@@ -847,9 +847,9 @@ func (ast *Ast) String() string {
 	case AST_STRING:
 		return fmt.Sprintf("\"%s\"", quote_cstring(ast.str.val))
 	case AST_LVAR:
-		return fmt.Sprintf("%s", ast.variable.lname)
+		return fmt.Sprintf("%s", ast.variable.varname)
 	case AST_GVAR:
-		return fmt.Sprintf("%s", ast.gvar.gname)
+		return fmt.Sprintf("%s", ast.variable.varname)
 	case AST_FUNCALL:
 		s := fmt.Sprintf("(%s)%s(", ast.ctype, ast.fnc.fname)
 		for i, v := range ast.fnc.args {
@@ -876,9 +876,9 @@ func (ast *Ast) String() string {
 	case AST_DECL:
 		var vname Cstring
 		if ast.decl.declvar.typ == AST_GVAR {
-			vname = ast.decl.declvar.gvar.gname
+			vname = ast.decl.declvar.variable.varname
 		} else {
-			vname = ast.decl.declvar.variable.lname
+			vname = ast.decl.declvar.variable.varname
 		}
 		s := fmt.Sprintf("(decl %s %s",
 			ast.decl.declvar.ctype,

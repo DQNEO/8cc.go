@@ -78,7 +78,7 @@ func emit_gsave(v *Ast) {
 	default:
 		_error("Unknown data size: %s: %d", v, size)
 	}
-	emit("mov %%%s, %s(%%rip)", reg, v.gvar.gname)
+	emit("mov %%%s, %s(%%rip)", reg, v.variable.varname)
 }
 
 func emit_lsave(ctype *Ctype, loff int, off int) {
@@ -223,7 +223,7 @@ func emit_expr(ast *Ast) {
 	case AST_LVAR:
 		emit_lload(ast)
 	case AST_GVAR:
-		emit_gload(ast.ctype, ast.gvar.glabel)
+		emit_gload(ast.ctype, ast.variable.glabel)
 	case AST_FUNCALL:
 		for i := 1; i < len(ast.fnc.args); i++ {
 			emit("push %%%s", REGS[i])
@@ -412,8 +412,8 @@ func emit_data_int(data *Ast) {
 }
 
 func emit_data(v *Ast) {
-	emit_label(".global %s", v.decl.declvar.gvar.gname)
-	emit_label("%s:", v.decl.declvar.gvar.gname)
+	emit_label(".global %s", v.decl.declvar.variable.varname)
+	emit_label("%s:", v.decl.declvar.variable.varname)
 	if v.decl.declinit.typ == AST_ARRAY_INIT {
 		for _, v := range v.decl.declinit.array_initializer.arrayinit {
 			emit_data_int(v)
@@ -425,7 +425,7 @@ func emit_data(v *Ast) {
 }
 
 func emit_bss(v *Ast) {
-	emit(".lcomm %s, %d", v.decl.declvar.gvar.gname, ctype_size(v.decl.declvar.ctype))
+	emit(".lcomm %s, %d", v.decl.declvar.variable.varname, ctype_size(v.decl.declvar.ctype))
 }
 
 func emit_global_var(v *Ast) {

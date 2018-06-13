@@ -65,14 +65,10 @@ type Ast struct {
 		val    Cstring
 		slabel Cstring
 	}
-	// Local variable
+	// Global/local variable
 	variable struct {
-		lname Cstring
-		loff  int
-	}
-	// Global variable
-	gvar struct {
-		gname  Cstring
+		varname Cstring
+		loff    int
 		glabel Cstring
 	}
 	// Binary operator

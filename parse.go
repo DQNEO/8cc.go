@@ -540,11 +540,10 @@ func read_decl_init_val(v *Ast) *Ast {
 		}
 		expect(';')
 		return ast_decl(v, init)
-	} else {
-		init := read_expr(0)
-		expect(';')
-		return ast_decl(v, init)
 	}
+	init := read_expr(0)
+	expect(';')
+	return ast_decl(v, init)
 }
 
 func check_intexp(ast *Ast) {

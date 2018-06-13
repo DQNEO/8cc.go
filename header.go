@@ -65,7 +65,7 @@ type Ast struct {
 		val    Cstring
 		slabel Cstring
 	}
-	// Global/local variable
+	// Local/Global variable
 	variable struct {
 		varname Cstring
 		loff    int

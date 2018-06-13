@@ -199,7 +199,7 @@ func find_var(name Cstring) *Ast {
 	}
 
 	for _, v := range globals {
-		if strcmp(name, v.variable.lname) == 0 {
+		if strcmp(name, v.gvar.gname) == 0 {
 			return v
 		}
 	}

@@ -42,7 +42,6 @@ func emit_gload(ctype *Ctype, label Cstring) {
 	}
 
 	emit("mov %s(%%rip), %%%s", label, reg)
-	emit("mov (%%rax), %%%s", reg)
 }
 
 func emit_lload(v *Ast) {
@@ -67,8 +66,6 @@ func emit_lload(v *Ast) {
 func emit_gsave(v *Ast) {
 	assert(v.ctype.typ != CTYPE_ARRAY)
 	var reg string
-	emit("push %%rcx")
-	emit("mov %s(%%rip) %%rcx", v.gvar.glabel)
 
 	size := ctype_size(v.ctype)
 	switch size {
@@ -81,8 +78,7 @@ func emit_gsave(v *Ast) {
 	default:
 		_error("Unknown data size: %s: %d", v, size)
 	}
-	emit("mov %s, (%%rbp)", reg)
-	emit("pop %%rcx")
+	emit("mov %%%s, %s(%%rip)", reg, v.gvar.gname)
 }
 
 func emit_lsave(ctype *Ctype, loff int, off int) {
@@ -397,12 +393,57 @@ func emit_func_epilogue() {
 	emit("ret")
 }
 
-func emit_toplevel(fnc *Ast) {
-	if fnc.typ == AST_FUNC {
-		emit_func_prologue(fnc)
-		emit_expr(fnc.fnc.body)
-		emit_func_epilogue()
-	} else {
+func emit_label(fmt string, args ...interface{}) {
+	emit(fmt, args...)
+}
 
+func emit_data_int(data *Ast) {
+	assert(data.ctype.typ != CTYPE_ARRAY)
+	switch ctype_size(data.ctype) {
+	case 1:
+		emit(".byte %d", data.ival)
+	case 4:
+		emit(".long %d", data.ival)
+	case 8:
+		emit(".quad %d", data.ival)
+	default:
+		_error("internal error")
+	}
+}
+
+func emit_data(v *Ast) {
+	emit_label(".global %s", v.decl.declvar.gvar.gname)
+	emit_label("%s:", v.decl.declvar.gvar.gname)
+	if v.decl.declinit.typ == AST_ARRAY_INIT {
+		for _, v := range v.decl.declinit.array_initializer.arrayinit {
+			emit_data_int(v)
+		}
+		return
+	}
+	assert(v.decl.declinit.typ == AST_LITERAL && v.decl.declinit.ctype.typ == CTYPE_INT)
+	emit_data_int(v.decl.declinit)
+}
+
+func emit_bss(v *Ast) {
+	emit(".lcomm %s, %d", v.decl.declvar.gvar.gname, ctype_size(v.decl.declvar.ctype))
+}
+
+func emit_global_var(v *Ast) {
+	if v.decl.declinit != nil {
+		emit_data(v)
+	} else {
+		emit_bss(v)
+	}
+}
+
+func emit_toplevel(v *Ast) {
+	if v.typ == AST_FUNC {
+		emit_func_prologue(v)
+		emit_expr(v.fnc.body)
+		emit_func_epilogue()
+	} else if v.typ == AST_DECL {
+		emit_global_var(v)
+	} else {
+		_error("internal error")
 	}
 }

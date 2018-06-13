@@ -543,6 +543,9 @@ func read_decl_init_val(v *Ast) *Ast {
 	}
 	init := read_expr(0)
 	expect(';')
+	if v.typ == AST_GVAR {
+		check_intexp(init)
+	}
 	return ast_decl(v, init)
 }
 

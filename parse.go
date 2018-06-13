@@ -588,6 +588,16 @@ func read_array_dimensions(basetype *Ctype) *Ctype {
 	return ctype
 }
 
+func read_decl_init(variable *Ast ) *Ast {
+	tok := read_token()
+	if is_punct(tok,'=') {
+		return read_decl_init_val(variable);
+	}
+	unget_token(tok)
+	expect(';')
+	return ast_decl(variable, nil)
+}
+
 func read_decl() *Ast {
 	ctype := read_decl_spec()
 	varname := read_token()
@@ -596,13 +606,7 @@ func read_decl() *Ast {
 	}
 	ctype = read_array_dimensions(ctype)
 	variable := ast_lvar(ctype, varname.v.sval)
-	tok := read_token()
-	if is_punct(tok,'=') {
-		return read_decl_init_val(variable);
-	}
-	unget_token(tok)
-	expect(';')
-	return ast_decl(variable, nil)
+	return read_decl_init(variable)
 }
 
 func read_if_stmt() *Ast {

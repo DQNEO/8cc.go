@@ -765,10 +765,18 @@ func read_decl_or_func_def() *Ast {
 	if name.typ != TTYPE_IDENT {
 		_error("Identifier name expected, but got %s", name)
 	}
+	ctype = read_array_dimensions(ctype)
 	tok = peek_token()
+	if is_punct(tok, '=') {
+		return nil; // decl init
+	}
 	if is_punct(tok, '(') {
 		return read_func_def(ctype, name.v.sval)
 	}
+	if is_punct(tok,';') {
+		return nil; // decl
+	}
+	_error("Don't know how to handle")
 	return nil
 }
 

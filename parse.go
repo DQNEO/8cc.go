@@ -784,7 +784,7 @@ func read_decl_or_func_def() *Ast {
 	if is_punct(tok,';') {
 		return nil; // decl
 	}
-	_error("Don't know how to handle")
+	_error("Don't know how to handle %s", tok)
 	return nil
 }
 

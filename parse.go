@@ -546,6 +546,12 @@ func read_decl_array_init(v *Ast) *Ast {
 	return ast_decl(v, init)
 }
 
+func check_intexp(ast *Ast) {
+	if ast.typ != AST_LITERAL || ast.ctype.typ != CTYPE_INT {
+		_error("Integer expected, but got %s", ast)
+	}
+}
+
 func read_array_dimensions_int() *Ctype {
 	tok := read_token()
 	if !is_punct(tok, '[') {
@@ -556,9 +562,7 @@ func read_array_dimensions_int() *Ctype {
 	tok = peek_token()
 	if !is_punct(tok, ']') {
 		size := read_expr(0)
-		if size.typ != AST_LITERAL || size.ctype.typ != CTYPE_INT {
-			_error("Integer expected, but got %s", size)
-		}
+		check_intexp(size)
 		dim = size.ival
 	}
 	expect(']')

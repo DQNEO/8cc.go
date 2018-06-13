@@ -524,9 +524,8 @@ func read_decl_spec() *Ctype {
 }
 
 func read_decl_init_val(v *Ast) *Ast {
-	var init *Ast
 	if v.ctype.typ == CTYPE_ARRAY {
-		init = read_decl_array_init_int(v.ctype)
+		init := read_decl_array_init_int(v.ctype)
 		var length int
 		if init.typ == AST_STRING {
 			length = strlen(init.str.val) + 1
@@ -539,11 +538,13 @@ func read_decl_init_val(v *Ast) *Ast {
 			_error("Invalid array initializer: expected %d items but got %d",
 				v.ctype.size, length)
 		}
+		expect(';')
+		return ast_decl(v, init)
 	} else {
-		init = read_expr(0)
+		init := read_expr(0)
+		expect(';')
+		return ast_decl(v, init)
 	}
-	expect(';')
-	return ast_decl(v, init)
 }
 
 func check_intexp(ast *Ast) {

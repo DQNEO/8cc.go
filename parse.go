@@ -757,11 +757,12 @@ func read_params() []*Ast {
 
 func read_func_def(rettype *Ctype, fname []byte) *Ast {
 	expect('(')
-	fparams = read_params()
+	params := read_params()
 	expect('{')
 	localvars = make([]*Ast, 0)
+	fparams = params
 	body := read_compound_stmt()
-	r := ast_func(rettype, fname, fparams, localvars, body)
+	r := ast_func(rettype, fname, params, localvars, body)
 	localvars = nil
 	fparams = nil
 	return r

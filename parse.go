@@ -92,7 +92,6 @@ func ast_string(str Cstring) *Ast {
 	r.ctype = make_array_type(ctype_char, strlen(str)+1)
 	r.str.val = str
 	r.str.slabel = make_label()
-	globals = append(globals, r)
 	return r
 }
 
@@ -287,7 +286,9 @@ func read_prim() *Ast {
 	case TTYPE_CHAR:
 		return ast_char(tk.v.c)
 	case TTYPE_STRING:
-		return ast_string(tk.v.sval)
+		r := ast_string(tk.v.sval)
+		globals = append(globals, r)
+		return r
 	case TTYPE_PUNCT:
 		_error("unexpected character: '%c'", tk.v.punct)
 	default:

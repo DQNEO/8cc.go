@@ -8,12 +8,19 @@ import (
 const MAX_ARGS = 6
 
 var globalenv = &EMPTY_ENV
-var fparams []*Ast
+var localenv *Env
 var localvars []*Ast
 var labelseq = 0
 
 var ctype_int = &Ctype{CTYPE_INT, nil, 0}
 var ctype_char = &Ctype{CTYPE_CHAR, nil, 0}
+
+func make_env(next *Env) *Env {
+	r := &Env{}
+	r.next = next
+	r.vars = make([]*Ast, 0)
+	return r
+}
 
 func env_append(env *Env, v *Ast) {
 	assert(v.typ == AST_LVAR || v.typ == AST_GVAR || v.typ == AST_STRING)
@@ -71,6 +78,7 @@ func ast_lvar(ctype *Ctype, name Cstring) *Ast {
 	r.typ = AST_LVAR
 	r.ctype = ctype
 	r.variable.varname = name
+	env_append(localenv, r)
 	if localvars != nil {
 		localvars = append(localvars, r)
 	}
@@ -191,24 +199,13 @@ func make_array_type(ctype *Ctype, size int) *Ctype {
 }
 
 func find_var(name Cstring) *Ast {
-	for _, v := range fparams {
-		if strcmp(name, v.variable.varname) == 0 {
-			return v
+	for p := localenv; p != nil; p = p.next {
+		for _, v := range p.vars {
+			if strcmp(name, v.variable.varname) == 0 {
+				return v
+			}
 		}
 	}
-
-	for _, v := range localvars {
-		if strcmp(name, v.variable.varname) == 0 {
-			return v
-		}
-	}
-
-	for _, v := range globalenv.vars {
-		if strcmp(name, v.variable.varname) == 0 {
-			return v
-		}
-	}
-
 	return nil
 }
 
@@ -655,6 +652,7 @@ func read_opt_expr() *Ast {
 
 func read_for_stmt() *Ast {
 	expect('(')
+	localenv = make_env(localenv)
 	init := read_opt_decl_or_stmt()
 	cond := read_opt_expr()
 	var step *Ast
@@ -665,6 +663,7 @@ func read_for_stmt() *Ast {
 	}
 	expect(')')
 	body := read_stmt()
+	localenv = localenv.next
 	return ast_for(init, cond, step, body)
 }
 
@@ -712,6 +711,7 @@ func read_decl_or_stmt() *Ast {
 }
 
 func read_compound_stmt() *Ast {
+	localenv = make_env(localenv)
 	var list []*Ast
 
 	for {
@@ -728,7 +728,7 @@ func read_compound_stmt() *Ast {
 		}
 		unget_token(tok)
 	}
-
+	localenv = localenv.next
 	return ast_compound_stmt(list)
 }
 
@@ -763,14 +763,14 @@ func read_params() []*Ast {
 
 func read_func_def(rettype *Ctype, fname []byte) *Ast {
 	expect('(')
+	localenv = make_env(globalenv)
 	params := read_params()
 	expect('{')
+	localenv = make_env(localenv)
 	localvars = make([]*Ast, 0)
-	fparams = params
 	body := read_compound_stmt()
 	r := ast_func(rettype, fname, params, localvars, body)
 	localvars = nil
-	fparams = nil
 	return r
 }
 

@@ -117,3 +117,10 @@ type Ast struct {
 		stmts []*Ast
 	}
 }
+
+type Env struct {
+	vars []*Ast
+	next *Env
+}
+
+var EMPTY_ENV = Env{}

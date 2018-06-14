@@ -7,7 +7,7 @@ import (
 
 const MAX_ARGS = 6
 
-var globals []*Ast
+var globalenv = &EMPTY_ENV
 var fparams []*Ast
 var localvars []*Ast
 var labelseq = 0
@@ -82,7 +82,7 @@ func ast_gvar(ctype *Ctype, name Cstring, filelocal bool) *Ast {
 	} else {
 		r.variable.glabel = name
 	}
-	globals = append(globals, r)
+	globalenv.vars = append(globalenv.vars, r)
 	return r
 }
 
@@ -197,7 +197,7 @@ func find_var(name Cstring) *Ast {
 		}
 	}
 
-	for _, v := range globals {
+	for _, v := range globalenv.vars {
 		if strcmp(name, v.variable.varname) == 0 {
 			return v
 		}
@@ -287,7 +287,7 @@ func read_prim() *Ast {
 		return ast_char(tk.v.c)
 	case TTYPE_STRING:
 		r := ast_string(tk.v.sval)
-		globals = append(globals, r)
+		globalenv.vars = append(globalenv.vars, r)
 		return r
 	case TTYPE_PUNCT:
 		_error("unexpected character: '%c'", tk.v.punct)

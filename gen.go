@@ -339,11 +339,11 @@ func emit_expr(ast *Ast) {
 }
 
 func emit_data_section() {
-	if globals == nil {
+	if len(globalenv.vars) == 0 {
 		return
 	}
 	emit(".data")
-	for _, v := range globals {
+	for _, v := range globalenv.vars {
 		if v.typ == AST_STRING {
 			emit("%s:", v.str.slabel)
 			emit(".string \"%s\"", quote_cstring(v.str.val))

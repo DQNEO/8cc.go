@@ -69,7 +69,7 @@ type Ast struct {
 	variable struct {
 		varname Cstring
 		loff    int
-		glabel Cstring
+		glabel  Cstring
 	}
 	// Binary operator
 	binop struct {
@@ -110,7 +110,7 @@ type Ast struct {
 		step *Ast
 		body *Ast
 	}
-	_return  struct {
+	_return struct {
 		retval *Ast
 	}
 	compound struct {

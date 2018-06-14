@@ -128,7 +128,7 @@ func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
 }
 
 func emit_assign(variable *Ast) {
-    if variable.typ == AST_DEREF {
+	if variable.typ == AST_DEREF {
 		emit_assign_deref(variable)
 		return
 	}
@@ -347,7 +347,7 @@ func emit_data_section() {
 		if v.typ == AST_STRING {
 			emit("%s:", v.str.slabel)
 			emit(".string \"%s\"", quote_cstring(v.str.val))
-		} else if v.typ  != AST_GVAR {
+		} else if v.typ != AST_GVAR {
 			_error("internal error: %s", v)
 		}
 	}

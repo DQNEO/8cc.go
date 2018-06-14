@@ -178,7 +178,7 @@ func ast_return(retval *Ast) *Ast {
 func ast_compound_stmt(stmts []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_COMPOUND_STMT
-	r.ctype = nil;
+	r.ctype = nil
 	r.compound.stmts = stmts
 	return r
 }
@@ -211,7 +211,7 @@ func find_var(name Cstring) *Ast {
 
 func ensure_lvalue(ast *Ast) {
 	switch ast.typ {
-	case AST_LVAR, AST_GVAR,AST_DEREF:
+	case AST_LVAR, AST_GVAR, AST_DEREF:
 		return
 	}
 	_error("lvalue expected, but got %s", ast)
@@ -228,9 +228,9 @@ func priority(tok *Token) int {
 		return 1
 	case PUNCT_EQ:
 		return 2
-	case '<','>':
+	case '<', '>':
 		return 3
-	case '+','-':
+	case '+', '-':
 		return 4
 	case '*', '/':
 		return 5
@@ -355,14 +355,14 @@ func read_subscript_expr(ast *Ast) *Ast {
 
 func read_postfix_expr() *Ast {
 	r := read_prim()
-	for  {
+	for {
 		tok := read_token()
 		if tok == nil {
 			return r
 		}
 		if is_punct(tok, '[') {
 			r = read_subscript_expr(r)
-		} else if is_punct(tok, PUNCT_INC) || is_punct(tok, PUNCT_DEC)  {
+		} else if is_punct(tok, PUNCT_INC) || is_punct(tok, PUNCT_DEC) {
 			ensure_lvalue(r)
 			r = ast_uop(tok.v.punct, r.ctype, r)
 		} else {
@@ -563,7 +563,7 @@ func read_array_dimensions_int() *Ctype {
 	tok := read_token()
 	if !is_punct(tok, '[') {
 		unget_token(tok)
-		return nil;
+		return nil
 	}
 	dim := -1
 	tok = peek_token()
@@ -581,7 +581,7 @@ func read_array_dimensions_int() *Ctype {
 		return make_array_type(sub, dim)
 	}
 
-	return  make_array_type(nil, dim)
+	return make_array_type(nil, dim)
 }
 
 func read_array_dimensions(basetype *Ctype) *Ctype {
@@ -590,15 +590,16 @@ func read_array_dimensions(basetype *Ctype) *Ctype {
 		return basetype
 	}
 	p := ctype
-	for ; p.ptr != nil; p = p.ptr {}
+	for ; p.ptr != nil; p = p.ptr {
+	}
 	p.ptr = basetype
 	return ctype
 }
 
-func read_decl_init(variable *Ast ) *Ast {
+func read_decl_init(variable *Ast) *Ast {
 	tok := read_token()
-	if is_punct(tok,'=') {
-		return read_decl_init_val(variable);
+	if is_punct(tok, '=') {
+		return read_decl_init_val(variable)
 	}
 	unget_token(tok)
 	expect(';')
@@ -626,7 +627,7 @@ func read_if_stmt() *Ast {
 		unget_token(tok)
 		return ast_if(cond, then, nil)
 	}
-	els := read_stmt();
+	els := read_stmt()
 	return ast_if(cond, then, els)
 }
 
@@ -683,13 +684,13 @@ func read_stmt() *Ast {
 		return read_if_stmt()
 	}
 	if is_ident(tok, "for") {
-		return read_for_stmt();
+		return read_for_stmt()
 	}
 	if is_ident(tok, "return") {
-		return read_return_stmt();
+		return read_return_stmt()
 	}
 	if is_punct(tok, '{') {
-		return read_compound_stmt();
+		return read_compound_stmt()
 	}
 	unget_token(tok)
 	r := read_expr(0)
@@ -788,12 +789,12 @@ func read_decl_or_func_def() *Ast {
 	tok = peek_token()
 	if is_punct(tok, '=') || ctype.typ == CTYPE_ARRAY {
 		gvar := ast_gvar(ctype, name.v.sval, false)
-		return read_decl_init(gvar);
+		return read_decl_init(gvar)
 	}
 	if is_punct(tok, '(') {
 		return read_func_def(ctype, name.v.sval)
 	}
-	if is_punct(tok,';') {
+	if is_punct(tok, ';') {
 		read_token()
 		gvar := ast_gvar(ctype, name.v.sval, false)
 		return ast_decl(gvar, nil)

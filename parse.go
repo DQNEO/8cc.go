@@ -9,7 +9,7 @@ const MAX_ARGS = 6
 
 var globals []*Ast
 var fparams []*Ast
-var locals []*Ast
+var localvars []*Ast
 var labelseq = 0
 
 var ctype_int = &Ctype{CTYPE_INT, nil, 0}
@@ -66,8 +66,8 @@ func ast_lvar(ctype *Ctype, name Cstring) *Ast {
 	r.typ = AST_LVAR
 	r.ctype = ctype
 	r.variable.varname = name
-	if locals != nil {
-		locals = append(locals, r)
+	if localvars != nil {
+		localvars = append(localvars, r)
 	}
 	return r
 }
@@ -105,13 +105,13 @@ func ast_funcall(ctype *Ctype, fname Cstring, args []*Ast) *Ast {
 	return r
 }
 
-func ast_func(rettype *Ctype, fname Cstring, params []*Ast, locals []*Ast, body *Ast) *Ast {
+func ast_func(rettype *Ctype, fname Cstring, params []*Ast, localvars []*Ast, body *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNC
 	r.ctype = rettype
 	r.fnc.fname = fname
 	r.fnc.params = params
-	r.fnc.localvars = locals
+	r.fnc.localvars = localvars
 	r.fnc.body = body
 	return r
 }
@@ -192,7 +192,7 @@ func find_var(name Cstring) *Ast {
 		}
 	}
 
-	for _, v := range locals {
+	for _, v := range localvars {
 		if strcmp(name, v.variable.varname) == 0 {
 			return v
 		}
@@ -758,10 +758,10 @@ func read_func_def(rettype *Ctype, fname []byte) *Ast {
 	expect('(')
 	fparams = read_params()
 	expect('{')
-	locals = make([]*Ast, 0)
+	localvars = make([]*Ast, 0)
 	body := read_compound_stmt()
-	r := ast_func(rettype, fname, fparams, locals, body)
-	locals = nil
+	r := ast_func(rettype, fname, fparams, localvars, body)
+	localvars = nil
 	fparams = nil
 	return r
 }

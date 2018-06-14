@@ -15,6 +15,11 @@ var labelseq = 0
 var ctype_int = &Ctype{CTYPE_INT, nil, 0}
 var ctype_char = &Ctype{CTYPE_CHAR, nil, 0}
 
+func env_append(env *Env, v *Ast) {
+	assert(v.typ == AST_LVAR || v.typ == AST_GVAR || v.typ == AST_STRING)
+	env.vars = append(env.vars, v)
+}
+
 func ast_uop(typ int, ctype *Ctype, operand *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
@@ -83,6 +88,7 @@ func ast_gvar(ctype *Ctype, name Cstring, filelocal bool) *Ast {
 		r.variable.glabel = name
 	}
 	globalenv.vars = append(globalenv.vars, r)
+	env_append(globalenv, r)
 	return r
 }
 
@@ -287,7 +293,7 @@ func read_prim() *Ast {
 		return ast_char(tk.v.c)
 	case TTYPE_STRING:
 		r := ast_string(tk.v.sval)
-		globalenv.vars = append(globalenv.vars, r)
+		env_append(globalenv, r)
 		return r
 	case TTYPE_PUNCT:
 		_error("unexpected character: '%c'", tk.v.punct)

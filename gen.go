@@ -379,7 +379,7 @@ func emit_func_prologue(fn *Ast) {
 		off += ceil8(ctype_size(v.ctype))
 		v.variable.loff = off
 	}
-	for _, v := range fn.fnc.locals {
+	for _, v := range fn.fnc.localvars {
 		off += ceil8(ctype_size(v.ctype))
 		v.variable.loff = off
 	}

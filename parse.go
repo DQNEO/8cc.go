@@ -111,7 +111,7 @@ func ast_func(rettype *Ctype, fname Cstring, params []*Ast, locals []*Ast, body 
 	r.ctype = rettype
 	r.fnc.fname = fname
 	r.fnc.params = params
-	r.fnc.locals = locals
+	r.fnc.localvars = locals
 	r.fnc.body = body
 	return r
 }

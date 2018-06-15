@@ -261,7 +261,7 @@ func read_func_args(fname Cstring) *Ast {
 			break
 		}
 		unget_token(tok)
-		args = append(args, read_expr(0))
+		args = append(args, read_expr())
 		tok = read_token()
 		if is_punct(tok, ')') {
 			break
@@ -365,7 +365,7 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 }
 
 func read_subscript_expr(ast *Ast) *Ast {
-	sub := read_expr(0)
+	sub := read_expr()
 	expect(']')
 	t := ast_binop('+', ast, sub)
 	return ast_uop(AST_DEREF, t.ctype.ptr, t)
@@ -413,7 +413,7 @@ func read_unary_expr() *Ast {
 		return read_postfix_expr()
 	}
 	if is_punct(tok, '(') {
-		r := read_expr(0)
+		r := read_expr()
 		expect(')')
 		return r
 	}
@@ -445,7 +445,7 @@ func read_cond_expr(cond *Ast) *Ast {
 	return ast_ternary(then.ctype, cond, then, els)
 }
 
-func read_expr(prec int) *Ast {
+func read_expr_int(prec int) *Ast {
 	ast := read_unary_expr()
 	if ast == nil {
 		return nil
@@ -475,11 +475,15 @@ func read_expr(prec int) *Ast {
 		} else {
 			prec_incr = 1
 		}
-		rest := read_expr(prec2 + prec_incr)
+		rest := read_expr_int(prec2 + prec_incr)
 		ast = ast_binop(tok.v.punct, ast, rest)
 
 	}
 	return ast
+}
+
+func read_expr() *Ast {
+	return read_expr_int(0)
 }
 
 func get_ctype(tok *Token) *Ctype {
@@ -527,7 +531,7 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 			break
 		}
 		unget_token(tok)
-		init := read_expr(0)
+		init := read_expr()
 		initlist = append(initlist, init)
 		result_type('=', init.ctype, ctype.ptr)
 		tok = read_token()
@@ -575,7 +579,7 @@ func read_decl_init_val(v *Ast) *Ast {
 		expect(';')
 		return ast_decl(v, init)
 	}
-	init := read_expr(0)
+	init := read_expr()
 	expect(';')
 	if v.typ == AST_GVAR {
 		check_intexp(init)
@@ -598,7 +602,7 @@ func read_array_dimensions_int() *Ctype {
 	dim := -1
 	tok = peek_token()
 	if !is_punct(tok, ']') {
-		size := read_expr(0)
+		size := read_expr()
 		check_intexp(size)
 		dim = size.ival
 	}
@@ -649,7 +653,7 @@ func read_decl() *Ast {
 
 func read_if_stmt() *Ast {
 	expect('(')
-	cond := read_expr(0)
+	cond := read_expr()
 	expect(')')
 	then := read_stmt()
 	tok := read_token()
@@ -676,7 +680,7 @@ func read_opt_expr() *Ast {
 		return nil
 	}
 	unget_token(tok)
-	r := read_expr(0)
+	r := read_expr()
 	expect(';')
 	return r
 }
@@ -690,7 +694,7 @@ func read_for_stmt() *Ast {
 	if is_punct(peek_token(), ')') {
 		step = nil
 	} else {
-		step = read_expr(0)
+		step = read_expr()
 	}
 	expect(')')
 	body := read_stmt()
@@ -699,7 +703,7 @@ func read_for_stmt() *Ast {
 }
 
 func read_return_stmt() *Ast {
-	retval := read_expr(0)
+	retval := read_expr()
 	expect(';')
 	return ast_return(retval)
 }
@@ -723,7 +727,7 @@ func read_stmt() *Ast {
 		return read_compound_stmt()
 	}
 	unget_token(tok)
-	r := read_expr(0)
+	r := read_expr()
 	expect(';')
 	return r
 }

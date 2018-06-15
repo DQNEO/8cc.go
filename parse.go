@@ -842,6 +842,9 @@ func read_func_list() []*Ast {
 }
 
 func (ctype *Ctype) String() string {
+	if ctype == nil {
+		return "(nil)"
+	}
 	switch ctype.typ {
 	case CTYPE_VOID:
 		return "void"

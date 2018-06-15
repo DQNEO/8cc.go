@@ -235,19 +235,19 @@ func is_right_assoc(tok *Token) bool {
 func priority(tok *Token) int {
 	switch tok.v.punct {
 	case '=':
-		return 1
+		return 14
 	case PUNCT_EQ:
-		return 2
+		return 13
 	case '<', '>':
-		return 3
-	case '+', '-':
-		return 4
-	case '*', '/':
-		return 5
-	case '?':
-		return 6
-	case PUNCT_LOGAND, PUNCT_LOGOR:
 		return 12
+	case '+', '-':
+		return 11
+	case '*', '/':
+		return 10
+	case '?':
+		return 9
+	case PUNCT_LOGAND, PUNCT_LOGOR:
+		return 8
 	default:
 		return -1
 	}
@@ -457,7 +457,7 @@ func read_expr_int(prec int) *Ast {
 			return ast
 		}
 		prec2 := priority(tok)
-		if prec2 < 0 || prec2 < prec {
+		if prec2 < 0 || prec <= prec2 {
 			unget_token(tok)
 			return ast
 		}
@@ -471,9 +471,9 @@ func read_expr_int(prec int) *Ast {
 		}
 		var prec_incr int
 		if is_right_assoc(tok) {
-			prec_incr = 0
-		} else {
 			prec_incr = 1
+		} else {
+			prec_incr = 0
 		}
 		rest := read_expr_int(prec2 + prec_incr)
 		ast = ast_binop(tok.v.punct, ast, rest)
@@ -483,7 +483,7 @@ func read_expr_int(prec int) *Ast {
 }
 
 func read_expr() *Ast {
-	return read_expr_int(0)
+	return read_expr_int(16)
 }
 
 func get_ctype(tok *Token) *Ctype {

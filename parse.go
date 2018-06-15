@@ -6,6 +6,7 @@ import (
 )
 
 const MAX_ARGS = 6
+const MAX_OP_PRIO = 16
 
 var globalenv = &EMPTY_ENV
 var localenv *Env
@@ -487,7 +488,7 @@ func read_expr_int(prec int) *Ast {
 }
 
 func read_expr() *Ast {
-	return read_expr_int(16)
+	return read_expr_int(MAX_OP_PRIO)
 }
 
 func get_ctype(tok *Token) *Ctype {

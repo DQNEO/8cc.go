@@ -172,13 +172,20 @@ func read_token_init() *Token {
 		c == '<' || c == '>' || c == '!' ||
 		c == '?' || c == ':':
 		return make_punct(c)
-	case c == '=': return read_rep(int('='), int('='), PUNCT_EQ)
-	case c == '+': return read_rep(int('+'), int('+'), PUNCT_INC)
-	case c == '-': return read_rep(int('-'), int('-'), PUNCT_DEC)
-	case c == '&': return read_rep(int('&'), int('&'), PUNCT_LOGAND)
-	case c == '|': return read_rep(int('|'), int('|'), PUNCT_LOGOR)
-	case c == '"': return read_string()
-	case c == '\'': return read_char()
+	case c == '=':
+		return read_rep(int('='), int('='), PUNCT_EQ)
+	case c == '+':
+		return read_rep(int('+'), int('+'), PUNCT_INC)
+	case c == '-':
+		return read_rep(int('-'), int('-'), PUNCT_DEC)
+	case c == '&':
+		return read_rep(int('&'), int('&'), PUNCT_LOGAND)
+	case c == '|':
+		return read_rep(int('|'), int('|'), PUNCT_LOGOR)
+	case c == '"':
+		return read_string()
+	case c == '\'':
+		return read_char()
 	default:
 		_error("Don't know how to handle '%c'", c)
 	}

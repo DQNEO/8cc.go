@@ -98,7 +98,7 @@ type Ast struct {
 	array_initializer struct {
 		arrayinit []*Ast
 	}
-	// If statement/Tenary Operator
+	// If statement or ternary operator
 	_if struct {
 		cond *Ast
 		then *Ast

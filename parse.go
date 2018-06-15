@@ -245,6 +245,10 @@ func priority(tok *Token) int {
 		return 6
 	case PUNCT_EQ:
 		return 7
+	case '&':
+		return 8
+	case '|':
+		return 9
 	case PUNCT_LOGAND:
 		return 11
 	case PUNCT_LOGOR:

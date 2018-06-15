@@ -234,6 +234,8 @@ func is_right_assoc(tok *Token) bool {
 
 func priority(tok *Token) int {
 	switch tok.v.punct {
+	case PUNCT_INC, PUNCT_DEC:
+		return 2
 	case '*', '/':
 		return 3
 	case '+', '-':

@@ -979,6 +979,10 @@ func (ast *Ast) String() string {
 		return fmt.Sprintf("(++ %s)", ast.unary.operand)
 	case PUNCT_DEC:
 		return fmt.Sprintf("(-- %s)", ast.unary.operand)
+	case PUNCT_LOGAND:
+		return fmt.Sprintf("(and %s %s)", ast.binop.left, ast.binop.right)
+	case PUNCT_LOGOR:
+		return fmt.Sprintf("(or %s %s)", ast.binop.left, ast.binop.right)
 	case '!':
 		return fmt.Sprintf("(! %s)", ast.unary.operand)
 	default:
@@ -987,10 +991,6 @@ func (ast *Ast) String() string {
 		var s string
 		if ast.typ == PUNCT_EQ {
 			s += "(== "
-		} else if ast.typ == PUNCT_LOGAND {
-			s += "(and "
-		} else if ast.typ == PUNCT_LOGOR {
-			s += "(or "
 		} else {
 			s += fmt.Sprintf("(%c ", ast.typ)
 		}

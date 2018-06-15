@@ -432,6 +432,13 @@ func read_unary_expr() *Ast {
 	return read_prim()
 }
 
+func read_cond_expr(cond *Ast) *Ast {
+	then := read_unary_expr()
+	expect(':')
+	els := read_unary_expr()
+	return ast_ternary(then.ctype, cond, then, els)
+}
+
 func read_expr(prec int) *Ast {
 	ast := read_unary_expr()
 	if ast == nil {
@@ -450,10 +457,7 @@ func read_expr(prec int) *Ast {
 		}
 
 		if is_punct(tok, '?') {
-			then := read_unary_expr()
-			expect(':')
-			els := read_unary_expr()
-			ast = ast_ternary(then.ctype, ast, then, els)
+			ast = read_cond_expr(ast)
 			continue;
 		}
 		if is_punct(tok, '=') {

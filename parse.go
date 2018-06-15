@@ -952,7 +952,7 @@ func (ast *Ast) String() string {
 		s += ")"
 		return s
 	case AST_TERNARY:
-		return fmt.Sprintf("(? %s %s $s)",
+		return fmt.Sprintf("(? %s %s %s)",
 			ast._if.cond,
 			ast._if.then,
 			ast._if.els)

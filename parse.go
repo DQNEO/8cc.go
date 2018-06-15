@@ -27,16 +27,6 @@ func env_append(env *Env, v *Ast) {
 	env.vars = append(env.vars, v)
 }
 
-func ast_top(ctype *Ctype, cond *Ast, then *Ast, els *Ast) *Ast {
-	r := &Ast{}
-	r.typ = AST_TERNARY
-	r.ctype = ctype
-	r._if.cond = cond
-	r._if.then = then
-	r._if.els = els
-	return r
-}
-
 func ast_uop(typ int, ctype *Ctype, operand *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
@@ -160,6 +150,16 @@ func ast_if(cond *Ast, then *Ast, els *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_IF
 	r.ctype = nil
+	r._if.cond = cond
+	r._if.then = then
+	r._if.els = els
+	return r
+}
+
+func ast_ternary(ctype *Ctype, cond *Ast, then *Ast, els *Ast) *Ast {
+	r := &Ast{}
+	r.typ = AST_TERNARY
+	r.ctype = ctype
 	r._if.cond = cond
 	r._if.then = then
 	r._if.els = els
@@ -456,7 +456,7 @@ func read_expr(prec int) *Ast {
 			then := read_unary_expr()
 			expect(':')
 			els := read_unary_expr()
-			ast = ast_top(then.ctype, ast, then, els)
+			ast = ast_ternary(then.ctype, ast, then, els)
 		} else {
 			var prec_incr int
 			if is_right_assoc(tok) {

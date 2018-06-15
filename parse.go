@@ -244,7 +244,7 @@ func priority(tok *Token) int {
 		return 4
 	case '*', '/':
 		return 5
-	case ':','?':
+	case '?':
 		return 6
 	default:
 		return -1

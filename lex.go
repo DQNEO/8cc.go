@@ -164,8 +164,6 @@ func read_token_init() *Token {
 	switch {
 	case '0' <= c && c <= '9':
 		return read_number(c)
-	case c == '"': return read_string()
-	case c == '\'': return read_char()
 	case ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_':
 		return read_ident(c)
 	case c == '=': return read_rep(int('='), int('='), PUNCT_EQ)
@@ -173,6 +171,8 @@ func read_token_init() *Token {
 	case c == '-': return read_rep(int('-'), int('-'), PUNCT_DEC)
 	case c == '&': return read_rep(int('&'), int('&'), PUNCT_LOGAND)
 	case c == '|': return read_rep(int('|'), int('|'), PUNCT_LOGOR)
+	case c == '"': return read_string()
+	case c == '\'': return read_char()
 	case c == '/' || c == '*' || c == '(' ||
 		c == ')' || c == ',' || c == ';' ||
 		c == '[' || c == ']' || c == '{' || c == '}' ||

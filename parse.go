@@ -935,11 +935,6 @@ func (ast *Ast) String() string {
 		return fmt.Sprintf("(& %s)", ast.unary.operand)
 	case AST_DEREF:
 		return fmt.Sprintf("(* %s)", ast.unary.operand)
-	case AST_TERNARY:
-		return fmt.Sprintf("(? %s %s $s)",
-			ast._if.cond,
-			ast._if.then,
-			ast._if.els)
 	case AST_IF:
 		s := fmt.Sprintf("(if %s %s",
 			ast._if.cond,
@@ -949,6 +944,11 @@ func (ast *Ast) String() string {
 		}
 		s += ")"
 		return s
+	case AST_TERNARY:
+		return fmt.Sprintf("(? %s %s $s)",
+			ast._if.cond,
+			ast._if.then,
+			ast._if.els)
 	case AST_FOR:
 		s := fmt.Sprintf("(for %s %s %s %s)",
 			ast._for.init,

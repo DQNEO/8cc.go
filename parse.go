@@ -449,24 +449,25 @@ func read_expr(prec int) *Ast {
 			return ast
 		}
 
-		if is_punct(tok, '=') {
-			ensure_lvalue(ast)
-		}
 		if is_punct(tok, '?') {
 			then := read_unary_expr()
 			expect(':')
 			els := read_unary_expr()
 			ast = ast_ternary(then.ctype, ast, then, els)
-		} else {
-			var prec_incr int
-			if is_right_assoc(tok) {
-				prec_incr = 0
-			} else {
-				prec_incr = 1
-			}
-			rest := read_expr(prec2 + prec_incr)
-			ast = ast_binop(tok.v.punct, ast, rest)
+			continue;
 		}
+		if is_punct(tok, '=') {
+			ensure_lvalue(ast)
+		}
+		var prec_incr int
+		if is_right_assoc(tok) {
+			prec_incr = 0
+		} else {
+			prec_incr = 1
+		}
+		rest := read_expr(prec2 + prec_incr)
+		ast = ast_binop(tok.v.punct, ast, rest)
+
 	}
 	return ast
 }

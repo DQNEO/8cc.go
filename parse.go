@@ -867,7 +867,7 @@ type Block []*Ast
 
 func (ast *Ast) String() string {
 	if ast == nil {
-		return "(null)"
+		return "(nil)"
 	}
 	switch ast.typ {
 	case AST_LITERAL:

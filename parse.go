@@ -984,9 +984,11 @@ func (ast *Ast) String() string {
 	case PUNCT_DEC:
 		return fmt.Sprintf("(-- %s)", ast.unary.operand)
 	case PUNCT_LOGAND:
-		return fmt.Sprintf("(and %s %s)", ast.binop.left, ast.binop.right)
+		return fmt.Sprintf("(and %s %s)",
+			ast.binop.left, ast.binop.right)
 	case PUNCT_LOGOR:
-		return fmt.Sprintf("(or %s %s)", ast.binop.left, ast.binop.right)
+		return fmt.Sprintf("(or %s %s)",
+			ast.binop.left, ast.binop.right)
 	case '!':
 		return fmt.Sprintf("(! %s)", ast.unary.operand)
 	default:

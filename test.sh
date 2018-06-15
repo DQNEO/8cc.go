@@ -95,6 +95,8 @@ testast '(int)f(){(! 1);}' '!1;'
 testast '(int)f(){(? 1 2 3);}' '1?2:3;'
 testast '(int)f(){(and 1 2);}' '1&&2;'
 testast '(int)f(){(or 1 2);}' '1||2;'
+testast '(int)f(){(& 1 2);}' '1&2;'
+testast '(int)f(){(| 1 2);}' '1|2;'
 
 testastf '(int)f(int c){c;}' 'int f(int c){c;}'
 testastf '(int)f(int c){c;}(int)g(int d){d;}' 'int f(int c){c;} int g(int d){d;}'
@@ -202,6 +204,10 @@ test 52 '(1-1)?51:52;'
 test 1 '55 && 2;'
 test 0 '55 && 0;'
 test 0 '0 && 55;'
+
+# Bit operators
+test 3 '1|2;'
+test 1 '1&3;'
 
 testfail '0abc;'
 testfail '1+;'

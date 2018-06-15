@@ -27,6 +27,16 @@ func env_append(env *Env, v *Ast) {
 	env.vars = append(env.vars, v)
 }
 
+func ast_top(ctype *Ctype, cond *Ast, then *Ast, els *Ast) *Ast {
+	r := &Ast{}
+	r.typ = AST_TENARY_OP
+	r.ctype = ctype
+	r._if.cond = cond
+	r._if.then = then
+	r._if.els = els
+	return r
+}
+
 func ast_uop(typ int, ctype *Ctype, operand *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
@@ -234,6 +244,8 @@ func priority(tok *Token) int {
 		return 4
 	case '*', '/':
 		return 5
+	case ':','?':
+		return 6
 	default:
 		return -1
 	}
@@ -440,14 +452,21 @@ func read_expr(prec int) *Ast {
 		if is_punct(tok, '=') {
 			ensure_lvalue(ast)
 		}
-		var prec_incr int
-		if is_right_assoc(tok) {
-			prec_incr = 0
+		if is_punct(tok, '?') {
+			then := read_unary_expr()
+			expect(':')
+			els := read_unary_expr()
+			ast = ast_top(then.ctype, ast, then, els)
 		} else {
-			prec_incr = 1
+			var prec_incr int
+			if is_right_assoc(tok) {
+				prec_incr = 0
+			} else {
+				prec_incr = 1
+			}
+			rest := read_expr(prec2 + prec_incr)
+			ast = ast_binop(tok.v.punct, ast, rest)
 		}
-		rest := read_expr(prec2 + prec_incr)
-		ast = ast_binop(tok.v.punct, ast, rest)
 	}
 	return ast
 }
@@ -911,6 +930,11 @@ func (ast *Ast) String() string {
 		return fmt.Sprintf("(& %s)", ast.unary.operand)
 	case AST_DEREF:
 		return fmt.Sprintf("(* %s)", ast.unary.operand)
+	case AST_TENARY_OP:
+		return fmt.Sprintf("(? %s %s $s)",
+			ast._if.cond,
+			ast._if.then,
+			ast._if.els)
 	case AST_IF:
 		s := fmt.Sprintf("(if %s %s",
 			ast._if.cond,

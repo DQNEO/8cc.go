@@ -30,6 +30,7 @@ const (
 	AST_ADDR
 	AST_DEREF
 	AST_IF
+	AST_TENARY_OP
 	AST_FOR
 	AST_RETURN
 	AST_COMPOUND_STMT
@@ -97,7 +98,7 @@ type Ast struct {
 	array_initializer struct {
 		arrayinit []*Ast
 	}
-	// If statement
+	// If statement/Tenary Operator
 	_if struct {
 		cond *Ast
 		then *Ast

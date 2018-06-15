@@ -462,7 +462,7 @@ func read_expr(prec int) *Ast {
 
 		if is_punct(tok, '?') {
 			ast = read_cond_expr(ast)
-			continue;
+			continue
 		}
 		if is_punct(tok, '=') {
 			ensure_lvalue(ast)

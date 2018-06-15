@@ -353,9 +353,9 @@ func emit_expr(ast *Ast) {
 		emit("jne %s", end)
 		emit_expr(ast.binop.right)
 		emit("test %%rax, %%rax")
-		emit("mov $0, %%rax")
-		emit("je %s", end)
 		emit("mov $1, %%rax")
+		emit("jne %s", end)
+		emit("mov $0, %%rax")
 		emit("%s:", end)
 	default:
 		emit_binop(ast)

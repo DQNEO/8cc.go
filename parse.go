@@ -234,17 +234,19 @@ func is_right_assoc(tok *Token) bool {
 
 func priority(tok *Token) int {
 	switch tok.v.punct {
-	case PUNCT_LOGAND, PUNCT_LOGOR:
-		return 8
-	case '?':
-		return 9
 	case '*', '/':
-		return 10
+		return 3
 	case '+', '-':
-		return 11
+		return 4
 	case '<', '>':
-		return 12
+		return 6
 	case PUNCT_EQ:
+		return 7
+	case PUNCT_LOGAND:
+		return 11
+	case PUNCT_LOGOR:
+		return 12
+	case '?':
 		return 13
 	case '=':
 		return 14

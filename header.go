@@ -37,6 +37,8 @@ const (
 	PUNCT_EQ
 	PUNCT_INC
 	PUNCT_DEC
+	PUNCT_LOGAND
+	PUNCT_LOGOR
 )
 
 const (

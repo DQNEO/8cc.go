@@ -333,6 +333,18 @@ func emit_expr(ast *Ast) {
 		emit("cmp $0, %%rax")
 		emit("sete %%al")
 		emit("movzb %%al, %%eax")
+	case PUNCT_LOGAND:
+		end := make_label()
+		emit_expr(ast.binop.left)
+		emit("test %%rax, %%rax")
+		emit("mov $0, %%rax")
+		emit("je %s", end)
+		emit_expr(ast.binop.right)
+		emit("test %%rax, %%rax")
+		emit("mov $0, %%rax")
+		emit("je %s", end)
+		emit("mov $1, %%rax")
+		emit("%s:", end)
 	default:
 		emit_binop(ast)
 	}

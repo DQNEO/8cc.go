@@ -246,6 +246,8 @@ func priority(tok *Token) int {
 		return 5
 	case '?':
 		return 6
+	case PUNCT_LOGAND, PUNCT_LOGOR:
+		return 12
 	default:
 		return -1
 	}
@@ -985,6 +987,10 @@ func (ast *Ast) String() string {
 		var s string
 		if ast.typ == PUNCT_EQ {
 			s += "(== "
+		} else if ast.typ == PUNCT_LOGAND {
+			s += "(&& "
+		} else if ast.typ == PUNCT_LOGOR {
+			s += "(|| "
 		} else {
 			s += fmt.Sprintf("(%c ", ast.typ)
 		}

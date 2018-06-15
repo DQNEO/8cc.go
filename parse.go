@@ -29,7 +29,7 @@ func env_append(env *Env, v *Ast) {
 
 func ast_top(ctype *Ctype, cond *Ast, then *Ast, els *Ast) *Ast {
 	r := &Ast{}
-	r.typ = AST_TENARY_OP
+	r.typ = AST_TERNARY
 	r.ctype = ctype
 	r._if.cond = cond
 	r._if.then = then
@@ -930,7 +930,7 @@ func (ast *Ast) String() string {
 		return fmt.Sprintf("(& %s)", ast.unary.operand)
 	case AST_DEREF:
 		return fmt.Sprintf("(* %s)", ast.unary.operand)
-	case AST_TENARY_OP:
+	case AST_TERNARY:
 		return fmt.Sprintf("(? %s %s $s)",
 			ast._if.cond,
 			ast._if.then,

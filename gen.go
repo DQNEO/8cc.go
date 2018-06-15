@@ -282,7 +282,7 @@ func emit_expr(ast *Ast) {
 			emit("mov (%%rax), %s", reg)
 			emit("mov %%rcx, %%rax")
 		}
-	case AST_IF, AST_TENARY_OP:
+	case AST_IF, AST_TERNARY:
 		emit_expr(ast._if.cond)
 		ne := make_label()
 		emit("test %%rax, %%rax")

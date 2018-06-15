@@ -1,4 +1,4 @@
 #!/bin/bash
 
 read line
-echo "int f(){$line}"
+echo "int main(){printf(\"%d\", f());} int f(){$line}"

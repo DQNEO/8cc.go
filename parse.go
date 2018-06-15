@@ -350,7 +350,11 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 		}
 		_error("internal error")
 	case CTYPE_ARRAY:
-		return nil, default_err
+		if b.typ != CTYPE_ARRAY {
+			return nil, default_err
+		}
+
+		return result_type_int(op, a.ptr, b.ptr)
 	default:
 		_error("internal error: %s %s", a, b)
 	}

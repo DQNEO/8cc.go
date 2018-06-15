@@ -988,9 +988,9 @@ func (ast *Ast) String() string {
 		if ast.typ == PUNCT_EQ {
 			s += "(== "
 		} else if ast.typ == PUNCT_LOGAND {
-			s += "(&& "
+			s += "(and "
 		} else if ast.typ == PUNCT_LOGOR {
-			s += "(|| "
+			s += "(or "
 		} else {
 			s += fmt.Sprintf("(%c ", ast.typ)
 		}

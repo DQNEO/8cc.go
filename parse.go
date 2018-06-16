@@ -846,7 +846,7 @@ func read_decl_or_func_def() *Ast {
 	return nil
 }
 
-func read_func_list() []*Ast {
+func read_toplevels() []*Ast {
 	var func_list []*Ast
 
 	for {

@@ -1,9 +1,5 @@
 package main
 
-import (
-	"strconv"
-)
-
 const BUFLEN = 256
 
 var ungotten *Token
@@ -190,34 +186,6 @@ func read_token_init() *Token {
 		_error("Don't know how to handle '%c'", c)
 	}
 
-	return nil
-}
-
-func (tok *Token) String() string {
-	return tok.ToCtring().String()
-}
-
-func (tok *Token) ToCtring() Cstring {
-	if tok == nil {
-		return NewCstringFromLiteral("(null)")
-	}
-	switch tok.typ {
-	case TTYPE_IDENT:
-		return tok.v.sval
-	case TTYPE_PUNCT:
-		if is_punct(tok, PUNCT_EQ) {
-			return Cstring("==")
-		} else {
-			return Cstring{byte(tok.v.punct), 0}
-		}
-	case TTYPE_CHAR:
-		return Cstring{tok.v.c, 0}
-	case TTYPE_INT:
-		return NewCstringFromLiteral(strconv.Itoa(tok.v.ival))
-	case TTYPE_STRING:
-		return tok.v.sval
-	}
-	_error("internal error: unknown token type: %d", tok.typ)
 	return nil
 }
 

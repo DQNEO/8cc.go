@@ -884,7 +884,7 @@ func (ctype *Ctype) String() string {
 
 type Block []*Ast
 
-func uop_to_string(op string , ast *Ast) string {
+func uop_to_string(op string, ast *Ast) string {
 	return fmt.Sprintf("(%s %s)", op, ast.unary.operand)
 }
 

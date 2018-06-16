@@ -1,4 +1,4 @@
-GO_OBJS=main.go header.go lex.go adapter.go util.go gen.go parse.go
+GO_OBJS=main.go header.go lex.go adapter.go util.go gen.go parse.go debug.go
 
 8gg.linux: $(GO_OBJS)
 	GOOS=linux  GOARCH=amd64 go build -o 8gg.linux $(GO_OBJS)
@@ -16,7 +16,7 @@ clean:
 fmt:
 	gofmt -w *.go
 
-test: ./nqueen
+test:
 	./gotest.sh
 
 nqueen: 8gg.linux

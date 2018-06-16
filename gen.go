@@ -42,7 +42,6 @@ func emit_gload(ctype *Ctype, label Cstring) {
 	}
 
 	emit("mov %s(%%rip), %%%s", label, reg)
-	emit("mov (%%rax), %%%s", reg)
 }
 
 func emit_lload(v *Ast) {
@@ -67,8 +66,6 @@ func emit_lload(v *Ast) {
 func emit_gsave(v *Ast) {
 	assert(v.ctype.typ != CTYPE_ARRAY)
 	var reg string
-	emit("push %%rcx")
-	emit("mov %s(%%rip) %%rcx", v.gvar.glabel)
 
 	size := ctype_size(v.ctype)
 	switch size {
@@ -81,8 +78,7 @@ func emit_gsave(v *Ast) {
 	default:
 		_error("Unknown data size: %s: %d", v, size)
 	}
-	emit("mov %s, (%%rbp)", reg)
-	emit("pop %%rcx")
+	emit("mov %%%s, %s(%%rip)", reg, v.variable.varname)
 }
 
 func emit_lsave(ctype *Ctype, loff int, off int) {
@@ -99,23 +95,22 @@ func emit_lsave(ctype *Ctype, loff int, off int) {
 	emit("mov %%%s, %d(%%rbp)", reg, -(loff + off*size))
 }
 
-func emit_assign_deref(variable *Ast, value *Ast) {
-	emit_expr(variable.unary.operand)
+func emit_assign_deref(variable *Ast) {
 	emit("push %%rax")
-	emit_expr(value)
+	emit_expr(variable.unary.operand)
 	emit("pop %%rcx")
 	var reg string
 	size := ctype_size(variable.unary.operand.ctype)
 	switch size {
 	case 1:
-		reg = "al"
+		reg = "cl"
 	case 4:
-		reg = "eax"
+		reg = "ecx"
 	case 8:
-		reg = "rax"
+		reg = "rcx"
 	}
 
-	emit("mov %%%s, (%%rcx)", reg)
+	emit("mov %%%s, (%%rax)", reg)
 
 }
 
@@ -132,12 +127,11 @@ func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
 	emit("add %%rcx, %%rax")
 }
 
-func emit_assign(variable *Ast, value *Ast) {
-    if variable.typ == AST_DEREF {
-		emit_assign_deref(variable, value)
+func emit_assign(variable *Ast) {
+	if variable.typ == AST_DEREF {
+		emit_assign_deref(variable)
 		return
 	}
-	emit_expr(value)
 	switch variable.typ {
 	case AST_LVAR:
 		emit_lsave(variable.ctype, variable.variable.loff, 0)
@@ -160,15 +154,16 @@ func emit_comp(inst string, a *Ast, b *Ast) {
 
 func emit_binop(ast *Ast) {
 	if ast.typ == '=' {
-		emit_assign(ast.binop.left, ast.binop.right)
+		emit_expr(ast.binop.right)
+		emit_assign(ast.binop.left)
 		return
 	}
-	if ast.typ == '@' {
+	if ast.typ == PUNCT_EQ {
 		emit_comp("sete", ast.binop.left, ast.binop.right)
 		return
 	}
 	if ast.ctype.typ == CTYPE_PTR {
-		emit_pointer_arith(ast.typ, ast.binop.left, ast.binop.right)
+		emit_pointer_arith(byte(ast.typ), ast.binop.left, ast.binop.right)
 		return
 	}
 	var op string
@@ -188,7 +183,7 @@ func emit_binop(ast *Ast) {
 	case '/':
 		break
 	default:
-		_error("invalid operator '%c", ast.typ)
+		_error("invalid operator '%d", ast.typ)
 	}
 
 	emit_expr(ast.binop.right)
@@ -202,6 +197,14 @@ func emit_binop(ast *Ast) {
 		emit("pop %%rcx")
 		emit("%s %%rcx, %%rax", op)
 	}
+}
+
+func emit_inc_dec(ast *Ast, op string) {
+	emit_expr(ast.unary.operand)
+	emit("push %%rax")
+	emit("%s $1, %%rax", op)
+	emit_assign(ast.unary.operand)
+	emit("pop %%rax")
 }
 
 func emit_expr(ast *Ast) {
@@ -220,7 +223,7 @@ func emit_expr(ast *Ast) {
 	case AST_LVAR:
 		emit_lload(ast)
 	case AST_GVAR:
-		emit_gload(ast.ctype, ast.gvar.glabel)
+		emit_gload(ast.ctype, ast.variable.glabel)
 	case AST_FUNCALL:
 		for i := 1; i < len(ast.fnc.args); i++ {
 			emit("push %%%s", REGS[i])
@@ -279,17 +282,17 @@ func emit_expr(ast *Ast) {
 			emit("mov (%%rax), %s", reg)
 			emit("mov %%rcx, %%rax")
 		}
-	case AST_IF:
+	case AST_IF, AST_TERNARY:
 		emit_expr(ast._if.cond)
 		ne := make_label()
 		emit("test %%rax, %%rax")
 		emit("je %s", ne)
-		emit_block(ast._if.then)
+		emit_expr(ast._if.then)
 		if ast._if.els != nil {
 			end := make_label()
 			emit("jmp %s", end)
 			emit("%s:", ne)
-			emit_block(ast._if.els)
+			emit_expr(ast._if.els)
 			emit("%s:", end)
 		} else {
 			emit("%s:", ne)
@@ -306,7 +309,7 @@ func emit_expr(ast *Ast) {
 			emit("test %%rax, %%rax")
 			emit("je %s", end)
 		}
-		emit_block(ast._for.body)
+		emit_expr(ast._for.body)
 		if ast._for.step != nil {
 			emit_expr(ast._for.step)
 		}
@@ -317,20 +320,72 @@ func emit_expr(ast *Ast) {
 		emit("leave")
 		emit("ret")
 		break
+	case AST_COMPOUND_STMT:
+		for _, v := range ast.compound.stmts {
+			emit_expr(v)
+		}
+	case PUNCT_INC:
+		emit_inc_dec(ast, "add")
+	case PUNCT_DEC:
+		emit_inc_dec(ast, "sub")
+	case '!':
+		emit_expr(ast.unary.operand)
+		emit("cmp $0, %%rax")
+		emit("sete %%al")
+		emit("movzb %%al, %%eax")
+	case '&':
+		emit_expr(ast.binop.left)
+		emit("push %%rax")
+		emit_expr(ast.binop.right)
+		emit("pop %%rcx")
+		emit("and %%rcx, %%rax")
+	case '|':
+		emit_expr(ast.binop.left)
+		emit("push %%rax")
+		emit_expr(ast.binop.right)
+		emit("pop %%rcx")
+		emit("or %%rcx, %%rax")
+	case PUNCT_LOGAND:
+		end := make_label()
+		emit_expr(ast.binop.left)
+		emit("test %%rax, %%rax")
+		emit("mov $0, %%rax")
+		emit("je %s", end)
+		emit_expr(ast.binop.right)
+		emit("test %%rax, %%rax")
+		emit("mov $0, %%rax")
+		emit("je %s", end)
+		emit("mov $1, %%rax")
+		emit("%s:", end)
+	case PUNCT_LOGOR:
+		end := make_label()
+		emit_expr(ast.binop.left)
+		emit("test %%rax, %%rax")
+		emit("mov $1, %%rax")
+		emit("jne %s", end)
+		emit_expr(ast.binop.right)
+		emit("test %%rax, %%rax")
+		emit("mov $1, %%rax")
+		emit("jne %s", end)
+		emit("mov $0, %%rax")
+		emit("%s:", end)
 	default:
 		emit_binop(ast)
 	}
 }
 
 func emit_data_section() {
-	if globals == nil {
+	if len(globalenv.vars) == 0 {
 		return
 	}
 	emit(".data")
-	for _, v := range globals {
-		assert(v.typ == AST_STRING)
-		emit("%s:", v.str.slabel)
-		emit(".string \"%s\"", quote_cstring(v.str.val))
+	for _, v := range globalenv.vars {
+		if v.typ == AST_STRING {
+			emit("%s:", v.str.slabel)
+			emit(".string \"%s\"", quote_cstring(v.str.val))
+		} else if v.typ != AST_GVAR {
+			_error("internal error: %s", v)
+		}
 	}
 }
 
@@ -360,7 +415,7 @@ func emit_func_prologue(fn *Ast) {
 		off += ceil8(ctype_size(v.ctype))
 		v.variable.loff = off
 	}
-	for _, v := range fn.fnc.locals {
+	for _, v := range fn.fnc.localvars {
 		off += ceil8(ctype_size(v.ctype))
 		v.variable.loff = off
 	}
@@ -374,16 +429,57 @@ func emit_func_epilogue() {
 	emit("ret")
 }
 
-func emit_block(block Block) {
-	for _, v := range block {
-		emit_expr(v)
-	}
-
+func emit_label(fmt string, args ...interface{}) {
+	emit(fmt, args...)
 }
 
-func emit_func(fnc *Ast) {
-	assert(fnc.typ == AST_FUNC)
-	emit_func_prologue(fnc)
-	emit_block(fnc.fnc.body)
-	emit_func_epilogue()
+func emit_data_int(data *Ast) {
+	assert(data.ctype.typ != CTYPE_ARRAY)
+	switch ctype_size(data.ctype) {
+	case 1:
+		emit(".byte %d", data.ival)
+	case 4:
+		emit(".long %d", data.ival)
+	case 8:
+		emit(".quad %d", data.ival)
+	default:
+		_error("internal error")
+	}
+}
+
+func emit_data(v *Ast) {
+	emit_label(".global %s", v.decl.declvar.variable.varname)
+	emit_label("%s:", v.decl.declvar.variable.varname)
+	if v.decl.declinit.typ == AST_ARRAY_INIT {
+		for _, v := range v.decl.declinit.array_initializer.arrayinit {
+			emit_data_int(v)
+		}
+		return
+	}
+	assert(v.decl.declinit.typ == AST_LITERAL && v.decl.declinit.ctype.typ == CTYPE_INT)
+	emit_data_int(v.decl.declinit)
+}
+
+func emit_bss(v *Ast) {
+	emit(".lcomm %s, %d", v.decl.declvar.variable.varname, ctype_size(v.decl.declvar.ctype))
+}
+
+func emit_global_var(v *Ast) {
+	if v.decl.declinit != nil {
+		emit_data(v)
+	} else {
+		emit_bss(v)
+	}
+}
+
+func emit_toplevel(v *Ast) {
+	if v.typ == AST_FUNC {
+		emit_func_prologue(v)
+		emit_expr(v.fnc.body)
+		emit_func_epilogue()
+	} else if v.typ == AST_DECL {
+		emit_global_var(v)
+	} else {
+		_error("internal error")
+	}
 }

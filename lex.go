@@ -1,9 +1,5 @@
 package main
 
-import (
-	"strconv"
-)
-
 const BUFLEN = 256
 
 var ungotten *Token
@@ -25,7 +21,7 @@ func make_strtok(s Cstring) *Token {
 func make_punct(punct byte) *Token {
 	r := &Token{}
 	r.typ = TTYPE_PUNCT
-	r.v.punct = punct
+	r.v.punct = int(punct)
 	return r
 }
 
@@ -145,6 +141,15 @@ func read_ident(c byte) *Token {
 	}
 }
 
+func read_rep(expect int, t1 int, t2 int) *Token {
+	c, _ := getc(stdin)
+	if c == byte(expect) {
+		return make_punct(byte(t2))
+	}
+	ungetc(c, stdin)
+	return make_punct(byte(t1))
+}
+
 func read_token_init() *Token {
 	c, err := getc_nonspace()
 	if err != nil {
@@ -155,25 +160,28 @@ func read_token_init() *Token {
 	switch {
 	case '0' <= c && c <= '9':
 		return read_number(c)
+	case ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_':
+		return read_ident(c)
+	case c == '/' || c == '*' || c == '(' ||
+		c == ')' || c == ',' || c == ';' ||
+		c == '[' || c == ']' || c == '{' || c == '}' ||
+		c == '<' || c == '>' || c == '!' ||
+		c == '?' || c == ':':
+		return make_punct(c)
+	case c == '=':
+		return read_rep(int('='), int('='), PUNCT_EQ)
+	case c == '+':
+		return read_rep(int('+'), int('+'), PUNCT_INC)
+	case c == '-':
+		return read_rep(int('-'), int('-'), PUNCT_DEC)
+	case c == '&':
+		return read_rep(int('&'), int('&'), PUNCT_LOGAND)
+	case c == '|':
+		return read_rep(int('|'), int('|'), PUNCT_LOGOR)
 	case c == '"':
 		return read_string()
 	case c == '\'':
 		return read_char()
-	case ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_':
-		return read_ident(c)
-	case c == '=':
-		c, _ = getc(stdin)
-		if c == '=' {
-			return make_punct('@')
-		}
-		ungetc(c, stdin)
-		return make_punct('=')
-	case c == '/' || c == '*' ||
-		c == '+' || c == '-' || c == '(' ||
-		c == ')' || c == ',' || c == ';' || c == '&' ||
-		c == '[' || c == ']' || c == '{' || c == '}' ||
-		c == '<' || c == '>':
-		return make_punct(c)
 	default:
 		_error("Don't know how to handle '%c'", c)
 	}
@@ -181,35 +189,7 @@ func read_token_init() *Token {
 	return nil
 }
 
-func (tok *Token) String() string {
-	return tok.ToCtring().String()
-}
-
-func (tok *Token) ToCtring() Cstring {
-	if tok == nil {
-		return NewCstringFromLiteral("(null)")
-	}
-	switch tok.typ {
-	case TTYPE_IDENT:
-		return tok.v.sval
-	case TTYPE_PUNCT:
-		if is_punct(tok, '@') {
-			return Cstring("==")
-		} else {
-			return Cstring{tok.v.punct, 0}
-		}
-	case TTYPE_CHAR:
-		return Cstring{tok.v.c, 0}
-	case TTYPE_INT:
-		return NewCstringFromLiteral(strconv.Itoa(tok.v.ival))
-	case TTYPE_STRING:
-		return tok.v.sval
-	}
-	_error("internal error: unknown token type: %d", tok.typ)
-	return nil
-}
-
-func is_punct(tok *Token, c byte) bool {
+func is_punct(tok *Token, c int) bool {
 	return tok != nil && (tok.typ == TTYPE_PUNCT && tok.v.punct == c)
 }
 

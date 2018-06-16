@@ -13,13 +13,13 @@ type Token struct {
 	v   struct { // wanna be Union
 		ival  int
 		sval  Cstring
-		punct byte
+		punct int
 		c     byte
 	}
 }
 
 const (
-	AST_LITERAL byte = iota
+	AST_LITERAL int = iota
 	AST_STRING
 	AST_LVAR
 	AST_GVAR
@@ -30,8 +30,15 @@ const (
 	AST_ADDR
 	AST_DEREF
 	AST_IF
+	AST_TERNARY
 	AST_FOR
 	AST_RETURN
+	AST_COMPOUND_STMT
+	PUNCT_EQ
+	PUNCT_INC
+	PUNCT_DEC
+	PUNCT_LOGAND
+	PUNCT_LOGOR
 )
 
 const (
@@ -49,7 +56,7 @@ type Ctype struct {
 }
 
 type Ast struct {
-	typ   byte
+	typ   int
 	ctype *Ctype
 	// want to be "union"
 	// Integer
@@ -61,20 +68,11 @@ type Ast struct {
 		val    Cstring
 		slabel Cstring
 	}
-	// Local variable
+	// Local/Global variable
 	variable struct {
-		lname Cstring
-		loff  int
-	}
-	// Global variable
-	gvar struct {
-		gname  Cstring
-		glabel Cstring
-	}
-	// Global reference
-	gref struct {
-		ref *Ast
-		off int
+		varname Cstring
+		loff    int
+		glabel  Cstring
 	}
 	// Binary operator
 	binop struct {
@@ -87,11 +85,11 @@ type Ast struct {
 	}
 	// Function call or function declaration
 	fnc struct {
-		fname  Cstring
-		args   []*Ast
-		params []*Ast
-		locals []*Ast
-		body   Block
+		fname     Cstring
+		args      []*Ast
+		params    []*Ast
+		localvars []*Ast
+		body      *Ast
 	}
 	// Declaration
 	decl struct {
@@ -102,20 +100,30 @@ type Ast struct {
 	array_initializer struct {
 		arrayinit []*Ast
 	}
-	// If statement
+	// If statement or ternary operator
 	_if struct {
 		cond *Ast
-		then Block
-		els  Block
+		then *Ast
+		els  *Ast
 	}
 	// For statement
 	_for struct {
 		init *Ast
 		cond *Ast
 		step *Ast
-		body Block
+		body *Ast
 	}
-	_return  struct {
+	_return struct {
 		retval *Ast
 	}
+	compound struct {
+		stmts []*Ast
+	}
 }
+
+type Env struct {
+	vars []*Ast
+	next *Env
+}
+
+var EMPTY_ENV = Env{}

@@ -1,3 +1,4 @@
 #!/bin/bash
-GO_OBJS=(main.go header.go lex.go adapter.go util.go gen.go parse.go)
+GO_OBJS=(main.go header.go lex.go adapter.go util.go gen.go parse.go debug.go)
 go run ${GO_OBJS[*]} "$@"
+p

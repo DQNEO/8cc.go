@@ -1,5 +1,5 @@
-#ifndef ECC_H
-#define ECC_H
+#ifndef EIGHTCC_H
+#define EIGHTCC_H
 
 #include <stdbool.h>
 #include "util.h"
@@ -164,4 +164,4 @@ extern void emit_toplevel(Ast *v);
 
 extern Env *globalenv;
 
-#endif /* ECC_H */
+#endif /* EIGHTCC_H */

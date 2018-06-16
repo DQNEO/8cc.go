@@ -888,11 +888,13 @@ static void ast_to_string_int(String *buf, Ast *ast) {
     }
     case AST_ADDR:  uop_to_string(buf, "addr", ast); break;
     case AST_DEREF: uop_to_string(buf, "deref", ast); break;
-    case PUNCT_INC: string_appendf(buf, "(++ %s)", ast_to_string(ast->operand)); break;
-    case PUNCT_DEC: string_appendf(buf, "(-- %s)", ast_to_string(ast->operand)); break;
+    case PUNCT_INC: uop_to_string(buf, "++", ast); break;
+    case PUNCT_DEC: uop_to_string(buf, "--", ast); break;
     case PUNCT_LOGAND: binop_to_string(buf, "and", ast); break;
     case PUNCT_LOGOR:  binop_to_string(buf, "or", ast); break;
     case '!': uop_to_string(buf, "!", ast); break;
+    case '&': binop_to_string(buf, "&", ast); break;
+    case '|': binop_to_string(buf, "|", ast); break;
     default: {
       char *left = ast_to_string(ast->left);
       char *right = ast_to_string(ast->right);

@@ -961,10 +961,6 @@ func (ast *Ast) String() string {
 		}
 		s += "}"
 		return s
-	case AST_ADDR:
-		return uop_to_string("&", ast)
-	case AST_DEREF:
-		return uop_to_string("*", ast)
 	case AST_IF:
 		s := fmt.Sprintf("(if %s %s",
 			ast._if.cond,
@@ -996,6 +992,10 @@ func (ast *Ast) String() string {
 		}
 		s += "}"
 		return s
+	case AST_ADDR:
+		return uop_to_string("addr", ast)
+	case AST_DEREF:
+		return uop_to_string("deref", ast)
 	case PUNCT_INC:
 		return fmt.Sprintf("(++ %s)", ast.unary.operand)
 	case PUNCT_DEC:

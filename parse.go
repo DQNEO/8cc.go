@@ -1006,6 +1006,10 @@ func (ast *Ast) String() string {
 		return binop_to_string("or", ast)
 	case '!':
 		return uop_to_string("!", ast)
+	case '&':
+		return binop_to_string("&", ast)
+	case '|':
+		return binop_to_string("|", ast)
 	default:
 		left := ast.binop.left
 		right := ast.binop.right

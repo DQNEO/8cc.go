@@ -997,9 +997,9 @@ func (ast *Ast) String() string {
 	case AST_DEREF:
 		return uop_to_string("deref", ast)
 	case PUNCT_INC:
-		return fmt.Sprintf("(++ %s)", ast.unary.operand)
+		return uop_to_string("++", ast)
 	case PUNCT_DEC:
-		return fmt.Sprintf("(-- %s)", ast.unary.operand)
+		return uop_to_string("--", ast)
 	case PUNCT_LOGAND:
 		return binop_to_string("and", ast)
 	case PUNCT_LOGOR:

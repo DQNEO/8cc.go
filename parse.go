@@ -884,6 +884,14 @@ func (ctype *Ctype) String() string {
 
 type Block []*Ast
 
+func uop_to_string(op string , ast *Ast) string {
+	return fmt.Sprintf("(%s %s)", op, ast.unary.operand)
+}
+
+func binop_to_string(op string, ast *Ast) string {
+	return fmt.Sprintf("(%s %s %s)", op, ast.binop.left, ast.binop.right)
+}
+
 func (ast *Ast) String() string {
 	if ast == nil {
 		return "(nil)"
@@ -954,9 +962,9 @@ func (ast *Ast) String() string {
 		s += "}"
 		return s
 	case AST_ADDR:
-		return fmt.Sprintf("(& %s)", ast.unary.operand)
+		return uop_to_string("&", ast)
 	case AST_DEREF:
-		return fmt.Sprintf("(* %s)", ast.unary.operand)
+		return uop_to_string("*", ast)
 	case AST_IF:
 		s := fmt.Sprintf("(if %s %s",
 			ast._if.cond,
@@ -993,13 +1001,11 @@ func (ast *Ast) String() string {
 	case PUNCT_DEC:
 		return fmt.Sprintf("(-- %s)", ast.unary.operand)
 	case PUNCT_LOGAND:
-		return fmt.Sprintf("(and %s %s)",
-			ast.binop.left, ast.binop.right)
+		return binop_to_string("and", ast)
 	case PUNCT_LOGOR:
-		return fmt.Sprintf("(or %s %s)",
-			ast.binop.left, ast.binop.right)
+		return binop_to_string("or", ast)
 	case '!':
-		return fmt.Sprintf("(! %s)", ast.unary.operand)
+		return uop_to_string("!", ast)
 	default:
 		left := ast.binop.left
 		right := ast.binop.right

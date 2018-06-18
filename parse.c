@@ -23,6 +23,7 @@ static Ast *read_decl_or_stmt(void);
 static Ctype *result_type(char op, Ctype *a, Ctype *b);
 static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
+static Ctype *read_decl_spec(void);
 
 static Env *make_env(Env *next) {
   Env *r = malloc(sizeof(Env));
@@ -210,6 +211,19 @@ static Ctype* make_array_type(Ctype *ctype, int size) {
   r->type = CTYPE_ARRAY;
   r->ptr = ctype;
   r->size = size;
+  return r;
+}
+
+static Ctype *make_struct_field_type(Ctype *ctype, char *name) {
+  Ctype *r = ctype;
+  r->name = name;
+  return r;
+}
+
+static Ctype* make_struct_type(List *ctypes) {
+  Ctype *r = malloc(sizeof(Ctype));
+  r->type = CTYPE_STRUCT;
+  r->fields = ctypes;
   return r;
 }
 
@@ -484,7 +498,7 @@ static Ctype *get_ctype(Token *tok) {
 }
 
 static bool is_type_keyword(Token *tok) {
-  return get_ctype(tok) != NULL;
+  return get_ctype(tok) != NULL || is_ident(tok, "struct");
 }
 
 static Ast *read_decl_array_init_int(Ctype *ctype) {
@@ -510,9 +524,25 @@ static Ast *read_decl_array_init_int(Ctype *ctype) {
   return ast_array_init(initlist);
 }
 
+static Ctype *read_struct_def(void) {
+  List *fields = make_list();
+  expect('{');
+  for (;;) {
+    if (!is_type_keyword(peek_token()))
+      break;
+    Ctype *fieldtype = read_decl_spec();
+    Token *name = read_token();
+    list_append(fields, make_struct_field_type(fieldtype, name->sval));
+    expect(';');
+  }
+  expect('}');
+  Ctype *r = make_struct_type(fields);
+  return r;
+}
+
 static Ctype *read_decl_spec(void) {
   Token *tok = read_token();
-  Ctype *ctype = get_ctype(tok);
+  Ctype *ctype = is_ident(tok, "struct") ? read_struct_def() : get_ctype(tok);
   if (!ctype)
     error("Type expected, but got %s", token_to_string(tok));
   for (;;) {

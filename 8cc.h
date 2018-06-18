@@ -58,12 +58,15 @@ enum {
   CTYPE_CHAR,
   CTYPE_ARRAY,
   CTYPE_PTR,
+  CTYPE_STRUCT,
 };
 
 typedef struct Ctype {
   int type;
   struct Ctype *ptr;
   int size;
+  char *name;
+  List *fields;
 } Ctype;
 
 typedef struct Ast {

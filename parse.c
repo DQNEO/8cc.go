@@ -239,6 +239,10 @@ static void expect(char punct) {
     error("'%c' expected, but got %s", punct, token_to_string(tok));
 }
 
+static bool is_ident(Token *tok, char *s) {
+  return tok->type == TTYPE_IDENT && !strcmp(tok->sval, s);
+}
+
 static bool is_right_assoc(Token *tok) {
   return tok->punct == '=';
 }
@@ -649,10 +653,6 @@ static Ast *read_return_stmt(void) {
   Ast *retval = read_expr();
   expect(';');
   return ast_return(retval);
-}
-
-static bool is_ident(Token *tok, char *s) {
-  return tok->type == TTYPE_IDENT && !strcmp(tok->sval, s);
 }
 
 static Ast *read_stmt(void) {

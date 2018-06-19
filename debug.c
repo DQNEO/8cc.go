@@ -136,6 +136,11 @@ static void ast_to_string_int(String *buf, Ast *ast) {
       string_appendf(buf, "}");
       break;
     }
+    case AST_STRUCT_REF:
+      ast_to_string_int(buf, ast->struc);
+      string_appendf(buf, ".");
+      string_appendf(buf, ast->field->name);
+      break;
     case AST_ADDR:  uop_to_string(buf, "addr", ast); break;
     case AST_DEREF: uop_to_string(buf, "deref", ast); break;
     case PUNCT_INC: uop_to_string(buf, "++", ast); break;

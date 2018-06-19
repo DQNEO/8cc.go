@@ -199,6 +199,15 @@ static Ast *ast_compound_stmt(List *stmts) {
   return r;
 }
 
+static Ast *ast_struct_ref(Ast *struc, Ctype *field) {
+  Ast *r = malloc(sizeof(Ast));
+  r->type = AST_STRUCT_REF;
+  r->ctype = field;
+  r->struc = struc;
+  r->field = field;
+  return r;
+}
+
 static Ctype* make_ptr_type(Ctype *ctype) {
   Ctype *r = malloc(sizeof(Ctype));
   r->type = CTYPE_PTR;
@@ -263,6 +272,8 @@ static bool is_right_assoc(Token *tok) {
 
 static int priority(Token *tok) {
   switch (tok->punct) {
+    case '.':
+      return 1;
     case PUNCT_INC: case PUNCT_DEC:
       return 2;
     case '*': case '/':
@@ -457,6 +468,22 @@ static Ast *read_cond_expr(Ast *cond) {
   return ast_ternary(then->ctype, cond, then, els);
 }
 
+static Ast *read_struct_field(Ast *struc) {
+  Token *field = read_token();
+  if (field->type != TTYPE_IDENT)
+    error("expect ident name but got %s", token_to_string(field));
+  char *name = field->sval;
+  Ctype *fld;
+  for (Iter *i = list_iter(struc->ctype->fields); !iter_end(i);) {
+    Ctype  *f = iter_next(i);
+    if (!strcmp(name, f->name)) {
+      fld = f;
+      break;
+    }
+  }
+  return ast_struct_ref(struc, fld);
+}
+
 static Ast *read_expr_int(int prec) {
   Ast *ast = read_unary_expr();
   if (!ast) return NULL;
@@ -473,6 +500,10 @@ static Ast *read_expr_int(int prec) {
     }
     if (is_punct(tok, '?')) {
       ast = read_cond_expr(ast);
+      continue;
+    }
+    if (is_punct(tok, '.')) {
+      ast = read_struct_field(ast);
       continue;
     }
     if (is_punct(tok, '='))

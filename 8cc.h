@@ -45,6 +45,7 @@ enum {
   AST_FOR,
   AST_RETURN,
   AST_COMPOUND_STMT,
+  AST_STRUCT_REF,
   PUNCT_EQ,
   PUNCT_INC,
   PUNCT_DEC,
@@ -135,6 +136,10 @@ typedef struct Ast {
     struct Ast *retval;
     // Compound statement
     struct List *stmts;
+    struct {
+      struct Ast *struc;
+      struct Ctype *field;
+    };
   };
 } Ast;
 

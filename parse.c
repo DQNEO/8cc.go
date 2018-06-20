@@ -468,19 +468,20 @@ static Ast *read_cond_expr(Ast *cond) {
   return ast_ternary(then->ctype, cond, then, els);
 }
 
+static Ctype *find_struct_field(Ctype *struc, char *name) {
+  for (Iter *i = list_iter(struc->fields); !iter_end(i);) {
+    Ctype *field = iter_next(i);
+    if (!strcmp(name, field->name))
+      return field;
+  }
+  return NULL;
+}
+
 static Ast *read_struct_field(Ast *struc) {
   Token *field = read_token();
   if (field->type != TTYPE_IDENT)
     error("expect ident name but got %s", token_to_string(field));
-  char *name = field->sval;
-  Ctype *fld;
-  for (Iter *i = list_iter(struc->ctype->fields); !iter_end(i);) {
-    Ctype  *f = iter_next(i);
-    if (!strcmp(name, f->name)) {
-      fld = f;
-      break;
-    }
-  }
+  Ctype *fld = find_struct_field(struc->ctype, field->sval);
   return ast_struct_ref(struc, fld);
 }
 

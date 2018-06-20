@@ -64,9 +64,9 @@ enum {
 
 typedef struct Ctype {
   int type;
-  struct Ctype *ptr;
-  int size;
-  char *name;
+  struct Ctype *ptr; // pointer or array
+  int size;   // array
+  char *name; // struct field
   List *fields;
 } Ctype;
 
@@ -136,6 +136,7 @@ typedef struct Ast {
     struct Ast *retval;
     // Compound statement
     struct List *stmts;
+    // Struct reference
     struct {
       struct Ast *struc;
       struct Ctype *field;

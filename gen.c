@@ -52,12 +52,12 @@ static void emit_gload(Ctype *ctype, char *label) {
   emit("mov %s(%%rip), %%%s", label, reg);
 }
 
-static void emit_lload(Ast *var, int off) {
-  if (var->ctype->type == CTYPE_ARRAY) {
+static void emit_lload(Ctype *ctype, int off) {
+  if (ctype->type == CTYPE_ARRAY) {
     emit("lea %d(%%rbp), %%rax", -off);
     return;
   }
-  int size = ctype_size(var->ctype);
+  int size = ctype_size(ctype);
   switch (size) {
     case 1:
       emit("mov $0, %%eax");
@@ -70,7 +70,7 @@ static void emit_lload(Ast *var, int off) {
       emit("mov %d(%%rbp), %%rax", -off);
       break;
     default:
-      error("Unknown data size: %s: %d", ast_to_string(var), size);
+      error("Unknown data size: %s: %d", ctype_to_string(ctype), size);
   }
 }
 
@@ -214,7 +214,7 @@ static void emit_expr(Ast *ast) {
       emit("lea %s(%%rip), %%rax", ast->slabel);
       break;
     case AST_LVAR:
-      emit_lload(ast, ast->loff);
+      emit_lload(ast->ctype, ast->loff);
       break;
     case AST_GVAR:
       emit_gload(ast->ctype, ast->glabel);

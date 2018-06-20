@@ -471,7 +471,7 @@ static Ast *read_cond_expr(Ast *cond) {
 static Ctype *find_struct_field(Ctype *struc, char *name) {
   for (Iter *i = list_iter(struc->fields); !iter_end(i);) {
     Ctype *field = iter_next(i);
-    if (!strcmp(name, field->name))
+    if (!strcmp(field->name, name))
       return field;
   }
   return NULL;

@@ -478,6 +478,8 @@ static Ctype *find_struct_field(Ctype *struc, char *name) {
 }
 
 static Ast *read_struct_field(Ast *struc) {
+  if (struc->ctype->type != CTYPE_STRUCT)
+    error("struct expected, but got %s", ast_to_string(struc));
   Token *name = read_token();
   if (name->type != TTYPE_IDENT)
     error("expect ident name but got %s", token_to_string(name));

@@ -482,7 +482,7 @@ static Ast *read_struct_field(Ast *struc) {
     error("struct expected, but got %s", ast_to_string(struc));
   Token *name = read_token();
   if (name->type != TTYPE_IDENT)
-    error("expect ident name but got %s", token_to_string(name));
+    error("field name expected, but got %s", token_to_string(name));
   Ctype *field = find_struct_field(struc->ctype, name->sval);
   return ast_struct_ref(struc, field);
 }

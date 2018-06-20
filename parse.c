@@ -6,6 +6,7 @@
 
 #define MAX_ARGS 6
 #define MAX_OP_PRIO 16
+#define MAX_ALIGN 16
 
 Env *globalenv = &EMPTY_ENV;
 static Env *localenv = NULL;
@@ -223,9 +224,10 @@ static Ctype* make_array_type(Ctype *ctype, int size) {
   return r;
 }
 
-static Ctype *make_struct_field_type(Ctype *ctype, char *name) {
+static Ctype* make_struct_field_type(Ctype *ctype, char *name, int offset) {
   Ctype *r = ctype;
   r->name = name;
+  r->offset = offset;
   return r;
 }
 
@@ -249,7 +251,7 @@ static Ast *find_var(char *name) {
 
 static void ensure_lvalue(Ast *ast) {
   switch (ast->type) {
-    case AST_LVAR: case AST_GVAR: case AST_DEREF:
+    case AST_LVAR: case AST_GVAR: case AST_DEREF: case AST_STRUCT_REF:
       return;
     default:
       error("lvalue expected, but got %s", ast_to_string(ast));
@@ -561,12 +563,18 @@ static Ast *read_decl_array_init_int(Ctype *ctype) {
 static Ctype *read_struct_def(void) {
   List *fields = make_list();
   expect('{');
+  int offset = 0;
   for (;;) {
     if (!is_type_keyword(peek_token()))
       break;
     Ctype *fieldtype = read_decl_spec();
     Token *name = read_token();
-    list_append(fields, make_struct_field_type(fieldtype, name->sval));
+    int size = ctype_size(fieldtype);
+    size = (size < MAX_ALIGN) ? size : MAX_ALIGN;
+    if (offset % size != 0)
+      offset += size - offset % size;
+    list_append(fields, make_struct_field_type(fieldtype, name->sval, offset));
+    offset += size;
     expect(';');
   }
   expect('}');

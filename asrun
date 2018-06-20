@@ -3,3 +3,6 @@
 cat > tmp.s
 gcc -no-pie -o tmp.out tmp.s
 ./tmp.out
+echo
+echo "---------"
+cat tmp.s >/dev/stderr

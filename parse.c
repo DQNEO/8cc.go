@@ -478,11 +478,11 @@ static Ctype *find_struct_field(Ctype *struc, char *name) {
 }
 
 static Ast *read_struct_field(Ast *struc) {
-  Token *field = read_token();
-  if (field->type != TTYPE_IDENT)
-    error("expect ident name but got %s", token_to_string(field));
-  Ctype *fld = find_struct_field(struc->ctype, field->sval);
-  return ast_struct_ref(struc, fld);
+  Token *name = read_token();
+  if (name->type != TTYPE_IDENT)
+    error("expect ident name but got %s", token_to_string(name));
+  Ctype *field = find_struct_field(struc->ctype, name->sval);
+  return ast_struct_ref(struc, field);
 }
 
 static Ast *read_expr_int(int prec) {

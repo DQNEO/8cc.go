@@ -78,10 +78,6 @@ static void emit_lload(Ctype *ctype, int off) {
   }
 }
 
-static void emit_load_struct_ref(Ast *struc, Ctype *field, int off) {
-  emit_lload(field, struc->loff - field->offset - off);
-}
-
 static void emit_gsave(Ast *var) {
   assert(var->ctype->type != CTYPE_ARRAY);
   char *reg;
@@ -141,6 +137,10 @@ static void emit_assign_struct_ref(Ast *struc, Ctype *field, int off) {
     default:
       error("internal error: %s", ast_to_string(struc));
   }
+}
+
+static void emit_load_struct_ref(Ast *struc, Ctype *field, int off) {
+  emit_lload(field, struc->loff - field->offset - off);
 }
 
 static void emit_assign(Ast *var) {

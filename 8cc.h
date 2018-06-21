@@ -140,7 +140,7 @@ typedef struct Ast {
     // Struct reference
     struct {
       struct Ast *struc;
-      struct Ctype *field;
+      Ctype *field;
     };
   };
 } Ast;

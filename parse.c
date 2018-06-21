@@ -9,6 +9,7 @@
 #define MAX_ALIGN 16
 
 Env *globalenv = &EMPTY_ENV;
+static List *struct_defs = &EMPTY_LIST;
 static Env *localenv = NULL;
 static List *localvars = NULL;
 static Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL };
@@ -232,10 +233,11 @@ static Ctype* make_struct_field_type(Ctype *ctype, char *name, int offset) {
   return r;
 }
 
-static Ctype* make_struct_type(List *ctypes) {
+static Ctype* make_struct_type(List *ctypes, char *tag) {
   Ctype *r = malloc(sizeof(Ctype));
   r->type = CTYPE_STRUCT;
   r->fields = ctypes;
+  r->tag = tag;
   return r;
 }
 
@@ -561,8 +563,25 @@ static Ast *read_decl_array_init_int(Ctype *ctype) {
   return ast_array_init(initlist);
 }
 
+static Ctype *find_struct_def(char *name) {
+  for (Iter *i = list_iter(struct_defs); !iter_end(i);) {
+    Ctype *t = iter_next(i);
+    if (t->tag && !strcmp(t->tag, name))
+      return t;
+  }
+  return NULL;
+}
+
 static Ctype *read_struct_def(void) {
   List *fields = make_list();
+  char *tag = NULL;
+  Token *tok = read_token();
+  if (tok->type == TTYPE_IDENT)
+    tag = tok->sval;
+  else
+    unget_token(tok);
+  Ctype *ctype = find_struct_def(tag);
+  if (ctype) return ctype;
   expect('{');
   int offset = 0;
   for (;;) {
@@ -579,7 +598,8 @@ static Ctype *read_struct_def(void) {
     expect(';');
   }
   expect('}');
-  Ctype *r = make_struct_type(fields);
+  Ctype *r = make_struct_type(fields, tag);
+  list_append(struct_defs, r);
   return r;
 }
 

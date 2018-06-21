@@ -67,6 +67,7 @@ typedef struct Ctype {
   struct Ctype *ptr; // pointer or array
   int size;   // array
   char *name; // struct field
+  char *tag;  // struct
   List *fields;
   int offset; // struct
 } Ctype;

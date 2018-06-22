@@ -134,6 +134,9 @@ static void emit_assign_struct_ref(Ast *struc, Ctype *field, int off) {
     case AST_LVAR:
       emit_lsave(field, struc->loff - field->offset - off, 0);
       break;
+    case AST_STRUCT_REF:
+      emit_assign_struct_ref(struc->struc, struc->field, 0);
+      break;
     default:
       error("internal error: %s", ast_to_string(struc));
   }

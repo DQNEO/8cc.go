@@ -689,11 +689,11 @@ static Ast *read_decl_init(Ast *var) {
 }
 
 static Ctype *read_decl_int(Token **name) {
-  Ctype *fieldtype = read_decl_spec();
+  Ctype *ctype = read_decl_spec();
   *name = read_token();
   if ((*name)->type != TTYPE_IDENT)
     error("Identifier expected, but got %s", token_to_string(*name));
-  return read_array_dimensions(fieldtype);
+  return read_array_dimensions(ctype);
 }
 
 static Ast *read_decl(void) {

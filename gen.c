@@ -35,7 +35,7 @@ int ctype_size(Ctype *ctype) {
       return last->offset + ctype_size(last);
     }
     default:
-      error("Unknown ctype");
+      error("internal error");
   }
 }
 

@@ -25,7 +25,6 @@ static Ast *read_decl_or_stmt(void);
 static Ctype *result_type(char op, Ctype *a, Ctype *b);
 static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
-static Ctype *read_decl_spec(void);
 static Ctype *read_decl_int(Token **name);
 
 static Env *make_env(Env *next) {
@@ -697,11 +696,8 @@ static Ctype *read_decl_int(Token **name) {
 }
 
 static Ast *read_decl(void) {
-  Ctype *ctype = read_decl_spec();
-  Token *varname = read_token();
-  if (varname->type != TTYPE_IDENT)
-    error("Identifier expected, but got %s", token_to_string(varname));
-  ctype = read_array_dimensions(ctype);
+  Token *varname;
+  Ctype *ctype = read_decl_int(&varname);
   Ast *var = ast_lvar(ctype, varname->sval);
   return read_decl_init(var);
 }

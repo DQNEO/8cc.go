@@ -143,7 +143,16 @@ static void emit_assign_struct_ref(Ast *struc, Ctype *field, int off) {
 }
 
 static void emit_load_struct_ref(Ast *struc, Ctype *field, int off) {
-  emit_lload(field, struc->loff - field->offset - off);
+  switch (struc->type) {
+    case AST_LVAR:
+      emit_lload(field, struc->loff - field->offset - off);
+      break;
+    case AST_STRUCT_REF:
+      emit_load_struct_ref(struc->struc, field, struc->field->offset + off);
+      break;
+    default:
+      error("internal error: %s", ast_to_string(struc));
+  }
 }
 
 static void emit_assign(Ast *var) {

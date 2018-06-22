@@ -573,7 +573,6 @@ static Ctype *find_struct_def(char *name) {
 }
 
 static Ctype *read_struct_def(void) {
-  List *fields = make_list();
   Token *tok = read_token();
   char *tag = NULL;
   if (tok->type == TTYPE_IDENT)
@@ -581,6 +580,7 @@ static Ctype *read_struct_def(void) {
   else
     unget_token(tok);
   Ctype *ctype = find_struct_def(tag);
+  List *fields = make_list();
   if (ctype) return ctype;
   expect('{');
   int offset = 0;

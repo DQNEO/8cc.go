@@ -26,6 +26,7 @@ static Ctype *result_type(char op, Ctype *a, Ctype *b);
 static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
 static Ctype *read_decl_spec(void);
+static Ctype *read_array_dimensions(Ctype *basetype);
 
 static Env *make_env(Env *next) {
   Env *r = malloc(sizeof(Env));
@@ -589,6 +590,10 @@ static Ctype *read_struct_def(void) {
       break;
     Ctype *fieldtype = read_decl_spec();
     Token *name = read_token();
+    if (name->type != TTYPE_IDENT)
+      error("Identifier expected, but got %s", token_to_string(name));
+    fieldtype = read_array_dimensions(fieldtype);
+
     int size = ctype_size(fieldtype);
     size = (size < MAX_ALIGN) ? size : MAX_ALIGN;
     if (offset % size != 0)

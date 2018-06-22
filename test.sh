@@ -213,6 +213,7 @@ test 1 '1&3;'
 
 # Struct
 test 61 'struct {int a;} x; x.a = 61; x.a;'
+test 61 'struct {int a; int b[2];} x; x.a = 61; x.a;'
 test 63 'struct {int a; int b;} x; x.a = 61; x.b = 2; x.a + x.b;'
 test 63 'struct tag {int a; int b;} x; struct tag s; s.a = 61; s.b = 2; s.a + s.b;' # my test for tag
 

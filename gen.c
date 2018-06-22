@@ -215,6 +215,19 @@ static void emit_inc_dec(Ast *ast, char *op) {
   emit("pop %%rax");
 }
 
+static void emit_load_deref(Ctype *result_type, Ctype *operand_type, int off) {
+  char *reg;
+  switch (ctype_size(result_type)) {
+    case 1: reg = "%cl"; emit("mov $0, %%ecx"); break;
+    case 4: reg = "%ecx"; break;
+    default: reg = "%rcx"; break;
+  }
+  if (operand_type->ptr->type != CTYPE_ARRAY) {
+    emit("mov (%%rax), %s", reg);
+    emit("mov %%rcx, %%rax");
+  }
+}
+
 static void emit_expr(Ast *ast) {
   switch (ast->type) {
     case AST_LITERAL:
@@ -282,20 +295,10 @@ static void emit_expr(Ast *ast) {
       assert(ast->operand->type == AST_LVAR);
       emit("lea %d(%%rbp), %%rax", -ast->operand->loff);
       break;
-    case AST_DEREF: {
+    case AST_DEREF:
       emit_expr(ast->operand);
-      char *reg;
-      switch (ctype_size(ast->ctype)) {
-        case 1: reg = "%cl"; emit("mov $0, %%ecx"); break;
-        case 4: reg = "%ecx"; break;
-        default: reg = "%rcx"; break;
-      }
-      if (ast->operand->ctype->ptr->type != CTYPE_ARRAY) {
-        emit("mov (%%rax), %s", reg);
-        emit("mov %%rcx, %%rax");
-      }
+      emit_load_deref(ast->ctype, ast->operand->ctype, 0);
       break;
-    }
     case AST_IF:
     case AST_TERNARY: {
       emit_expr(ast->cond);

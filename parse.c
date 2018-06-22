@@ -574,8 +574,8 @@ static Ctype *find_struct_def(char *name) {
 
 static Ctype *read_struct_def(void) {
   List *fields = make_list();
-  char *tag = NULL;
   Token *tok = read_token();
+  char *tag = NULL;
   if (tok->type == TTYPE_IDENT)
     tag = tok->sval;
   else

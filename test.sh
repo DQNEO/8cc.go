@@ -1,6 +1,7 @@
 #!/bin/bash
 
 function compile {
+  echo "$1" > /dev/stderr
   echo "$1" | ./8cc > tmp.s
   if [ $? -ne 0 ]; then
     echo "Failed to compile $1"

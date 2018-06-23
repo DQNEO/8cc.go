@@ -92,7 +92,7 @@ static void emit_gsave(Ast *var) {
   emit("mov %%%s, %s(%%rip)", reg, var->varname);
 }
 
-static void emit_lsave(Ctype *ctype, int loff, int off) {
+static void emit_lsave(Ctype *ctype, int off) {
   char *reg;
   int size = ctype_size(ctype);
   switch (size) {
@@ -100,7 +100,7 @@ static void emit_lsave(Ctype *ctype, int loff, int off) {
     case 4: reg = "eax"; break;
     case 8: reg = "rax"; break;
   }
-  emit("mov %%%s, %d(%%rbp)", reg, -(loff + off * size));
+  emit("mov %%%s, %d(%%rbp)", reg, -off);
 }
 
 static void emit_assign_deref(Ast *var) {
@@ -132,7 +132,7 @@ static void emit_pointer_arith(char op, Ast *left, Ast *right) {
 static void emit_assign_struct_ref(Ast *struc, Ctype *field, int off) {
   switch (struc->type) {
     case AST_LVAR:
-      emit_lsave(field, struc->loff - field->offset - off, 0);
+      emit_lsave(field, struc->loff - field->offset - off);
       break;
     case AST_STRUCT_REF:
       emit_assign_struct_ref(struc->struc, struc->field, 0);
@@ -161,7 +161,7 @@ static void emit_assign(Ast *var) {
     return;
   }
   switch (var->type) {
-    case AST_LVAR: emit_lsave(var->ctype, var->loff, 0); break;
+    case AST_LVAR: emit_lsave(var->ctype, var->loff); break;
     case AST_GVAR: emit_gsave(var); break;
     case AST_STRUCT_REF: emit_assign_struct_ref(var->struc, var->field, 0); break;
     default: error("internal error");
@@ -282,11 +282,11 @@ static void emit_expr(Ast *ast) {
       if (!ast->declinit)
         return;
       if (ast->declinit->type == AST_ARRAY_INIT) {
-        int i = 0;
+        int off = 0;
         for (Iter *iter = list_iter(ast->declinit->arrayinit); !iter_end(iter);) {
           emit_expr(iter_next(iter));
-          emit_lsave(ast->declvar->ctype->ptr, ast->declvar->loff, -i);
-          i++;
+          emit_lsave(ast->declvar->ctype->ptr, ast->declvar->loff - off);
+          off += ctype_size(ast->declvar->ctype->ptr);
         }
       } else if (ast->declvar->ctype->type == CTYPE_ARRAY) {
         assert(ast->declinit->type == AST_STRING);
@@ -296,10 +296,10 @@ static void emit_expr(Ast *ast) {
         emit("movb $0, %d(%%rbp)", -(ast->declvar->loff - i));
       } else if (ast->declinit->type == AST_STRING) {
         emit_gload(ast->declinit->ctype, ast->declinit->slabel);
-        emit_lsave(ast->declvar->ctype, ast->declvar->loff, 0);
+        emit_lsave(ast->declvar->ctype, ast->declvar->loff);
       } else {
         emit_expr(ast->declinit);
-        emit_lsave(ast->declvar->ctype, ast->declvar->loff, 0);
+        emit_lsave(ast->declvar->ctype, ast->declvar->loff);
       }
       return;
     }

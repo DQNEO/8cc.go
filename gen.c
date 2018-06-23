@@ -6,6 +6,7 @@ static char *REGS[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 static int TAB = 8;
 
 static void emit_expr(Ast *ast);
+static void emit_load_deref(Ctype *result_type, Ctype *operand_type, int off);
 
 #define emit(...)        emitf(__func__, __LINE__, "\t" __VA_ARGS__)
 #define emit_label(...)  emitf(__func__, __LINE__, __VA_ARGS__)
@@ -137,6 +138,21 @@ static void emit_assign_struct_ref(Ast *struc, Ctype *field, int off) {
     case AST_STRUCT_REF:
       emit_assign_struct_ref(struc->struc, field, off + struc->field->offset);
       break;
+    case AST_DEREF: {
+      Ast *var = struc;
+      emit("push %%rax");
+      emit_expr(var->operand);
+      emit("pop %%rcx");
+      char *reg;
+      int size = ctype_size(field);
+      switch (size) {
+        case 1: reg = "cl";  break;
+        case 4: reg = "ecx"; break;
+        case 8: reg = "rcx"; break;
+      }
+      emit("mov %%%s, (%%rax)", reg);
+      break;
+    }
     default:
       error("internal error: %s", ast_to_string(struc));
   }
@@ -149,6 +165,10 @@ static void emit_load_struct_ref(Ast *struc, Ctype *field, int off) {
       break;
     case AST_STRUCT_REF:
       emit_load_struct_ref(struc->struc, field, struc->field->offset + off);
+      break;
+    case AST_DEREF:
+      emit_expr(struc->operand);
+      emit_load_deref(field, struc->operand->ctype, off);
       break;
     default:
       error("internal error: %s", ast_to_string(struc));

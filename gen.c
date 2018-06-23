@@ -104,7 +104,7 @@ static void emit_lsave(Ctype *ctype, int off) {
   emit("mov %%%s, %d(%%rbp)", reg, -off);
 }
 
-static void emit_assign_deref_int(Ctype *ctype) {
+static void emit_assign_deref_int(Ctype *ctype, int off) {
   char *reg;
   emit("pop %%rcx");
   int size = ctype_size(ctype);
@@ -113,13 +113,16 @@ static void emit_assign_deref_int(Ctype *ctype) {
     case 4: reg = "ecx"; break;
     case 8: reg = "rcx"; break;
   }
-  emit("mov %%%s, (%%rax)", reg);
+  if (off)
+    emit("mov %%%s, %d(%%rax)", reg, off);
+  else
+    emit("mov %%%s, (%%rax)", reg);
 }
 
 static void emit_assign_deref(Ast *var) {
   emit("push %%rax");
   emit_expr(var->operand);
-  emit_assign_deref_int(var->operand->ctype);
+  emit_assign_deref_int(var->operand->ctype, 0);
 }
 
 static void emit_pointer_arith(char op, Ast *left, Ast *right) {
@@ -145,7 +148,7 @@ static void emit_assign_struct_ref(Ast *struc, Ctype *field, int off) {
     case AST_DEREF:
       emit("push %%rax");
       emit_expr(struc->operand);
-      emit_assign_deref_int(field);
+      emit_assign_deref_int(field, field->offset + off);
       break;
     default:
       error("internal error: %s", ast_to_string(struc));
@@ -162,7 +165,7 @@ static void emit_load_struct_ref(Ast *struc, Ctype *field, int off) {
       break;
     case AST_DEREF:
       emit_expr(struc->operand);
-      emit_load_deref(field, struc->operand->ctype, off);
+      emit_load_deref(field, struc->operand->ctype, field->offset + off);
       break;
     default:
       error("internal error: %s", ast_to_string(struc));

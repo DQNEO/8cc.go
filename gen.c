@@ -249,7 +249,10 @@ static void emit_load_deref(Ctype *result_type, Ctype *operand_type, int off) {
     default: reg = "%rcx"; break;
   }
   if (operand_type->ptr->type != CTYPE_ARRAY) {
-    emit("mov (%%rax), %s", reg);
+    if (off)
+      emit("mov %d(%%rax), %s", off, reg);
+    else
+      emit("mov (%%rax), %s", reg);
     emit("mov %%rcx, %%rax");
   }
 }

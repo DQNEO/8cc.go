@@ -216,7 +216,8 @@ test 61 'struct {int a;} x; x.a = 61; x.a;'
 test 61 'struct {int a; int b[2];} x; x.a = 61; x.a;'
 test 63 'struct {int a; int b;} x; x.a = 61; x.b = 2; x.a + x.b;'
 test 63 'struct tag {int a; int b;} x; struct tag s; s.a = 61; s.b = 2; s.a + s.b;' # my test for tag
-
+test 67 'struct {int a; struct {char b; int c;} y; } x; x.a = 61; x.y.b = 3; x.y.c = 3; x.a + x.y.b + x.y.c;'
+test 67 'struct tag {int a; struct {char b; int c;} y; } x; struct tag s; s.a = 61; s.y.b = 3; s.y.c = 3; s.a + s.y.b + s.y.c;'
 
 testfail '0abc;'
 testfail '1+;'

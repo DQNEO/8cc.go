@@ -40,7 +40,7 @@ int ctype_size(Ctype *ctype) {
   }
 }
 
-static void emit_gload(Ctype *ctype, char *label) {
+static void emit_gload(Ctype *ctype, char *label, int off) {
   if (ctype->type == CTYPE_ARRAY) {
     emit("lea %s(%%rip), %%rax", label);
     return;
@@ -54,7 +54,10 @@ static void emit_gload(Ctype *ctype, char *label) {
     default:
       error("Unknown data size: %s: %d", ctype_to_string(ctype), size);
   }
-  emit("mov %s(%%rip), %%%s", label, reg);
+  if (off)
+    emit("mov %s+%d(%%rip), %%%s", label, off, reg);
+  else
+    emit("mov %s(%%rip), %%%s", label, reg);
 }
 
 static void emit_lload(Ctype *ctype, int off) {
@@ -79,18 +82,21 @@ static void emit_lload(Ctype *ctype, int off) {
   }
 }
 
-static void emit_gsave(Ast *var) {
-  assert(var->ctype->type != CTYPE_ARRAY);
+static void emit_gsave(char *varname, Ctype *ctype, int off) {
+  assert(ctype->type != CTYPE_ARRAY);
   char *reg;
-  int size = ctype_size(var->ctype);
+  int size = ctype_size(ctype);
   switch (size) {
     case 1: reg = "al";  break;
     case 4: reg = "eax"; break;
     case 8: reg = "rax"; break;
     default:
-      error("Unknown data size: %s: %d", ast_to_string(var), size);
+      error("Unknown data size: %s: %d", ctype_to_string(ctype), size);
   }
-  emit("mov %%%s, %s(%%rip)", reg, var->varname);
+  if (off)
+    emit("mov %%%s, %s+%d(%%rip)", reg, varname, off);
+  else
+    emit("mov %%%s, %s(%%rip)", reg, varname);
 }
 
 static void emit_lsave(Ctype *ctype, int off) {
@@ -142,6 +148,9 @@ static void emit_assign_struct_ref(Ast *struc, Ctype *field, int off) {
     case AST_LVAR:
       emit_lsave(field, struc->loff - field->offset - off);
       break;
+    case AST_GVAR:
+      emit_gsave(struc->varname, field, struc->loff - field->offset - off);
+      break;
     case AST_STRUCT_REF:
       emit_assign_struct_ref(struc->struc, field, off + struc->field->offset);
       break;
@@ -159,6 +168,9 @@ static void emit_load_struct_ref(Ast *struc, Ctype *field, int off) {
   switch (struc->type) {
     case AST_LVAR:
       emit_lload(field, struc->loff - field->offset - off);
+      break;
+    case AST_GVAR:
+      emit_gload(field, struc->glabel, struc->loff - field->offset - off);
       break;
     case AST_STRUCT_REF:
       emit_load_struct_ref(struc->struc, field, struc->field->offset + off);
@@ -179,7 +191,7 @@ static void emit_assign(Ast *var) {
   }
   switch (var->type) {
     case AST_LVAR: emit_lsave(var->ctype, var->loff); break;
-    case AST_GVAR: emit_gsave(var); break;
+    case AST_GVAR: emit_gsave(var->varname, var->ctype, 0); break;
     case AST_STRUCT_REF: emit_assign_struct_ref(var->struc, var->field, 0); break;
     default: error("internal error");
   }
@@ -281,7 +293,7 @@ static void emit_expr(Ast *ast) {
       emit_lload(ast->ctype, ast->loff);
       break;
     case AST_GVAR:
-      emit_gload(ast->ctype, ast->glabel);
+      emit_gload(ast->ctype, ast->glabel, 0);
       break;
     case AST_FUNCALL: {
       for (int i = 1; i < list_len(ast->args); i++)
@@ -315,7 +327,7 @@ static void emit_expr(Ast *ast) {
           emit("movb $%d, %d(%%rbp)", *p, -(ast->declvar->loff - i));
         emit("movb $0, %d(%%rbp)", -(ast->declvar->loff - i));
       } else if (ast->declinit->type == AST_STRING) {
-        emit_gload(ast->declinit->ctype, ast->declinit->slabel);
+        emit_gload(ast->declinit->ctype, ast->declinit->slabel, 0);
         emit_lsave(ast->declvar->ctype, ast->declvar->loff);
       } else {
         emit_expr(ast->declinit);

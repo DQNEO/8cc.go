@@ -336,8 +336,16 @@ static void emit_expr(Ast *ast) {
       return;
     }
     case AST_ADDR:
-      assert(ast->operand->type == AST_LVAR);
-      emit("lea %d(%%rbp), %%rax", -ast->operand->loff);
+      switch (ast->operand->type) {
+        case AST_LVAR:
+          emit("lea %d(%%rbp), %%rax", -ast->operand->loff);
+          break;
+        case AST_GVAR:
+          emit("lea %s(%%rip), %%rax", ast->operand->glabel);
+          break;
+        default:
+          error("internal error");
+      }
       break;
     case AST_DEREF:
       emit_expr(ast->operand);

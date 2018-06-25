@@ -3,6 +3,7 @@
 typedef struct ListNode {
   void *elem;
   struct ListNode *next;
+  struct ListNode *prev;
 } ListNode;
 
 typedef struct List {
@@ -17,6 +18,7 @@ typedef struct Iter {
 
 List *make_list(void);
 void list_push(List *list, void *elem);
+void *list_pop(List *list);
 List *list_reverse(List *list);
 int list_len(List *list);
 void *list_last(List *list);

@@ -17,6 +17,7 @@ static void emit_load_deref(Ctype *result_type, Ctype *operand_type, int off);
   list_push(functions, (void *)__func__)
 
 static void pop_function(void *ignore) {
+  list_pop(functions);
 }
 
 static char *get_caller_list(void) {

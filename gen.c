@@ -235,15 +235,16 @@ static void emit_binop(Ast *ast) {
     case '/': break;
     default: error("invalid operator '%d'", ast->type);
   }
-  emit_expr(ast->right);
-  emit("push %%rax");
   emit_expr(ast->left);
+  emit("push %%rax");
+  emit_expr(ast->right);
+  emit("mov %%rax, %%rcx");
   if (ast->type == '/') {
-    emit("pop %%rcx");
+    emit("pop %%rax");
     emit("mov $0, %%edx");
     emit("idiv %%rcx");
   } else {
-    emit("pop %%rcx");
+    emit("pop %%rax");
     emit("%s %%rcx, %%rax", op);
   }
 }

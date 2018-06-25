@@ -44,6 +44,10 @@ void test_list(void) {
   assert_int_equal(2, (long)iter_next(iter));
   assert_int_equal(1, (long)iter_next(iter));
   assert_int_equal(0, (long)iter_next(iter));
+
+  assert_int_equal(1, (long)list_pop(rev));
+  assert_int_equal(2, (long)list_pop(rev));
+  assert_int_equal(0, (long)list_pop(rev));
 }
 
 int main(int argc, char **argv) {

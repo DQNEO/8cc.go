@@ -42,7 +42,10 @@ int ctype_size(Ctype *ctype) {
 
 static void emit_gload(Ctype *ctype, char *label, int off) {
   if (ctype->type == CTYPE_ARRAY) {
-    emit("lea %s(%%rip), %%rax", label);
+    if (off)
+      emit("lea %s+%d(%%rip), %%rax", label, off);
+    else
+      emit("lea %s(%%rip), %%rax", label);
     return;
   }
   char *reg;

@@ -11,6 +11,8 @@ static void emit_load_deref(Ctype *result_type, Ctype *operand_type, int off);
 #define emit(...)        emitf(__LINE__, "\t" __VA_ARGS__)
 #define emit_label(...)  emitf(__LINE__, __VA_ARGS__)
 
+#define SAVE 1
+
 static void emitf(int line, char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
@@ -41,6 +43,7 @@ int ctype_size(Ctype *ctype) {
 }
 
 static void emit_gload(Ctype *ctype, char *label, int off) {
+  SAVE;
   if (ctype->type == CTYPE_ARRAY) {
     if (off)
       emit("lea %s+%d(%%rip), %%rax", label, off);
@@ -64,6 +67,7 @@ static void emit_gload(Ctype *ctype, char *label, int off) {
 }
 
 static void emit_lload(Ctype *ctype, int off) {
+  SAVE;
   if (ctype->type == CTYPE_ARRAY) {
     emit("lea %d(%%rbp), %%rax", -off);
     return;
@@ -86,6 +90,7 @@ static void emit_lload(Ctype *ctype, int off) {
 }
 
 static void emit_gsave(char *varname, Ctype *ctype, int off) {
+  SAVE;
   assert(ctype->type != CTYPE_ARRAY);
   char *reg;
   int size = ctype_size(ctype);
@@ -103,6 +108,7 @@ static void emit_gsave(char *varname, Ctype *ctype, int off) {
 }
 
 static void emit_lsave(Ctype *ctype, int off) {
+  SAVE;
   char *reg;
   int size = ctype_size(ctype);
   switch (size) {
@@ -114,6 +120,7 @@ static void emit_lsave(Ctype *ctype, int off) {
 }
 
 static void emit_assign_deref_int(Ctype *ctype, int off) {
+  SAVE;
   char *reg;
   emit("pop %%rcx");
   int size = ctype_size(ctype);
@@ -129,12 +136,14 @@ static void emit_assign_deref_int(Ctype *ctype, int off) {
 }
 
 static void emit_assign_deref(Ast *var) {
+  SAVE;
   emit("push %%rax");
   emit_expr(var->operand);
   emit_assign_deref_int(var->operand->ctype, 0);
 }
 
 static void emit_pointer_arith(char op, Ast *left, Ast *right) {
+  SAVE;
   emit_expr(left);
   emit("push %%rax");
   emit_expr(right);
@@ -147,6 +156,7 @@ static void emit_pointer_arith(char op, Ast *left, Ast *right) {
 }
 
 static void emit_assign_struct_ref(Ast *struc, Ctype *field, int off) {
+  SAVE;
   switch (struc->type) {
     case AST_LVAR:
       emit_lsave(field, struc->loff - field->offset - off);
@@ -168,6 +178,7 @@ static void emit_assign_struct_ref(Ast *struc, Ctype *field, int off) {
 }
 
 static void emit_load_struct_ref(Ast *struc, Ctype *field, int off) {
+  SAVE;
   switch (struc->type) {
     case AST_LVAR:
       emit_lload(field, struc->loff - field->offset - off);
@@ -188,6 +199,7 @@ static void emit_load_struct_ref(Ast *struc, Ctype *field, int off) {
 }
 
 static void emit_assign(Ast *var) {
+  SAVE;
   switch (var->type) {
     case AST_DEREF: emit_assign_deref(var); break;
     case AST_STRUCT_REF: emit_assign_struct_ref(var->struc, var->field, 0); break;
@@ -198,6 +210,7 @@ static void emit_assign(Ast *var) {
 }
 
 static void emit_comp(char *inst, Ast *a, Ast *b) {
+  SAVE;
   emit_expr(a);
   emit("push %%rax");
   emit_expr(b);
@@ -208,6 +221,7 @@ static void emit_comp(char *inst, Ast *a, Ast *b) {
 }
 
 static void emit_binop(Ast *ast) {
+  SAVE;
   if (ast->type == '=') {
     emit_expr(ast->right);
     emit_assign(ast->left);
@@ -250,6 +264,7 @@ static void emit_binop(Ast *ast) {
 }
 
 static void emit_inc_dec(Ast *ast, char *op) {
+  SAVE;
   emit_expr(ast->operand);
   emit("push %%rax");
   emit("%s $1, %%rax", op);
@@ -258,6 +273,7 @@ static void emit_inc_dec(Ast *ast, char *op) {
 }
 
 static void emit_load_deref(Ctype *result_type, Ctype *operand_type, int off) {
+  SAVE;
   if (operand_type->type == CTYPE_PTR &&
       operand_type->ptr->type == CTYPE_ARRAY)
     return;
@@ -275,6 +291,7 @@ static void emit_load_deref(Ctype *result_type, Ctype *operand_type, int off) {
 }
 
 static void emit_expr(Ast *ast) {
+  SAVE;
   switch (ast->type) {
     case AST_LITERAL:
       switch (ast->ctype->type) {
@@ -463,6 +480,7 @@ static void emit_expr(Ast *ast) {
 }
 
 void emit_data_section(void) {
+  SAVE;
   if (list_len(globalenv->vars) == 0) return;
   emit(".data");
   for (Iter *i = list_iter(globalenv->vars); !iter_end(i);) {
@@ -482,6 +500,7 @@ static int ceil8(int n) {
 }
 
 static void emit_data_int(Ast *data) {
+  SAVE;
   assert(data->ctype->type != CTYPE_ARRAY);
   switch (ctype_size(data->ctype)) {
     case 1: emit(".byte %d", data->ival); break;
@@ -492,6 +511,7 @@ static void emit_data_int(Ast *data) {
 }
 
 static void emit_data(Ast *v) {
+  SAVE;
   emit_label(".global %s", v->declvar->varname);
   emit_label("%s:", v->declvar->varname);
   if (v->declinit->type == AST_ARRAY_INIT) {
@@ -505,10 +525,12 @@ static void emit_data(Ast *v) {
 }
 
 static void emit_bss(Ast *v) {
+  SAVE;
   emit(".lcomm %s, %d", v->declvar->varname, ctype_size(v->declvar->ctype));
 }
 
 static void emit_global_var(Ast *v) {
+  SAVE;
   if (v->declinit)
     emit_data(v);
   else
@@ -516,6 +538,7 @@ static void emit_global_var(Ast *v) {
 }
 
 static void emit_func_prologue(Ast *func) {
+  SAVE;
   if (list_len(func->params) > sizeof(REGS) / sizeof(*REGS))
     error("Parameter list too long: %s", func->fname);
   emit(".text");
@@ -541,6 +564,7 @@ static void emit_func_prologue(Ast *func) {
 }
 
 static void emit_func_epilogue(void) {
+  SAVE;
   emit("leave");
   emit("ret");
 }

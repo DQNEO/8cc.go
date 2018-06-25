@@ -190,9 +190,9 @@ static void emit_assign(Ast *var) {
     return;
   }
   switch (var->type) {
+    case AST_STRUCT_REF: emit_assign_struct_ref(var->struc, var->field, 0); break;
     case AST_LVAR: emit_lsave(var->ctype, var->loff); break;
     case AST_GVAR: emit_gsave(var->varname, var->ctype, 0); break;
-    case AST_STRUCT_REF: emit_assign_struct_ref(var->struc, var->field, 0); break;
     default: error("internal error");
   }
 }

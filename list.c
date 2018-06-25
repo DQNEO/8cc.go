@@ -18,10 +18,11 @@ void *make_node(void *elem) {
 
 void list_push(List *list, void *elem) {
   ListNode *node = make_node(elem);
-  if (!list->head)
+  if (!list->head) {
     list->head = node;
-  else
+  } else {
     list->tail->next = node;
+  }
   list->tail = node;
   list->len++;
 }

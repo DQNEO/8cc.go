@@ -395,8 +395,10 @@ static void emit_expr(Ast *ast) {
       emit("ret");
       break;
     case AST_COMPOUND_STMT:
-      for (Iter *i = list_iter(ast->stmts); !iter_end(i);)
+      for (Iter *i = list_iter(ast->stmts); !iter_end(i);) {
         emit_expr(iter_next(i));
+        emit("#;");
+      }
       break;
     case AST_STRUCT_REF:
       emit_load_struct_ref(ast->struc, ast->field, 0);

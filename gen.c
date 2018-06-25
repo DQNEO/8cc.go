@@ -11,7 +11,7 @@ static void emit_load_deref(Ctype *result_type, Ctype *operand_type, int off);
 #define emit(...)        emitf(__LINE__, "\t" __VA_ARGS__)
 #define emit_label(...)  emitf(__LINE__, __VA_ARGS__)
 
-void emitf(int line, char *fmt, ...) {
+static void emitf(int line, char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
   int col = vprintf(fmt, args);

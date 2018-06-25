@@ -105,6 +105,7 @@ testastf '(decl int a 3)' 'int a=3;'
 
 testastf '(decl (struct) a)' 'struct {} a;'
 testastf '(decl (struct (int) (char)) a)' 'struct {int x; char y;} a;'
+testastf '(decl (struct ([3]int)) a)' 'struct {int x[3];} a;'
 testast '(int)f(){(decl (struct (int)) a);a.x;}' 'struct {int x;} a; a.x;'
 
 # Basic arithmetic
@@ -222,6 +223,7 @@ test 68 'struct tag {int a;} x; struct tag *p = &x; x.a = 68; (*p).a;'
 test 69 'struct tag {int a;} x; struct tag *p = &x; (*p).a = 69; x.a;'
 test 71 'struct tag {int a; int b;} x; struct tag *p = &x; x.b = 71; (*p).b;'
 test 72 'struct tag {int a; int b;} x; struct tag *p = &x; (*p).b = 72; x.b;'
+test 77 'struct {int a; struct {char b; int c;} y; } x; x.a = 71; x.y.b = 3; x.y.c = 3; x.a + x.y.b + x.y.c;'
 testf 67 'struct {int a; struct {char b; int c;} y; } x; int f() { x.a = 61; x.y.b = 3; x.y.c = 3; x.a + x.y.b + x.y.c;}'
 testf 78 'struct tag {int a;} x; int f() { struct tag *p = &x; x.a = 78; (*p).a;}'
 testf 79 'struct tag {int a;} x; int f() { struct tag *p = &x; (*p).a = 79; x.a;}'

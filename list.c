@@ -16,7 +16,7 @@ void *make_node(void *elem) {
   return r;
 }
 
-void list_append(List *list, void *elem) {
+void list_push(List *list, void *elem) {
   ListNode *node = make_node(elem);
   if (!list->head)
     list->head = node;

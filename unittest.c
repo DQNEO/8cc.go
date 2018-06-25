@@ -27,8 +27,8 @@ void test_string(void) {
 
 void test_list(void) {
   List *list = make_list();
-  list_append(list, (void *)1);
-  list_append(list, (void *)2);
+  list_push(list, (void *)1);
+  list_push(list, (void *)2);
   Iter *iter = list_iter(list);
   assert_int_equal(1, (long)iter_next(iter));
   assert_int_equal(false, iter_end(iter));

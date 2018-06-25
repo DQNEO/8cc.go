@@ -4,6 +4,7 @@
 
 static char *REGS[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 static int TAB = 8;
+static List *functions = &EMPTY_LIST;
 
 static void emit_expr(Ast *ast);
 static void emit_load_deref(Ctype *result_type, Ctype *operand_type, int off);
@@ -11,7 +12,22 @@ static void emit_load_deref(Ctype *result_type, Ctype *operand_type, int off);
 #define emit(...)        emitf(__LINE__, "\t" __VA_ARGS__)
 #define emit_label(...)  emitf(__LINE__, __VA_ARGS__)
 
-#define SAVE 1
+#define SAVE                                            \
+  int save_hook __attribute__((cleanup(pop_function))); \
+  list_push(functions, (void *)__func__)
+
+static void pop_function(void *ignore) {
+}
+
+static char *get_caller_list(void) {
+  String *s = make_string();
+  for (Iter *i = list_iter(functions); !iter_end(i);) {
+    string_appendf(s, "%s", iter_next(i));
+    if (!iter_end(i))
+      string_appendf(s, " -> ");
+  }
+  return get_cstring(s);
+}
 
 static void emitf(int line, char *fmt, ...) {
   va_list args;
@@ -23,7 +39,7 @@ static void emitf(int line, char *fmt, ...) {
     if (*p == '\t')
       col += TAB - 1;
   int space = (30 - col) > 0 ? (30 - col) : 2;
-  printf("%*c %s:%d\n", space, '#', "", line);
+  printf("%*c %s:%d\n", space, '#', get_caller_list(), line);
 }
 
 int ctype_size(Ctype *ctype) {

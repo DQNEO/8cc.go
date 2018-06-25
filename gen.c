@@ -8,10 +8,10 @@ static int TAB = 8;
 static void emit_expr(Ast *ast);
 static void emit_load_deref(Ctype *result_type, Ctype *operand_type, int off);
 
-#define emit(...)        emitf(__func__, __LINE__, "\t" __VA_ARGS__)
-#define emit_label(...)  emitf(__func__, __LINE__, __VA_ARGS__)
+#define emit(...)        emitf(__LINE__, "\t" __VA_ARGS__)
+#define emit_label(...)  emitf(__LINE__, __VA_ARGS__)
 
-void emitf(const char *func, int line, char *fmt, ...) {
+void emitf(int line, char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
   int col = vprintf(fmt, args);
@@ -21,7 +21,7 @@ void emitf(const char *func, int line, char *fmt, ...) {
     if (*p == '\t')
       col += TAB - 1;
   int space = (30 - col) > 0 ? (30 - col) : 2;
-  printf("%*c %s:%d\n", space, '#', func, line);
+  printf("%*c %s:%d\n", space, '#', "", line);
 }
 
 int ctype_size(Ctype *ctype) {

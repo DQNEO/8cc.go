@@ -228,6 +228,7 @@ testf 67 'struct {int a; struct {char b; int c;} y; } x; int f() { x.a = 61; x.y
 testf 78 'struct tag {int a;} x; int f() { struct tag *p = &x; x.a = 78; (*p).a;}'
 testf 79 'struct tag {int a;} x; int f() { struct tag *p = &x; (*p).a = 79; x.a;}'
 testf 81 'struct tag {int a; int b;} x; int f() { struct tag *p = &x; x.b = 81; (*p).b;}'
+testf 82 'struct tag {int a; int b;} x; int f() { struct tag *p = &x; (*p).b = 82; x.b;}'
 
 testfail '0abc;'
 testfail '1+;'

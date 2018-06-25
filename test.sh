@@ -3,7 +3,6 @@
 function compile {
   echo "$1" > /dev/stderr
   echo "$1" | ./8cc > tmp.s || echo "Failed to compile $1"
-
   if [ $? -ne 0 ]; then
     echo "Failed to compile $1"
     exit

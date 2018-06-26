@@ -277,7 +277,7 @@ static bool is_right_assoc(Token *tok) {
 
 static int priority(Token *tok) {
   switch (tok->punct) {
-    case '[': case '.':
+    case '[': case '.': case PUNCT_ARROW:
       return 1;
     case PUNCT_INC: case PUNCT_DEC:
       return 2;
@@ -497,6 +497,11 @@ static Ast *read_expr_int(int prec) {
       ast = read_struct_field(ast);
       continue;
     }
+    if (is_punct(tok, PUNCT_ARROW)) {
+      ast = ast_uop(AST_DEREF, ast->ctype->ptr, ast);
+      ast = read_struct_field(ast);
+      continue;
+    }
     if (is_punct(tok, '[')) {
       ast = read_subscript_expr(ast);
       continue;
@@ -511,7 +516,7 @@ static Ast *read_expr_int(int prec) {
       ensure_lvalue(ast);
     Ast *rest = read_expr_int(prec2 + (is_right_assoc(tok) ? 1 : 0));
     if (!rest)
-      error("second operand missing");
+      error("second operand missing. ast:%s", ast_to_string(ast));
     ast = ast_binop(tok->punct, ast, rest);
   }
 }

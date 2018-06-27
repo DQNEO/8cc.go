@@ -217,11 +217,11 @@ static Ctype* make_ptr_type(Ctype *ctype) {
   return r;
 }
 
-static Ctype* make_array_type(Ctype *ctype, int size) {
+static Ctype* make_array_type(Ctype *ctype, int len) {
   Ctype *r = malloc(sizeof(Ctype));
   r->type = CTYPE_ARRAY;
   r->ptr = ctype;
-  r->size = size;
+  r->len = len;
   return r;
 }
 
@@ -632,11 +632,11 @@ static Ast *read_decl_init_val(Ast *var) {
     int len = (init->type == AST_STRING)
         ? strlen(init->sval) + 1
         : list_len(init->arrayinit);
-    if (var->ctype->size == -1) {
-      var->ctype->size = len;
-    } else if (var->ctype->size != len) {
+    if (var->ctype->len == -1) {
+      var->ctype->len = len;
+    } else if (var->ctype->len != len) {
       error("Invalid array initializer: expected %d items but got %d",
-            var->ctype->size, len);
+            var->ctype->len, len);
     }
     expect(';');
     return ast_decl(var, init);
@@ -664,7 +664,7 @@ static Ctype *read_array_dimensions_int(void) {
   expect(']');
   Ctype *sub = read_array_dimensions_int();
   if (sub) {
-    if (sub->size == -1 && dim == -1)
+    if (sub->len == -1 && dim == -1)
       error("Array size is not specified");
     return make_array_type(sub, dim);
   }

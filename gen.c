@@ -49,7 +49,7 @@ int ctype_size(Ctype *ctype) {
     case CTYPE_INT:  return 4;
     case CTYPE_PTR:  return 8;
     case CTYPE_ARRAY:
-      return ctype_size(ctype->ptr) * ctype->size;
+      return ctype_size(ctype->ptr) * ctype->len;
     case CTYPE_STRUCT: {
       Ctype *last = list_last(ctype->fields);
       return last->offset + ctype_size(last);

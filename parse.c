@@ -580,13 +580,15 @@ static Ctype *find_struct_def(char *name) {
   return NULL;
 }
 
-static Ctype *read_struct_def(void) {
+static char *read_struct_union_tag(void) {
   Token *tok = read_token();
-  char *tag = NULL;
   if (tok->type == TTYPE_IDENT)
-    tag = tok->sval;
-  else
-    unget_token(tok);
+    return tok->sval;
+  unget_token(tok);
+  return NULL;
+}
+static Ctype *read_struct_def(void) {
+  char *tag = read_struct_union_tag();
   Ctype *ctype = find_struct_def(tag);
   List *fields = make_list();
   if (ctype) return ctype;

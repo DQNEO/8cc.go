@@ -659,8 +659,7 @@ static Ctype *read_array_dimensions_int(Ctype *basetype) {
     return NULL;
   }
   int dim = -1;
-  tok = peek_token();
-  if (!is_punct(tok, ']')) {
+  if (!is_punct(peek_token(), ']')) {
     Ast *size = read_expr();
     check_intexp(size);
     dim = size->ival;

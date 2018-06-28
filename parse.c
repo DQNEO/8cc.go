@@ -636,7 +636,7 @@ static Ast *read_decl_init_val(Ast *var) {
         : list_len(init->arrayinit);
     if (var->ctype->len == -1) {
       var->ctype->len = len;
-      var->ctype->size = var->ctype->ptr->size * len;
+      var->ctype->size = len * var->ctype->ptr->size;
     } else if (var->ctype->len != len) {
       error("Invalid array initializer: expected %d items but got %d",
             var->ctype->len, len);

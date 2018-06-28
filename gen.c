@@ -44,19 +44,7 @@ static void emitf(int line, char *fmt, ...) {
 }
 
 int ctype_size(Ctype *ctype) {
-  switch (ctype->type) {
-    case CTYPE_CHAR: return 1;
-    case CTYPE_INT:  return 4;
-    case CTYPE_PTR:  return 8;
-    case CTYPE_ARRAY:
-      return ctype_size(ctype->ptr) * ctype->len;
-    case CTYPE_STRUCT: {
-      Ctype *last = list_last(ctype->fields);
-      return last->offset + ctype_size(last);
-    }
-    default:
-      error("internal error");
-  }
+  return ctype->size;
 }
 
 static void emit_gload(Ctype *ctype, char *label, int off) {

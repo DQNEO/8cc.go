@@ -12,8 +12,8 @@ Env *globalenv = &EMPTY_ENV;
 static List *struct_defs = &EMPTY_LIST;
 static Env *localenv = NULL;
 static List *localvars = NULL;
-static Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL };
-static Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL };
+static Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL, 4 };
+static Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL, 1 };
 
 static int labelseq = 0;
 
@@ -214,6 +214,7 @@ static Ctype* make_ptr_type(Ctype *ctype) {
   Ctype *r = malloc(sizeof(Ctype));
   r->type = CTYPE_PTR;
   r->ptr = ctype;
+  r->size = 8;
   return r;
 }
 
@@ -222,6 +223,7 @@ static Ctype* make_array_type(Ctype *ctype, int len) {
   r->type = CTYPE_ARRAY;
   r->ptr = ctype;
   r->len = len;
+  r->size = (len < 0) ? -1 : ctype_size(r->ptr) * len;
   return r;
 }
 
@@ -233,11 +235,12 @@ static Ctype* make_struct_field_type(Ctype *ctype, char *name, int offset) {
   return r;
 }
 
-static Ctype* make_struct_type(List *ctypes, char *tag) {
+static Ctype* make_struct_type(List *ctypes, char *tag, int size) {
   Ctype *r = malloc(sizeof(Ctype));
   r->type = CTYPE_STRUCT;
   r->fields = ctypes;
   r->tag = tag;
+  r->size = size;
   return r;
 }
 
@@ -601,7 +604,7 @@ static Ctype *read_struct_def(void) {
     expect(';');
   }
   expect('}');
-  Ctype *r = make_struct_type(fields, tag);
+  Ctype *r = make_struct_type(fields, tag, offset);
   list_push(struct_defs, r);
   return r;
 }
@@ -634,6 +637,7 @@ static Ast *read_decl_init_val(Ast *var) {
         : list_len(init->arrayinit);
     if (var->ctype->len == -1) {
       var->ctype->len = len;
+      var->ctype->size = var->ctype->ptr->size * len;
     } else if (var->ctype->len != len) {
       error("Invalid array initializer: expected %d items but got %d",
             var->ctype->len, len);

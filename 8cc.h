@@ -66,7 +66,8 @@ enum {
 typedef struct Ctype {
   int type;
   struct Ctype *ptr; // pointer or array
-  int len;   // array
+  int size;
+  int len;    // array
   char *name; // struct field
   char *tag;  // struct
   List *fields;

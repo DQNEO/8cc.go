@@ -610,9 +610,15 @@ static Ctype *read_struct_def(void) {
   return r;
 }
 
+static Ctype *read_union_def(void) {
+  return read_struct_def();
+}
+
 static Ctype *read_decl_spec(void) {
   Token *tok = read_token();
-  Ctype *ctype = (is_ident(tok, "struct") || is_ident(tok, "union")) ? read_struct_def() : get_ctype(tok);
+  Ctype *ctype = is_ident(tok, "struct") ? read_struct_def()
+      : is_ident(tok, "union") ? read_union_def()
+      : get_ctype(tok);
   if (!ctype)
     error("Type expected, but got %s", token_to_string(tok));
   for (;;) {

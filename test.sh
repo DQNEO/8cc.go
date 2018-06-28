@@ -129,6 +129,9 @@ test 0 '2<1;'
 test 1 '1==1;'
 test 0 '1==2;'
 
+# Assignment
+test '1 1 1 4' 'int a;int b;int c; a=b=c=1; printf("%d %d %d ",a,b,c); 4;'
+
 # Declaration
 test 3 'int a=1;a+2;'
 test 102 'int a=1;int b=48+2;int c=a+b;c*2;'

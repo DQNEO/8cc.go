@@ -43,10 +43,6 @@ static void emitf(int line, char *fmt, ...) {
   printf("%*c %s:%d\n", space, '#', get_caller_list(), line);
 }
 
-int ctype_size(Ctype *ctype) {
-  return ctype->size;
-}
-
 static void emit_gload(Ctype *ctype, char *label, int off) {
   SAVE;
   if (ctype->type == CTYPE_ARRAY) {
@@ -57,13 +53,12 @@ static void emit_gload(Ctype *ctype, char *label, int off) {
     return;
   }
   char *reg;
-  int size = ctype_size(ctype);
-  switch (size) {
+  switch (ctype->size) {
     case 1: reg = "al"; emit("mov $0, %%eax"); break;
     case 4: reg = "eax"; break;
     case 8: reg = "rax"; break;
     default:
-      error("Unknown data size: %s: %d", ctype_to_string(ctype), size);
+      error("Unknown data size: %s: %d", ctype_to_string(ctype), ctype->size);
   }
   if (off)
     emit("mov %s+%d(%%rip), %%%s", label, off, reg);
@@ -77,8 +72,7 @@ static void emit_lload(Ctype *ctype, int off) {
     emit("lea %d(%%rbp), %%rax", -off);
     return;
   }
-  int size = ctype_size(ctype);
-  switch (size) {
+  switch (ctype->size) {
     case 1:
       emit("mov $0, %%eax");
       emit("mov %d(%%rbp), %%al", -off);
@@ -90,7 +84,7 @@ static void emit_lload(Ctype *ctype, int off) {
       emit("mov %d(%%rbp), %%rax", -off);
       break;
     default:
-      error("Unknown data size: %s: %d", ctype_to_string(ctype), size);
+      error("Unknown data size: %s: %d", ctype_to_string(ctype), ctype->size);
   }
 }
 
@@ -98,13 +92,12 @@ static void emit_gsave(char *varname, Ctype *ctype, int off) {
   SAVE;
   assert(ctype->type != CTYPE_ARRAY);
   char *reg;
-  int size = ctype_size(ctype);
-  switch (size) {
+  switch (ctype->size) {
     case 1: reg = "al";  break;
     case 4: reg = "eax"; break;
     case 8: reg = "rax"; break;
     default:
-      error("Unknown data size: %s: %d", ctype_to_string(ctype), size);
+      error("Unknown data size: %s: %d", ctype_to_string(ctype), ctype->size);
   }
   if (off)
     emit("mov %%%s, %s+%d(%%rip)", reg, varname, off);
@@ -115,8 +108,7 @@ static void emit_gsave(char *varname, Ctype *ctype, int off) {
 static void emit_lsave(Ctype *ctype, int off) {
   SAVE;
   char *reg;
-  int size = ctype_size(ctype);
-  switch (size) {
+  switch (ctype->size) {
     case 1: reg = "al";  break;
     case 4: reg = "eax"; break;
     case 8: reg = "rax"; break;
@@ -128,8 +120,7 @@ static void emit_assign_deref_int(Ctype *ctype, int off) {
   SAVE;
   char *reg;
   emit("pop %%rcx");
-  int size = ctype_size(ctype);
-  switch (size) {
+  switch (ctype->size) {
     case 1: reg = "cl";  break;
     case 4: reg = "ecx"; break;
     case 8: reg = "rcx"; break;
@@ -152,7 +143,7 @@ static void emit_pointer_arith(char op, Ast *left, Ast *right) {
   emit_expr(left);
   emit("push %%rax");
   emit_expr(right);
-  int size = ctype_size(left->ctype->ptr);
+  int size = left->ctype->ptr->size;
   if (size > 1)
     emit("imul $%d, %%rax", size);
   emit("mov %%rax, %%rcx");
@@ -283,7 +274,7 @@ static void emit_load_deref(Ctype *result_type, Ctype *operand_type, int off) {
       operand_type->ptr->type == CTYPE_ARRAY)
     return;
   char *reg;
-  switch (ctype_size(result_type)) {
+  switch (result_type->size) {
     case 1: reg = "%cl"; emit("mov $0, %%ecx"); break;
     case 4: reg = "%ecx"; break;
     default: reg = "%rcx"; break;
@@ -342,7 +333,7 @@ static void emit_expr(Ast *ast) {
         for (Iter *iter = list_iter(ast->declinit->arrayinit); !iter_end(iter);) {
           emit_expr(iter_next(iter));
           emit_lsave(ast->declvar->ctype->ptr, ast->declvar->loff - off);
-          off += ctype_size(ast->declvar->ctype->ptr);
+          off += ast->declvar->ctype->ptr->size;
         }
       } else if (ast->declvar->ctype->type == CTYPE_ARRAY) {
         assert(ast->declinit->type == AST_STRING);
@@ -507,7 +498,7 @@ static int ceil8(int n) {
 static void emit_data_int(Ast *data) {
   SAVE;
   assert(data->ctype->type != CTYPE_ARRAY);
-  switch (ctype_size(data->ctype)) {
+  switch (data->ctype->size) {
     case 1: emit(".byte %d", data->ival); break;
     case 4: emit(".long %d", data->ival); break;
     case 8: emit(".quad %d", data->ival); break;
@@ -531,7 +522,7 @@ static void emit_data(Ast *v) {
 
 static void emit_bss(Ast *v) {
   SAVE;
-  emit(".lcomm %s, %d", v->declvar->varname, ctype_size(v->declvar->ctype));
+  emit(".lcomm %s, %d", v->declvar->varname, v->declvar->ctype->size);
 }
 
 static void emit_global_var(Ast *v) {
@@ -556,12 +547,12 @@ static void emit_func_prologue(Ast *func) {
   for (Iter *i = list_iter(func->params); !iter_end(i); ri++) {
     emit("push %%%s", REGS[ri]);
     Ast *v = iter_next(i);
-    off += ceil8(ctype_size(v->ctype));
+    off += ceil8(v->ctype->size);
     v->loff = off;
   }
   for (Iter *i = list_iter(func->localvars); !iter_end(i);) {
     Ast *v = iter_next(i);
-    off += ceil8(ctype_size(v->ctype));
+    off += ceil8(v->ctype->size);
     v->loff = off;
   }
   if (off)

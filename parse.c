@@ -223,7 +223,7 @@ static Ctype* make_array_type(Ctype *ctype, int len) {
   r->type = CTYPE_ARRAY;
   r->ptr = ctype;
   r->len = len;
-  r->size = (len < 0) ? -1 : ctype_size(r->ptr) * len;
+  r->size = (len < 0) ? -1 : ctype->size * len;
   return r;
 }
 
@@ -595,8 +595,7 @@ static Ctype *read_struct_def(void) {
       break;
     Token *name;
     Ctype *fieldtype = read_decl_int(&name);
-    int size = ctype_size(fieldtype);
-    size = (size < MAX_ALIGN) ? size : MAX_ALIGN;
+    int size = (fieldtype->size < MAX_ALIGN) ? fieldtype->size : MAX_ALIGN;
     if (offset % size != 0)
       offset += size - offset % size;
     list_push(fields, make_struct_field_type(fieldtype, name->sval, offset));

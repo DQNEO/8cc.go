@@ -173,7 +173,6 @@ extern void print_asm_header(void);
 extern char *make_label(void);
 extern List *read_toplevels(void);
 
-extern int ctype_size(Ctype *ctype);
 extern void emit_data_section(void);
 extern void emit_toplevel(Ast *v);
 

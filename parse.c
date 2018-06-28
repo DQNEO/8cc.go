@@ -222,8 +222,8 @@ static Ctype* make_array_type(Ctype *ctype, int len) {
   Ctype *r = malloc(sizeof(Ctype));
   r->type = CTYPE_ARRAY;
   r->ptr = ctype;
-  r->len = len;
   r->size = (len < 0) ? -1 : ctype->size * len;
+  r->len = len;
   return r;
 }
 

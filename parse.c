@@ -543,7 +543,8 @@ static Ctype *get_ctype(Token *tok) {
 }
 
 static bool is_type_keyword(Token *tok) {
-  return get_ctype(tok) != NULL || is_ident(tok, "struct");
+  return get_ctype(tok) != NULL
+      || is_ident(tok, "struct");
 }
 
 static Ast *read_decl_array_init_int(Ctype *ctype) {

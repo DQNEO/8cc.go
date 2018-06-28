@@ -522,7 +522,7 @@ static Ast *read_expr_int(int prec) {
       ensure_lvalue(ast);
     Ast *rest = read_expr_int(prec2 + (is_right_assoc(tok) ? 1 : 0));
     if (!rest)
-      error("second operand missing. ast:%s", ast_to_string(ast));
+      error("second operand missing");
     ast = ast_binop(tok->punct, ast, rest);
   }
 }

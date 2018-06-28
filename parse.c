@@ -544,7 +544,8 @@ static Ctype *get_ctype(Token *tok) {
 
 static bool is_type_keyword(Token *tok) {
   return get_ctype(tok) != NULL
-      || is_ident(tok, "struct");
+      || is_ident(tok, "struct")
+      || is_ident(tok, "union");
 }
 
 static Ast *read_decl_array_init_int(Ctype *ctype) {
@@ -611,7 +612,7 @@ static Ctype *read_struct_def(void) {
 
 static Ctype *read_decl_spec(void) {
   Token *tok = read_token();
-  Ctype *ctype = is_ident(tok, "struct") ? read_struct_def() : get_ctype(tok);
+  Ctype *ctype = (is_ident(tok, "struct") || is_ident(tok, "union")) ? read_struct_def() : get_ctype(tok);
   if (!ctype)
     error("Type expected, but got %s", token_to_string(tok));
   for (;;) {

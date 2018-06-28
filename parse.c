@@ -648,7 +648,7 @@ static Ast *read_decl_init_val(Ast *var) {
   return ast_decl(var, init);
 }
 
-static Ctype *read_array_dimensions_int(void) {
+static Ctype *read_array_dimensions_int(Ctype *basetype) {
   Token *tok = read_token();
   if (!is_punct(tok, '[')) {
     unget_token(tok);
@@ -662,23 +662,18 @@ static Ctype *read_array_dimensions_int(void) {
     dim = size->ival;
   }
   expect(']');
-  Ctype *sub = read_array_dimensions_int();
+  Ctype *sub = read_array_dimensions_int(basetype);
   if (sub) {
     if (sub->len == -1 && dim == -1)
       error("Array size is not specified");
     return make_array_type(sub, dim);
   }
-  return make_array_type(NULL, dim);
+  return make_array_type(basetype, dim);
 }
 
 static Ctype *read_array_dimensions(Ctype *basetype) {
-  Ctype *ctype = read_array_dimensions_int();
-  if (!ctype)
-    return basetype;
-  Ctype *p = ctype;
-  for (; p->ptr; p = p->ptr);
-  p->ptr = basetype;
-  return ctype;
+  Ctype *ctype = read_array_dimensions_int(basetype);
+  return ctype ? ctype : basetype;
 }
 
 static Ast *read_decl_init(Ast *var) {

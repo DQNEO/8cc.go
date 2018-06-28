@@ -599,7 +599,7 @@ static Ctype *read_struct_def(void) {
     if (offset % size != 0)
       offset += size - offset % size;
     list_push(fields, make_struct_field_type(fieldtype, name->sval, offset));
-    offset += size;
+    offset += fieldtype->size;
     expect(';');
   }
   expect('}');

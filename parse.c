@@ -590,23 +590,30 @@ static char *read_struct_union_tag(void) {
 static Ctype *read_struct_def(void) {
   char *tag = read_struct_union_tag();
   Ctype *ctype = find_struct_def(tag);
-  List *fields = make_list();
   if (ctype) return ctype;
+
+  List *rr = make_list();
   expect('{');
-  int offset = 0;
   for (;;) {
     if (!is_type_keyword(peek_token()))
       break;
     Token *name;
     Ctype *fieldtype = read_decl_int(&name);
-    int size = (fieldtype->size < MAX_ALIGN) ? fieldtype->size : MAX_ALIGN;
-    if (offset % size != 0)
-      offset += size - offset % size;
-    list_push(fields, make_struct_field_type(fieldtype, name->sval, offset));
-    offset += fieldtype->size;
+    list_push(rr, make_struct_field_type(fieldtype, name->sval, 0));
     expect(';');
   }
   expect('}');
+
+  List *fields = rr;
+  int offset = 0;
+  for (Iter *i = list_iter(fields); !iter_end(i);) {
+    Ctype *fieldtype = iter_next(i);
+    int size = (fieldtype->size < MAX_ALIGN) ? fieldtype->size : MAX_ALIGN;
+    if (offset % size != 0)
+      offset += size - offset % size;
+    fieldtype->offset = offset;
+    offset += fieldtype->size;
+  }
   Ctype *r = make_struct_type(fields, tag, offset);
   list_push(struct_defs, r);
   return r;

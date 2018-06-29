@@ -1,8 +1,8 @@
 #!/bin/bash
 
 cat > tmp.s
+cat tmp.s >/dev/stderr
+echo "---------"
 gcc -no-pie -o tmp.out tmp.s
 ./tmp.out
 echo
-echo "---------"
-cat tmp.s >/dev/stderr

@@ -26,10 +26,10 @@ static Token *make_punct(int punct) {
   return r;
 }
 
-static Token *make_int(int ival) {
+static Token *make_int(char *s) {
   Token *r = malloc(sizeof(Token));
   r->type = TTYPE_INT;
-  r->ival = ival;
+  r->ival = atoi(s);
   return r;
 }
 
@@ -51,14 +51,15 @@ static int getc_nonspace(void) {
 }
 
 static Token *read_number(char c) {
-  int n = c - '0';
+  String *s = make_string();
+  string_append(s, c);
   for (;;) {
     int c = getc(stdin);
     if (!isdigit(c)) {
       ungetc(c, stdin);
-      return make_int(n);
+      return make_int(get_cstring(s));
     }
-    n = n * 10 + (c - '0');
+    string_append(s, c);
   }
 }
 

@@ -587,24 +587,27 @@ static char *read_struct_union_tag(void) {
   unget_token(tok);
   return NULL;
 }
-static Ctype *read_struct_def(void) {
-  char *tag = read_struct_union_tag();
-  Ctype *ctype = find_struct_def(tag);
-  if (ctype) return ctype;
 
-  List *rr = make_list();
+static List *read_struct_union_fields(void) {
+  List *r = make_list();
   expect('{');
   for (;;) {
     if (!is_type_keyword(peek_token()))
       break;
     Token *name;
     Ctype *fieldtype = read_decl_int(&name);
-    list_push(rr, make_struct_field_type(fieldtype, name->sval, 0));
+    list_push(r, make_struct_field_type(fieldtype, name->sval, 0));
     expect(';');
   }
   expect('}');
+  return r;
+}
 
-  List *fields = rr;
+static Ctype *read_struct_def(void) {
+  char *tag = read_struct_union_tag();
+  Ctype *ctype = find_struct_def(tag);
+  if (ctype) return ctype;
+  List *fields = read_struct_union_fields();
   int offset = 0;
   for (Iter *i = list_iter(fields); !iter_end(i);) {
     Ctype *fieldtype = iter_next(i);

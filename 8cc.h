@@ -57,6 +57,7 @@ enum {
   CTYPE_VOID,
   CTYPE_INT,
   CTYPE_CHAR,
+  CTYPE_FLOAT,
   CTYPE_ARRAY,
   CTYPE_PTR,
   CTYPE_STRUCT,
@@ -79,6 +80,8 @@ typedef struct Ast {
   union {
     // Integer
     int ival;
+    // Float
+    float fval;
     // Char
     char c;
     // String

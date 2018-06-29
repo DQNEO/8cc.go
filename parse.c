@@ -1,7 +1,8 @@
+#include <ctype.h>
+#include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <setjmp.h>
 #include "8cc.h"
 
 #define MAX_ARGS 6
@@ -15,6 +16,7 @@ static Env *localenv = NULL;
 static List *localvars = NULL;
 static Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL, 4 };
 static Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL, 1 };
+static Ctype *ctype_float = &(Ctype){ CTYPE_FLOAT, NULL, 4 };
 
 static int labelseq = 0;
 
@@ -70,6 +72,14 @@ static Ast *ast_int(int val) {
   r->type = AST_LITERAL;
   r->ctype = ctype_int;
   r->ival = val;
+  return r;
+}
+
+static Ast *ast_float(float val) {
+  Ast *r = malloc(sizeof(Ast));
+  r->type = AST_LITERAL;
+  r->ctype = ctype_float;
+  r->fval = val;
   return r;
 }
 
@@ -338,6 +348,25 @@ static Ast *read_ident_or_func(char *name) {
   return v;
 }
 
+static bool is_int(char *p) {
+  for (; *p; p++)
+    if (!isdigit(*p))
+      return false;
+  return true;
+}
+
+static bool is_float(char *p) {
+  for (; *p; p++)
+    if (!isdigit(*p))
+      break;
+  if (*p++ != '.')
+    return false;
+  for (; *p; p++)
+    if (!isdigit(*p))
+      return false;
+  return true;
+}
+
 static Ast *read_prim(void) {
   Token *tok = read_token();
   if (!tok) return NULL;
@@ -345,7 +374,11 @@ static Ast *read_prim(void) {
     case TTYPE_IDENT:
       return read_ident_or_func(tok->sval);
     case TTYPE_NUMBER:
-      return ast_int(atoi(tok->sval));
+      if (is_int(tok->sval))
+        return ast_int(atoi(tok->sval));
+      if (is_float(tok->sval))
+        return ast_float(atof(tok->sval));
+      error("Malformed number: %s", token_to_string(tok));
     case TTYPE_CHAR:
       return ast_char(tok->c);
     case TTYPE_STRING: {
@@ -385,11 +418,17 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
         case CTYPE_INT:
         case CTYPE_CHAR:
           return ctype_int;
+        case CTYPE_FLOAT:
+          return ctype_float;
         case CTYPE_ARRAY:
         case CTYPE_PTR:
           return b;
       }
       error("internal error");
+    case CTYPE_FLOAT:
+      if (b->type == CTYPE_FLOAT)
+        return ctype_float;
+      goto err;
     case CTYPE_ARRAY:
       if (b->type != CTYPE_ARRAY)
         goto err;

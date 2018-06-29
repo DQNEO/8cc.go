@@ -609,16 +609,12 @@ static Ctype *read_union_def(void) {
   Ctype *ctype = find_struct_union_def(union_defs, tag);
   if (ctype) return ctype;
   List *fields = read_struct_union_fields();
-  int offset = 0;
+  int maxsize = 0;
   for (Iter *i = list_iter(fields); !iter_end(i);) {
     Ctype *fieldtype = iter_next(i);
-    int size = (fieldtype->size < MAX_ALIGN) ? fieldtype->size : MAX_ALIGN;
-    if (offset % size != 0)
-      offset += size - offset % size;
-    fieldtype->offset = offset;
-    offset += fieldtype->size;
+    maxsize = (maxsize < fieldtype->size) ? fieldtype->size : maxsize;
   }
-  Ctype *r = make_struct_type(fields, tag, offset);
+  Ctype *r = make_struct_type(fields, tag, maxsize);
   list_push(union_defs, r);
   return r;
 }

@@ -10,6 +10,7 @@
 
 Env *globalenv = &EMPTY_ENV;
 static List *struct_defs = &EMPTY_LIST;
+static List *union_defs = &EMPTY_LIST;
 static Env *localenv = NULL;
 static List *localvars = NULL;
 static Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL, 4 };
@@ -605,7 +606,7 @@ static List *read_struct_union_fields(void) {
 
 static Ctype *read_union_def(void) {
   char *tag = read_struct_union_tag();
-  Ctype *ctype = find_struct_union_def(struct_defs, tag);
+  Ctype *ctype = find_struct_union_def(union_defs, tag);
   if (ctype) return ctype;
   List *fields = read_struct_union_fields();
   int offset = 0;
@@ -618,7 +619,7 @@ static Ctype *read_union_def(void) {
     offset += fieldtype->size;
   }
   Ctype *r = make_struct_type(fields, tag, offset);
-  list_push(struct_defs, r);
+  list_push(union_defs, r);
   return r;
 }
 

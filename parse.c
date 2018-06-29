@@ -571,8 +571,8 @@ static Ast *read_decl_array_init_int(Ctype *ctype) {
   return ast_array_init(initlist);
 }
 
-static Ctype *find_struct_def(char *name) {
-  for (Iter *i = list_iter(struct_defs); !iter_end(i);) {
+static Ctype *find_struct_union_def(List *list, char *name) {
+  for (Iter *i = list_iter(list); !iter_end(i);) {
     Ctype *t = iter_next(i);
     if (t->tag && !strcmp(t->tag, name))
       return t;
@@ -605,7 +605,7 @@ static List *read_struct_union_fields(void) {
 
 static Ctype *read_struct_def(void) {
   char *tag = read_struct_union_tag();
-  Ctype *ctype = find_struct_def(tag);
+  Ctype *ctype = find_struct_union_def(struct_defs, tag);
   if (ctype) return ctype;
   List *fields = read_struct_union_fields();
   int offset = 0;

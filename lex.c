@@ -30,7 +30,6 @@ static Token *make_number(char *s) {
   Token *r = malloc(sizeof(Token));
   r->type = TTYPE_NUMBER;
   r->sval = s;
-  r->ival = atoi(s);
   return r;
 }
 

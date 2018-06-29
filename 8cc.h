@@ -16,7 +16,6 @@ enum {
 typedef struct {
   int type;
   union {
-    int ival;
     char *sval;
     int punct;
     char c;

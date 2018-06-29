@@ -603,7 +603,7 @@ static List *read_struct_union_fields(void) {
   return r;
 }
 
-static Ctype *read_struct_def(void) {
+static Ctype *read_union_def(void) {
   char *tag = read_struct_union_tag();
   Ctype *ctype = find_struct_union_def(struct_defs, tag);
   if (ctype) return ctype;
@@ -622,8 +622,23 @@ static Ctype *read_struct_def(void) {
   return r;
 }
 
-static Ctype *read_union_def(void) {
-  return read_struct_def();
+static Ctype *read_struct_def(void) {
+  char *tag = read_struct_union_tag();
+  Ctype *ctype = find_struct_union_def(struct_defs, tag);
+  if (ctype) return ctype;
+  List *fields = read_struct_union_fields();
+  int offset = 0;
+  for (Iter *i = list_iter(fields); !iter_end(i);) {
+    Ctype *fieldtype = iter_next(i);
+    int size = (fieldtype->size < MAX_ALIGN) ? fieldtype->size : MAX_ALIGN;
+    if (offset % size != 0)
+      offset += size - offset % size;
+    fieldtype->offset = offset;
+    offset += fieldtype->size;
+  }
+  Ctype *r = make_struct_type(fields, tag, offset);
+  list_push(struct_defs, r);
+  return r;
 }
 
 static Ctype *read_decl_spec(void) {

@@ -26,9 +26,9 @@ static Token *make_punct(int punct) {
   return r;
 }
 
-static Token *make_int(char *s) {
+static Token *make_number(char *s) {
   Token *r = malloc(sizeof(Token));
-  r->type = TTYPE_INT;
+  r->type = TTYPE_NUMBER;
   r->ival = atoi(s);
   return r;
 }
@@ -57,7 +57,7 @@ static Token *read_number(char c) {
     int c = getc(stdin);
     if (!isdigit(c)) {
       ungetc(c, stdin);
-      return make_int(get_cstring(s));
+      return make_number(get_cstring(s));
     }
     string_append(s, c);
   }

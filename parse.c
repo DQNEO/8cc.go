@@ -344,7 +344,7 @@ static Ast *read_prim(void) {
   switch (tok->type) {
     case TTYPE_IDENT:
       return read_ident_or_func(tok->sval);
-    case TTYPE_INT:
+    case TTYPE_NUMBER:
       return ast_int(tok->ival);
     case TTYPE_CHAR:
       return ast_char(tok->c);

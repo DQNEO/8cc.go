@@ -244,6 +244,11 @@ testfail '0abc;'
 testfail '1+;'
 testfail '1=2;'
 
+# Union
+test 90 'union {int a; int b;} x; x.a = 90; x.b;'
+#test 256 'union {char a[4]; int b;} x; x.b=0; x.a[1]=1; x.b;';
+#test 256 'union {char a[4]; int b;} x; x.a[0]=x.a[1]=x.a[2]=x.a[3]=0; x.a[1]=1; x.b;';
+
 # & is only applicable to an lvalue
 testfail '&"a";'
 testfail '&1;'

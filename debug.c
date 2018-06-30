@@ -191,10 +191,8 @@ char *token_to_string(Token *tok) {
       string_append(s, tok->c);
       return get_cstring(s);
     }
-    case TTYPE_NUMBER: {
-      string_appendf(s, "%s", tok->sval);
-      return get_cstring(s);
-    }
+    case TTYPE_NUMBER:
+      return tok->sval;
     case TTYPE_STRING: {
       string_appendf(s, "\"%s\"", tok->sval);
       return get_cstring(s);

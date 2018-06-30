@@ -72,6 +72,20 @@ static void emit_gload(Ctype *ctype, char *label, int off) {
     emit("mov %s(%%rip), %%%s", label, reg);
 }
 
+static void emit_toint(Ctype *ctype) {
+  SAVE;
+  if (ctype->type != CTYPE_FLOAT)
+    return;
+  emit("cvttss2si %%xmm0, %%eax");
+}
+
+static void emit_tofloat(Ctype *ctype) {
+  SAVE;
+  if (ctype->type == CTYPE_FLOAT)
+    return;
+  emit("cvtsi2ss %%eax, %%xmm0");
+}
+
 static void emit_lload(Ctype *ctype, int off) {
   SAVE;
   if (ctype->type == CTYPE_ARRAY) {
@@ -215,15 +229,16 @@ static void emit_binop_int_arith(Ast *ast) {
     default: error("invalid operator '%d'", ast->type);
   }
   emit_expr(ast->left);
+  emit_toint(ast->left->ctype);
   emit("push %%rax");
   emit_expr(ast->right);
+  emit_toint(ast->right->ctype);
   emit("mov %%rax, %%rcx");
+  emit("pop %%rax");
   if (ast->type == '/') {
-    emit("pop %%rax");
     emit("mov $0, %%edx");
     emit("idiv %%rcx");
   } else {
-    emit("pop %%rax");
     emit("%s %%rcx, %%rax", op);
   }
 }
@@ -238,6 +253,26 @@ static void emit_pop_xmm(int reg) {
   SAVE;
   emit("movss (%%rsp), %%xmm%d", reg);
   emit("add $8, %%rsp");
+}
+
+static void emit_binop_float_arith(Ast *ast) {
+  SAVE;
+  char *op;
+  switch (ast->type) {
+    case '+': op = "addss"; break;
+    case '-': op = "subss"; break;
+    case '*': op = "mulss"; break;
+    case '/': op = "divss"; break;
+    default: error("invalid operator '%d'", ast->type);
+  }
+  emit_expr(ast->left);
+  emit_tofloat(ast->left->ctype);
+  emit_push_xmm(0);
+  emit_expr(ast->right);
+  emit_tofloat(ast->right->ctype);
+  emit("movsd %%xmm0, %%xmm1");
+  emit_pop_xmm(0);
+  emit("%s %%xmm1, %%xmm0", op);
 }
 
 static void emit_binop(Ast *ast) {
@@ -263,8 +298,12 @@ static void emit_binop(Ast *ast) {
       emit_comp("setg", ast->left, ast->right);
       return;
   }
-
-  emit_binop_int_arith(ast);
+  if (ast->ctype->type == CTYPE_INT)
+    emit_binop_int_arith(ast);
+  else if (ast->ctype->type == CTYPE_FLOAT)
+    emit_binop_float_arith(ast);
+  else
+    error("internal error");
 }
 
 static void emit_inc_dec(Ast *ast, char *op) {

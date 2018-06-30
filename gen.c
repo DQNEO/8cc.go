@@ -39,7 +39,7 @@ static void emitf(int line, char *fmt, ...) {
   for (char *p = fmt; *p; p++)
     if (*p == '\t')
       col += TAB - 1;
-  int space = (30 - col) > 0 ? (30 - col) : 2;
+  int space = (28 - col) > 0 ? (30 - col) : 2;
   printf("%*c %s:%d\n", space, '#', get_caller_list(), line);
 }
 

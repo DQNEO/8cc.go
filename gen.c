@@ -43,6 +43,17 @@ static void emitf(int line, char *fmt, ...) {
   printf("%*c %s:%d\n", space, '#', get_caller_list(), line);
 }
 
+static char *get_int_reg(Ctype *ctype, char r) {
+  assert(r == 'a' || r == 'c');
+  switch (ctype->size) {
+    case 1: return (r == 'a') ? "al" : "cl";
+    case 4: return (r == 'a') ? "eax" : "ecx";
+    case 8: return (r == 'a') ? "rax" : "rcx";
+    default:
+      error("Unknown data size: %s: %d", ctype_to_string(ctype), ctype->size);
+  }
+}
+
 static void emit_gload(Ctype *ctype, char *label, int off) {
   SAVE;
   if (ctype->type == CTYPE_ARRAY) {
@@ -52,14 +63,9 @@ static void emit_gload(Ctype *ctype, char *label, int off) {
       emit("lea %s(%%rip), %%rax", label);
     return;
   }
-  char *reg;
-  switch (ctype->size) {
-    case 1: reg = "al"; emit("mov $0, %%eax"); break;
-    case 4: reg = "eax"; break;
-    case 8: reg = "rax"; break;
-    default:
-      error("Unknown data size: %s: %d", ctype_to_string(ctype), ctype->size);
-  }
+  char *reg = get_int_reg(ctype, 'a');
+  if (ctype->size == 1)
+    emit("mov $0, %%eax");
   if (off)
     emit("mov %s+%d(%%rip), %%%s", label, off, reg);
   else
@@ -72,33 +78,16 @@ static void emit_lload(Ctype *ctype, int off) {
     emit("lea %d(%%rbp), %%rax", off);
     return;
   }
-  switch (ctype->size) {
-    case 1:
-      emit("mov $0, %%eax");
-      emit("mov %d(%%rbp), %%al", off);
-      break;
-    case 4:
-      emit("mov %d(%%rbp), %%eax", off);
-      break;
-    case 8:
-      emit("mov %d(%%rbp), %%rax", off);
-      break;
-    default:
-      error("Unknown data size: %s: %d", ctype_to_string(ctype), ctype->size);
-  }
+  char *reg = get_int_reg(ctype, 'a');
+  if (ctype->size == 1)
+    emit("mov $0, %%eax");
+  emit("mov %d(%%rbp), %%%s", off, reg);
 }
 
 static void emit_gsave(char *varname, Ctype *ctype, int off) {
   SAVE;
   assert(ctype->type != CTYPE_ARRAY);
-  char *reg;
-  switch (ctype->size) {
-    case 1: reg = "al";  break;
-    case 4: reg = "eax"; break;
-    case 8: reg = "rax"; break;
-    default:
-      error("Unknown data size: %s: %d", ctype_to_string(ctype), ctype->size);
-  }
+  char *reg = get_int_reg(ctype, 'a');
   if (off)
     emit("mov %%%s, %s+%d(%%rip)", reg, varname, off);
   else
@@ -107,24 +96,14 @@ static void emit_gsave(char *varname, Ctype *ctype, int off) {
 
 static void emit_lsave(Ctype *ctype, int off) {
   SAVE;
-  char *reg;
-  switch (ctype->size) {
-    case 1: reg = "al";  break;
-    case 4: reg = "eax"; break;
-    case 8: reg = "rax"; break;
-  }
+  char *reg = get_int_reg(ctype, 'a');
   emit("mov %%%s, %d(%%rbp)", reg, off);
 }
 
 static void emit_assign_deref_int(Ctype *ctype, int off) {
   SAVE;
-  char *reg;
   emit("mov (%%rsp), %%rcx");
-  switch (ctype->size) {
-    case 1: reg = "cl";  break;
-    case 4: reg = "ecx"; break;
-    case 8: reg = "rcx"; break;
-  }
+  char *reg = get_int_reg(ctype, 'c');
   if (off)
     emit("mov %%%s, %d(%%rax)", reg, off);
   else
@@ -274,16 +253,13 @@ static void emit_load_deref(Ctype *result_type, Ctype *operand_type, int off) {
   if (operand_type->type == CTYPE_PTR &&
       operand_type->ptr->type == CTYPE_ARRAY)
     return;
-  char *reg;
-  switch (result_type->size) {
-    case 1: reg = "%cl"; emit("mov $0, %%ecx"); break;
-    case 4: reg = "%ecx"; break;
-    default: reg = "%rcx"; break;
-  }
+  char *reg = get_int_reg(result_type, 'c');
+  if (result_type->size == 1)
+    emit("mov $0, %%ecx");
   if (off)
-    emit("mov %d(%%rax), %s", off, reg);
+    emit("mov %d(%%rax), %%%s", off, reg);
   else
-    emit("mov (%%rax), %s", reg);
+    emit("mov (%%rax), %%%s", reg);
   emit("mov %%rcx, %%rax");
 }
 

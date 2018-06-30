@@ -209,11 +209,14 @@ static void emit_assign(Ast *var) {
 
 static void emit_comp(char *inst, Ast *ast) {
   SAVE;
-  emit_expr(ast->left);
-  emit("push %%rax");
-  emit_expr(ast->right);
-  emit("pop %%rcx");
-  emit("cmp %%rax, %%rcx");
+  if (ast->ctype->type == CTYPE_FLOAT) {
+  } else {
+    emit_expr(ast->left);
+    emit("push %%rax");
+    emit_expr(ast->right);
+    emit("pop %%rcx");
+    emit("cmp %%rax, %%rcx");
+  }
   emit("%s %%al", inst);
   emit("movzb %%al, %%eax");
 }

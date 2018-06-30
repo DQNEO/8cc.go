@@ -288,18 +288,40 @@ static void emit_expr(Ast *ast) {
       emit_gload(ast->ctype, ast->glabel, 0);
       break;
     case AST_FUNCALL: {
-      for (int i = 1; i < list_len(ast->args); i++)
-        emit("push %%%s", REGS[i]);
+      int ireg = 0;
       for (Iter *i = list_iter(ast->args); !iter_end(i);) {
-        emit_expr(iter_next(i));
-        emit("push %%rax");
+        Ast *v = iter_next(i);
+        if (v->ctype->type == CTYPE_FLOAT)
+          1;
+        else
+          emit("push %%%s", REGS[ireg++]);
       }
-      for (int i = list_len(ast->args) - 1; i >= 0; i--)
-        emit("pop %%%s", REGS[i]);
-      emit("mov $0, %%eax");
+      for (Iter *i = list_iter(ast->args); !iter_end(i);) {
+        Ast *v = iter_next(i);
+        emit_expr(v);
+        if (v->ctype->type == CTYPE_FLOAT)
+          1;
+        else
+          emit("push %rax");
+      }
+      int ir = ireg;
+      for (Iter *i = list_iter(list_reverse(ast->args)); !iter_end(i);) {
+        Ast *v = iter_next(i);
+        if (v->ctype->type == CTYPE_FLOAT) {
+          1;
+        }
+        else
+          emit("pop %%%s", REGS[--ir]);
+      }
+      emit("mov $%d, %%eax", 0);
       emit("call %s", ast->fname);
-      for (int i = list_len(ast->args) - 1; i > 0; i--)
-        emit("pop %%%s", REGS[i]);
+      for (Iter *i = list_iter(list_reverse(ast->args)); !iter_end(i);) {
+        Ast *v = iter_next(i);
+        if (v->ctype->type == CTYPE_FLOAT)
+          1;
+        else
+          emit("pop %%%s", REGS[--ireg]);
+      }
       break;
     }
     case AST_DECL: {

@@ -54,6 +54,18 @@ static char *get_int_reg(Ctype *ctype, char r) {
     }
 }
 
+static void emit_push_xmm(int reg) {
+    SAVE;
+    emit("sub $8, %%rsp");
+    emit("movss %%xmm%d, (%%rsp)", reg);
+}
+
+static void emit_pop_xmm(int reg) {
+    SAVE;
+    emit("movss (%%rsp), %%xmm%d", reg);
+    emit("add $8, %%rsp");
+}
+
 static void emit_gload(Ctype *ctype, char *label, int off) {
     SAVE;
     if (ctype->type == CTYPE_ARRAY) {
@@ -253,18 +265,6 @@ static void emit_binop_int_arith(Ast *ast) {
     } else {
         emit("%s %%rcx, %%rax", op);
     }
-}
-
-static void emit_push_xmm(int reg) {
-    SAVE;
-    emit("sub $8, %%rsp");
-    emit("movss %%xmm%d, (%%rsp)", reg);
-}
-
-static void emit_pop_xmm(int reg) {
-    SAVE;
-    emit("movss (%%rsp), %%xmm%d", reg);
-    emit("add $8, %%rsp");
 }
 
 static void emit_binop_float_arith(Ast *ast) {

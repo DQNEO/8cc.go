@@ -279,6 +279,10 @@ static void emit_binop(Ast *ast) {
   SAVE;
   if (ast->type == '=') {
     emit_expr(ast->right);
+    if (ast->ctype->type == CTYPE_FLOAT)
+      emit_tofloat(ast->right->ctype);
+    else
+      emit_toint(ast->right->ctype);
     emit_assign(ast->left);
     return;
   }

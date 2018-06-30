@@ -467,9 +467,9 @@ void emit_data_section(void) {
   }
 }
 
-static int ceil8(int n) {
-  int rem = n % 8;
-  return (rem == 0) ? n : n - rem + 8;
+static int ceil(int n, int m) {
+  int rem = n % m;
+  return (rem == 0) ? n : n - rem + m;
 }
 
 static void emit_data_int(Ast *data) {
@@ -524,12 +524,12 @@ static void emit_func_prologue(Ast *func) {
   for (Iter *i = list_iter(func->params); !iter_end(i); ri++) {
     emit("push %%%s", REGS[ri]);
     Ast *v = iter_next(i);
-    off -= ceil8(v->ctype->size);
+    off -= ceil(v->ctype->size, 8);
     v->loff = off;
   }
   for (Iter *i = list_iter(func->localvars); !iter_end(i);) {
     Ast *v = iter_next(i);
-    off -= ceil8(v->ctype->size);
+    off -= ceil(v->ctype->size, 8);
     v->loff = off;
   }
   if (off)

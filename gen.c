@@ -207,11 +207,11 @@ static void emit_assign(Ast *var) {
   }
 }
 
-static void emit_comp(char *inst, Ast *a, Ast *b) {
+static void emit_comp(char *inst, Ast *ast) {
   SAVE;
-  emit_expr(a);
+  emit_expr(ast->left);
   emit("push %%rax");
-  emit_expr(b);
+  emit_expr(ast->right);
   emit("pop %%rcx");
   emit("cmp %%rax, %%rcx");
   emit("%s %%al", inst);
@@ -287,7 +287,7 @@ static void emit_binop(Ast *ast) {
     return;
   }
   if (ast->type == PUNCT_EQ) {
-    emit_comp("sete", ast->left, ast->right);
+    emit_comp("sete", ast);
     return;
   }
   if (ast->ctype->type == CTYPE_PTR) {
@@ -296,10 +296,10 @@ static void emit_binop(Ast *ast) {
   }
   switch (ast->type) {
     case '<':
-      emit_comp("setl", ast->left, ast->right);
+      emit_comp("setl", ast);
       return;
     case '>':
-      emit_comp("setg", ast->left, ast->right);
+      emit_comp("setg", ast);
       return;
   }
   if (ast->ctype->type == CTYPE_INT)

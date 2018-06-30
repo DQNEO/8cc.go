@@ -204,6 +204,30 @@ static void emit_comp(char *inst, Ast *a, Ast *b) {
   emit("movzb %%al, %%eax");
 }
 
+static void emit_binop_int_arith(Ast *ast) {
+  SAVE;
+  char *op;
+  switch (ast->type) {
+    case '+': op = "add"; break;
+    case '-': op = "sub"; break;
+    case '*': op = "imul"; break;
+    case '/': break;
+    default: error("invalid operator '%d'", ast->type);
+  }
+  emit_expr(ast->left);
+  emit("push %%rax");
+  emit_expr(ast->right);
+  emit("mov %%rax, %%rcx");
+  if (ast->type == '/') {
+    emit("pop %%rax");
+    emit("mov $0, %%edx");
+    emit("idiv %%rcx");
+  } else {
+    emit("pop %%rax");
+    emit("%s %%rcx, %%rax", op);
+  }
+}
+
 static void emit_push_xmm(int reg) {
   SAVE;
   emit("sub $8, %%rsp");
@@ -240,26 +264,7 @@ static void emit_binop(Ast *ast) {
       return;
   }
 
-  char *op;
-  switch (ast->type) {
-    case '+': op = "add"; break;
-    case '-': op = "sub"; break;
-    case '*': op = "imul"; break;
-    case '/': break;
-    default: error("invalid operator '%d'", ast->type);
-  }
-  emit_expr(ast->left);
-  emit("push %%rax");
-  emit_expr(ast->right);
-  emit("mov %%rax, %%rcx");
-  if (ast->type == '/') {
-    emit("pop %%rax");
-    emit("mov $0, %%edx");
-    emit("idiv %%rcx");
-  } else {
-    emit("pop %%rax");
-    emit("%s %%rcx, %%rax", op);
-  }
+  emit_binop_int_arith(ast);
 }
 
 static void emit_inc_dec(Ast *ast, char *op) {

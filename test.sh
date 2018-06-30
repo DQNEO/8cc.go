@@ -132,7 +132,7 @@ test 0 'int a=0-1;1+a;'
 
 # Floating point number
 testm 0.5 'int main(){ float f = 0.5; printf("%.1f", f); }'
-#testm 1.5 'int main(){ float f = 1.0 + 0.5; printf("%.1f", f); }'
+testm 1.5 'int main(){ float f = 1.0 + 0.5; printf("%.1f", f); }'
 
 # Comparison
 test 1 '1<2;'

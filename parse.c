@@ -10,10 +10,12 @@
 #define MAX_ALIGN 16
 
 Env *globalenv = &EMPTY_ENV;
+List *floats = &EMPTY_LIST;
 static List *struct_defs = &EMPTY_LIST;
 static List *union_defs = &EMPTY_LIST;
 static Env *localenv = NULL;
 static List *localvars = NULL;
+
 static Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL, 4 };
 static Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL, 1 };
 static Ctype *ctype_float = &(Ctype){ CTYPE_FLOAT, NULL, 4 };
@@ -80,6 +82,7 @@ static Ast *ast_float(float val) {
   r->type = AST_LITERAL;
   r->ctype = ctype_float;
   r->fval = val;
+  list_push(floats, r);
   return r;
 }
 

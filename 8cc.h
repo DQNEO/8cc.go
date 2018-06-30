@@ -81,7 +81,10 @@ typedef struct Ast {
     // Integer
     int ival;
     // Float
-    float fval;
+    struct {
+      float fval;
+      char *flabel;
+    };
     // Char
     char c;
     // String
@@ -179,5 +182,6 @@ extern void emit_data_section(void);
 extern void emit_toplevel(Ast *v);
 
 extern Env *globalenv;
+extern List *floats;
 
 #endif /* EIGHTCC_H */

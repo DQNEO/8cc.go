@@ -231,7 +231,6 @@ static void emit_binop(Ast *ast) {
     emit_pointer_arith(ast->type, ast->left, ast->right);
     return;
   }
-  char *op;
   switch (ast->type) {
     case '<':
       emit_comp("setl", ast->left, ast->right);
@@ -239,6 +238,10 @@ static void emit_binop(Ast *ast) {
     case '>':
       emit_comp("setg", ast->left, ast->right);
       return;
+  }
+
+  char *op;
+  switch (ast->type) {
     case '+': op = "add"; break;
     case '-': op = "sub"; break;
     case '*': op = "imul"; break;

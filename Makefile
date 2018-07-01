@@ -1,4 +1,4 @@
-CFLAGS=-no-pie -Wall -std=gnu99 -g
+CFLAGS=-Wall -std=gnu99 -g -I. -no-pie
 OBJS=lex.o string.o util.o gen.o parse.o list.o debug.o
 TESTS := $(patsubst %.c,%,$(wildcard test/*.c))
 
@@ -13,7 +13,7 @@ unittest: 8cc.h unittest.o $(OBJS)
 
 test: nqueen unittest $(TESTS)
 	@for test in $(TESTS); do \
-		./$$test;          \
+	    ./$$test;             \
 	done
 	./unittest
 	./test.sh

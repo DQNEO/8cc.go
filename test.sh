@@ -120,12 +120,6 @@ testast '(int)f(){(decl (struct (int)) a);a.x;}' 'struct {int x;} a; a.x;'
 testm 0.5 'int main(){ float f = 0.5; printf("%.1f", f); }'
 testm 1.5 'int main(){ float f = 1.0 + 0.5; printf("%.1f", f); }'
 
-# Comparison
-test 1 '1<2;'
-test 0 '2<1;'
-test 1 '1==1;'
-test 0 '1==2;'
-
 # Assignment
 test '1 1 1 4' 'int a;int b;int c; a=b=c=1; printf("%d %d %d ",a,b,c); 4;'
 

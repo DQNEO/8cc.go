@@ -124,10 +124,6 @@ testm 1.5 'int main(){ float f = 1.0 + 0.5; printf("%.1f", f); }'
 test '1 1 1 4' 'int a;int b;int c; a=b=c=1; printf("%d %d %d ",a,b,c); 4;'
 
 # Declaration
-test 3 'int a=1;a+2;'
-test 102 'int a=1;int b=48+2;int c=a+b;c*2;'
-test 55 'int a[]={55};int *b=a;*b;'
-test 67 'int a[]={55,67};int *b=a+1;*b;'
 test 30 'int a[]={20,30,40};int *b=a+1;*b;'
 test 20 'int a[]={20,30,40};*a;'
 

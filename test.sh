@@ -48,12 +48,6 @@ function testfail {
     fi
 }
 
-if [[ $MODE == "c" ]];then
-    make 8cc
-else
-    make -f MakefileGo 8cc
-fi
-
 # Parser
 testast '(int)f(){1;}' '1;'
 testast '(int)f(){(+ (- (+ 1 2) 3) 4);}' '1+2-3+4;'

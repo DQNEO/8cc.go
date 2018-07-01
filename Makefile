@@ -18,5 +18,5 @@ clean:
 	rm -f 8cc *.o tmp.* unittest nqueen.s nqueen
 
 nqueen: 8cc sample/nqueen.c
-	./8cc < sample/nqueen.c > nqueen.s
-	gcc -no-pie -o nqueen nqueen.s
+	./8cc < sample/nqueen.c > sample/nqueen.s
+	gcc -no-pie -o sample/nqueen sample/nqueen.s

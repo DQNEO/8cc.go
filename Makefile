@@ -14,9 +14,9 @@ test: unittest nqueen
 	./unittest
 	./test.sh
 
-clean:
-	rm -f 8cc *.o tmp.* unittest nqueen.s nqueen
-
 nqueen: 8cc sample/nqueen.c
 	./8cc < sample/nqueen.c > sample/nqueen.s
 	gcc $(CFLAGS) -o sample/nqueen sample/nqueen.s
+
+clean:
+	rm -f 8cc *.o tmp.* unittest nqueen.s nqueen

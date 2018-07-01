@@ -1,4 +1,4 @@
-CFLAGS=-Wall -std=gnu99 -g
+CFLAGS=-no-pie -Wall -std=gnu99 -g
 OBJS=lex.o string.o util.o gen.o parse.o list.o debug.o
 
 8cc: 8cc.h main.o $(OBJS)
@@ -19,4 +19,4 @@ clean:
 
 nqueen: 8cc sample/nqueen.c
 	./8cc < sample/nqueen.c > sample/nqueen.s
-	gcc -no-pie -o sample/nqueen sample/nqueen.s
+	gcc $(CFLAGS) -o sample/nqueen sample/nqueen.s

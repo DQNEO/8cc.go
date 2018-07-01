@@ -34,18 +34,9 @@ function testast {
     testastf "$1" "int f(){$2}"
 }
 
-function testf {
-    compile "int main(){printf(\"%d\",f());} $2"
-    assertequal "$(./tmp.out)" "$1"
-}
-
 function testm {
     compile "$2"
     assertequal "$(./tmp.out)" "$1"
-}
-
-function test {
-    testf "$1" "int f(){$2}"
 }
 
 function testfail {
@@ -119,21 +110,6 @@ testast '(int)f(){(decl (struct (int)) a);a.x;}' 'struct {int x;} a; a.x;'
 # Floating point number
 testm 0.5 'int main(){ float f = 0.5; printf("%.1f", f); }'
 testm 1.5 'int main(){ float f = 1.0 + 0.5; printf("%.1f", f); }'
-
-# Assignment
-test '1 1 1 4' 'int a;int b;int c; a=b=c=1; printf("%d %d %d ",a,b,c); 4;'
-
-# Return statement
-test 33 'return 33; return 10;'
-
-# Function parameter
-testf 77 'int g(){77;} int f(){g();}'
-testf 79 'int g(int a){a;} int f(){g(79);}'
-testf 21 'int g(int a,int b,int c,int d,int e,int f){a+b+c+d+e+f;} int f(){g(1,2,3,4,5,6);}'
-testf 79 'int g(int a){a;} int f(){g(79);}'
-testf 98 'int g(int *p){*p;} int f(){int a[]={98};g(a);}'
-testf '99 98 97 1' 'int g(int *p){printf("%d ",*p);p=p+1;printf("%d ",*p);p=p+1;printf("%d ",*p);1;} int f(){int a[]={1,2,3};int *p=a;*p=99;p=p+1;*p=98;p=p+1;*p=97;g(a);}'
-testf '99 98 97 1' 'int g(int *p){printf("%d ",*p);p=p+1;printf("%d ",*p);p=p+1;printf("%d ",*p);1;} int f(){int a[3];int *p=a;*p=99;p=p+1;*p=98;p=p+1;*p=97;g(a);}'
 
 testfail '0abc;'
 testfail '1+;'

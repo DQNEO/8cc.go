@@ -123,15 +123,6 @@ testm 1.5 'int main(){ float f = 1.0 + 0.5; printf("%.1f", f); }'
 # Assignment
 test '1 1 1 4' 'int a;int b;int c; a=b=c=1; printf("%d %d %d ",a,b,c); 4;'
 
-# Declaration
-test 30 'int a[]={20,30,40};int *b=a+1;*b;'
-test 20 'int a[]={20,30,40};*a;'
-
-# Function call
-test a3 'printf("a");3;'
-test xy5 'printf("%s", "xy");5;'
-test b1 "printf(\"%c\", 'a'+1);1;"
-
 # Pointer
 test 61 'int a=61;int *b=&a;*b;'
 test 97 'char *c="ab";*c;'

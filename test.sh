@@ -133,12 +133,6 @@ test 65 'char s[]="xyz";*s=65;*s;'
 # Return statement
 test 33 'return 33; return 10;'
 
-# Global variable
-testf 21 'int a=21;int f(){a;}'
-testf 22 'int a;int f(){a=22;a;}'
-testf 23 'int a[3];int f(){a[1]=23;a[1];}'
-testf 25 'int a[3]={24,25,26};int f(){a[1];}'
-
 # Block scope
 test 31 'int a=31;{int a=64;}a;'
 test 64 'int a=31;{int a=64;a;}'

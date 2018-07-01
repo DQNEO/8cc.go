@@ -1,4 +1,8 @@
 #!/bin/bash
-export MODE=c
-rm -f 8cc 8cc_c
-./test.sh
+cfiles=$(ls test/*.c)
+
+for c in $cfiles
+do
+    ./8cc < $c > ${c%.*}.s
+    ./asrun < ${c%.*}.s
+done

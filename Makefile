@@ -10,13 +10,15 @@ $(OBJS) unittest.o main.o: 8cc.h
 unittest: 8cc.h unittest.o $(OBJS)
 	$(CC) $(CFLAGS) -o $@ unittest.o $(OBJS)
 
-test: unittest nqueen
+test: nqueen unittest
 	./unittest
 	./test.sh
+	./ctest.sh
 
 nqueen: 8cc sample/nqueen.c
 	./8cc < sample/nqueen.c > sample/nqueen.s
 	$(CC) $(CFLAGS) -o sample/nqueen sample/nqueen.s
 
+.PHONY: clean test
 clean:
-	rm -f 8cc *.o tmp.* unittest nqueen.s nqueen
+	rm -f 8cc *.o tmp.* test/*.s test/*.o sample/*.o unittest sample/nqueen.s sample/nqueen 

@@ -31,7 +31,7 @@ int test_inc_dec() {
 
 int test_bool() {
     expect(0, !1);
-    expect(1, !0);
+    expect(1 ,!0);
 }
 
 int test_ternary() {
@@ -46,17 +46,20 @@ int test_logand() {
 }
 
 int test_bitand() {
-    expect(3, 1|2);
-    expect(1, 1&3);
+    expect(3, 1 | 2);
+    expect(1, 1 & 3);
 }
 
 int main() {
-    printf("Test arithmetic..\n");
+    printf("Testing basic arithmetic ... ");
+
     test_basic();
     test_inc_dec();
     test_bool();
     test_ternary();
     test_logand();
     test_bitand();
+
     printf("OK\n");
+    return 0;
 }

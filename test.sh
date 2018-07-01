@@ -143,14 +143,6 @@ test 98 'char *c="ab"+1;*c;'
 test 122 'char s[]="xyz";char *c=s+2;*c;'
 test 65 'char s[]="xyz";*s=65;*s;'
 
-# Array
-test 1 'int a[2][3];int *p=a;*p=1;*p;'
-test 32 'int a[2][3];int *p=a+1;*p=1;int *q=a;*p=32;*(q+3);'
-test 62 'int a[4][5];int *p=a;*(*(a+1)+2)=62;*(p+7);'
-test '1 2 3 0' 'int a[3]={1,2,3};printf("%d %d %d ",a[0],a[1],a[2]);0;'
-test '1 2 0' 'int a[2][3];a[0][1]=1;a[1][1]=2;int *p=a;printf("%d %d ",p[1],p[4]);0;'
-testf '65 1' 'int g(int x[][3]){printf("%d ",*(*(x+1)+1));} int f(){int a[2][3];int *p=a;*(p+4)=65;g(a);1;}'
-
 # If statement
 test 'a1' 'if(1){printf("a");}1;'
 test '1' 'if(0){printf("a");}1;'

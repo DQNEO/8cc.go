@@ -126,10 +126,6 @@ test '1 1 1 4' 'int a;int b;int c; a=b=c=1; printf("%d %d %d ",a,b,c); 4;'
 # Return statement
 test 33 'return 33; return 10;'
 
-# Block scope
-test 31 'int a=31;{int a=64;}a;'
-test 64 'int a=31;{int a=64;a;}'
-
 # Function parameter
 testf 77 'int g(){77;} int f(){g();}'
 testf 79 'int g(int a){a;} int f(){g(79);}'

@@ -173,16 +173,6 @@ test 012340 'for(int i=0; i<5; i=i+1){printf("%d",i);}0;'
 # Return statement
 test 33 'return 33; return 10;'
 
-# Increment or decrement
-test 15 'int a=15;a++;'
-test 16 'int a=15;a++;a;'
-test 15 'int a=15;a--;'
-test 14 'int a=15;a--;a;'
-
-# Boolean operators
-test 0 '!1;'
-test 1 '!0;'
-
 # Global variable
 testf 21 'int a=21;int f(){a;}'
 testf 22 'int a;int f(){a=22;a;}'
@@ -201,19 +191,6 @@ testf 79 'int g(int a){a;} int f(){g(79);}'
 testf 98 'int g(int *p){*p;} int f(){int a[]={98};g(a);}'
 testf '99 98 97 1' 'int g(int *p){printf("%d ",*p);p=p+1;printf("%d ",*p);p=p+1;printf("%d ",*p);1;} int f(){int a[]={1,2,3};int *p=a;*p=99;p=p+1;*p=98;p=p+1;*p=97;g(a);}'
 testf '99 98 97 1' 'int g(int *p){printf("%d ",*p);p=p+1;printf("%d ",*p);p=p+1;printf("%d ",*p);1;} int f(){int a[3];int *p=a;*p=99;p=p+1;*p=98;p=p+1;*p=97;g(a);}'
-
-# Ternary operator
-test 51 '(1+2)?51:52;'
-test 52 '(1-1)?51:52;'
-
-# Logical operators
-test 1 '55 && 2;'
-test 0 '55 && 0;'
-test 0 '0 && 55;'
-
-# Bit operators
-test 3 '1|2;'
-test 1 '1&3;'
 
 # Struct
 test 61 'struct {int a;} x; x.a = 61; x.a;'

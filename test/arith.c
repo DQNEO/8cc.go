@@ -21,8 +21,42 @@ int test_basic() {
     expect(0, a + 1);
 }
 
+int test_inc_dec() {
+    int a = 15;
+    expect(15, a++);
+    expect(16, a);
+    expect(16, a--);
+    expect(15, a);
+}
+
+int test_bool() {
+    expect(0, !1);
+    expect(1, !0);
+}
+
+int test_ternary() {
+    expect(51, (1 + 2) ? 51 : 52);
+    expect(52, (1 - 1) ? 51 : 52);
+}
+
+int test_logand() {
+    expect(1, 55 && 2);
+    expect(0, 55 && 0);
+    expect(0, 0 && 55);
+}
+
+int test_bitand() {
+    expect(3, 1|2);
+    expect(1, 1&3);
+}
+
 int main() {
     printf("Test arithmetic..\n");
     test_basic();
+    test_inc_dec();
+    test_bool();
+    test_ternary();
+    test_logand();
+    test_bitand();
     printf("OK\n");
 }

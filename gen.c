@@ -124,16 +124,14 @@ static void emit_lload(Ctype *ctype, int off) {
     SAVE;
     if (ctype->type == CTYPE_ARRAY) {
         emit("lea %d(%%rbp), %%rax", off);
-        return;
-    }
-    if (ctype->type == CTYPE_FLOAT) {
+    } else if (ctype->type == CTYPE_FLOAT) {
         emit("movss %d(%%rbp), %%xmm0", off);
-        return;
+    } else {
+        char *reg = get_int_reg(ctype, 'a');
+        if (ctype->size == 1)
+            emit("mov $0, %%eax");
+        emit("mov %d(%%rbp), %%%s", off, reg);
     }
-    char *reg = get_int_reg(ctype, 'a');
-    if (ctype->size == 1)
-        emit("mov $0, %%eax");
-    emit("mov %d(%%rbp), %%%s", off, reg);
 }
 
 static void emit_gsave(char *varname, Ctype *ctype, int off) {

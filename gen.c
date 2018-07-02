@@ -601,7 +601,7 @@ void emit_data_section(void) {
             error("internal error: %s", ast_to_string(v));
         }
     }
-    for (Iter *i = list_iter(floats); !iter_end(i);) {
+    for (Iter *i = list_iter(flonums); !iter_end(i);) {
         Ast *v = iter_next(i);
         char *label = make_label();
         v->flabel = label;

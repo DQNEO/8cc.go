@@ -10,7 +10,7 @@
 #define MAX_ALIGN 16
 
 Env *globalenv = &EMPTY_ENV;
-List *floats = &EMPTY_LIST;
+List *flonums = &EMPTY_LIST;
 static List *struct_defs = &EMPTY_LIST;
 static List *union_defs = &EMPTY_LIST;
 static Env *localenv = NULL;
@@ -82,7 +82,7 @@ static Ast *ast_float(float val) {
     r->type = AST_LITERAL;
     r->ctype = ctype_float;
     r->fval = val;
-    list_push(floats, r);
+    list_push(flonums, r);
     return r;
 }
 

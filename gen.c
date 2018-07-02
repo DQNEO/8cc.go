@@ -587,7 +587,6 @@ static void emit_expr(Ast *ast) {
 
 void emit_data_section(void) {
     SAVE;
-    if (list_len(globalenv->vars) == 0) return;
     emit(".data");
     for (Iter *i = list_iter(globalenv->vars); !iter_end(i);) {
         Ast *v = iter_next(i);
@@ -652,8 +651,6 @@ static void emit_global_var(Ast *v) {
 
 static void emit_func_prologue(Ast *func) {
     SAVE;
-    if (list_len(func->params) > sizeof(REGS) / sizeof(*REGS))
-        error("Parameter list too long: %s", func->fname);
     emit(".text");
     emit_label(".global %s", func->fname);
     emit_label("%s:", func->fname);
@@ -679,7 +676,7 @@ static void emit_func_prologue(Ast *func) {
         v->loff = off;
     }
     if (off)
-        emit("sub $%d, %%rsp", align(-off, 16));
+        emit("add $%d, %%rsp", off);
     stackpos += -(off - 8);
 }
 

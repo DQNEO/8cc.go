@@ -59,13 +59,13 @@ static char *get_int_reg(Ctype *ctype, char r) {
 static void push_xmm(int reg) {
     SAVE;
     emit("sub $8, %%rsp");
-    emit("movss %%xmm%d, (%%rsp)", reg);
+    emit("movsd %%xmm%d, (%%rsp)", reg);
     stackpos += 8;
 }
 
 static void pop_xmm(int reg) {
     SAVE;
-    emit("movss (%%rsp), %%xmm%d", reg);
+    emit("movsd (%%rsp), %%xmm%d", reg);
     emit("add $8, %%rsp");
     stackpos -= 8;
     assert(stackpos >= 0);
@@ -110,14 +110,14 @@ static void emit_toint(Ctype *ctype) {
     SAVE;
     if (!is_flotype(ctype))
         return;
-    emit("cvttss2si %%xmm0, %%eax");
+    emit("cvttsd2si %%xmm0, %%eax");
 }
 
 static void emit_tofloat(Ctype *ctype) {
     SAVE;
     if (is_flotype(ctype))
         return;
-    emit("cvtsi2ss %%eax, %%xmm0");
+    emit("cvtsi2sd %%eax, %%xmm0");
 }
 
 static void emit_lload(Ctype *ctype, int off) {
@@ -250,7 +250,7 @@ static void emit_comp(char *inst, Ast *ast) {
         emit_expr(ast->right);
         emit_tofloat(ast->right->ctype);
         pop_xmm(1);
-        emit("ucomiss %%xmm0, %%xmm1");
+        emit("ucomisd %%xmm0, %%xmm1");
     } else {
         emit_expr(ast->left);
         emit_toint(ast->left->ctype);
@@ -293,10 +293,10 @@ static void emit_binop_float_arith(Ast *ast) {
     SAVE;
     char *op;
     switch (ast->type) {
-    case '+': op = "addss"; break;
-    case '-': op = "subss"; break;
-    case '*': op = "mulss"; break;
-    case '/': op = "divss"; break;
+    case '+': op = "addsd"; break;
+    case '-': op = "subsd"; break;
+    case '*': op = "mulsd"; break;
+    case '/': op = "divsd"; break;
     default: error("invalid operator '%d'", ast->type);
     }
     emit_expr(ast->left);

@@ -421,7 +421,11 @@ static void emit_expr(Ast *ast) {
                 pop(REGS[--ir]);
         }
         emit("mov $%d, %%eax", xreg);
+        if (stackpos % 16)
+            emit("sub $8, %%rsp");
         emit("call %s", ast->fname);
+        if (stackpos % 16)
+            emit("add $8, %%rsp");
         for (Iter *i = list_iter(list_reverse(ast->args)); !iter_end(i);) {
             Ast *v = iter_next(i);
             if (v->ctype->type == CTYPE_FLOAT)

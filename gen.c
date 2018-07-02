@@ -54,13 +54,13 @@ static char *get_int_reg(Ctype *ctype, char r) {
     }
 }
 
-static void emit_push_xmm(int reg) {
+static void push_xmm(int reg) {
     SAVE;
     emit("sub $8, %%rsp");
     emit("movss %%xmm%d, (%%rsp)", reg);
 }
 
-static void emit_pop_xmm(int reg) {
+static void pop_xmm(int reg) {
     SAVE;
     emit("movss (%%rsp), %%xmm%d", reg);
     emit("add $8, %%rsp");
@@ -235,10 +235,10 @@ static void emit_comp(char *inst, Ast *ast) {
     if (ast->ctype->type == CTYPE_FLOAT) {
         emit_expr(ast->left);
         emit_tofloat(ast->left->ctype);
-        emit_push_xmm(0);
+        push_xmm(0);
         emit_expr(ast->right);
         emit_tofloat(ast->right->ctype);
-        emit_pop_xmm(1);
+        pop_xmm(1);
         emit("ucomiss %%xmm0, %%xmm1");
     } else {
         emit_expr(ast->left);
@@ -290,11 +290,11 @@ static void emit_binop_float_arith(Ast *ast) {
     }
     emit_expr(ast->left);
     emit_tofloat(ast->left->ctype);
-    emit_push_xmm(0);
+    push_xmm(0);
     emit_expr(ast->right);
     emit_tofloat(ast->right->ctype);
     emit("movsd %%xmm0, %%xmm1");
-    emit_pop_xmm(0);
+    pop_xmm(0);
     emit("%s %%xmm1, %%xmm0", op);
 }
 
@@ -390,7 +390,7 @@ static void emit_expr(Ast *ast) {
         for (Iter *i = list_iter(ast->args); !iter_end(i);) {
             Ast *v = iter_next(i);
             if (v->ctype->type == CTYPE_FLOAT)
-                emit_push_xmm(xreg++);
+                push_xmm(xreg++);
             else
                 push(REGS[ireg++]);
         }
@@ -398,7 +398,7 @@ static void emit_expr(Ast *ast) {
             Ast *v = iter_next(i);
             emit_expr(v);
             if (v->ctype->type == CTYPE_FLOAT)
-                emit_push_xmm(0);
+                push_xmm(0);
             else
                 push("rax");
         }
@@ -407,7 +407,7 @@ static void emit_expr(Ast *ast) {
         for (Iter *i = list_iter(list_reverse(ast->args)); !iter_end(i);) {
             Ast *v = iter_next(i);
             if (v->ctype->type == CTYPE_FLOAT) {
-                emit_pop_xmm(--xr);
+                pop_xmm(--xr);
                 emit("cvtps2pd %%xmm%d, %%xmm%d", xr, xr);
             }
             else
@@ -418,7 +418,7 @@ static void emit_expr(Ast *ast) {
         for (Iter *i = list_iter(list_reverse(ast->args)); !iter_end(i);) {
             Ast *v = iter_next(i);
             if (v->ctype->type == CTYPE_FLOAT)
-                emit_pop_xmm(--xreg);
+                pop_xmm(--xreg);
             else
                 pop(REGS[--ireg]);
         }

@@ -8,6 +8,7 @@ char *ctype_to_string(Ctype *ctype) {
     case CTYPE_INT:  return "int";
     case CTYPE_CHAR: return "char";
     case CTYPE_FLOAT:  return "float";
+    case CTYPE_DOUBLE:  return "double";
     case CTYPE_PTR: {
         String *s = make_string();
         string_appendf(s, "*%s", ctype_to_string(ctype->ptr));
@@ -53,6 +54,7 @@ static void ast_to_string_int(String *buf, Ast *ast) {
             string_appendf(buf, "%d", ast->ival);
             break;
         case CTYPE_FLOAT:
+        case CTYPE_DOUBLE:
             string_appendf(buf, "%f", ast->fval);
             break;
         case CTYPE_CHAR:

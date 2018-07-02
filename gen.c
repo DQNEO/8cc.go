@@ -84,7 +84,6 @@ static void pop(char *reg) {
     assert(stackpos >= 0);
 }
 
-
 static void emit_gload(Ctype *ctype, char *label, int off) {
     SAVE;
     if (ctype->type == CTYPE_ARRAY) {

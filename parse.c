@@ -578,12 +578,9 @@ static Ctype *get_ctype(Token *tok) {
     if (!tok) return NULL;
     if (tok->type != TTYPE_IDENT)
         return NULL;
-    if (!strcmp(tok->sval, "int"))
-        return ctype_int;
-    if (!strcmp(tok->sval, "char"))
-        return ctype_char;
-    if (!strcmp(tok->sval, "float"))
-        return ctype_float;
+    if (!strcmp(tok->sval, "int"))    return ctype_int;
+    if (!strcmp(tok->sval, "char"))   return ctype_char;
+    if (!strcmp(tok->sval, "float"))  return ctype_float;
     return NULL;
 }
 

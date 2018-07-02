@@ -7,3 +7,4 @@ tmp.*
 unittest
 nqueen.s
 nqueen
+*.bin

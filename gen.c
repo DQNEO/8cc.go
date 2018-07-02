@@ -661,8 +661,8 @@ static void emit_func_prologue(Ast *func) {
     emit("mov %%rsp, %%rbp");
     int off = 0;
     int ri = 0;
-    for (Iter *i = list_iter(func->params); !iter_end(i); ri++) {
-        push(REGS[ri]);
+    for (Iter *i = list_iter(func->params); !iter_end(i);) {
+        push(REGS[ri++]);
         Ast *v = iter_next(i);
         off -= align(v->ctype->size, 8);
         v->loff = off;

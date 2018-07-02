@@ -113,7 +113,7 @@ static void emit_toint(Ctype *ctype) {
     emit("cvttsd2si %%xmm0, %%eax");
 }
 
-static void emit_tofloat(Ctype *ctype) {
+static void emit_todouble(Ctype *ctype) {
     SAVE;
     if (is_flotype(ctype))
         return;
@@ -245,10 +245,10 @@ static void emit_comp(char *inst, Ast *ast) {
     SAVE;
     if (is_flotype(ast->ctype)) {
         emit_expr(ast->left);
-        emit_tofloat(ast->left->ctype);
+        emit_todouble(ast->left->ctype);
         push_xmm(0);
         emit_expr(ast->right);
-        emit_tofloat(ast->right->ctype);
+        emit_todouble(ast->right->ctype);
         pop_xmm(1);
         emit("ucomisd %%xmm0, %%xmm1");
     } else {
@@ -300,10 +300,10 @@ static void emit_binop_float_arith(Ast *ast) {
     default: error("invalid operator '%d'", ast->type);
     }
     emit_expr(ast->left);
-    emit_tofloat(ast->left->ctype);
+    emit_todouble(ast->left->ctype);
     push_xmm(0);
     emit_expr(ast->right);
-    emit_tofloat(ast->right->ctype);
+    emit_todouble(ast->right->ctype);
     emit("movsd %%xmm0, %%xmm1");
     pop_xmm(0);
     emit("%s %%xmm1, %%xmm0", op);
@@ -314,7 +314,7 @@ static void emit_binop(Ast *ast) {
     if (ast->type == '=') {
         emit_expr(ast->right);
         if (is_flotype(ast->ctype))
-            emit_tofloat(ast->right->ctype);
+            emit_todouble(ast->right->ctype);
         else
             emit_toint(ast->right->ctype);
         emit_assign(ast->left);

@@ -46,6 +46,7 @@ enum {
     AST_COMPOUND_STMT,
     AST_STRUCT_REF,
     // AST_FLOAT,
+    // AST_DOUBLE,
     // AST_INT,
     PUNCT_EQ,
     PUNCT_INC,
@@ -60,6 +61,7 @@ enum {
     CTYPE_INT,
     CTYPE_CHAR,
     CTYPE_FLOAT,
+    CTYPE_DOUBLE,
     CTYPE_ARRAY,
     CTYPE_PTR,
     CTYPE_STRUCT,
@@ -82,9 +84,9 @@ typedef struct Ast {
     union {
         // Integer
         int ival;
-        // Float
+        // Float or double
         struct {
-            float fval;
+            double fval;
             char *flabel;
         };
         // Char

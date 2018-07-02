@@ -85,7 +85,7 @@ static void pop(char *reg) {
 }
 
 static bool is_flotype(Ctype *ctype) {
-    return ctype->type == CTYPE_FLOAT;
+    return ctype->type == CTYPE_FLOAT || ctype->type == CTYPE_DOUBLE;    
 }
 
 static void emit_gload(Ctype *ctype, char *label, int off) {
@@ -125,7 +125,9 @@ static void emit_lload(Ctype *ctype, int off) {
     if (ctype->type == CTYPE_ARRAY) {
         emit("lea %d(%%rbp), %%rax", off);
     } else if (ctype->type == CTYPE_FLOAT) {
-        emit("movss %d(%%rbp), %%xmm0", off);
+        emit("cvtps2pd %d(%%rbp), %%xmm0", off);
+    } else if (ctype->type == CTYPE_DOUBLE) {
+        emit("movsd %d(%%rbp), %%xmm0", off);
     } else {
         char *reg = get_int_reg(ctype, 'a');
         if (ctype->size == 1)
@@ -147,7 +149,9 @@ static void emit_gsave(char *varname, Ctype *ctype, int off) {
 static void emit_lsave(Ctype *ctype, int off) {
     SAVE;
     if (ctype->type == CTYPE_FLOAT) {
-        emit("movss %%xmm0, %d(%%rbp)", off);
+        emit("cvtpd2ps %%xmm0, %d(%%rbp)", off);
+    } else if (ctype->type == CTYPE_DOUBLE) {
+        emit("movsd %%xmm0, %d(%%rbp)", off);
     } else {
         char *reg = get_int_reg(ctype, 'a');
         emit("mov %%%s, %d(%%rbp)", reg, off);
@@ -378,7 +382,8 @@ static void emit_expr(Ast *ast) {
             emit("mov $%d, %%rax", ast->c);
             break;
         case CTYPE_FLOAT:
-            emit("movss %s(%%rip), %%xmm0", ast->flabel);
+        case CTYPE_DOUBLE:
+            emit("movsd %s(%%rip), %%xmm0", ast->flabel);
             break;
         default:
             error("internal error");
@@ -415,10 +420,8 @@ static void emit_expr(Ast *ast) {
         int xr = xreg;
         for (Iter *i = list_iter(list_reverse(ast->args)); !iter_end(i);) {
             Ast *v = iter_next(i);
-            if (is_flotype(v->ctype)) {
+            if (is_flotype(v->ctype))
                 pop_xmm(--xr);
-                emit("cvtps2pd %%xmm%d, %%xmm%d", xr, xr);
-            }
             else
                 pop(REGS[--ir]);
         }
@@ -604,7 +607,8 @@ void emit_data_section(void) {
         char *label = make_label();
         v->flabel = label;
         emit_label("%s:", label);
-        emit(".long %d", *(int *)&v->fval);
+        emit(".long %d", ((int *)&v->fval)[0]);
+        emit(".long %d", ((int *)&v->fval)[1]);
     }
 }
 
@@ -665,6 +669,8 @@ static void emit_func_prologue(Ast *func) {
         Ast *v = iter_next(i);
         if (v->ctype->type == CTYPE_FLOAT) {
             emit("cvtpd2ps %%xmm%d, %%xmm%d", xreg, xreg);
+            push_xmm(xreg++);
+        } else if (v->ctype->type == CTYPE_DOUBLE) {
             push_xmm(xreg++);
         } else {
             push(REGS[ireg++]);

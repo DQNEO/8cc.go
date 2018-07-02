@@ -84,6 +84,10 @@ static void pop(char *reg) {
     assert(stackpos >= 0);
 }
 
+static bool is_flotype(Ctype *ctype) {
+    return ctype->type == CTYPE_FLOAT;
+}
+
 static void emit_gload(Ctype *ctype, char *label, int off) {
     SAVE;
     if (ctype->type == CTYPE_ARRAY) {
@@ -104,14 +108,14 @@ static void emit_gload(Ctype *ctype, char *label, int off) {
 
 static void emit_toint(Ctype *ctype) {
     SAVE;
-    if (ctype->type != CTYPE_FLOAT)
+    if (!is_flotype(ctype))
         return;
     emit("cvttss2si %%xmm0, %%eax");
 }
 
 static void emit_tofloat(Ctype *ctype) {
     SAVE;
-    if (ctype->type == CTYPE_FLOAT)
+    if (is_flotype(ctype))
         return;
     emit("cvtsi2ss %%eax, %%xmm0");
 }
@@ -239,7 +243,7 @@ static void emit_assign(Ast *var) {
 
 static void emit_comp(char *inst, Ast *ast) {
     SAVE;
-    if (ast->ctype->type == CTYPE_FLOAT) {
+    if (is_flotype(ast->ctype)) {
         emit_expr(ast->left);
         emit_tofloat(ast->left->ctype);
         push_xmm(0);
@@ -309,7 +313,7 @@ static void emit_binop(Ast *ast) {
     SAVE;
     if (ast->type == '=') {
         emit_expr(ast->right);
-        if (ast->ctype->type == CTYPE_FLOAT)
+        if (is_flotype(ast->ctype))
             emit_tofloat(ast->right->ctype);
         else
             emit_toint(ast->right->ctype);
@@ -334,7 +338,7 @@ static void emit_binop(Ast *ast) {
     }
     if (ast->ctype->type == CTYPE_INT)
         emit_binop_int_arith(ast);
-    else if (ast->ctype->type == CTYPE_FLOAT)
+    else if (is_flotype(ast->ctype))
         emit_binop_float_arith(ast);
     else
         error("internal error");
@@ -396,7 +400,7 @@ static void emit_expr(Ast *ast) {
         int xreg = 0;
         for (Iter *i = list_iter(ast->args); !iter_end(i);) {
             Ast *v = iter_next(i);
-            if (v->ctype->type == CTYPE_FLOAT)
+            if (is_flotype(v->ctype))
                 push_xmm(xreg++);
             else
                 push(REGS[ireg++]);
@@ -404,7 +408,7 @@ static void emit_expr(Ast *ast) {
         for (Iter *i = list_iter(ast->args); !iter_end(i);) {
             Ast *v = iter_next(i);
             emit_expr(v);
-            if (v->ctype->type == CTYPE_FLOAT)
+            if (is_flotype(v->ctype))
                 push_xmm(0);
             else
                 push("rax");
@@ -413,7 +417,7 @@ static void emit_expr(Ast *ast) {
         int xr = xreg;
         for (Iter *i = list_iter(list_reverse(ast->args)); !iter_end(i);) {
             Ast *v = iter_next(i);
-            if (v->ctype->type == CTYPE_FLOAT) {
+            if (is_flotype(v->ctype)) {
                 pop_xmm(--xr);
                 emit("cvtps2pd %%xmm%d, %%xmm%d", xr, xr);
             }
@@ -428,7 +432,7 @@ static void emit_expr(Ast *ast) {
             emit("add $8, %%rsp");
         for (Iter *i = list_iter(list_reverse(ast->args)); !iter_end(i);) {
             Ast *v = iter_next(i);
-            if (v->ctype->type == CTYPE_FLOAT)
+            if (is_flotype(v->ctype))
                 pop_xmm(--xreg);
             else
                 pop(REGS[--ireg]);

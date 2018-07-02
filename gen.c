@@ -6,6 +6,8 @@ static char *REGS[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 static int TAB = 8;
 static List *functions = &EMPTY_LIST;
 
+static int stackpos;
+
 static void emit_expr(Ast *ast);
 static void emit_load_deref(Ctype *result_type, Ctype *operand_type, int off);
 
@@ -58,22 +60,28 @@ static void push_xmm(int reg) {
     SAVE;
     emit("sub $8, %%rsp");
     emit("movss %%xmm%d, (%%rsp)", reg);
+    stackpos += 8;
 }
 
 static void pop_xmm(int reg) {
     SAVE;
     emit("movss (%%rsp), %%xmm%d", reg);
     emit("add $8, %%rsp");
+    stackpos -= 8;
+    assert(stackpos >= 0);
 }
 
 static void push(char *reg) {
     SAVE;
     emit("push %%%s", reg);
+    stackpos += 8;
 }
 
 static void pop(char *reg) {
     SAVE;
     emit("pop %%%s", reg);
+    stackpos -= 8;
+    assert(stackpos >= 0);
 }
 
 
@@ -663,6 +671,7 @@ static void emit_func_prologue(Ast *func) {
     }
     if (off)
         emit("sub $%d, %%rsp", align(-off, 16));
+    stackpos += -(off - 8);
 }
 
 static void emit_func_epilogue(void) {
@@ -672,6 +681,7 @@ static void emit_func_epilogue(void) {
 }
 
 void emit_toplevel(Ast *v) {
+    stackpos = 0;
     if (v->type == AST_FUNC) {
         emit_func_prologue(v);
         emit_expr(v->body);

@@ -124,6 +124,19 @@ static char skip_line_comment(void) {
     }
 }
 
+static void skip_block_comment(void) {
+    for (;;) {
+        char c = getc(stdin);
+        if (c == '*') {
+            char d = getc(stdin);
+            if (d == '/')
+                return;
+            skip_block_comment();
+            return;
+        }
+    }
+}
+
 static Token *read_rep(int expect, int t1, int t2) {
     int c = getc(stdin);
     if (c == expect)
@@ -155,6 +168,9 @@ static Token *read_token_int(void) {
         c = getc(stdin);
         if (c == '/') {
             skip_line_comment();
+            return read_token_int();
+        } else if (c == '*') {
+            skip_block_comment();
             return read_token_int();
         } else {
             ungetc(c, stdin);

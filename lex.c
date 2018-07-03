@@ -115,12 +115,11 @@ static Token *read_ident(char c) {
     }
 }
 
-static char skip_line_comment(void) {
-    char c;
+static void skip_line_comment(void) {
     for (;;) {
-        c = getc(stdin);
+        int c = getc(stdin);
         if (c == '\n' || c == EOF)
-            return c;
+            return;
     }
 }
 

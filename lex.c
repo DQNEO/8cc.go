@@ -159,18 +159,19 @@ static Token *read_token_int(void) {
     case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W':
     case 'X': case 'Y': case 'Z': case '_':
         return read_ident(c);
-    case '/':
+    case '/': {
         c = getc(stdin);
         if (c == '/') {
             skip_line_comment();
             return read_token_int();
-        } else if (c == '*') {
+        }
+        if (c == '*') {
             skip_block_comment();
             return read_token_int();
-        } else {
-            ungetc(c, stdin);
-            return make_punct('/');
         }
+        ungetc(c, stdin);
+        return make_punct('/');
+    }
     case '*': case '(': case ')': case ',': case ';': case '.': case '[':
     case ']': case '{': case '}': case '<': case '>': case '!': case '?':
     case ':':

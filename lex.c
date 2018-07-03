@@ -115,6 +115,15 @@ static Token *read_ident(char c) {
     }
 }
 
+static char skip_line_comment(void) {
+    char c;
+    for (;;) {
+        c = getc(stdin);
+        if (c == '\n' || c == EOF)
+            return c;
+    }
+}
+
 static Token *read_rep(int expect, int t1, int t2) {
     int c = getc(stdin);
     if (c == expect)
@@ -143,7 +152,14 @@ static Token *read_token_int(void) {
     case '?': case ':':
         return make_punct(c);
     case '/':
-        return make_punct(c);
+        c = getc(stdin);
+        if (c == '/') {
+            skip_line_comment();
+            return read_token_int();
+        } else {
+            ungetc(c, stdin);
+            return make_punct('/');
+        }
     case '-':
         c = getc(stdin);
         if (c == '-') return make_punct(PUNCT_DEC);

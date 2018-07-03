@@ -171,9 +171,9 @@ static Token *read_token_int(void) {
             ungetc(c, stdin);
             return make_punct('/');
         }
-    case '*': case '(': case ')': case ',': case ';': case '.':
-    case '[': case ']': case '{': case '}': case '<': case '>': case '!':
-    case '?': case ':':
+    case '*': case '(': case ')': case ',': case ';': case '.': case '[':
+    case ']': case '{': case '}': case '<': case '>': case '!': case '?':
+    case ':':
         return make_punct(c);
     case '-':
         c = getc(stdin);

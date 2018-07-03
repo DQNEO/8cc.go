@@ -124,13 +124,13 @@ static void skip_line_comment(void) {
 }
 
 static void skip_block_comment(void) {
+    enum { in_comment, asterisk_read } state = in_comment;
     for (;;) {
-        char c = getc(stdin);
-        if (c == '*') {
-            char d = getc(stdin);
-            if (d == '/')
-                return;
-            skip_block_comment();
+        int c = getc(stdin);
+        if (state == in_comment) {
+            if (c == '*')
+                state = asterisk_read;
+        } else if (c == '/') {
             return;
         }
     }

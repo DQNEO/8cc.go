@@ -367,7 +367,7 @@ static Ast *read_ident_or_func(char *name) {
     return v;
 }
 
-static bool is_int(char *p) {
+static bool is_int_token(char *p) {
     for (; *p; p++)
         if (!isdigit(*p))
             return false;
@@ -393,7 +393,7 @@ static Ast *read_prim(void) {
     case TTYPE_IDENT:
         return read_ident_or_func(tok->sval);
     case TTYPE_NUMBER:
-        if (is_int(tok->sval))
+        if (is_int_token(tok->sval))
             return ast_inttype(ctype_int, atoi(tok->sval));
         if (is_float_token(tok->sval))
             return ast_double(atof(tok->sval));

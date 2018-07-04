@@ -51,12 +51,12 @@ static void ast_to_string_int(String *buf, Ast *ast) {
     case AST_LITERAL:
         switch (ast->ctype->type) {
         case CTYPE_CHAR:
-            if (ast->c == '\n')
+            if (ast->ival == '\n')
                 string_appendf(buf, "'\n'");
-            else if (ast->c == '\\')
+            else if (ast->ival == '\\')
                 string_appendf(buf, "'\\\\'");
             else
-                string_appendf(buf, "'%c'", ast->c);
+                string_appendf(buf, "'%c'", ast->ival);
             break;
         case CTYPE_INT:
             string_appendf(buf, "%d", ast->ival);

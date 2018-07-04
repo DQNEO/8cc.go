@@ -376,7 +376,7 @@ static void emit_expr(Ast *ast) {
     case AST_LITERAL:
         switch (ast->ctype->type) {
         case CTYPE_CHAR:
-            emit("mov $%d, %%rax", ast->c);
+            emit("mov $%d, %%rax", ast->ival);
             break;
         case CTYPE_INT:
             emit("mov $%d, %%eax", ast->ival);

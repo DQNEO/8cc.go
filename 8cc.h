@@ -79,15 +79,13 @@ typedef struct Ast {
     int type;
     Ctype *ctype;
     union {
-        // Integer
+        // Char, int
         int ival;
         // Float or double
         struct {
             double fval;
             char *flabel;
         };
-        // Char
-        char c;
         // String
         struct {
             char *sval;

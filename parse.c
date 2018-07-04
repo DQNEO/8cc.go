@@ -70,10 +70,10 @@ static Ast *ast_binop(int type, Ast *left, Ast *right) {
     return r;
 }
 
-static Ast *ast_int(int val) {
+static Ast *ast_inttype(Ctype *ctype, int val) {
     Ast *r = malloc(sizeof(Ast));
     r->type = AST_LITERAL;
-    r->ctype = ctype_int;
+    r->ctype = ctype;
     r->ival = val;
     return r;
 }
@@ -84,14 +84,6 @@ static Ast *ast_double(double val) {
     r->ctype = ctype_double;
     r->fval = val;
     list_push(flonums, r);
-    return r;
-}
-
-static Ast *ast_char(char c) {
-    Ast *r = malloc(sizeof(Ast));
-    r->type = AST_LITERAL;
-    r->ctype = ctype_char;
-    r->c = c;
     return r;
 }
 
@@ -299,7 +291,7 @@ static int eval_intexpr(Ast *ast) {
         if (ast->ctype->type == CTYPE_INT)
             return ast->ival;
         if (ast->ctype->type == CTYPE_CHAR)
-            return ast->c;
+            return ast->ival;
         error("Integer expression expected, but got %s", ast_to_string(ast));
     case '+': return eval_intexpr(ast->left) + eval_intexpr(ast->right);
     case '-': return eval_intexpr(ast->left) - eval_intexpr(ast->right);
@@ -396,12 +388,12 @@ static Ast *read_prim(void) {
         return read_ident_or_func(tok->sval);
     case TTYPE_NUMBER:
         if (is_int(tok->sval))
-            return ast_int(atoi(tok->sval));
+            return ast_inttype(ctype_int, atoi(tok->sval));
         if (is_flonum(tok->sval))
             return ast_double(atof(tok->sval));
         error("Malformed number: %s", token_to_string(tok));
     case TTYPE_CHAR:
-        return ast_char(tok->c);
+        return ast_inttype(ctype_char, tok->c);
     case TTYPE_STRING: {
         Ast *r = ast_string(tok->sval);
         env_append(globalenv, r);
@@ -738,7 +730,7 @@ static Ast *read_decl_init_val(Ast *var) {
     Ast *init = read_expr();
     expect(';');
     if (var->type == AST_GVAR)
-        init = ast_int(eval_intexpr(init));
+        init = ast_inttype(ctype_int, eval_intexpr(init));
     return ast_decl(var, init);
 }
 

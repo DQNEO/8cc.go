@@ -50,13 +50,6 @@ static void ast_to_string_int(String *buf, Ast *ast) {
     switch (ast->type) {
     case AST_LITERAL:
         switch (ast->ctype->type) {
-        case CTYPE_INT:
-            string_appendf(buf, "%d", ast->ival);
-            break;
-        case CTYPE_FLOAT:
-        case CTYPE_DOUBLE:
-            string_appendf(buf, "%f", ast->fval);
-            break;
         case CTYPE_CHAR:
             if (ast->c == '\n')
                 string_appendf(buf, "'\n'");
@@ -64,6 +57,13 @@ static void ast_to_string_int(String *buf, Ast *ast) {
                 string_appendf(buf, "'\\\\'");
             else
                 string_appendf(buf, "'%c'", ast->c);
+            break;
+        case CTYPE_INT:
+            string_appendf(buf, "%d", ast->ival);
+            break;
+        case CTYPE_FLOAT:
+        case CTYPE_DOUBLE:
+            string_appendf(buf, "%f", ast->fval);
             break;
         default:
             error("internal error");

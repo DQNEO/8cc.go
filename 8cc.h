@@ -55,8 +55,8 @@ enum {
 
 enum {
     CTYPE_VOID,
-    CTYPE_INT,
     CTYPE_CHAR,
+    CTYPE_INT,
     CTYPE_FLOAT,
     CTYPE_DOUBLE,
     CTYPE_ARRAY,

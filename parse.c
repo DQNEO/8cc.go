@@ -433,11 +433,10 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
     switch (a->type) {
     case CTYPE_VOID:
         goto err;
-    case CTYPE_INT:
     case CTYPE_CHAR:
+    case CTYPE_INT:
         switch (b->type) {
-        case CTYPE_INT:
-        case CTYPE_CHAR:
+        case CTYPE_CHAR: case CTYPE_INT:
             return ctype_int;
         case CTYPE_FLOAT:
         case CTYPE_DOUBLE:

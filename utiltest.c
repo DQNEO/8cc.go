@@ -2,14 +2,29 @@
 #include <string.h>
 #include "8cc.h"
 
-void assert_string_equal(char *s, char *t) {
-    if (strcmp(s, t))
-        error("Expected %s but got %s", s, t);
+#define assert_true(expr) assert_true2(__LINE__, #expr, (expr))
+#define assert_null(...) assert_null2(__LINE__, __VA_ARGS__)
+#define assert_string_equal(...) assert_string_equal2(__LINE__, __VA_ARGS__)
+#define assert_int_equal(...) assert_int_equal2(__LINE__, __VA_ARGS__)
+
+static void assert_true2(int line, char *expr, int result) {
+    if (!result)
+        error("%d: assert_true: %s", line, expr);
 }
 
-void assert_int_equal(long a, long b) {
+static void assert_null2(int line, void *p) {
+    if (p)
+        error("%d: Null expected", line);
+}
+
+static void assert_string_equal2(int line, char *s, char *t) {
+    if (strcmp(s, t))
+        error("%d: Expected %s but got %s", line, s, t);
+}
+
+static void assert_int_equal2(int line, long a, long b) {
     if (a != b)
-        error("Expected %ld but got %ld", a, b);
+        error("%d: Expected %ld but got %ld", line, a, b);
 }
 
 static void test_string(void) {

@@ -262,6 +262,10 @@ static Ast *find_var(char *name) {
     return NULL;
 }
 
+bool is_flotype(Ctype *ctype) {
+    return ctype->type == CTYPE_FLOAT || ctype->type == CTYPE_DOUBLE;
+}
+
 static void ensure_lvalue(Ast *ast) {
     switch (ast->type) {
     case AST_LVAR: case AST_GVAR: case AST_DEREF: case AST_STRUCT_REF:

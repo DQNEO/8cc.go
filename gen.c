@@ -84,10 +84,6 @@ static void pop(char *reg) {
     assert(stackpos >= 0);
 }
 
-static bool is_flotype(Ctype *ctype) {
-    return ctype->type == CTYPE_FLOAT || ctype->type == CTYPE_DOUBLE;    
-}
-
 static void emit_gload(Ctype *ctype, char *label, int off) {
     SAVE;
     if (ctype->type == CTYPE_ARRAY) {

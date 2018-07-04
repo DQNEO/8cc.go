@@ -265,7 +265,8 @@ static Ast *find_var(char *name) {
 }
 
 bool is_inttype(Ctype *ctype) {
-    return ctype->type == CTYPE_CHAR || ctype->type == CTYPE_INT;
+    return ctype->type == CTYPE_CHAR || ctype->type == CTYPE_INT ||
+        ctype->type == CTYPE_LONG;
 }
 
 bool is_flotype(Ctype *ctype) {
@@ -452,6 +453,18 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
         switch (b->type) {
         case CTYPE_CHAR: case CTYPE_INT:
             return ctype_int;
+        case CTYPE_LONG:
+            return ctype_long;
+        case CTYPE_FLOAT: case CTYPE_DOUBLE:
+            return ctype_double;
+        case CTYPE_ARRAY: case CTYPE_PTR:
+            return b;
+        }
+        error("internal error");
+    case CTYPE_LONG:
+        switch (b->type) {
+        case CTYPE_LONG:
+            return ctype_long;
         case CTYPE_FLOAT: case CTYPE_DOUBLE:
             return ctype_double;
         case CTYPE_ARRAY: case CTYPE_PTR:
@@ -613,6 +626,7 @@ static Ctype *get_ctype(Token *tok) {
     if (tok->type != TTYPE_IDENT)
         return NULL;
     if (!strcmp(tok->sval, "int"))    return ctype_int;
+    if (!strcmp(tok->sval, "long"))   return ctype_long;
     if (!strcmp(tok->sval, "char"))   return ctype_char;
     if (!strcmp(tok->sval, "float"))  return ctype_float;
     if (!strcmp(tok->sval, "double")) return ctype_double;

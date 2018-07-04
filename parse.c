@@ -262,6 +262,10 @@ static Ast *find_var(char *name) {
     return NULL;
 }
 
+bool is_inttype(Ctype *ctype) {
+    return ctype->type == CTYPE_CHAR || ctype->type == CTYPE_INT;
+}
+
 bool is_flotype(Ctype *ctype) {
     return ctype->type == CTYPE_FLOAT || ctype->type == CTYPE_DOUBLE;
 }
@@ -292,9 +296,7 @@ static bool is_right_assoc(Token *tok) {
 static int eval_intexpr(Ast *ast) {
     switch (ast->type) {
     case AST_LITERAL:
-        if (ast->ctype->type == CTYPE_INT)
-            return ast->ival;
-        if (ast->ctype->type == CTYPE_CHAR)
+        if (is_inttype(ast->ctype))
             return ast->ival;
         error("Integer expression expected, but got %s", ast_to_string(ast));
     case '+': return eval_intexpr(ast->left) + eval_intexpr(ast->right);
@@ -422,7 +424,7 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
             return a;
         if (op != '+' && op != '-')
             goto err;
-        if (a->type != CTYPE_INT)
+        if (!is_inttype(a))
             goto err;
         return b;
     }

@@ -334,7 +334,7 @@ static void emit_binop(Ast *ast) {
         emit_comp("setg", ast);
         return;
     }
-    if (ast->ctype->type == CTYPE_INT)
+    if (is_inttype(ast->ctype))
         emit_binop_int_arith(ast);
     else if (is_flotype(ast->ctype))
         emit_binop_float_arith(ast);
@@ -634,7 +634,7 @@ static void emit_data(Ast *v) {
         }
         return;
     }
-    assert(v->declinit->type == AST_LITERAL && v->declinit->ctype->type == CTYPE_INT);
+    assert(v->declinit->type == AST_LITERAL && is_inttype(v->declinit->ctype));
     emit_data_int(v->declinit);
 }
 

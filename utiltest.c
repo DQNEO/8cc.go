@@ -12,7 +12,7 @@ void assert_int_equal(long a, long b) {
         error("Expected %ld but got %ld", a, b);
 }
 
-void test_string(void) {
+static void test_string(void) {
     String *s = make_string();
     string_append(s, 'a');
     assert_string_equal("a", get_cstring(s));
@@ -25,7 +25,7 @@ void test_string(void) {
     assert_string_equal("ab.0123456789", get_cstring(s));
 }
 
-void test_list(void) {
+static void test_list(void) {
     List *list = make_list();
     list_push(list, (void *)1);
     list_push(list, (void *)2);

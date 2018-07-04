@@ -374,7 +374,7 @@ static bool is_int(char *p) {
     return true;
 }
 
-static bool is_flonum(char *p) {
+static bool is_float_token(char *p) {
     for (; *p; p++)
         if (!isdigit(*p))
             break;
@@ -395,7 +395,7 @@ static Ast *read_prim(void) {
     case TTYPE_NUMBER:
         if (is_int(tok->sval))
             return ast_inttype(ctype_int, atoi(tok->sval));
-        if (is_flonum(tok->sval))
+        if (is_float_token(tok->sval))
             return ast_double(atof(tok->sval));
         error("Malformed number: %s", token_to_string(tok));
     case TTYPE_CHAR:

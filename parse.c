@@ -17,6 +17,7 @@ static Env *localenv = NULL;
 static List *localvars = NULL;
 
 static Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL, 4 };
+static Ctype *ctype_long = &(Ctype){ CTYPE_LONG, NULL, 8 };
 static Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL, 1 };
 static Ctype *ctype_float = &(Ctype){ CTYPE_FLOAT, NULL, 4 };
 static Ctype *ctype_double = &(Ctype){ CTYPE_DOUBLE, NULL, 8 };
@@ -70,7 +71,7 @@ static Ast *ast_binop(int type, Ast *left, Ast *right) {
     return r;
 }
 
-static Ast *ast_inttype(Ctype *ctype, int val) {
+static Ast *ast_inttype(Ctype *ctype, long val) {
     Ast *r = malloc(sizeof(Ast));
     r->type = AST_LITERAL;
     r->ctype = ctype;

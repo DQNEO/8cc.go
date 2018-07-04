@@ -378,7 +378,7 @@ static void emit_expr(Ast *ast) {
             emit("mov $%d, %%eax", ast->ival);
             break;
         case CTYPE_LONG:
-            emit("mov $%lu, %%rax", ast->ival);
+            emit("mov $%lu, %%rax", (unsigned long)ast->ival);
             break;
         case CTYPE_FLOAT:
         case CTYPE_DOUBLE:

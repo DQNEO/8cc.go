@@ -61,6 +61,9 @@ static void ast_to_string_int(String *buf, Ast *ast) {
         case CTYPE_INT:
             string_appendf(buf, "%d", ast->ival);
             break;
+        case CTYPE_LONG:
+            string_appendf(buf, "%ldL", ast->ival);
+            break;
         case CTYPE_FLOAT:
         case CTYPE_DOUBLE:
             string_appendf(buf, "%f", ast->fval);

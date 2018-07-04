@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <limits.h>
 #include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -368,6 +369,14 @@ static Ast *read_ident_or_func(char *name) {
     return v;
 }
 
+static bool is_long_token(char *p) {
+    for (; *p; p++) {
+        if (!isdigit(*p))
+            return (*p == 'L' || *p == 'l') && p[1] == '\0';
+    }
+    return false;
+}
+
 static bool is_int_token(char *p) {
     for (; *p; p++)
         if (!isdigit(*p))
@@ -394,8 +403,14 @@ static Ast *read_prim(void) {
     case TTYPE_IDENT:
         return read_ident_or_func(tok->sval);
     case TTYPE_NUMBER:
-        if (is_int_token(tok->sval))
-            return ast_inttype(ctype_int, atoi(tok->sval));
+        if (is_long_token(tok->sval))
+            return ast_inttype(ctype_long, atol(tok->sval));
+        if (is_int_token(tok->sval)) {
+            long val = atol(tok->sval);
+            if (val & ~(long)UINT_MAX)
+                return ast_inttype(ctype_long, val);
+            return ast_inttype(ctype_int, val);
+        }
         if (is_float_token(tok->sval))
             return ast_double(atof(tok->sval));
         error("Malformed number: %s", token_to_string(tok));

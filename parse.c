@@ -436,11 +436,9 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
         switch (b->type) {
         case CTYPE_CHAR: case CTYPE_INT:
             return ctype_int;
-        case CTYPE_FLOAT:
-        case CTYPE_DOUBLE:
+        case CTYPE_FLOAT: case CTYPE_DOUBLE:
             return ctype_double;
-        case CTYPE_ARRAY:
-        case CTYPE_PTR:
+        case CTYPE_ARRAY: case CTYPE_PTR:
             return b;
         }
         error("internal error");

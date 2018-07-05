@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "util.h"
 #include "list.h"
+#include "dict.h"
 
 enum {
     TTYPE_IDENT,

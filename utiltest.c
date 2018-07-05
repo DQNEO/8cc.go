@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "8cc.h"
-#include "dict.h"
 
 #define assert_true(expr) assert_true2(__LINE__, #expr, (expr))
 #define assert_null(...) assert_null2(__LINE__, __VA_ARGS__)
@@ -26,19 +25,6 @@ static void assert_string_equal2(int line, char *s, char *t) {
 static void assert_int_equal2(int line, long a, long b) {
     if (a != b)
         error("%d: Expected %ld but got %ld", line, a, b);
-}
-
-static void test_dict(void) {
-    Dict *dict = make_dict(NULL);
-    assert_null(dict_parent(dict));
-    assert_null(dict_get(dict, "abc"));
-    dict_put(dict, "abc", (void *)50);
-    dict_put(dict, "xyz", (void *)70);
-    assert_int_equal(50, (long)dict_get(dict, "abc"));
-    assert_int_equal(70, (long)dict_get(dict, "xyz"));
-
-    Dict *dict2 = make_dict(dict);
-    assert_true(dict_parent(dict2) == dict);
 }
 
 static void test_string(void) {
@@ -77,6 +63,19 @@ static void test_list(void) {
     assert_int_equal(1, (long)list_pop(rev));
     assert_int_equal(2, (long)list_pop(rev));
     assert_int_equal(0, (long)list_pop(rev));
+}
+
+static void test_dict(void) {
+    Dict *dict = make_dict(NULL);
+    assert_null(dict_parent(dict));
+    assert_null(dict_get(dict, "abc"));
+    dict_put(dict, "abc", (void *)50);
+    dict_put(dict, "xyz", (void *)70);
+    assert_int_equal(50, (long)dict_get(dict, "abc"));
+    assert_int_equal(70, (long)dict_get(dict, "xyz"));
+
+    Dict *dict2 = make_dict(dict);
+    assert_true(dict_parent(dict2) == dict);
 }
 
 int main(int argc, char **argv) {

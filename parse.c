@@ -244,10 +244,10 @@ static Ctype* make_struct_field_type(Ctype *ctype, char *name, int offset) {
     return r;
 }
 
-static Ctype* make_struct_type(List *ctypes, char *tag, int size) {
+static Ctype* make_struct_type(Dict *fields, char *tag, int size) {
     Ctype *r = malloc(sizeof(Ctype));
     r->type = CTYPE_STRUCT;
-    r->fields = ctypes;
+    r->fields = fields;
     r->tag = tag;
     r->size = size;
     return r;
@@ -549,22 +549,13 @@ static Ast *read_cond_expr(Ast *cond) {
     return ast_ternary(then->ctype, cond, then, els);
 }
 
-static Ctype *find_struct_field(Ctype *struc, char *name) {
-    for (Iter *i = list_iter(struc->fields); !iter_end(i);) {
-        Ctype *field = iter_next(i);
-        if (!strcmp(field->name, name))
-            return field;
-    }
-    return NULL;
-}
-
 static Ast *read_struct_field(Ast *struc) {
     if (struc->ctype->type != CTYPE_STRUCT)
         error("struct expected, but got %s", ast_to_string(struc));
     Token *name = read_token();
     if (name->type != TTYPE_IDENT)
         error("field name expected, but got %s", token_to_string(name));
-    Ctype *field = find_struct_field(struc->ctype, name->sval);
+    Ctype *field = dict_get(struc->ctype->fields, name->sval);
     return ast_struct_ref(struc, field);
 }
 
@@ -679,15 +670,15 @@ static char *read_struct_union_tag(void) {
     return NULL;
 }
 
-static List *read_struct_union_fields(void) {
-    List *r = make_list();
+static Dict *read_struct_union_fields(void) {
+    Dict *r = make_dict(NULL);
     expect('{');
     for (;;) {
         if (!is_type_keyword(peek_token()))
             break;
         Token *name;
         Ctype *fieldtype = read_decl_int(&name);
-        list_push(r, make_struct_field_type(fieldtype, name->sval, 0));
+        dict_put(r, name->sval, make_struct_field_type(fieldtype, name->sval, 0));
         expect(';');
     }
     expect('}');
@@ -698,9 +689,9 @@ static Ctype *read_union_def(void) {
     char *tag = read_struct_union_tag();
     Ctype *ctype = find_struct_union_def(union_defs, tag);
     if (ctype) return ctype;
-    List *fields = read_struct_union_fields();
+    Dict *fields = read_struct_union_fields();
     int maxsize = 0;
-    for (Iter *i = list_iter(fields); !iter_end(i);) {
+    for (Iter *i = list_iter(dict_values(fields)); !iter_end(i);) {
         Ctype *fieldtype = iter_next(i);
         maxsize = (maxsize < fieldtype->size) ? fieldtype->size : maxsize;
     }
@@ -713,9 +704,9 @@ static Ctype *read_struct_def(void) {
     char *tag = read_struct_union_tag();
     Ctype *ctype = find_struct_union_def(struct_defs, tag);
     if (ctype) return ctype;
-    List *fields = read_struct_union_fields();
+    Dict *fields = read_struct_union_fields();
     int offset = 0;
-    for (Iter *i = list_iter(fields); !iter_end(i);) {
+    for (Iter *i = list_iter(dict_values(fields)); !iter_end(i);) {
         Ctype *fieldtype = iter_next(i);
         int size = (fieldtype->size < MAX_ALIGN) ? fieldtype->size : MAX_ALIGN;
         if (offset % size != 0)

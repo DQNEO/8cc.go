@@ -75,7 +75,7 @@ typedef struct Ctype {
     // struct
     char *name;
     char *tag;
-    List *fields;
+    Dict *fields;
     int offset;
 } Ctype;
 

@@ -36,6 +36,9 @@ static void test_dict(void) {
     dict_put(dict, "xyz", (void *)70);
     assert_int_equal(50, (long)dict_get(dict, "abc"));
     assert_int_equal(70, (long)dict_get(dict, "xyz"));
+
+    Dict *dict2 = make_dict(dict);
+    assert_true(dict_parent(dict2) == dict);
 }
 
 static void test_string(void) {

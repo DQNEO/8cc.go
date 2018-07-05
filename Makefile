@@ -31,5 +31,5 @@ nqueen: 8cc sample/nqueen.c
 
 .PHONY: clean test
 clean:
-	rm -f 8cc *.o tmp.* test/*.s test/*.o sample/*.o utiltest sample/nqueen.s sample/nqueen 
+	rm -f 8cc *.o tmp.* test/*.s test/*.o sample/*.o utiltest sample/nqueen.s sample/nqueen
 	rm -f $(TESTS)

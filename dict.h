@@ -8,9 +8,9 @@ typedef struct Dict {
     struct Dict *parent;
 } Dict;
 
-void *make_dict(void *p);
-void *dict_parent(Dict *d);
-void *dict_get(Dict *d, char *key);
-void dict_put(Dict *d, char *key, void *val);
+void *make_dict(void *parent);
+void *dict_get(Dict *dict, char *key);
+void dict_put(Dict *dict, char *key, void *val);
+void *dict_parent(Dict *dict);
 
 #endif /* EIGHTCC_DICT_H */

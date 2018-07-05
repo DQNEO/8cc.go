@@ -27,7 +27,7 @@ void dict_put(Dict *dict, char *key, void *val) {
     DictEntry *e = malloc(sizeof(DictEntry));
     e->key = key;
     e->val = val;
-    list_push(dict->list, (void *)e);
+    list_push(dict->list, e);
 }
 
 Dict *dict_parent(Dict *dict) {

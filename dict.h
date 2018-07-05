@@ -8,8 +8,8 @@ typedef struct Dict {
     struct Dict *parent;
 } Dict;
 
-Dict *make_dict(void *p);
-Dict *dict_parent(Dict *d);
+void *make_dict(void *p);
+void *dict_parent(Dict *d);
 void *dict_get(Dict *d, char *key);
 void dict_put(Dict *d, char *key, void *val);
 

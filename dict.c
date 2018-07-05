@@ -7,7 +7,7 @@ typedef struct DictEntry {
     void *val;
 } DictEntry;
 
-Dict *make_dict(void *parent) {
+void *make_dict(void *parent) {
     Dict *r = malloc(sizeof(Dict));
     r->list = make_list();
     r->parent = parent;
@@ -30,6 +30,6 @@ void dict_put(Dict *dict, char *key, void *val) {
     list_push(dict->list, e);
 }
 
-Dict *dict_parent(Dict *dict) {
+void *dict_parent(Dict *dict) {
     return dict->parent;
 }

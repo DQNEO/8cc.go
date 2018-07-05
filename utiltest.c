@@ -76,6 +76,11 @@ static void test_dict(void) {
 
     Dict *dict2 = make_dict(dict);
     assert_true(dict_parent(dict2) == dict);
+    assert_int_equal(50, (long)dict_get(dict, "abc"));
+    assert_int_equal(70, (long)dict_get(dict, "xyz"));
+    dict_put(dict2, "ABC", (void *)110);
+    assert_int_equal(110, (long)dict_get(dict2, "ABC"));
+    assert_null(dict_get(dict, "ABC"));
 }
 
 int main(int argc, char **argv) {

@@ -23,8 +23,6 @@ char *ctype_to_string(Ctype *ctype) {
     case CTYPE_STRUCT: {
         String *s = make_string();
         string_appendf(s, "(struct");
-        if (ctype->tag)
-            string_appendf(s, " %s", ctype->tag);
         for (Iter *i = list_iter(ctype->fields); !iter_end(i);)
             string_appendf(s, " (%s)", ctype_to_string(iter_next(i)));
         string_appendf(s, ")");

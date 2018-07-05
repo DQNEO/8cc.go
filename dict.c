@@ -15,10 +15,12 @@ void *make_dict(void *parent) {
 }
 
 void *dict_get(Dict *dict, char *key) {
-    for (Iter *i = list_iter(dict->list); !iter_end(i);) {
-        DictEntry *e = iter_next(i);
-        if (!strcmp(key, e->key))
-            return e->val;
+    for (; dict; dict = dict->parent) {
+        for (Iter *i = list_iter(dict->list); !iter_end(i);) {
+            DictEntry *e = iter_next(i);
+            if (!strcmp(key, e->key))
+                return e->val;
+        }
     }
     return NULL;
 }

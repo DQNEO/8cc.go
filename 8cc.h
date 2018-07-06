@@ -151,7 +151,7 @@ typedef struct Ast {
         // Struct reference
         struct {
             struct Ast *struc;
-            //Ctype *field;
+            //Ctype *fieldtype;
         };
     };
 } Ast;

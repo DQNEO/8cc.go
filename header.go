@@ -119,6 +119,7 @@ type Ast struct {
 	// StructRef
 	struc *Ast
 	field string // only for debug.go
+	fieldtype *Ctype // not used
 }
 
 type Env struct {

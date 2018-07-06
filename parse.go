@@ -204,10 +204,10 @@ func ast_compound_stmt(stmts []*Ast) *Ast {
 	return r
 }
 
-func ast_struct_ref(struc *Ast, field *Ctype) *Ast {
+func ast_struct_ref(ctype *Ctype, struc *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_STRUCT_REF
-	r.ctype = field
+	r.ctype = ctype
 	r.struc = struc
 	//r.field = field
 	return r
@@ -606,7 +606,7 @@ func read_struct_field(struc *Ast) *Ast {
 		errorf("field name expected, but got %s", name)
 	}
 	field := struc.ctype.fields.Get(name.sval)
-	return ast_struct_ref(struc, field)
+	return ast_struct_ref(field, struc)
 }
 
 func read_expr_int(prec int) *Ast {

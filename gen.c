@@ -195,7 +195,7 @@ static void emit_assign_struct_ref(Ast *struc, Ctype *field, int off) {
         emit_gsave(struc->varname, field, field->offset + off);
         break;
     case AST_STRUCT_REF:
-        emit_assign_struct_ref(struc->struc, field, off + struc->field->offset);
+        emit_assign_struct_ref(struc->struc, field, off + struc->ctype->offset);
         break;
     case AST_DEREF:
         push("rax");
@@ -217,7 +217,7 @@ static void emit_load_struct_ref(Ast *struc, Ctype *field, int off) {
         emit_gload(field, struc->varname, field->offset + off);
         break;
     case AST_STRUCT_REF:
-        emit_load_struct_ref(struc->struc, field, struc->field->offset + off);
+        emit_load_struct_ref(struc->struc, field, struc->ctype->offset + off);
         break;
     case AST_DEREF:
         emit_expr(struc->operand);
@@ -232,7 +232,7 @@ static void emit_assign(Ast *var) {
     SAVE;
     switch (var->type) {
     case AST_DEREF: emit_assign_deref(var); break;
-    case AST_STRUCT_REF: emit_assign_struct_ref(var->struc, var->field, 0); break;
+    case AST_STRUCT_REF: emit_assign_struct_ref(var->struc, var->ctype, 0); break;
     case AST_LVAR: emit_lsave(var->ctype, var->loff); break;
     case AST_GVAR: emit_gsave(var->varname, var->ctype, 0); break;
     default: error("internal error");
@@ -528,7 +528,7 @@ static void emit_expr(Ast *ast) {
         }
         break;
     case AST_STRUCT_REF:
-        emit_load_struct_ref(ast->struc, ast->field, 0);
+        emit_load_struct_ref(ast->struc, ast->ctype, 0);
         break;
     case PUNCT_INC:
         emit_inc_dec(ast, "add");

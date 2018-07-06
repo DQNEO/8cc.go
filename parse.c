@@ -210,10 +210,10 @@ static Ast *ast_compound_stmt(List *stmts) {
     return r;
 }
 
-static Ast *ast_struct_ref(Ast *struc, Ctype *field) {
+static Ast *ast_struct_ref(Ctype *ctype, Ast *struc) {
     Ast *r = malloc(sizeof(Ast));
     r->type = AST_STRUCT_REF;
-    r->ctype = field;
+    r->ctype = ctype;
     r->struc = struc;
     //r->fieldtype = field;
     return r;
@@ -556,7 +556,7 @@ static Ast *read_struct_field(Ast *struc) {
     if (name->type != TTYPE_IDENT)
         error("field name expected, but got %s", token_to_string(name));
     Ctype *field = dict_get(struc->ctype->fields, name->sval);
-    return ast_struct_ref(struc, field);
+    return ast_struct_ref(field, struc);
 }
 
 static Ast *read_expr_int(int prec) {

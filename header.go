@@ -118,7 +118,7 @@ type Ast struct {
 	stmts []*Ast
 	// StructRef
 	struc *Ast
-	//field *Ctype
+	field string
 }
 
 type Env struct {

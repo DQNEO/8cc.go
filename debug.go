@@ -162,7 +162,7 @@ func (ast *Ast) String() string {
 	case AST_STRUCT_REF:
 		s := ast.struc.String()
 		s += "."
-		s += ast.ctype.name
+		//s += ast.ctype.name
 		return s
 	case AST_ADDR:
 		return uop_to_string("addr", ast)

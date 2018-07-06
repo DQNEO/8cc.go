@@ -234,10 +234,10 @@ func make_array_type(ctype *Ctype, len int) *Ctype {
 	return r
 }
 
-func make_struct_field_type(ctype *Ctype, name string, offset int) *Ctype {
+func make_struct_field_type(ctype *Ctype, offset int) *Ctype {
 	copy := *ctype
 	r := &copy
-	r.name = name
+	//r.name = name
 	r.offset = offset
 	return r
 }
@@ -761,7 +761,7 @@ func read_struct_union_fields() *DictCtype {
 			break
 		}
 		fieldtype, name := read_decl_int()
-		r.Put(name.sval, make_struct_field_type(fieldtype, name.sval, 0))
+		r.Put(name.sval, make_struct_field_type(fieldtype,0))
 		expect(';')
 	}
 	expect('}')

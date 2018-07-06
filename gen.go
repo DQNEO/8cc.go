@@ -188,7 +188,7 @@ func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
 	case AST_GVAR:
 		emit_gsave(struc.varname, field, field.offset+off)
 	case AST_STRUCT_REF:
-		emit_assign_struct_ref(struc.struc, field, off+struc.field.offset)
+		emit_assign_struct_ref(struc.struc, field, off+struc.ctype.offset)
 	case AST_DEREF:
 		v := struc
 		push("rax")
@@ -206,7 +206,7 @@ func emit_load_struct_ref(struc *Ast, field *Ctype, off int) {
 	case AST_GVAR:
 		emit_gload(field, struc.glabel, field.offset+off)
 	case AST_STRUCT_REF:
-		emit_load_struct_ref(struc.struc, field, struc.field.offset+off)
+		emit_load_struct_ref(struc.struc, field, struc.ctype.offset+off)
 	case AST_DEREF:
 		emit_expr(struc.operand)
 		emit_load_deref(struc.ctype, field, field.offset+off)
@@ -224,7 +224,7 @@ func emit_assign(variable *Ast) {
 	case AST_DEREF:
 		emit_assign_deref(variable)
 	case AST_STRUCT_REF:
-		emit_assign_struct_ref(variable.struc, variable.field, 0)
+		emit_assign_struct_ref(variable.struc, variable.ctype, 0)
 	case AST_LVAR:
 		emit_lsave(variable.ctype, variable.loff)
 	case AST_GVAR:
@@ -527,7 +527,7 @@ func emit_expr(ast *Ast) {
 			emit_expr(v)
 		}
 	case AST_STRUCT_REF:
-		emit_load_struct_ref(ast.struc, ast.field, 0)
+		emit_load_struct_ref(ast.struc, ast.ctype, 0)
 	case PUNCT_INC:
 		emit_inc_dec(ast, "add")
 	case PUNCT_DEC:

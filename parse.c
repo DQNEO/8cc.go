@@ -236,10 +236,9 @@ static Ctype* make_array_type(Ctype *ctype, int len) {
     return r;
 }
 
-static Ctype* make_struct_field_type(Ctype *ctype, char *name, int offset) {
+static Ctype* make_struct_field_type(Ctype *ctype, int offset) {
     Ctype *r = malloc(sizeof(Ctype));
     memcpy(r, ctype, sizeof(Ctype));
-    r->name = name;
     r->offset = offset;
     return r;
 }
@@ -678,7 +677,7 @@ static Dict *read_struct_union_fields(void) {
             break;
         Token *name;
         Ctype *fieldtype = read_decl_int(&name);
-        dict_put(r, name->sval, make_struct_field_type(fieldtype, name->sval, 0));
+        dict_put(r, name->sval, make_struct_field_type(fieldtype, 0));
         expect(';');
     }
     expect('}');

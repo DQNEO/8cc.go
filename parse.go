@@ -497,7 +497,7 @@ func read_struct_field(struc *Ast) *Ast {
 	}
 	name := read_token()
 	if name.typ != TTYPE_IDENT {
-		_error("expect ident name but got %s", name)
+		_error("field name expected, but got %s", name)
 	}
 	field := find_struct_field(struc, name.v.sval)
 	return ast_struct_ref(struc, field)

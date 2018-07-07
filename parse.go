@@ -13,8 +13,8 @@ var localenv *Env
 var localvars []*Ast
 var labelseq = 0
 
-var ctype_int = &Ctype{CTYPE_INT, nil, 0}
-var ctype_char = &Ctype{CTYPE_CHAR, nil, 0}
+var ctype_int = &Ctype{CTYPE_INT, nil, 0, nil, nil}
+var ctype_char = &Ctype{CTYPE_CHAR, nil, 0, nil, nil}
 
 func make_env(next *Env) *Env {
 	r := &Env{}
@@ -206,6 +206,19 @@ func make_array_type(ctype *Ctype, size int) *Ctype {
 	r.typ = CTYPE_ARRAY
 	r.ptr = ctype
 	r.size = size
+	return r
+}
+
+func make_struct_field_type(ctype *Ctype, name Cstring) *Ctype {
+	r := ctype
+	r.name = name
+	return r
+}
+
+func make_struct_type(ctypes []*Ctype) *Ctype {
+	r := &Ctype{}
+	r.typ = CTYPE_STRUCT
+	r.fields = ctypes
 	return r
 }
 
@@ -518,7 +531,7 @@ func get_ctype(tok *Token) *Ctype {
 }
 
 func is_type_keyword(tok *Token) bool {
-	return get_ctype(tok) != nil
+	return get_ctype(tok) != nil || is_ident(tok, "struct")
 }
 
 func expect(punct byte) {
@@ -556,9 +569,30 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 	return ast_array_init(initlist)
 }
 
+func read_struct_def() *Ctype {
+	var fields []*Ctype
+	expect('{')
+	for {
+		if !is_type_keyword(peek_token()) {
+			break
+		}
+		fieldtype := read_decl_spec()
+		name := read_token()
+		fields = append(fields, make_struct_field_type(fieldtype, name.v.sval))
+		expect(';')
+	}
+	expect('}')
+	return make_struct_type(fields)
+}
+
 func read_decl_spec() *Ctype {
 	tok := read_token()
-	ctype := get_ctype(tok)
+	var ctype *Ctype
+	if is_ident(tok, "struct") {
+		ctype = read_struct_def()
+	}  else {
+		ctype = get_ctype(tok)
+	}
 	if ctype == nil {
 		_error("Type expected, but got %s", tok)
 	}

@@ -47,12 +47,15 @@ const (
 	CTYPE_CHAR
 	CTYPE_ARRAY
 	CTYPE_PTR
+	CTYPE_STRUCT
 )
 
 type Ctype struct {
 	typ  int
 	ptr  *Ctype
 	size int
+	name Cstring
+	fields []*Ctype
 }
 
 type Ast struct {

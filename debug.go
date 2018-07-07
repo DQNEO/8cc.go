@@ -20,6 +20,13 @@ func (ctype *Ctype) String() string {
 		return fmt.Sprintf("*%s", ctype.ptr)
 	case CTYPE_ARRAY:
 		return fmt.Sprintf("[%d]%s", ctype.size, ctype.ptr)
+	case CTYPE_STRUCT:
+		s := "(struct"
+		for _, field := range ctype.fields {
+			s += fmt.Sprintf(" (%s)", field)
+		}
+		s += ")"
+		return s
 	default:
 		_error("Unknown ctype: %d", ctype)
 	}

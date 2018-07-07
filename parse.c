@@ -10,12 +10,12 @@
 #define MAX_OP_PRIO 16
 #define MAX_ALIGN 16
 
-Env *globalenv = &EMPTY_ENV;
 List *strings = &EMPTY_LIST;
 List *flonums = &EMPTY_LIST;
+static Dict *globalenv = &EMPTY_DICT;
+static Dict *localenv = NULL;
 static Dict *struct_defs = &EMPTY_DICT;
 static Dict *union_defs = &EMPTY_DICT;
-static Env *localenv = NULL;
 static List *localvars = NULL;
 
 static Ctype *ctype_int = &(Ctype){ CTYPE_INT, 4, NULL };
@@ -35,19 +35,6 @@ static Ctype *result_type(char op, Ctype *a, Ctype *b);
 static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
 static Ctype *read_decl_int(Token **name);
-
-static Env *make_env(Env *next) {
-    Env *r = malloc(sizeof(Env));
-    r->next = next;
-    r->vars = make_list();
-    return r;
-}
-
-static void env_append(Env *env, Ast *var) {
-    assert(var->type == AST_LVAR || var->type == AST_GVAR ||
-           var->type == AST_STRING);
-    list_push(env->vars, var);
-}
 
 static Ast *ast_uop(int type, Ctype *ctype, Ast *operand) {
     Ast *r = malloc(sizeof(Ast));
@@ -101,7 +88,7 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
     r->type = AST_LVAR;
     r->ctype = ctype;
     r->varname = name;
-    env_append(localenv, r);
+    dict_put(localenv, name, r);
     if (localvars)
         list_push(localvars, r);
     return r;
@@ -113,7 +100,7 @@ static Ast *ast_gvar(Ctype *ctype, char *name, bool filelocal) {
     r->ctype = ctype;
     r->varname = name;
     r->glabel = filelocal ? make_label() : name;
-    env_append(globalenv, r);
+    dict_put(globalenv, name, r);
     return r;
 }
 
@@ -253,17 +240,6 @@ static Ctype* make_struct_type(Dict *fields, int size) {
     return r;
 }
 
-static Ast *find_var(char *name) {
-    for (Env *p = localenv; p; p = p->next) {
-        for (Iter *i = list_iter(p->vars); !iter_end(i);) {
-            Ast *v = iter_next(i);
-            if (!strcmp(name, v->varname))
-                return v;
-        }
-    }
-    return NULL;
-}
-
 bool is_inttype(Ctype *ctype) {
     return ctype->type == CTYPE_CHAR || ctype->type == CTYPE_INT ||
         ctype->type == CTYPE_LONG;
@@ -364,7 +340,7 @@ static Ast *read_ident_or_func(char *name) {
     if (is_punct(tok, '('))
         return read_func_args(name);
     unget_token(tok);
-    Ast *v = find_var(name);
+    Ast *v = dict_get(localenv, name);
     if (!v)
         error("Undefined varaible: %s", name);
     return v;
@@ -838,14 +814,14 @@ static Ast *read_opt_expr(void) {
 
 static Ast *read_for_stmt(void) {
     expect('(');
-    localenv = make_env(localenv);
+    localenv = make_dict(localenv);
     Ast *init = read_opt_decl_or_stmt();
     Ast *cond = read_opt_expr();
     Ast *step = is_punct(peek_token(), ')')
         ? NULL : read_expr();
     expect(')');
     Ast *body = read_stmt();
-    localenv = localenv->next;
+    localenv = dict_parent(localenv);
     return ast_for(init, cond, step, body);
 }
 
@@ -874,7 +850,7 @@ static Ast *read_decl_or_stmt(void) {
 }
 
 static Ast *read_compound_stmt(void) {
-    localenv = make_env(localenv);
+    localenv = make_dict(localenv);
     List *list = make_list();
     for (;;) {
         Ast *stmt = read_decl_or_stmt();
@@ -885,7 +861,7 @@ static Ast *read_compound_stmt(void) {
             break;
         unget_token(tok);
     }
-    localenv = localenv->next;
+    localenv = dict_parent(localenv);
     return ast_compound_stmt(list);
 }
 
@@ -914,13 +890,14 @@ static List *read_params(void) {
 
 static Ast *read_func_def(Ctype *rettype, char *fname) {
     expect('(');
-    localenv = make_env(globalenv);
+    localenv = make_dict(globalenv);
     List *params = read_params();
     expect('{');
-    localenv = make_env(localenv);
+    localenv = make_dict(localenv);
     localvars = make_list();
     Ast *body = read_compound_stmt();
     Ast *r = ast_func(rettype, fname, params, body, localvars);
+    localenv = NULL;
     localvars = NULL;
     return r;
 }

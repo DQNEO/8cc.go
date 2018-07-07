@@ -492,13 +492,12 @@ func find_struct_field(struc *Ast, name Cstring) *Ctype {
 }
 
 func read_struct_field(struc *Ast) *Ast {
-	field := read_token()
-	if field.typ != TTYPE_IDENT {
-		_error("expect ident name but got %s", field)
+	name := read_token()
+	if name.typ != TTYPE_IDENT {
+		_error("expect ident name but got %s", name)
 	}
-	name := field.v.sval
-	fld := find_struct_field(struc, name)
-	return ast_struct_ref(struc, fld)
+	field := find_struct_field(struc, name.v.sval)
+	return ast_struct_ref(struc, field)
 }
 
 func read_expr_int(prec int) *Ast {

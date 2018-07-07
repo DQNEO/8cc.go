@@ -1052,7 +1052,7 @@ func read_func_def(rettype *Ctype, fname string) *Ast {
 	return r
 }
 
-func read_decl_or_func_def() *Ast {
+func read_toplevel() *Ast {
 	tok := peek_token()
 	if tok == nil {
 		return nil
@@ -1084,7 +1084,7 @@ func read_toplevels() []*Ast {
 	var r []*Ast
 
 	for {
-		ast := read_decl_or_func_def()
+		ast := read_toplevel()
 		if ast == nil {
 			return r
 		}

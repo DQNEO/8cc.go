@@ -136,6 +136,22 @@ func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
 		emit_lsave(field, struc.variable.loff - field.offset - off)
 	case AST_STRUCT_REF:
 		emit_assign_struct_ref(struc.structref.struc, field, off + struc.structref.field.offset)
+	case AST_DEREF:
+		v := struc
+		emit("push %%rax")
+		emit_expr(v.unary.operand)
+		emit("pop %%rcx")
+		var reg string
+		size := ctype_size(field)
+		switch size {
+		case 1:
+			reg = "cl"
+		case 4:
+			reg = "ecx"
+		case 8:
+			reg = "rcx"
+		}
+		emit("mov %%%s, (%%rax)", reg)
 	default:
 		_error("internal error: %s", struc)
 	}
@@ -147,6 +163,9 @@ func emit_load_struct_ref(struc *Ast, field *Ctype, off int) {
 		emit_lload(field, struc.variable.loff - field.offset - off)
 	case AST_STRUCT_REF:
 		emit_load_struct_ref(struc.structref.struc, field, struc.structref.field.offset + off)
+	case AST_DEREF:
+		emit_expr(struc.unary.operand)
+		emit_load_deref(field, struc.unary.operand.ctype, off)
 	default:
 		_error("internal error: %s", struc)
 	}

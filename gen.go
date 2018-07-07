@@ -66,10 +66,6 @@ func emit_lload(ctype *Ctype, off int) {
 	}
 }
 
-func emit_load_struct_ref(struc *Ast, field *Ctype, off int) {
-	emit_lload(field, struc.variable.loff - field.offset - off)
-}
-
 func emit_gsave(v *Ast) {
 	assert(v.ctype.typ != CTYPE_ARRAY)
 	var reg string
@@ -141,6 +137,10 @@ func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
 	default:
 		_error("internal error: %s", struc)
 	}
+}
+
+func emit_load_struct_ref(struc *Ast, field *Ctype, off int) {
+	emit_lload(field, struc.variable.loff - field.offset - off)
 }
 
 func emit_assign(variable *Ast) {

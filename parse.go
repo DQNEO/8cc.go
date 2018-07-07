@@ -771,12 +771,7 @@ func read_decl_init(variable *Ast) *Ast {
 }
 
 func read_decl() *Ast {
-	ctype := read_decl_spec()
-	varname := read_token()
-	if varname.typ != TTYPE_IDENT {
-		_error("Identifier expected, but got %s", varname)
-	}
-	ctype = read_array_dimensions(ctype)
+	ctype, varname := read_decl_int()
 	variable := ast_lvar(ctype, varname.v.sval)
 	return read_decl_init(variable)
 }

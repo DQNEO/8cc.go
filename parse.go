@@ -638,13 +638,7 @@ func read_struct_def() *Ctype {
 		if !is_type_keyword(peek_token()) {
 			break
 		}
-		fieldtype := read_decl_spec()
-		name := read_token()
-		if name.typ != TTYPE_IDENT {
-			_error("Identifier expected, but got %s",name);
-		}
-		fieldtype = read_array_dimensions(fieldtype)
-
+		fieldtype, name := read_decl_int()
 		size := ctype_size(fieldtype)
 		if size < MAX_ALIGN {
 
@@ -662,6 +656,16 @@ func read_struct_def() *Ctype {
 	r := make_struct_type(fields, tag)
 	struct_defs = append(struct_defs, r)
 	return r
+}
+
+func read_decl_int() (*Ctype, *Token) {
+	fieldtype := read_decl_spec()
+	name := read_token()
+	if name.typ != TTYPE_IDENT {
+		_error("Identifier expected, but got %s",name);
+	}
+	fieldtype = read_array_dimensions(fieldtype)
+	return fieldtype, name
 }
 
 func read_decl_spec() *Ctype {

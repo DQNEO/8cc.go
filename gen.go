@@ -257,7 +257,11 @@ func emit_load_deref(result_type *Ctype, operand_type *Ctype, off int) {
 		reg = "%rcx"
 	}
 	if operand_type.ptr.typ != CTYPE_ARRAY {
-		emit("mov (%%rax), %s", reg)
+		if off != 0 {
+			emit("mov %d(%%rax), %s", off, reg)
+		} else {
+			emit("mov (%%rax), %s", reg)
+		}
 		emit("mov %%rcx, %%rax")
 	}
 }

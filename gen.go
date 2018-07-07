@@ -225,6 +225,24 @@ func emit_inc_dec(ast *Ast, op string) {
 	emit("pop %%rax")
 }
 
+
+func emit_load_deref(result_type *Ctype, operand_type *Ctype, off int) {
+	var reg string
+	switch ctype_size(result_type) {
+	case 1:
+		reg = "%cl"
+		emit("mov $0, %%ecx")
+	case 4:
+		reg = "%ecx"
+	default:
+		reg = "%rcx"
+	}
+	if operand_type.ptr.typ != CTYPE_ARRAY {
+		emit("mov (%%rax), %s", reg)
+		emit("mov %%rcx, %%rax")
+	}
+}
+
 func emit_expr(ast *Ast) {
 	switch ast.typ {
 	case AST_LITERAL:
@@ -286,20 +304,7 @@ func emit_expr(ast *Ast) {
 		emit("lea %d(%%rbp), %%rax", -ast.unary.operand.variable.loff)
 	case AST_DEREF:
 		emit_expr(ast.unary.operand)
-		var reg string
-		switch ctype_size(ast.ctype) {
-		case 1:
-			reg = "%cl"
-			emit("mov $0, %%ecx")
-		case 4:
-			reg = "%ecx"
-		default:
-			reg = "%rcx"
-		}
-		if ast.unary.operand.ctype.ptr.typ != CTYPE_ARRAY {
-			emit("mov (%%rax), %s", reg)
-			emit("mov %%rcx, %%rax")
-		}
+		emit_load_deref(ast.ctype, ast.unary.operand.ctype, 0)
 	case AST_IF, AST_TERNARY:
 		emit_expr(ast._if.cond)
 		ne := make_label()

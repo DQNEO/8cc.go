@@ -220,7 +220,8 @@ func make_array_type(ctype *Ctype, size int) *Ctype {
 }
 
 func make_struct_field_type(ctype *Ctype, name Cstring, offset int) *Ctype {
-	r := ctype
+	copy := *ctype
+	r := &copy
 	r.name = name
 	r.offset = offset
 	return r

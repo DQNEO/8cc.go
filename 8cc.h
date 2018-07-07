@@ -156,15 +156,6 @@ typedef struct Ast {
     };
 } Ast;
 
-typedef struct Env {
-    List *vars;
-    struct Env *next;
-    struct List *structs;
-} Env;
-
-#define EMPTY_ENV                                       \
-    (((Env){ .vars = &EMPTY_LIST, .next = NULL }))
-
 extern String *make_string(void);
 extern char *get_cstring(String *s);
 extern void string_append(String *s, char c);

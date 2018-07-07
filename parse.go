@@ -243,11 +243,10 @@ func make_struct_field_type(ctype *Ctype, offset int) *Ctype {
 	return r
 }
 
-func make_struct_type(fields *DictCtype, tag string, size int) *Ctype {
+func make_struct_type(fields *DictCtype, size int) *Ctype {
 	r := &Ctype{}
 	r.typ = CTYPE_STRUCT
 	r.fields = fields
-	r.tag = tag
 	r.size = size
 	return r
 }
@@ -773,7 +772,7 @@ func read_union_def() *Ctype {
 			maxsize = fieldtype.size
 		}
 	}
-	r := make_struct_type(fields, tag, maxsize)
+	r := make_struct_type(fields, maxsize)
 	if tag != "" {
 		union_defs.Put(tag,r)
 	}
@@ -801,7 +800,7 @@ func read_struct_def() *Ctype {
 		fieldtype.offset = offset
 		offset += fieldtype.size
 	}
-	r := make_struct_type(fields, tag, offset)
+	r := make_struct_type(fields, offset)
 	if tag != "" {
 		struct_defs.Put(tag, r)
 	}

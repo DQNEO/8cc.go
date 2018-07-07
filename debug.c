@@ -28,6 +28,11 @@ char *ctype_to_string(Ctype *ctype) {
         string_appendf(s, ")");
         return get_cstring(s);
     }
+    case CTYPE_FUNC: {
+        String *s = make_string();
+        string_appendf(s, "%s", ctype_to_string(ctype->rettype));
+        return get_cstring(s);
+    }
     default: error("Unknown ctype: %d", ctype);
     }
 }

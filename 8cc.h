@@ -64,7 +64,7 @@ enum {
     CTYPE_ARRAY,
     CTYPE_PTR,
     CTYPE_STRUCT,
-    //CTYPE_FUNC, // not used
+    CTYPE_FUNC,
 };
 
 typedef struct Ctype {
@@ -76,6 +76,9 @@ typedef struct Ctype {
     // struct
     Dict *fields;
     int offset;
+    // function
+    struct Ctype *rettype;
+    List *params;
 } Ctype;
 
 typedef struct Ast {

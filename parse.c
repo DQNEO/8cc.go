@@ -123,10 +123,10 @@ static Ast *ast_funcall(Ctype *ctype, char *fname, List *args) {
     return r;
 }
 
-static Ast *ast_func(Ctype *rettype, char *fname, List *params, Ast *body, List *localvars) {
+static Ast *ast_func(Ctype *ctype, char *fname, List *params, Ast *body, List *localvars) {
     Ast *r = malloc(sizeof(Ast));
     r->type = AST_FUNC;
-    r->ctype = rettype;
+    r->ctype = ctype;
     r->fname = fname;
     r->params = params;
     r->localvars = localvars;
@@ -240,6 +240,14 @@ static Ctype* make_struct_type(Dict *fields, int size) {
     return r;
 }
 
+static Ctype* make_func_type(Ctype *rettype, List *paramtypes) {
+    Ctype *r = malloc(sizeof(Ctype));
+    r->type = CTYPE_FUNC;
+    r->rettype = rettype;
+    r->params = paramtypes;
+    return r;
+}
+
 bool is_inttype(Ctype *ctype) {
     return ctype->type == CTYPE_CHAR || ctype->type == CTYPE_INT ||
         ctype->type == CTYPE_LONG;
@@ -316,6 +324,13 @@ static int priority(Token *tok) {
     default:
         return -1;
     }
+}
+
+static List *param_types(List *params) {
+    List *r = make_list();
+    for (Iter *i = list_iter(params); !iter_end(i);)
+        list_push(r, ((Ast *)iter_next(i))->ctype);
+    return r;
 }
 
 static Ast *read_func_args(char *fname) {
@@ -892,7 +907,9 @@ static Ast *read_func_def(Ctype *rettype, char *fname, List *params) {
     localenv = make_dict(localenv);
     localvars = make_list();
     Ast *body = read_compound_stmt();
-    Ast *r = ast_func(rettype, fname, params, body, localvars);
+    Ctype *type = make_func_type(rettype, param_types(params));
+    Ast *r = ast_func(type, fname, params, body, localvars);
+    dict_put(globalenv, fname, type);
     localenv = NULL;
     localvars = NULL;
     return r;
@@ -906,6 +923,8 @@ static Ast *read_func_decl_or_def(Ctype *rettype, char *fname) {
     if (is_punct(tok, '{'))
         return read_func_def(rettype, fname, params);
     // must expect(';'); here
+    Ctype *type = make_func_type(rettype, param_types(params));
+    dict_put(globalenv, fname, type);
     return read_toplevel();
 }
 

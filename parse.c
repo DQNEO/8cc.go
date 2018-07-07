@@ -13,8 +13,8 @@
 Env *globalenv = &EMPTY_ENV;
 List *strings = &EMPTY_LIST;
 List *flonums = &EMPTY_LIST;
-static List *struct_defs = &EMPTY_LIST;
-static List *union_defs = &EMPTY_LIST;
+static Dict *struct_defs = &EMPTY_DICT;
+static Dict *union_defs = &EMPTY_DICT;
 static Env *localenv = NULL;
 static List *localvars = NULL;
 
@@ -654,15 +654,6 @@ static Ast *read_decl_array_init_int(Ctype *ctype) {
     return ast_array_init(initlist);
 }
 
-static Ctype *find_struct_union_def(List *list, char *name) {
-    for (Iter *i = list_iter(list); !iter_end(i);) {
-        Ctype *t = iter_next(i);
-        if (t->tag && !strcmp(t->tag, name))
-            return t;
-    }
-    return NULL;
-}
-
 static char *read_struct_union_tag(void) {
     Token *tok = read_token();
     if (tok->type == TTYPE_IDENT)
@@ -688,7 +679,7 @@ static Dict *read_struct_union_fields(void) {
 
 static Ctype *read_union_def(void) {
     char *tag = read_struct_union_tag();
-    Ctype *ctype = find_struct_union_def(union_defs, tag);
+    Ctype *ctype = dict_get(union_defs, tag);
     if (ctype) return ctype;
     Dict *fields = read_struct_union_fields();
     int maxsize = 0;
@@ -697,13 +688,14 @@ static Ctype *read_union_def(void) {
         maxsize = (maxsize < fieldtype->size) ? fieldtype->size : maxsize;
     }
     Ctype *r = make_struct_type(fields, tag, maxsize);
-    list_push(union_defs, r);
+    if (tag)
+        dict_put(union_defs, tag, r);
     return r;
 }
 
 static Ctype *read_struct_def(void) {
     char *tag = read_struct_union_tag();
-    Ctype *ctype = find_struct_union_def(struct_defs, tag);
+    Ctype *ctype = dict_get(struct_defs, tag);
     if (ctype) return ctype;
     Dict *fields = read_struct_union_fields();
     int offset = 0;
@@ -716,7 +708,8 @@ static Ctype *read_struct_def(void) {
         offset += fieldtype->size;
     }
     Ctype *r = make_struct_type(fields, tag, offset);
-    list_push(struct_defs, r);
+    if (tag)
+        dict_put(struct_defs, tag, r);
     return r;
 }
 

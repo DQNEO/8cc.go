@@ -584,8 +584,6 @@ func emit_data_section() {
 		if v.typ == AST_STRING {
 			emit_label("%s:", v.slabel)
 			emit(".string \"%s\"", quote_cstring(v.val))
-		} else if v.typ != AST_GVAR {
-			errorf("internal error: %s", v)
 		}
 	}
 	for _, v := range flonums {

@@ -239,6 +239,14 @@ func make_struct_type(fields *Dict, size int) *Ctype {
 	return r
 }
 
+func make_func_type(rettype *Ctype, paramtypes []*Ctype) *Ctype {
+	r := &Ctype{}
+	r.typ = CTYPE_FUNC
+	r.rettype = rettype
+	r.params = paramtypes
+	return r
+}
+
 func is_inttype(ctype *Ctype) bool {
 	return ctype.typ == CTYPE_CHAR || ctype.typ == CTYPE_INT || ctype.typ == CTYPE_LONG
 }
@@ -321,6 +329,14 @@ func priority(tok *Token) int {
 	default:
 		return -1
 	}
+}
+
+func param_types(params []*Ast) []*Ctype {
+	var r []*Ctype
+	for _, ast := range params {
+		r = append(r, ast.ctype)
+	}
+	return r
 }
 
 func read_func_args(fname string) *Ast {
@@ -1044,7 +1060,9 @@ func read_func_def(rettype *Ctype, fname string, params []*Ast) *Ast {
 	localenv = localenv.MakeDict()
 	localvars = make([]*Ast, 0)
 	body := read_compound_stmt()
-	r := ast_func(rettype, fname, params, localvars, body)
+	typ := make_func_type(rettype, param_types(params))
+	r := ast_func(typ, fname, params, localvars, body)
+	globalenv.PutCtype(fname, typ)
 	localenv = nil
 	localvars = nil
 	return r
@@ -1058,6 +1076,8 @@ func read_func_decl_or_def(rettype *Ctype, fname string) *Ast {
 	if is_punct(tok, '{') {
 		return read_func_def(rettype, fname, params)
 	}
+	typ := make_func_type(rettype, param_types(params))
+	globalenv.PutCtype(fname, typ)
 	return read_toplevel();
 }
 

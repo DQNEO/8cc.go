@@ -33,6 +33,8 @@ func (ctype *Ctype) String() string {
 		}
 		s += ")"
 		return s
+	case CTYPE_FUNC:
+		return fmt.Sprintf("%s", ctype.rettype)
 	default:
 		errorf("Unknown ctype: %d", ctype)
 	}

@@ -55,7 +55,7 @@ const (
 	CTYPE_ARRAY
 	CTYPE_PTR
 	CTYPE_STRUCT
-	//CTYPE_FUNC, // not used
+	CTYPE_FUNC
 )
 
 type Ctype struct {
@@ -67,6 +67,9 @@ type Ctype struct {
 	// struct
 	fields *Dict
 	offset int
+	// function
+	rettype *Ctype
+	params []*Ctype
 }
 
 type Ast struct {

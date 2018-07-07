@@ -34,6 +34,7 @@ const (
 	AST_FOR
 	AST_RETURN
 	AST_COMPOUND_STMT
+	AST_STRUCT_REF
 	PUNCT_EQ
 	PUNCT_INC
 	PUNCT_DEC
@@ -121,6 +122,10 @@ type Ast struct {
 	}
 	compound struct {
 		stmts []*Ast
+	}
+	structref struct {
+		struc *Ast
+		field *Ctype
 	}
 }
 

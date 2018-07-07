@@ -194,6 +194,15 @@ func ast_compound_stmt(stmts []*Ast) *Ast {
 	return r
 }
 
+func ast_struct_ref(struc *Ast, field *Ctype) *Ast {
+	r := &Ast{}
+	r.typ = AST_STRUCT_REF
+	r.ctype = field
+	r.structref.struc = struc
+	r.structref.field = field
+	return r
+}
+
 func make_ptr_type(ctype *Ctype) *Ctype {
 	r := &Ctype{}
 	r.typ = CTYPE_PTR
@@ -252,6 +261,8 @@ func is_right_assoc(tok *Token) bool {
 
 func priority(tok *Token) int {
 	switch tok.v.punct {
+	case '.':
+		return 1
 	case PUNCT_INC, PUNCT_DEC:
 		return 2
 	case '*', '/':
@@ -471,6 +482,22 @@ func read_cond_expr(cond *Ast) *Ast {
 	return ast_ternary(then.ctype, cond, then, els)
 }
 
+func read_struct_field(struc *Ast) *Ast {
+	field := read_token()
+	if field.typ != TTYPE_IDENT {
+		_error("expect ident name but got %s", field)
+	}
+	name := field.v.sval
+	var fld *Ctype
+	for _,f := range struc.ctype.fields {
+		if strcmp(name, f.name) != 0 {
+			fld = f
+			break
+		}
+	}
+	return ast_struct_ref(struc, fld)
+}
+
 func read_expr_int(prec int) *Ast {
 	ast := read_unary_expr()
 	if ast == nil {
@@ -490,6 +517,10 @@ func read_expr_int(prec int) *Ast {
 
 		if is_punct(tok, '?') {
 			ast = read_cond_expr(ast)
+			continue
+		}
+		if is_punct(tok, '.') {
+			ast = read_struct_field(ast)
 			continue
 		}
 		if is_punct(tok, '=') {

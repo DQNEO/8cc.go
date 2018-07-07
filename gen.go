@@ -20,7 +20,7 @@ func ctype_size(ctype *Ctype) int {
 		last := ctype.fields[len(ctype.fields) - 1]
 		return last.offset + ctype_size(last)
 	default:
-		_error("Unknown ctype")
+		_error("internal error")
 	}
 	return -1
 }

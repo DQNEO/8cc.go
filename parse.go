@@ -482,19 +482,22 @@ func read_cond_expr(cond *Ast) *Ast {
 	return ast_ternary(then.ctype, cond, then, els)
 }
 
+func find_struct_field(struc *Ast, name Cstring) *Ctype {
+	for _,f := range struc.ctype.fields {
+		if strcmp(name, f.name) != 0 {
+			return f
+		}
+	}
+	return nil
+}
+
 func read_struct_field(struc *Ast) *Ast {
 	field := read_token()
 	if field.typ != TTYPE_IDENT {
 		_error("expect ident name but got %s", field)
 	}
 	name := field.v.sval
-	var fld *Ctype
-	for _,f := range struc.ctype.fields {
-		if strcmp(name, f.name) != 0 {
-			fld = f
-			break
-		}
-	}
+	fld := find_struct_field(struc, name)
 	return ast_struct_ref(struc, fld)
 }
 

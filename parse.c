@@ -204,7 +204,6 @@ static Ast *ast_struct_ref(Ctype *ctype, Ast *struc, char *name) {
     r->ctype = ctype;
     r->struc = struc;
     r->field = name;
-    //r->fieldtype = field;
     return r;
 }
 

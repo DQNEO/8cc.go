@@ -64,6 +64,7 @@ enum {
     CTYPE_ARRAY,
     CTYPE_PTR,
     CTYPE_STRUCT,
+    //CTYPE_FUNC, // not used
 };
 
 typedef struct Ctype {

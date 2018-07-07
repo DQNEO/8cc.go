@@ -11,12 +11,12 @@ const MAX_ARGS = 6
 const MAX_OP_PRIO = 16
 const MAX_ALIGN = 16
 
-var globalenv = &Env{}
 var gstrings []*Ast
 var flonums []*Ast
+var globalenv = &DictAst{}
+var localenv *DictAst
 var struct_defs DictCtype
 var union_defs DictCtype
-var localenv *Env
 var localvars []*Ast
 var labelseq = 0
 
@@ -25,18 +25,6 @@ var ctype_long = &Ctype{typ: CTYPE_LONG, size:8}
 var ctype_char = &Ctype{typ: CTYPE_CHAR, size: 1}
 var ctype_float = &Ctype{typ: CTYPE_FLOAT, size: 4}
 var ctype_double = &Ctype{typ: CTYPE_DOUBLE, size: 8}
-
-func make_env(next *Env) *Env {
-	r := &Env{}
-	r.next = next
-	r.vars = make([]*Ast, 0)
-	return r
-}
-
-func env_append(env *Env, v *Ast) {
-	assert(v.typ == AST_LVAR || v.typ == AST_GVAR || v.typ == AST_STRING)
-	env.vars = append(env.vars, v)
-}
 
 func ast_uop(typ int, ctype *Ctype, operand *Ast) *Ast {
 	r := &Ast{}
@@ -90,10 +78,11 @@ func ast_lvar(ctype *Ctype, name string) *Ast {
 	r.typ = AST_LVAR
 	r.ctype = ctype
 	r.varname = name
-	env_append(localenv, r)
+	localenv.Put(name, r)
 	if localvars != nil {
 		localvars = append(localvars, r)
 	}
+
 	return r
 }
 
@@ -107,8 +96,7 @@ func ast_gvar(ctype *Ctype, name string, filelocal bool) *Ast {
 	} else {
 		r.glabel = name
 	}
-	globalenv.vars = append(globalenv.vars, r)
-	env_append(globalenv, r)
+	globalenv.Put(name, r)
 	return r
 }
 
@@ -251,17 +239,6 @@ func make_struct_type(fields *DictCtype, size int) *Ctype {
 	return r
 }
 
-func find_var(name string) *Ast {
-	for p := localenv; p != nil; p = p.next {
-		for _, v := range p.vars {
-			if name == v.varname {
-				return v
-			}
-		}
-	}
-	return nil
-}
-
 func is_inttype(ctype *Ctype) bool {
 	return ctype.typ == CTYPE_CHAR || ctype.typ == CTYPE_INT || ctype.typ == CTYPE_LONG
 }
@@ -376,7 +353,7 @@ func read_ident_or_func(name string) *Ast {
 	}
 	unget_token(ch)
 
-	v := find_var(name)
+	v := localenv.Get(name)
 	if v == nil {
 		errorf("Undefined varaible: %s", name)
 	}
@@ -956,7 +933,7 @@ func read_opt_expr() *Ast {
 
 func read_for_stmt() *Ast {
 	expect('(')
-	localenv = make_env(localenv)
+	localenv = localenv.MakeDict()
 	init := read_opt_decl_or_stmt()
 	cond := read_opt_expr()
 	var step *Ast
@@ -967,7 +944,7 @@ func read_for_stmt() *Ast {
 	}
 	expect(')')
 	body := read_stmt()
-	localenv = localenv.next
+	localenv = localenv.Parent()
 	return ast_for(init, cond, step, body)
 }
 
@@ -1011,7 +988,7 @@ func read_decl_or_stmt() *Ast {
 }
 
 func read_compound_stmt() *Ast {
-	localenv = make_env(localenv)
+	localenv = localenv.MakeDict()
 	var list []*Ast
 
 	for {
@@ -1028,7 +1005,7 @@ func read_compound_stmt() *Ast {
 		}
 		unget_token(tok)
 	}
-	localenv = localenv.next
+	localenv = localenv.Parent()
 	return ast_compound_stmt(list)
 }
 
@@ -1063,13 +1040,14 @@ func read_params() []*Ast {
 
 func read_func_def(rettype *Ctype, fname string) *Ast {
 	expect('(')
-	localenv = make_env(globalenv)
+	localenv = globalenv.MakeDict()
 	params := read_params()
 	expect('{')
-	localenv = make_env(localenv)
+	localenv = localenv.MakeDict()
 	localvars = make([]*Ast, 0)
 	body := read_compound_stmt()
 	r := ast_func(rettype, fname, params, localvars, body)
+	localenv = nil
 	localvars = nil
 	return r
 }

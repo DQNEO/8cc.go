@@ -30,7 +30,12 @@ char *ctype_to_string(Ctype *ctype) {
     }
     case CTYPE_FUNC: {
         String *s = make_string();
-        string_appendf(s, "%s", ctype_to_string(ctype->rettype));
+        string_appendf(s, "%s(", ctype_to_string(ctype->rettype));
+        for (Iter *i = list_iter(ctype->params); !iter_end(i);) {
+            Ctype *t = iter_next(i);
+            string_appendf(s, "%s", ctype_to_string(t));
+        }
+        string_append(s, ')');
         return get_cstring(s);
     }
     default: error("Unknown ctype: %d", ctype);

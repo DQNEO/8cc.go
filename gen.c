@@ -630,7 +630,7 @@ static void emit_global_var(Ast *v) {
 void emit_data_section(void) {
     SAVE;
     emit(".data");
-    for (Iter *i = list_iter(stringsenv->vars); !iter_end(i);) {
+    for (Iter *i = list_iter(strings); !iter_end(i);) {
         Ast *v = iter_next(i);
         emit_label("%s:", v->slabel);
         emit(".string \"%s\"", quote_cstring(v->sval));

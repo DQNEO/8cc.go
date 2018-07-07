@@ -1091,5 +1091,5 @@ func read_toplevels() []*Ast {
 		r = append(r, ast)
 	}
 
-	return nil
+	return r
 }

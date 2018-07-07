@@ -142,7 +142,14 @@ func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
 }
 
 func emit_load_struct_ref(struc *Ast, field *Ctype, off int) {
-	emit_lload(field, struc.variable.loff - field.offset - off)
+	switch struc.typ {
+	case AST_LVAR:
+		emit_lload(field, struc.variable.loff - field.offset - off)
+	case AST_STRUCT_REF:
+		emit_load_struct_ref(struc.structref.struc, field, struc.structref.field.offset + off)
+	default:
+		_error("internal error: %s", struc)
+	}
 }
 
 func emit_assign(variable *Ast) {

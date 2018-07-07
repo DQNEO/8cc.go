@@ -1052,8 +1052,11 @@ func read_func_decl_or_def(rettype *Ctype, fname string) *Ast {
 	expect('(')
 	localenv = globalenv.MakeDict()
 	params := read_params()
-	expect('{')
-	return read_func_def(rettype, fname, params)
+	tok := read_token()
+	if is_punct(tok, '{') {
+		return read_func_def(rettype, fname, params)
+	}
+	return read_toplevel();
 }
 
 func read_toplevel() *Ast {

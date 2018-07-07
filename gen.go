@@ -134,6 +134,8 @@ func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
 	switch struc.typ {
 	case AST_LVAR:
 		emit_lsave(field, struc.variable.loff - field.offset - off, 0)
+	case AST_STRUCT_REF:
+		emit_assign_struct_ref(struc.structref.struc, struc.structref.field, 0)
 	default:
 		_error("internal error: %s", struc)
 	}

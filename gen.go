@@ -580,7 +580,7 @@ func emit_expr(ast *Ast) {
 
 func emit_data_section() {
 	emit(".data")
-	for _, v := range stringsenv.vars {
+	for _, v := range gstrings {
 		emit_label("%s:", v.slabel)
 		emit(".string \"%s\"", quote_cstring(v.val))
 	}

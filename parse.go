@@ -14,8 +14,8 @@ const MAX_ALIGN = 16
 var globalenv = &Env{}
 var gstrings []*Ast
 var flonums []*Ast
-var struct_defs []*Ctype
-var union_defs []*Ctype
+var struct_defs DictCtype
+var union_defs DictCtype
 var localenv *Env
 var localvars []*Ast
 var labelseq = 0
@@ -735,15 +735,6 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 	return ast_array_init(initlist)
 }
 
-func find_struct_union_def(list []*Ctype, name string) *Ctype {
-	for _, t := range list {
-		if len(t.tag) > 0 && t.tag == name {
-			return t
-		}
-	}
-	return nil
-}
-
 func read_struct_union_tag() string {
 	tok := read_token()
 	if tok.typ == TTYPE_IDENT {
@@ -771,7 +762,7 @@ func read_struct_union_fields() *DictCtype {
 
 func read_union_def() *Ctype {
 	tag := read_struct_union_tag()
-	ctype := find_struct_union_def(union_defs, tag)
+	ctype := union_defs.Get(tag)
 	if ctype != nil {
 		return ctype
 	}
@@ -783,13 +774,15 @@ func read_union_def() *Ctype {
 		}
 	}
 	r := make_struct_type(fields, tag, maxsize)
-	struct_defs = append(union_defs, r)
+	if tag != "" {
+		union_defs.Put(tag,r)
+	}
 	return r
 }
 
 func read_struct_def() *Ctype {
 	tag := read_struct_union_tag()
-	ctype := find_struct_union_def(struct_defs, tag)
+	ctype := struct_defs.Get(tag)
 	if ctype != nil {
 		return ctype
 	}
@@ -809,7 +802,9 @@ func read_struct_def() *Ctype {
 		offset += fieldtype.size
 	}
 	r := make_struct_type(fields, tag, offset)
-	struct_defs = append(struct_defs, r)
+	if tag != "" {
+		struct_defs.Put(tag, r)
+	}
 	return r
 }
 

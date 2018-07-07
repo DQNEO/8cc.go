@@ -84,7 +84,7 @@ func emit_gsave(v *Ast) {
 	emit("mov %%%s, %s(%%rip)", reg, v.variable.varname)
 }
 
-func emit_lsave(ctype *Ctype, loff int, off int) {
+func emit_lsave(ctype *Ctype, off int) {
 	var reg string
 	size := ctype_size(ctype)
 	switch size {
@@ -95,7 +95,7 @@ func emit_lsave(ctype *Ctype, loff int, off int) {
 	case 8:
 		reg = "rax"
 	}
-	emit("mov %%%s, %d(%%rbp)", reg, -(loff + off*size))
+	emit("mov %%%s, %d(%%rbp)", reg, -off)
 }
 
 func emit_assign_deref(variable *Ast) {
@@ -133,7 +133,7 @@ func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
 func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
 	switch struc.typ {
 	case AST_LVAR:
-		emit_lsave(field, struc.variable.loff - field.offset - off, 0)
+		emit_lsave(field, struc.variable.loff - field.offset - off)
 	case AST_STRUCT_REF:
 		emit_assign_struct_ref(struc.structref.struc, struc.structref.field, 0)
 	default:
@@ -159,7 +159,7 @@ func emit_assign(variable *Ast) {
 	}
 	switch variable.typ {
 	case AST_LVAR:
-		emit_lsave(variable.ctype, variable.variable.loff, 0)
+		emit_lsave(variable.ctype, variable.variable.loff)
 	case AST_GVAR:
 		emit_gsave(variable)
 	case AST_STRUCT_REF:
@@ -290,9 +290,11 @@ func emit_expr(ast *Ast) {
 			return
 		}
 		if ast.decl.declinit.typ == AST_ARRAY_INIT {
-			for i, v := range ast.decl.declinit.array_initializer.arrayinit {
+			off := 0
+			for _, v := range ast.decl.declinit.array_initializer.arrayinit {
 				emit_expr(v)
-				emit_lsave(ast.decl.declvar.ctype.ptr, ast.decl.declvar.variable.loff, -i)
+				emit_lsave(ast.decl.declvar.ctype.ptr, ast.decl.declvar.variable.loff - off)
+				off += ctype_size(ast.decl.declvar.ctype.ptr)
 			}
 		} else if ast.decl.declvar.ctype.typ == CTYPE_ARRAY {
 			assert(ast.decl.declinit.typ == AST_STRING)
@@ -303,10 +305,10 @@ func emit_expr(ast *Ast) {
 			emit("movb $0, %d(%%rbp)", -(ast.decl.declvar.variable.loff - i))
 		} else if ast.decl.declinit.typ == AST_STRING {
 			emit_gload(ast.decl.declinit.ctype, ast.decl.declinit.str.slabel)
-			emit_lsave(ast.decl.declvar.ctype, ast.decl.declvar.variable.loff, 0)
+			emit_lsave(ast.decl.declvar.ctype, ast.decl.declvar.variable.loff)
 		} else {
 			emit_expr(ast.decl.declinit)
-			emit_lsave(ast.decl.declvar.ctype, ast.decl.declvar.variable.loff, 0)
+			emit_lsave(ast.decl.declvar.ctype, ast.decl.declvar.variable.loff)
 		}
 	case AST_ADDR:
 		assert(ast.unary.operand.typ == AST_LVAR)

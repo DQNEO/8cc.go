@@ -35,6 +35,7 @@ static Ctype *result_type(char op, Ctype *a, Ctype *b);
 static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
 static Ctype *read_decl_int(Token **name);
+static Ast *read_toplevel(void);
 
 static Ast *ast_uop(int type, Ctype *ctype, Ast *operand) {
     Ast *r = malloc(sizeof(Ast));
@@ -901,8 +902,11 @@ static Ast *read_func_decl_or_def(Ctype *rettype, char *fname) {
     expect('(');
     localenv = make_dict(globalenv);
     List *params = read_params();
-    expect('{');
-    return read_func_def(rettype, fname, params);
+    Token *tok = read_token();
+    if (is_punct(tok, '{'))
+        return read_func_def(rettype, fname, params);
+    // must expect(';'); here
+    return read_toplevel();
 }
 
 static Ast *read_toplevel(void) {

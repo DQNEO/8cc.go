@@ -127,5 +127,3 @@ type Env struct {
 	next    *Env
 	structs []*Ast
 }
-
-var EMPTY_ENV = Env{}

@@ -11,7 +11,8 @@ const MAX_ARGS = 6
 const MAX_OP_PRIO = 16
 const MAX_ALIGN = 16
 
-var globalenv = &EMPTY_ENV
+var globalenv = &Env{}
+var stringsenv = &Env{}
 var flonums []*Ast
 var struct_defs []*Ctype
 var union_defs []*Ctype
@@ -457,7 +458,7 @@ func read_prim() *Ast {
 		return ast_inttype(ctype_char, int(tok.c))
 	case TTYPE_STRING:
 		r := ast_string(tok.sval)
-		env_append(globalenv, r)
+		env_append(stringsenv, r)
 		return r
 	case TTYPE_PUNCT:
 		unget_token(tok)

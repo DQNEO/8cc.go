@@ -580,11 +580,9 @@ func emit_expr(ast *Ast) {
 
 func emit_data_section() {
 	emit(".data")
-	for _, v := range globalenv.vars {
-		if v.typ == AST_STRING {
-			emit_label("%s:", v.slabel)
-			emit(".string \"%s\"", quote_cstring(v.val))
-		}
+	for _, v := range stringsenv.vars {
+		emit_label("%s:", v.slabel)
+		emit(".string \"%s\"", quote_cstring(v.val))
 	}
 	for _, v := range flonums {
 		label := make_label()

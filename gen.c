@@ -635,8 +635,6 @@ void emit_data_section(void) {
         if (v->type == AST_STRING) {
             emit_label("%s:", v->slabel);
             emit(".string \"%s\"", quote_cstring(v->sval));
-        } else if (v->type != AST_GVAR) {
-            error("internal error: %s", ast_to_string(v));
         }
     }
     for (Iter *i = list_iter(flonums); !iter_end(i);) {

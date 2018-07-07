@@ -11,12 +11,12 @@ func (ctype *Ctype) String() string {
 	switch ctype.typ {
 	case CTYPE_VOID:
 		return "void"
+	case CTYPE_CHAR:
+		return "char"
 	case CTYPE_INT:
 		return "int"
 	case CTYPE_LONG:
 		return "long"
-	case CTYPE_CHAR:
-		return "char"
 	case CTYPE_FLOAT:
 		return "float"
 	case CTYPE_DOUBLE:

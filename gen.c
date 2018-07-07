@@ -630,12 +630,10 @@ static void emit_global_var(Ast *v) {
 void emit_data_section(void) {
     SAVE;
     emit(".data");
-    for (Iter *i = list_iter(globalenv->vars); !iter_end(i);) {
+    for (Iter *i = list_iter(stringsenv->vars); !iter_end(i);) {
         Ast *v = iter_next(i);
-        if (v->type == AST_STRING) {
-            emit_label("%s:", v->slabel);
-            emit(".string \"%s\"", quote_cstring(v->sval));
-        }
+        emit_label("%s:", v->slabel);
+        emit(".string \"%s\"", quote_cstring(v->sval));
     }
     for (Iter *i = list_iter(flonums); !iter_end(i);) {
         Ast *v = iter_next(i);

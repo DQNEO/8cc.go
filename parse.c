@@ -11,6 +11,7 @@
 #define MAX_ALIGN 16
 
 Env *globalenv = &EMPTY_ENV;
+Env *stringsenv = &EMPTY_ENV;
 List *flonums = &EMPTY_LIST;
 static List *struct_defs = &EMPTY_LIST;
 static List *union_defs = &EMPTY_LIST;
@@ -419,7 +420,7 @@ static Ast *read_prim(void) {
         return ast_inttype(ctype_char, tok->c);
     case TTYPE_STRING: {
         Ast *r = ast_string(tok->sval);
-        env_append(globalenv, r);
+        env_append(stringsenv, r);
         return r;
     }
     case TTYPE_PUNCT:

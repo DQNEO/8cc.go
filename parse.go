@@ -229,6 +229,10 @@ func ensure_lvalue(ast *Ast) {
 	return
 }
 
+func is_ident(tok *Token, s string) bool {
+	return tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, NewCstringFromLiteral(s)) == 0
+}
+
 func is_right_assoc(tok *Token) bool {
 	return tok.v.punct == '='
 }
@@ -715,10 +719,6 @@ func read_return_stmt() *Ast {
 	retval := read_expr()
 	expect(';')
 	return ast_return(retval)
-}
-
-func is_ident(tok *Token, s string) bool {
-	return tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, NewCstringFromLiteral(s)) == 0
 }
 
 func read_stmt() *Ast {

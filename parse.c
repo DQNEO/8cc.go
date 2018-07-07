@@ -225,7 +225,8 @@ static Ctype* make_array_type(Ctype *ctype, int size) {
 }
 
 static Ctype* make_struct_field_type(Ctype *ctype, char *name, int offset) {
-  Ctype *r = ctype;
+  Ctype *r = malloc(sizeof(Ctype));
+  memcpy(r, ctype, sizeof(Ctype));
   r->name = name;
   r->offset = offset;
   return r;

@@ -932,4 +932,5 @@ List *read_toplevels(void) {
         if (!ast) return r;
         list_push(r, ast);
     }
+    return r;
 }

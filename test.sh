@@ -101,6 +101,9 @@ testast '(int)f(){(| 1 2);}' '1|2;'
 testastf '(int)f(int c){c;}' 'int f(int c){c;}'
 testastf '(int)f(int c){c;}(int)g(int d){d;}' 'int f(int c){c;} int g(int d){d;}'
 testastf '(decl int a 3)' 'int a=3;'
+testastf '(decl (struct) a)' 'struct {} a;'
+testastf '(decl (struct (int) (char)) a)' 'struct {int x; char y;} a;'
+testast '(int)f(){(decl (struct (int)) a);a.x;}' 'struct {int x;} a; a.x;'
 
 # Basic arithmetic
 test 0 '0;'

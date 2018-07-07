@@ -25,8 +25,7 @@ static Ast *read_decl_or_stmt(void);
 static Ctype *result_type(char op, Ctype *a, Ctype *b);
 static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
-static Ctype *read_decl_spec(void);
-static Ctype *read_array_dimensions(Ctype *basetype);
+static Ctype *read_decl_int(Token **name);
 
 static Env *make_env(Env *next) {
   Env *r = malloc(sizeof(Env));
@@ -588,12 +587,8 @@ static Ctype *read_struct_def(void) {
   for (;;) {
     if (!is_type_keyword(peek_token()))
       break;
-    Ctype *fieldtype = read_decl_spec();
-    Token *name = read_token();
-    if (name->type != TTYPE_IDENT)
-      error("Identifier expected, but got %s", token_to_string(name));
-    fieldtype = read_array_dimensions(fieldtype);
-
+    Token *name;
+    Ctype *fieldtype = read_decl_int(&name);
     int size = ctype_size(fieldtype);
     size = (size < MAX_ALIGN) ? size : MAX_ALIGN;
     if (offset % size != 0)
@@ -692,12 +687,17 @@ static Ast *read_decl_init(Ast *var) {
   return ast_decl(var, NULL);
 }
 
-static Ast *read_decl(void) {
+static Ctype *read_decl_int(Token **name) {
   Ctype *ctype = read_decl_spec();
-  Token *varname = read_token();
-  if (varname->type != TTYPE_IDENT)
-    error("Identifier expected, but got %s", token_to_string(varname));
-  ctype = read_array_dimensions(ctype);
+  *name = read_token();
+  if ((*name)->type != TTYPE_IDENT)
+    error("Identifier expected, but got %s", token_to_string(*name));
+  return read_array_dimensions(ctype);
+}
+
+static Ast *read_decl(void) {
+  Token *varname;
+  Ctype *ctype = read_decl_int(&varname);
   Ast *var = ast_lvar(ctype, varname->sval);
   return read_decl_init(var);
 }

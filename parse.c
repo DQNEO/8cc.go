@@ -245,11 +245,10 @@ static Ctype* make_struct_field_type(Ctype *ctype, int offset) {
     return r;
 }
 
-static Ctype* make_struct_type(Dict *fields, char *tag, int size) {
+static Ctype* make_struct_type(Dict *fields, int size) {
     Ctype *r = malloc(sizeof(Ctype));
     r->type = CTYPE_STRUCT;
     r->fields = fields;
-    r->tag = tag;
     r->size = size;
     return r;
 }
@@ -687,7 +686,7 @@ static Ctype *read_union_def(void) {
         Ctype *fieldtype = iter_next(i);
         maxsize = (maxsize < fieldtype->size) ? fieldtype->size : maxsize;
     }
-    Ctype *r = make_struct_type(fields, tag, maxsize);
+    Ctype *r = make_struct_type(fields, maxsize);
     if (tag)
         dict_put(union_defs, tag, r);
     return r;
@@ -707,7 +706,7 @@ static Ctype *read_struct_def(void) {
         fieldtype->offset = offset;
         offset += fieldtype->size;
     }
-    Ctype *r = make_struct_type(fields, tag, offset);
+    Ctype *r = make_struct_type(fields, offset);
     if (tag)
         dict_put(struct_defs, tag, r);
     return r;

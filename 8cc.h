@@ -73,7 +73,6 @@ typedef struct Ctype {
     // array length
     int len;
     // struct
-    char *tag;
     Dict *fields;
     int offset;
 } Ctype;

@@ -901,7 +901,7 @@ static Ast *read_func_def(Ctype *rettype, char *fname) {
     return r;
 }
 
-static Ast *read_decl_or_func_def(void) {
+static Ast *read_toplevel(void) {
     Token *tok = peek_token();
     if (!tok) return NULL;
     Ctype *ctype = read_decl_spec();
@@ -927,7 +927,7 @@ static Ast *read_decl_or_func_def(void) {
 List *read_toplevels(void) {
     List *r = make_list();
     for (;;) {
-        Ast *ast = read_decl_or_func_def();
+        Ast *ast = read_toplevel();
         if (!ast) return r;
         list_push(r, ast);
     }

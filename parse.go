@@ -7,14 +7,15 @@ import (
 
 const MAX_ARGS = 6
 const MAX_OP_PRIO = 16
+const MAX_ALIGN = 16
 
 var globalenv = &EMPTY_ENV
 var localenv *Env
 var localvars []*Ast
 var labelseq = 0
 
-var ctype_int = &Ctype{CTYPE_INT, nil, 0, nil, nil}
-var ctype_char = &Ctype{CTYPE_CHAR, nil, 0, nil, nil}
+var ctype_int = &Ctype{CTYPE_INT, nil, 0, nil, nil, 0}
+var ctype_char = &Ctype{CTYPE_CHAR, nil, 0, nil, nil, 0}
 
 func make_env(next *Env) *Env {
 	r := &Env{}
@@ -218,9 +219,10 @@ func make_array_type(ctype *Ctype, size int) *Ctype {
 	return r
 }
 
-func make_struct_field_type(ctype *Ctype, name Cstring) *Ctype {
+func make_struct_field_type(ctype *Ctype, name Cstring, offset int) *Ctype {
 	r := ctype
 	r.name = name
+	r.offset = offset
 	return r
 }
 
@@ -244,7 +246,7 @@ func find_var(name Cstring) *Ast {
 
 func ensure_lvalue(ast *Ast) {
 	switch ast.typ {
-	case AST_LVAR, AST_GVAR, AST_DEREF:
+	case AST_LVAR, AST_GVAR, AST_DEREF, AST_STRUCT_REF:
 		return
 	}
 	_error("lvalue expected, but got %s", ast)
@@ -484,7 +486,7 @@ func read_cond_expr(cond *Ast) *Ast {
 
 func find_struct_field(struc *Ast, name Cstring) *Ctype {
 	for _,f := range struc.ctype.fields {
-		if strcmp(f.name, name) != 0 {
+		if strcmp(f.name, name) == 0 {
 			return f
 		}
 	}
@@ -608,13 +610,24 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 func read_struct_def() *Ctype {
 	var fields []*Ctype
 	expect('{')
+	offset := 0
 	for {
 		if !is_type_keyword(peek_token()) {
 			break
 		}
 		fieldtype := read_decl_spec()
 		name := read_token()
-		fields = append(fields, make_struct_field_type(fieldtype, name.v.sval))
+		size := ctype_size(fieldtype)
+		if size < MAX_ALIGN {
+
+		} else {
+			size = MAX_ALIGN
+		}
+		if offset % size != 0 {
+			offset += size - offset % size
+		}
+		fields = append(fields, make_struct_field_type(fieldtype, name.v.sval, offset))
+		offset += size
 		expect(';')
 	}
 	expect('}')

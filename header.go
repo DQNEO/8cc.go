@@ -57,6 +57,7 @@ type Ctype struct {
 	size int  // array
 	name Cstring  // struct field
 	fields []*Ctype
+	offset int // struct
 }
 
 type Ast struct {

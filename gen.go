@@ -16,8 +16,11 @@ func ctype_size(ctype *Ctype) int {
 		return 8
 	case CTYPE_ARRAY:
 		return ctype_size(ctype.ptr) * ctype.size
+	case CTYPE_STRUCT:
+		last := ctype.fields[len(ctype.fields) - 1]
+		return last.offset + ctype_size(last)
 	default:
-		_error("internal error")
+		_error("Unknown ctype")
 	}
 	return -1
 }
@@ -61,6 +64,10 @@ func emit_lload(ctype *Ctype, off int) {
 	default:
 		_error("Unknown data size: %s: %d", ctype, size)
 	}
+}
+
+func emit_load_struct_ref(struc *Ast, field *Ctype, off int) {
+	emit_lload(field, struc.variable.loff - field.offset - off)
 }
 
 func emit_gsave(v *Ast) {
@@ -127,6 +134,15 @@ func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
 	emit("add %%rcx, %%rax")
 }
 
+func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
+	switch struc.typ {
+	case AST_LVAR:
+		emit_lsave(field, struc.variable.loff - field.offset - off, 0)
+	default:
+		_error("internal error: %s", struc)
+	}
+}
+
 func emit_assign(variable *Ast) {
 	if variable.typ == AST_DEREF {
 		emit_assign_deref(variable)
@@ -137,6 +153,8 @@ func emit_assign(variable *Ast) {
 		emit_lsave(variable.ctype, variable.variable.loff, 0)
 	case AST_GVAR:
 		emit_gsave(variable)
+	case AST_STRUCT_REF:
+		emit_assign_struct_ref(variable.structref.struc, variable.structref.field, 0)
 	default:
 		_error("internal error")
 	}
@@ -324,6 +342,8 @@ func emit_expr(ast *Ast) {
 		for _, v := range ast.compound.stmts {
 			emit_expr(v)
 		}
+	case AST_STRUCT_REF:
+		emit_load_struct_ref(ast.structref.struc, ast.structref.field, 0)
 	case PUNCT_INC:
 		emit_inc_dec(ast, "add")
 	case PUNCT_DEC:

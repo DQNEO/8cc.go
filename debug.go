@@ -35,8 +35,12 @@ func (ctype *Ctype) String() string {
 		return s
 	case CTYPE_FUNC:
 		s := fmt.Sprintf("%s(", ctype.rettype)
-		for _, t := range ctype.params {
+		params := ctype.params
+		for i, t := range params {
 			s += fmt.Sprintf("%s", t)
+			if i != len(params) - 1 {
+				s += ","
+			}
 		}
 		s += ")"
 		return s

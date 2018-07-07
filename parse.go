@@ -1038,11 +1038,7 @@ func read_params() []*Ast {
 	return params // this is never reached
 }
 
-func read_func_def(rettype *Ctype, fname string) *Ast {
-	expect('(')
-	localenv = globalenv.MakeDict()
-	params := read_params()
-	expect('{')
+func read_func_def(rettype *Ctype, fname string, params []*Ast) *Ast {
 	localenv = localenv.MakeDict()
 	localvars = make([]*Ast, 0)
 	body := read_compound_stmt()
@@ -1050,6 +1046,14 @@ func read_func_def(rettype *Ctype, fname string) *Ast {
 	localenv = nil
 	localvars = nil
 	return r
+}
+
+func read_func_decl_or_def(rettype *Ctype, fname string) *Ast {
+	expect('(')
+	localenv = globalenv.MakeDict()
+	params := read_params()
+	expect('{')
+	return read_func_def(rettype, fname, params)
 }
 
 func read_toplevel() *Ast {
@@ -1069,7 +1073,7 @@ func read_toplevel() *Ast {
 		return read_decl_init(gvar)
 	}
 	if is_punct(tok, '(') {
-		return read_func_def(ctype, name.sval)
+		return read_func_decl_or_def(ctype, name.sval)
 	}
 	if is_punct(tok, ';') {
 		read_token()

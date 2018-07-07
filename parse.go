@@ -484,7 +484,7 @@ func read_cond_expr(cond *Ast) *Ast {
 
 func find_struct_field(struc *Ast, name Cstring) *Ctype {
 	for _,f := range struc.ctype.fields {
-		if strcmp(name, f.name) != 0 {
+		if strcmp(f.name, name) != 0 {
 			return f
 		}
 	}

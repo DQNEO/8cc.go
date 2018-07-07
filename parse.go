@@ -492,6 +492,9 @@ func find_struct_field(struc *Ast, name Cstring) *Ctype {
 }
 
 func read_struct_field(struc *Ast) *Ast {
+	if struc.ctype.typ != CTYPE_STRUCT {
+		_error("struct expected, but got %s", struc);
+	}
 	name := read_token()
 	if name.typ != TTYPE_IDENT {
 		_error("expect ident name but got %s", name)

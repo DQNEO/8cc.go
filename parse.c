@@ -887,11 +887,7 @@ static List *read_params(void) {
     }
 }
 
-static Ast *read_func_def(Ctype *rettype, char *fname) {
-    expect('(');
-    localenv = make_dict(globalenv);
-    List *params = read_params();
-    expect('{');
+static Ast *read_func_def(Ctype *rettype, char *fname, List *params) {
     localenv = make_dict(localenv);
     localvars = make_list();
     Ast *body = read_compound_stmt();
@@ -899,6 +895,14 @@ static Ast *read_func_def(Ctype *rettype, char *fname) {
     localenv = NULL;
     localvars = NULL;
     return r;
+}
+
+static Ast *read_func_decl_or_def(Ctype *rettype, char *fname) {
+    expect('(');
+    localenv = make_dict(globalenv);
+    List *params = read_params();
+    expect('{');
+    return read_func_def(rettype, fname, params);
 }
 
 static Ast *read_toplevel(void) {
@@ -915,7 +919,7 @@ static Ast *read_toplevel(void) {
         return read_decl_init(var);
     }
     if (is_punct(tok, '('))
-        return read_func_def(ctype, name->sval);
+        return read_func_decl_or_def(ctype, name->sval);
     if (is_punct(tok, ';')) {
         read_token();
         Ast *var = ast_gvar(ctype, name->sval, false);

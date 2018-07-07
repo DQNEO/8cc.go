@@ -7,10 +7,10 @@ static int TAB = 8;
 
 static void emit_expr(Ast *ast);
 
-#define emit(...)        emitf(__LINE__, "\t" __VA_ARGS__)
-#define emit_label(...)  emitf(__LINE__, __VA_ARGS__)
+#define emit(...)        emitf(__func__, __LINE__, "\t" __VA_ARGS__)
+#define emit_label(...)  emitf(__func__, __LINE__, __VA_ARGS__)
 
-void emitf(int line, char *fmt, ...) {
+void emitf(const char *func, int line, char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
   int col = vprintf(fmt, args);
@@ -20,7 +20,7 @@ void emitf(int line, char *fmt, ...) {
     if (*p == '\t')
       col += TAB - 1;
   int space = (30 - col) > 0 ? (30 - col) : 2;
-  printf("%*c %d\n", space, '#', line);
+  printf("%*c %s:%d\n", space, '#', func, line);
 }
 
 int ctype_size(Ctype *ctype) {
@@ -76,10 +76,6 @@ static void emit_lload(Ctype *ctype, int off) {
     default:
       error("Unknown data size: %s: %d", ctype_to_string(ctype), size);
   }
-}
-
-static void emit_load_struct_ref(Ast *struc, Ctype *field, int off) {
-  emit_lload(field, struc->loff - field->offset - off);
 }
 
 static void emit_gsave(Ast *var) {
@@ -141,6 +137,10 @@ static void emit_assign_struct_ref(Ast *struc, Ctype *field, int off) {
     default:
       error("internal error: %s", ast_to_string(struc));
   }
+}
+
+static void emit_load_struct_ref(Ast *struc, Ctype *field, int off) {
+  emit_lload(field, struc->loff - field->offset - off);
 }
 
 static void emit_assign(Ast *var) {

@@ -659,13 +659,13 @@ func read_struct_def() *Ctype {
 }
 
 func read_decl_int() (*Ctype, *Token) {
-	fieldtype := read_decl_spec()
+	ctype := read_decl_spec()
 	name := read_token()
 	if name.typ != TTYPE_IDENT {
 		_error("Identifier expected, but got %s",name);
 	}
-	fieldtype = read_array_dimensions(fieldtype)
-	return fieldtype, name
+	ctype = read_array_dimensions(ctype)
+	return ctype, name
 }
 
 func read_decl_spec() *Ctype {

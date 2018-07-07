@@ -640,6 +640,11 @@ func read_struct_def() *Ctype {
 		}
 		fieldtype := read_decl_spec()
 		name := read_token()
+		if name.typ != TTYPE_IDENT {
+			_error("Identifier expected, but got %s",name);
+		}
+		fieldtype = read_array_dimensions(fieldtype)
+
 		size := ctype_size(fieldtype)
 		if size < MAX_ALIGN {
 

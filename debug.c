@@ -5,11 +5,11 @@ char *ctype_to_string(Ctype *ctype) {
         return "(nil)";
     switch (ctype->type) {
     case CTYPE_VOID: return "void";
+    case CTYPE_CHAR: return "char";
     case CTYPE_INT:  return "int";
     case CTYPE_LONG: return "long";
-    case CTYPE_CHAR: return "char";
-    case CTYPE_FLOAT:  return "float";
-    case CTYPE_DOUBLE:  return "double";
+    case CTYPE_FLOAT: return "float";
+    case CTYPE_DOUBLE: return "double";
     case CTYPE_PTR: {
         String *s = make_string();
         string_appendf(s, "*%s", ctype_to_string(ctype->ptr));

@@ -44,12 +44,12 @@ func emit_gload(ctype *Ctype, label Cstring) {
 	emit("mov %s(%%rip), %%%s", label, reg)
 }
 
-func emit_lload(v *Ast, off int) {
-	if v.ctype.typ == CTYPE_ARRAY {
+func emit_lload(ctype *Ctype, off int) {
+	if ctype.typ == CTYPE_ARRAY {
 		emit("lea %d(%%rbp), %%rax", -off)
 		return
 	}
-	size := ctype_size(v.ctype)
+	size := ctype_size(ctype)
 	switch size {
 	case 1:
 		emit("mov $0, %%eax")
@@ -59,7 +59,7 @@ func emit_lload(v *Ast, off int) {
 	case 8:
 		emit("mov %d(%%rbp), %%rax", -off)
 	default:
-		_error("Unknown data size: %s: %d", v, size)
+		_error("Unknown data size: %s: %d", ctype, size)
 	}
 }
 
@@ -221,7 +221,7 @@ func emit_expr(ast *Ast) {
 	case AST_STRING:
 		emit("lea %s(%%rip), %%rax", ast.str.slabel)
 	case AST_LVAR:
-		emit_lload(ast, ast.variable.loff)
+		emit_lload(ast.ctype, ast.variable.loff)
 	case AST_GVAR:
 		emit_gload(ast.ctype, ast.variable.glabel)
 	case AST_FUNCALL:

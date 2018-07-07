@@ -10,12 +10,13 @@ const MAX_OP_PRIO = 16
 const MAX_ALIGN = 16
 
 var globalenv = &EMPTY_ENV
+var struct_defs []*Ctype
 var localenv *Env
 var localvars []*Ast
 var labelseq = 0
 
-var ctype_int = &Ctype{CTYPE_INT, nil, 0, nil, nil, 0}
-var ctype_char = &Ctype{CTYPE_CHAR, nil, 0, nil, nil, 0}
+var ctype_int = &Ctype{CTYPE_INT, nil, 0, nil, nil, nil, 0}
+var ctype_char = &Ctype{CTYPE_CHAR, nil, 0, nil, nil, nil, 0}
 
 func make_env(next *Env) *Env {
 	r := &Env{}
@@ -227,10 +228,11 @@ func make_struct_field_type(ctype *Ctype, name Cstring, offset int) *Ctype {
 	return r
 }
 
-func make_struct_type(ctypes []*Ctype) *Ctype {
+func make_struct_type(ctypes []*Ctype, tag Cstring) *Ctype {
 	r := &Ctype{}
 	r.typ = CTYPE_STRUCT
 	r.fields = ctypes
+	r.tag = tag
 	return r
 }
 
@@ -608,8 +610,28 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 	return ast_array_init(initlist)
 }
 
+func find_struct_def(name Cstring) *Ctype {
+	for _, t := range struct_defs {
+		if len(t.tag) > 0 && strcmp(t.tag, name) == 0 {
+			return t
+		}
+	}
+	return nil
+}
+
 func read_struct_def() *Ctype {
 	var fields []*Ctype
+	var tag Cstring
+	tok := read_token()
+	if tok.typ == TTYPE_IDENT {
+		tag = tok.v.sval
+	} else {
+		unget_token(tok)
+	}
+	ctype := find_struct_def(tag)
+	if ctype != nil {
+		return ctype
+	}
 	expect('{')
 	offset := 0
 	for {
@@ -632,7 +654,9 @@ func read_struct_def() *Ctype {
 		expect(';')
 	}
 	expect('}')
-	return make_struct_type(fields)
+	r := make_struct_type(fields, tag)
+	struct_defs = append(struct_defs, r)
+	return r
 }
 
 func read_decl_spec() *Ctype {

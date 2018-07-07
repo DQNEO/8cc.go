@@ -56,6 +56,7 @@ type Ctype struct {
 	ptr  *Ctype  // pointer or array
 	size int  // array
 	name Cstring  // struct field
+	tag Cstring // struct
 	fields []*Ctype
 	offset int // struct
 }

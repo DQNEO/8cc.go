@@ -4,14 +4,14 @@ const BUFLEN = 256
 
 var ungotten *Token
 
-func make_ident(s Cstring) *Token {
+func make_ident(s string) *Token {
 	r := &Token{}
 	r.typ = TTYPE_IDENT
 	r.v.sval = s
 	return r
 }
 
-func make_strtok(s Cstring) *Token {
+func make_strtok(s string) *Token {
 	r := &Token{}
 	r.typ = TTYPE_STRING
 	r.v.sval = s
@@ -118,7 +118,7 @@ func read_string() *Token {
 			errorf("String too long")
 		}
 	}
-	return make_strtok(Cstring(appendNullByte(buf)))
+	return make_strtok(string(appendNullByte(buf)))
 }
 
 func read_ident(c byte) *Token {
@@ -130,7 +130,7 @@ func read_ident(c byte) *Token {
 			buf = append(buf, c2)
 		} else {
 			ungetc(c2, stdin)
-			return make_ident(Cstring(appendNullByte(buf)))
+			return make_ident(string(appendNullByte(buf)))
 		}
 	}
 }

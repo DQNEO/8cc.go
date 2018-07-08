@@ -92,7 +92,7 @@ func (ast *Ast) String() string {
 		s += ast.fnc.body.String()
 		return s
 	case AST_DECL:
-		var vname Cstring
+		var vname string
 		if ast.decl.declvar.typ == AST_GVAR {
 			vname = ast.decl.declvar.variable.varname
 		} else {
@@ -150,7 +150,7 @@ func (ast *Ast) String() string {
 	case AST_STRUCT_REF:
 		s := ast.structref.struc.String()
 		s += "."
-		s += ast.structref.field.name.String()
+		s += ast.structref.field.name
 		return s
 	case AST_ADDR:
 		return uop_to_string("addr", ast)
@@ -185,10 +185,6 @@ func (ast *Ast) String() string {
 }
 
 func (tok *Token) String() string {
-	return tok.ToCtring().String()
-}
-
-func (tok *Token) ToCtring() Cstring {
 	if tok == nil {
 		return NewCstringFromLiteral("(null)")
 	}
@@ -197,13 +193,13 @@ func (tok *Token) ToCtring() Cstring {
 		return tok.v.sval
 	case TTYPE_PUNCT:
 		if is_punct(tok, PUNCT_EQ) {
-			return Cstring("==")
+			return string("==")
 		} else {
 
-			return Cstring([]byte{byte(tok.v.punct)})
+			return string([]byte{byte(tok.v.punct)})
 		}
 	case TTYPE_CHAR:
-		return Cstring([]byte{tok.v.c})
+		return string([]byte{tok.v.c})
 	case TTYPE_INT:
 		return NewCstringFromLiteral(strconv.Itoa(tok.v.ival))
 	case TTYPE_STRING:

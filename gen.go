@@ -25,7 +25,7 @@ func ctype_size(ctype *Ctype) int {
 	return -1
 }
 
-func emit_gload(ctype *Ctype, label Cstring, off int) {
+func emit_gload(ctype *Ctype, label string, off int) {
 	if ctype.typ == CTYPE_ARRAY {
 		if off != 0 {
 			emit("lea %s+%d(%%rip), %%rax", label, off)
@@ -74,7 +74,7 @@ func emit_lload(ctype *Ctype, off int) {
 	}
 }
 
-func emit_gsave(varname Cstring, ctype *Ctype, off int) {
+func emit_gsave(varname string, ctype *Ctype, off int) {
 	assert(ctype.typ != CTYPE_ARRAY)
 	var reg string
 
@@ -340,8 +340,8 @@ func emit_expr(ast *Ast) {
 		} else if ast.decl.declvar.ctype.typ == CTYPE_ARRAY {
 			assert(ast.decl.declinit.typ == AST_STRING)
 			var i int
-			for i = 0; i < strlen(ast.decl.declinit.str.val); i++ {
-				emit("movb $%d, %d(%%rbp)", ast.decl.declinit.str.val[i], -(ast.decl.declvar.variable.loff - i))
+			for i, char := range ast.decl.declinit.str.val {
+				emit("movb $%d, %d(%%rbp)", char, -(ast.decl.declvar.variable.loff - i))
 			}
 			emit("movb $0, %d(%%rbp)", -(ast.decl.declvar.variable.loff - i))
 		} else if ast.decl.declinit.typ == AST_STRING {

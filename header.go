@@ -12,7 +12,7 @@ type Token struct {
 	typ int
 	v   struct { // wanna be Union
 		ival  int
-		sval  Cstring
+		sval  string
 		punct int
 		c     byte
 	}
@@ -55,8 +55,8 @@ type Ctype struct {
 	typ    int
 	ptr    *Ctype  // pointer or array
 	size   int     // array
-	name   Cstring // struct field
-	tag    Cstring // struct
+	name   string // struct field
+	tag    string // struct
 	fields []*Ctype
 	offset int // struct
 }
@@ -71,14 +71,14 @@ type Ast struct {
 	c byte
 	// String
 	str struct {
-		val    Cstring
-		slabel Cstring
+		val    string
+		slabel string
 	}
 	// Local/Global variable
 	variable struct {
-		varname Cstring
+		varname string
 		loff    int
-		glabel  Cstring
+		glabel  string
 	}
 	// Binary operator
 	binop struct {
@@ -91,7 +91,7 @@ type Ast struct {
 	}
 	// Function call or function declaration
 	fnc struct {
-		fname     Cstring
+		fname     string
 		args      []*Ast
 		params    []*Ast
 		localvars []*Ast

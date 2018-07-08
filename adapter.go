@@ -56,30 +56,24 @@ func isalnum(c byte) bool {
 	return isalpha(c) || byte('0') <= c && c <= byte('9')
 }
 
-func strcmp(a Cstring, b Cstring) int {
+func strcmp(a string, b string) int {
 	if string(a) == string(b) {
 		return 0
 	}
 	return 1
 }
 
-func strlen(str Cstring) int {
+func strlen(str string) int {
 	return len(str)
-}
-
-type Cstring string
-
-func (b Cstring) String() string {
-	return string(b)
 }
 
 func appendNullByte(b []byte) []byte {
 	return b
 }
 
-// "abc" => Cstring("abc\x00")
-func NewCstringFromLiteral(s string) Cstring {
-	return Cstring(s)
+// "abc" => string("abc\x00")
+func NewCstringFromLiteral(s string) string {
+	return string(s)
 }
 
 func printf(format string, args ...interface{}) {

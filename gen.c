@@ -185,14 +185,11 @@ static void emit_load_struct_ref(Ast *struc, Ctype *field, int off) {
 }
 
 static void emit_assign(Ast *var) {
-  if (var->type == AST_DEREF) {
-    emit_assign_deref(var);
-    return;
-  }
   switch (var->type) {
+    case AST_DEREF: emit_assign_deref(var); break;
+    case AST_STRUCT_REF: emit_assign_struct_ref(var->struc, var->field, 0); break;
     case AST_LVAR: emit_lsave(var->ctype, var->loff); break;
     case AST_GVAR: emit_gsave(var->varname, var->ctype, 0); break;
-    case AST_STRUCT_REF: emit_assign_struct_ref(var->struc, var->field, 0); break;
     default: error("internal error");
   }
 }

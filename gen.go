@@ -25,7 +25,7 @@ func ctype_size(ctype *Ctype) int {
 	return -1
 }
 
-func emit_gload(ctype *Ctype, label Cstring) {
+func emit_gload(ctype *Ctype, label Cstring, off int) {
 	if ctype.typ == CTYPE_ARRAY {
 		emit("lea %s(%%rip), %%rax", label)
 		return
@@ -44,7 +44,11 @@ func emit_gload(ctype *Ctype, label Cstring) {
 		_error("Unknown data size: %s: %d", ctype, size)
 	}
 
-	emit("mov %s(%%rip), %%%s", label, reg)
+	if off != 0 {
+		emit("mov %s+%d(%%rip), %%%s", label, off, reg)
+	} else {
+		emit("mov %s(%%rip), %%%s", label, reg)
+	}
 }
 
 func emit_lload(ctype *Ctype, off int) {
@@ -66,11 +70,11 @@ func emit_lload(ctype *Ctype, off int) {
 	}
 }
 
-func emit_gsave(v *Ast) {
-	assert(v.ctype.typ != CTYPE_ARRAY)
+func emit_gsave(varname Cstring, ctype *Ctype, off int) {
+	assert(ctype.typ != CTYPE_ARRAY)
 	var reg string
 
-	size := ctype_size(v.ctype)
+	size := ctype_size(ctype)
 	switch size {
 	case 1:
 		reg = "al"
@@ -79,9 +83,14 @@ func emit_gsave(v *Ast) {
 	case 8:
 		reg = "rax"
 	default:
-		_error("Unknown data size: %s: %d", v, size)
+		_error("Unknown data size: %s: %d", ctype, size)
 	}
-	emit("mov %%%s, %s(%%rip)", reg, v.variable.varname)
+
+	if off != 0 {
+		emit("mov %%%s, %s+%d(%%rip)", reg, varname, off)
+	} else {
+		emit("mov %%%s, %s(%%rip)", reg, varname)
+	}
 }
 
 func emit_lsave(ctype *Ctype, off int) {
@@ -140,6 +149,8 @@ func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
 	switch struc.typ {
 	case AST_LVAR:
 		emit_lsave(field, struc.variable.loff - field.offset - off)
+	case AST_GVAR:
+		emit_gsave(struc.variable.varname, field, struc.variable.loff - field.offset - off)
 	case AST_STRUCT_REF:
 		emit_assign_struct_ref(struc.structref.struc, field, off + struc.structref.field.offset)
 	case AST_DEREF:
@@ -156,6 +167,8 @@ func emit_load_struct_ref(struc *Ast, field *Ctype, off int) {
 	switch struc.typ {
 	case AST_LVAR:
 		emit_lload(field, struc.variable.loff - field.offset - off)
+	case AST_GVAR:
+		emit_gload(field, struc.variable.glabel, struc.variable.loff - field.offset - off)
 	case AST_STRUCT_REF:
 		emit_load_struct_ref(struc.structref.struc, field, struc.structref.field.offset + off)
 	case AST_DEREF:
@@ -175,7 +188,7 @@ func emit_assign(variable *Ast) {
 	case AST_LVAR:
 		emit_lsave(variable.ctype, variable.variable.loff)
 	case AST_GVAR:
-		emit_gsave(variable)
+		emit_gsave(variable.variable.varname, variable.ctype, 0)
 	case AST_STRUCT_REF:
 		emit_assign_struct_ref(variable.structref.struc, variable.structref.field, 0)
 	default:
@@ -286,7 +299,7 @@ func emit_expr(ast *Ast) {
 	case AST_LVAR:
 		emit_lload(ast.ctype, ast.variable.loff)
 	case AST_GVAR:
-		emit_gload(ast.ctype, ast.variable.glabel)
+		emit_gload(ast.ctype, ast.variable.glabel, 0)
 	case AST_FUNCALL:
 		for i := 1; i < len(ast.fnc.args); i++ {
 			emit("push %%%s", REGS[i])
@@ -322,7 +335,7 @@ func emit_expr(ast *Ast) {
 			}
 			emit("movb $0, %d(%%rbp)", -(ast.decl.declvar.variable.loff - i))
 		} else if ast.decl.declinit.typ == AST_STRING {
-			emit_gload(ast.decl.declinit.ctype, ast.decl.declinit.str.slabel)
+			emit_gload(ast.decl.declinit.ctype, ast.decl.declinit.str.slabel, 0)
 			emit_lsave(ast.decl.declvar.ctype, ast.decl.declvar.variable.loff)
 		} else {
 			emit_expr(ast.decl.declinit)

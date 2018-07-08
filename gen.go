@@ -340,7 +340,7 @@ func emit_expr(ast *Ast) {
 		} else if ast.decl.declvar.ctype.typ == CTYPE_ARRAY {
 			assert(ast.decl.declinit.typ == AST_STRING)
 			var i int
-			for i = 0; ast.decl.declinit.str.val[i] != 0; i++ {
+			for i = 0; i < strlen(ast.decl.declinit.str.val); i++ {
 				emit("movb $%d, %d(%%rbp)", ast.decl.declinit.str.val[i], -(ast.decl.declvar.variable.loff - i))
 			}
 			emit("movb $0, %d(%%rbp)", -(ast.decl.declvar.variable.loff - i))

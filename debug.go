@@ -193,7 +193,7 @@ func (tok *Token) String() string {
 		return tok.v.sval
 	case TTYPE_PUNCT:
 		if is_punct(tok, PUNCT_EQ) {
-			return string("==")
+			return "=="
 		} else {
 
 			return string([]byte{byte(tok.v.punct)})

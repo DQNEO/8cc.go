@@ -149,7 +149,7 @@ static void emit_assign_struct_ref(Ast *struc, Ctype *field, int off) {
       emit_lsave(field, struc->loff - field->offset - off);
       break;
     case AST_GVAR:
-      emit_gsave(struc->varname, field, struc->loff - field->offset - off);
+      emit_gsave(struc->varname, field, field->offset + off);
       break;
     case AST_STRUCT_REF:
       emit_assign_struct_ref(struc->struc, field, off + struc->field->offset);
@@ -170,14 +170,14 @@ static void emit_load_struct_ref(Ast *struc, Ctype *field, int off) {
       emit_lload(field, struc->loff - field->offset - off);
       break;
     case AST_GVAR:
-      emit_gload(field, struc->glabel, struc->loff - field->offset - off);
+      emit_gload(field, struc->varname, field->offset + off);
       break;
     case AST_STRUCT_REF:
       emit_load_struct_ref(struc->struc, field, struc->field->offset + off);
       break;
     case AST_DEREF:
       emit_expr(struc->operand);
-      emit_load_deref(field, struc->operand->ctype, field->offset + off);
+      emit_load_deref(struc->ctype, field, field->offset + off);
       break;
     default:
       error("internal error: %s", ast_to_string(struc));
@@ -257,19 +257,20 @@ static void emit_inc_dec(Ast *ast, char *op) {
 }
 
 static void emit_load_deref(Ctype *result_type, Ctype *operand_type, int off) {
+  if (operand_type->type == CTYPE_PTR &&
+      operand_type->ptr->type == CTYPE_ARRAY)
+    return;
   char *reg;
   switch (ctype_size(result_type)) {
     case 1: reg = "%cl"; emit("mov $0, %%ecx"); break;
     case 4: reg = "%ecx"; break;
     default: reg = "%rcx"; break;
   }
-  if (operand_type->ptr->type != CTYPE_ARRAY) {
-    if (off)
-      emit("mov %d(%%rax), %s", off, reg);
-    else
-      emit("mov (%%rax), %s", reg);
-    emit("mov %%rcx, %%rax");
-  }
+  if (off)
+    emit("mov %d(%%rax), %s", off, reg);
+  else
+    emit("mov (%%rax), %s", reg);
+  emit("mov %%rcx, %%rax");
 }
 
 static void emit_expr(Ast *ast) {

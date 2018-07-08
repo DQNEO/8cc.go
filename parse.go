@@ -15,8 +15,8 @@ var localenv *Env
 var localvars []*Ast
 var labelseq = 0
 
-var ctype_int = &Ctype{CTYPE_INT, nil, 0, nil, nil, nil, 0}
-var ctype_char = &Ctype{CTYPE_CHAR, nil, 0, nil, nil, nil, 0}
+var ctype_int = &Ctype{typ:CTYPE_INT}
+var ctype_char = &Ctype{typ:CTYPE_CHAR}
 
 func make_env(next *Env) *Env {
 	r := &Env{}

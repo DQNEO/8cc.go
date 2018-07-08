@@ -52,11 +52,11 @@ const (
 )
 
 type Ctype struct {
-	typ  int
-	ptr  *Ctype  // pointer or array
-	size int  // array
-	name Cstring  // struct field
-	tag Cstring // struct
+	typ    int
+	ptr    *Ctype  // pointer or array
+	size   int     // array
+	name   Cstring // struct field
+	tag    Cstring // struct
 	fields []*Ctype
 	offset int // struct
 }
@@ -132,8 +132,8 @@ type Ast struct {
 }
 
 type Env struct {
-	vars []*Ast
-	next *Env
+	vars    []*Ast
+	next    *Env
 	structs []*Ast
 }
 

@@ -211,4 +211,3 @@ func (tok *Token) ToCtring() Cstring {
 	_error("internal error: unknown token type: %d", tok.typ)
 	return nil
 }
-

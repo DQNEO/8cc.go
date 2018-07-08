@@ -17,7 +17,7 @@ func ctype_size(ctype *Ctype) int {
 	case CTYPE_ARRAY:
 		return ctype_size(ctype.ptr) * ctype.size
 	case CTYPE_STRUCT:
-		last := ctype.fields[len(ctype.fields) - 1]
+		last := ctype.fields[len(ctype.fields)-1]
 		return last.offset + ctype_size(last)
 	default:
 		_error("internal error")
@@ -123,7 +123,7 @@ func emit_assign_deref_int(ctype *Ctype, off int) {
 	case 8:
 		reg = "rcx"
 	}
-	if (off != 0) {
+	if off != 0 {
 		emit("mov %%%s, %d(%%rax)", reg, off)
 	} else {
 		emit("mov %%%s, (%%rax)", reg)
@@ -152,16 +152,16 @@ func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
 func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
 	switch struc.typ {
 	case AST_LVAR:
-		emit_lsave(field, struc.variable.loff - field.offset - off)
+		emit_lsave(field, struc.variable.loff-field.offset-off)
 	case AST_GVAR:
-		emit_gsave(struc.variable.varname, field, field.offset + off)
+		emit_gsave(struc.variable.varname, field, field.offset+off)
 	case AST_STRUCT_REF:
-		emit_assign_struct_ref(struc.structref.struc, field, off + struc.structref.field.offset)
+		emit_assign_struct_ref(struc.structref.struc, field, off+struc.structref.field.offset)
 	case AST_DEREF:
 		v := struc
 		emit("push %%rax")
 		emit_expr(v.unary.operand)
-		emit_assign_deref_int(field, field.offset + off)
+		emit_assign_deref_int(field, field.offset+off)
 	default:
 		_error("internal error: %s", struc)
 	}
@@ -170,14 +170,14 @@ func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
 func emit_load_struct_ref(struc *Ast, field *Ctype, off int) {
 	switch struc.typ {
 	case AST_LVAR:
-		emit_lload(field, struc.variable.loff - field.offset - off)
+		emit_lload(field, struc.variable.loff-field.offset-off)
 	case AST_GVAR:
-		emit_gload(field, struc.variable.glabel, field.offset + off)
+		emit_gload(field, struc.variable.glabel, field.offset+off)
 	case AST_STRUCT_REF:
-		emit_load_struct_ref(struc.structref.struc, field, struc.structref.field.offset + off)
+		emit_load_struct_ref(struc.structref.struc, field, struc.structref.field.offset+off)
 	case AST_DEREF:
 		emit_expr(struc.unary.operand)
-		emit_load_deref(struc.ctype, field, field.offset + off)
+		emit_load_deref(struc.ctype, field, field.offset+off)
 	default:
 		_error("internal error: %s", struc)
 	}
@@ -268,11 +268,10 @@ func emit_inc_dec(ast *Ast, op string) {
 	emit("pop %%rax")
 }
 
-
 func emit_load_deref(result_type *Ctype, operand_type *Ctype, off int) {
 	if operand_type.typ == CTYPE_PTR &&
 		operand_type.ptr.typ == CTYPE_ARRAY {
-			return
+		return
 	}
 	var reg string
 	switch ctype_size(result_type) {
@@ -335,7 +334,7 @@ func emit_expr(ast *Ast) {
 			off := 0
 			for _, v := range ast.decl.declinit.array_initializer.arrayinit {
 				emit_expr(v)
-				emit_lsave(ast.decl.declvar.ctype.ptr, ast.decl.declvar.variable.loff - off)
+				emit_lsave(ast.decl.declvar.ctype.ptr, ast.decl.declvar.variable.loff-off)
 				off += ctype_size(ast.decl.declvar.ctype.ptr)
 			}
 		} else if ast.decl.declvar.ctype.typ == CTYPE_ARRAY {

@@ -488,7 +488,7 @@ func read_cond_expr(cond *Ast) *Ast {
 }
 
 func find_struct_field(struc *Ast, name Cstring) *Ctype {
-	for _,f := range struc.ctype.fields {
+	for _, f := range struc.ctype.fields {
 		if strcmp(f.name, name) == 0 {
 			return f
 		}
@@ -498,7 +498,7 @@ func find_struct_field(struc *Ast, name Cstring) *Ctype {
 
 func read_struct_field(struc *Ast) *Ast {
 	if struc.ctype.typ != CTYPE_STRUCT {
-		_error("struct expected, but got %s", struc);
+		_error("struct expected, but got %s", struc)
 	}
 	name := read_token()
 	if name.typ != TTYPE_IDENT {
@@ -645,8 +645,8 @@ func read_struct_def() *Ctype {
 		} else {
 			size = MAX_ALIGN
 		}
-		if offset % size != 0 {
-			offset += size - offset % size
+		if offset%size != 0 {
+			offset += size - offset%size
 		}
 		fields = append(fields, make_struct_field_type(fieldtype, name.v.sval, offset))
 		offset += size
@@ -662,7 +662,7 @@ func read_decl_int() (*Ctype, *Token) {
 	ctype := read_decl_spec()
 	name := read_token()
 	if name.typ != TTYPE_IDENT {
-		_error("Identifier expected, but got %s",name);
+		_error("Identifier expected, but got %s", name)
 	}
 	ctype = read_array_dimensions(ctype)
 	return ctype, name
@@ -673,7 +673,7 @@ func read_decl_spec() *Ctype {
 	var ctype *Ctype
 	if is_ident(tok, "struct") {
 		ctype = read_struct_def()
-	}  else {
+	} else {
 		ctype = get_ctype(tok)
 	}
 	if ctype == nil {

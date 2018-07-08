@@ -185,6 +185,8 @@ func emit_assign(variable *Ast) {
 		return
 	}
 	switch variable.typ {
+	case AST_DEREF:
+		emit_assign_deref(variable)
 	case AST_STRUCT_REF:
 		emit_assign_struct_ref(variable.structref.struc, variable.structref.field, 0)
 	case AST_LVAR:

@@ -27,7 +27,11 @@ func ctype_size(ctype *Ctype) int {
 
 func emit_gload(ctype *Ctype, label Cstring, off int) {
 	if ctype.typ == CTYPE_ARRAY {
-		emit("lea %s(%%rip), %%rax", label)
+		if off != 0 {
+			emit("lea %s+%d(%%rip), %%rax", label, off)
+		} else {
+			emit("lea %s(%%rip), %%rax", label)
+		}
 		return
 	}
 	var reg string

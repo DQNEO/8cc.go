@@ -199,10 +199,11 @@ func (tok *Token) ToCtring() Cstring {
 		if is_punct(tok, PUNCT_EQ) {
 			return Cstring("==")
 		} else {
-			return Cstring{byte(tok.v.punct), 0}
+
+			return Cstring([]byte{byte(tok.v.punct)})
 		}
 	case TTYPE_CHAR:
-		return Cstring{tok.v.c, 0}
+		return Cstring([]byte{tok.v.c})
 	case TTYPE_INT:
 		return NewCstringFromLiteral(strconv.Itoa(tok.v.ival))
 	case TTYPE_STRING:

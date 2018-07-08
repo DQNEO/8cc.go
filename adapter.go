@@ -64,34 +64,22 @@ func strcmp(a Cstring, b Cstring) int {
 }
 
 func strlen(str Cstring) int {
-	if len(str) == 0 {
-		return 0
-	}
-	return len(str) - 1
+	return len(str)
 }
 
 type Cstring []byte
 
 func (b Cstring) String() string {
-	i := 0
-	for {
-		if b[i] == byte(0) {
-			break
-		}
-		i++
-	}
-	subb := b[0:i]
-	return string(subb)
+	return string(b)
 }
 
 func appendNullByte(b []byte) []byte {
-	return append(b, 0)
+	return b
 }
 
 // "abc" => Cstring("abc\x00")
 func NewCstringFromLiteral(s string) Cstring {
-	b := []byte(s)
-	return Cstring(appendNullByte(b))
+	return []byte(s)
 }
 
 func printf(format string, args ...interface{}) {

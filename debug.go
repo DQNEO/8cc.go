@@ -210,5 +210,5 @@ func (tok *Token) ToCtring() Cstring {
 		return tok.v.sval
 	}
 	errorf("internal error: unknown token type: %d", tok.typ)
-	return nil
+	return ""
 }

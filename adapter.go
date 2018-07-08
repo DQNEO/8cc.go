@@ -67,7 +67,7 @@ func strlen(str Cstring) int {
 	return len(str)
 }
 
-type Cstring []byte
+type Cstring string
 
 func (b Cstring) String() string {
 	return string(b)
@@ -79,7 +79,7 @@ func appendNullByte(b []byte) []byte {
 
 // "abc" => Cstring("abc\x00")
 func NewCstringFromLiteral(s string) Cstring {
-	return []byte(s)
+	return Cstring(s)
 }
 
 func printf(format string, args ...interface{}) {

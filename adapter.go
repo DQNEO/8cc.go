@@ -56,53 +56,6 @@ func isalnum(c byte) bool {
 	return isalpha(c) || byte('0') <= c && c <= byte('9')
 }
 
-func strcmp(a Cstring, b Cstring) int {
-	if strlen(a) != strlen(b) {
-		return -1
-	}
-	for i := 0; i < len(a); i++ {
-		if a[i] != b[i] {
-			return -1
-		}
-		if a[i] == 0 {
-			break
-		}
-	}
-	return 0
-}
-
-func strlen(str Cstring) int {
-	if len(str) == 0 {
-		return 0
-	}
-	var i int
-	for i = 0; str[i] != 0; i++ {
-
-	}
-	return i
-}
-
-type Cstring []byte
-
-func (b Cstring) String() string {
-	i := 0
-	for {
-		if b[i] == byte(0) {
-			break
-		}
-		i++
-	}
-	subb := b[0:i]
-	return string(subb)
-}
-
-// "abc" => Cstring("abc\x00")
-func NewCstringFromLiteral(s string) Cstring {
-	b := []byte(s)
-	b = append(b, byte(0))
-	return Cstring(b)
-}
-
 func printf(format string, args ...interface{}) {
 	fmt.Printf(format, args...)
 }

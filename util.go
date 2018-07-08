@@ -21,9 +21,9 @@ func warn(format string, args ...interface{}) {
 	fmt.Fprintf(os.Stderr, format, args...)
 }
 
-func quote_cstring(sval Cstring) string {
+func quote_cstring(sval string) string {
 	var s string
-	for _, c := range sval {
+	for _, c := range []byte(sval) {
 		if c == byte(0) {
 			break
 		}

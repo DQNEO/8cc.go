@@ -4,14 +4,14 @@ const BUFLEN = 256
 
 var ungotten *Token
 
-func make_ident(s Cstring) *Token {
+func make_ident(s string) *Token {
 	r := &Token{}
 	r.typ = TTYPE_IDENT
 	r.v.sval = s
 	return r
 }
 
-func make_strtok(s Cstring) *Token {
+func make_strtok(s string) *Token {
 	r := &Token{}
 	r.typ = TTYPE_STRING
 	r.v.sval = s
@@ -91,8 +91,7 @@ func read_char() *Token {
 }
 
 func read_string() *Token {
-	buf := make([]byte, BUFLEN)
-	i := 0
+	buf := make([]byte, 0, BUFLEN)
 	for {
 		c, err := getc(stdin)
 		if err != nil {
@@ -114,29 +113,24 @@ func read_string() *Token {
 				errorf("Unknown quote: %c", c)
 			}
 		}
-		buf[i] = c
-		i++
-		if i == BUFLEN-1 {
+		buf = append(buf, c)
+		if len(buf) == BUFLEN-1 {
 			errorf("String too long")
 		}
 	}
-	buf[i] = 0
-	return make_strtok(Cstring(buf))
+	return make_strtok(string(buf))
 }
 
 func read_ident(c byte) *Token {
-	buf := make([]byte, BUFLEN)
-	buf[0] = c
-	i := 1
+	buf := make([]byte, 0, BUFLEN)
+	buf = append(buf, c)
 	for {
 		c2, _ := getc(stdin)
 		if isalnum(c2) || c2 == '_' {
-			buf[i] = c2
-			i++
+			buf = append(buf, c2)
 		} else {
 			ungetc(c2, stdin)
-			buf[i] = 0
-			return make_ident(Cstring(buf))
+			return make_ident(string(buf))
 		}
 	}
 }

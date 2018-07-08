@@ -69,14 +69,14 @@ func ast_char(c byte) *Ast {
 	return r
 }
 
-func make_label() Cstring {
+func make_label() string {
 	seq := labelseq
 	labelseq++
 	s := fmt.Sprintf(".L%d", seq)
-	return NewCstringFromLiteral(s)
+	return s
 }
 
-func ast_lvar(ctype *Ctype, name Cstring) *Ast {
+func ast_lvar(ctype *Ctype, name string) *Ast {
 	r := &Ast{}
 	r.typ = AST_LVAR
 	r.ctype = ctype
@@ -88,7 +88,7 @@ func ast_lvar(ctype *Ctype, name Cstring) *Ast {
 	return r
 }
 
-func ast_gvar(ctype *Ctype, name Cstring, filelocal bool) *Ast {
+func ast_gvar(ctype *Ctype, name string, filelocal bool) *Ast {
 	r := &Ast{}
 	r.typ = AST_GVAR
 	r.ctype = ctype
@@ -103,16 +103,16 @@ func ast_gvar(ctype *Ctype, name Cstring, filelocal bool) *Ast {
 	return r
 }
 
-func ast_string(str Cstring) *Ast {
+func ast_string(str string) *Ast {
 	r := &Ast{}
 	r.typ = AST_STRING
-	r.ctype = make_array_type(ctype_char, strlen(str)+1)
+	r.ctype = make_array_type(ctype_char, len(str)+1)
 	r.str.val = str
 	r.str.slabel = make_label()
 	return r
 }
 
-func ast_funcall(ctype *Ctype, fname Cstring, args []*Ast) *Ast {
+func ast_funcall(ctype *Ctype, fname string, args []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNCALL
 	r.ctype = ctype
@@ -121,7 +121,7 @@ func ast_funcall(ctype *Ctype, fname Cstring, args []*Ast) *Ast {
 	return r
 }
 
-func ast_func(rettype *Ctype, fname Cstring, params []*Ast, localvars []*Ast, body *Ast) *Ast {
+func ast_func(rettype *Ctype, fname string, params []*Ast, localvars []*Ast, body *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNC
 	r.ctype = rettype
@@ -220,7 +220,7 @@ func make_array_type(ctype *Ctype, size int) *Ctype {
 	return r
 }
 
-func make_struct_field_type(ctype *Ctype, name Cstring, offset int) *Ctype {
+func make_struct_field_type(ctype *Ctype, name string, offset int) *Ctype {
 	copy := *ctype
 	r := &copy
 	r.name = name
@@ -228,7 +228,7 @@ func make_struct_field_type(ctype *Ctype, name Cstring, offset int) *Ctype {
 	return r
 }
 
-func make_struct_type(ctypes []*Ctype, tag Cstring) *Ctype {
+func make_struct_type(ctypes []*Ctype, tag string) *Ctype {
 	r := &Ctype{}
 	r.typ = CTYPE_STRUCT
 	r.fields = ctypes
@@ -236,10 +236,10 @@ func make_struct_type(ctypes []*Ctype, tag Cstring) *Ctype {
 	return r
 }
 
-func find_var(name Cstring) *Ast {
+func find_var(name string) *Ast {
 	for p := localenv; p != nil; p = p.next {
 		for _, v := range p.vars {
-			if strcmp(name, v.variable.varname) == 0 {
+			if name == v.variable.varname {
 				return v
 			}
 		}
@@ -257,7 +257,7 @@ func ensure_lvalue(ast *Ast) {
 }
 
 func is_ident(tok *Token, s string) bool {
-	return tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, NewCstringFromLiteral(s)) == 0
+	return tok.typ == TTYPE_IDENT && tok.v.sval == s
 }
 
 func is_right_assoc(tok *Token) bool {
@@ -295,7 +295,7 @@ func priority(tok *Token) int {
 	}
 }
 
-func read_func_args(fname Cstring) *Ast {
+func read_func_args(fname string) *Ast {
 	var args []*Ast
 	for {
 		tok := read_token()
@@ -318,7 +318,7 @@ func read_func_args(fname Cstring) *Ast {
 	return ast_funcall(ctype_int, fname, args)
 }
 
-func read_ident_or_func(name Cstring) *Ast {
+func read_ident_or_func(name string) *Ast {
 	ch := read_token()
 	if is_punct(ch, '(') {
 		return read_func_args(name)
@@ -487,9 +487,9 @@ func read_cond_expr(cond *Ast) *Ast {
 	return ast_ternary(then.ctype, cond, then, els)
 }
 
-func find_struct_field(struc *Ast, name Cstring) *Ctype {
+func find_struct_field(struc *Ast, name string) *Ctype {
 	for _, f := range struc.ctype.fields {
-		if strcmp(f.name, name) == 0 {
+		if f.name == name {
 			return f
 		}
 	}
@@ -561,10 +561,10 @@ func get_ctype(tok *Token) *Ctype {
 		return nil
 	}
 
-	if strcmp(tok.v.sval, NewCstringFromLiteral("int")) == 0 {
+	if tok.v.sval == "int" {
 		return ctype_int
 	}
-	if strcmp(tok.v.sval, NewCstringFromLiteral("char")) == 0 {
+	if tok.v.sval == "char" {
 		return ctype_char
 	}
 
@@ -610,9 +610,9 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 	return ast_array_init(initlist)
 }
 
-func find_struct_def(name Cstring) *Ctype {
+func find_struct_def(name string) *Ctype {
 	for _, t := range struct_defs {
-		if len(t.tag) > 0 && strcmp(t.tag, name) == 0 {
+		if len(t.tag) > 0 && t.tag == name {
 			return t
 		}
 	}
@@ -621,7 +621,7 @@ func find_struct_def(name Cstring) *Ctype {
 
 func read_struct_def() *Ctype {
 	tok := read_token()
-	var tag Cstring
+	var tag string
 	if tok.typ == TTYPE_IDENT {
 		tag = tok.v.sval
 	} else {
@@ -696,7 +696,7 @@ func read_decl_init_val(v *Ast) *Ast {
 		init := read_decl_array_init_int(v.ctype)
 		var length int
 		if init.typ == AST_STRING {
-			length = strlen(init.str.val) + 1
+			length = len(init.str.val) + 1
 		} else {
 			length = len(init.array_initializer.arrayinit)
 		}
@@ -782,7 +782,7 @@ func read_if_stmt() *Ast {
 	expect(')')
 	then := read_stmt()
 	tok := read_token()
-	if tok == nil || tok.typ != TTYPE_IDENT || strcmp(tok.v.sval, NewCstringFromLiteral("else")) != 0 {
+	if tok == nil || tok.typ != TTYPE_IDENT ||tok.v.sval != "else" {
 		unget_token(tok)
 		return ast_if(cond, then, nil)
 	}
@@ -917,7 +917,7 @@ func read_params() []*Ast {
 	return params // this is never reached
 }
 
-func read_func_def(rettype *Ctype, fname []byte) *Ast {
+func read_func_def(rettype *Ctype, fname string) *Ast {
 	expect('(')
 	localenv = make_env(globalenv)
 	params := read_params()

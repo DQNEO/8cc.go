@@ -118,8 +118,7 @@ func read_string() *Token {
 			errorf("String too long")
 		}
 	}
-	buf = append(buf, 0)
-	return make_strtok(Cstring(buf))
+	return make_strtok(Cstring(appendNullByte(buf)))
 }
 
 func read_ident(c byte) *Token {
@@ -131,8 +130,7 @@ func read_ident(c byte) *Token {
 			buf = append(buf, c2)
 		} else {
 			ungetc(c2, stdin)
-			buf = append(buf, 0)
-			return make_ident(Cstring(buf))
+			return make_ident(Cstring(appendNullByte(buf)))
 		}
 	}
 }

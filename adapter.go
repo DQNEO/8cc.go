@@ -96,6 +96,10 @@ func (b Cstring) String() string {
 	return string(subb)
 }
 
+func appendNullByte(b []byte) []byte {
+	return append(b, 0)
+}
+
 // "abc" => Cstring("abc\x00")
 func NewCstringFromLiteral(s string) Cstring {
 	b := []byte(s)

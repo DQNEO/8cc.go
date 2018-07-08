@@ -20,6 +20,16 @@ func (ctype *Ctype) String() string {
 		return fmt.Sprintf("*%s", ctype.ptr)
 	case CTYPE_ARRAY:
 		return fmt.Sprintf("[%d]%s", ctype.size, ctype.ptr)
+	case CTYPE_STRUCT:
+		s := "(struct"
+		if len(ctype.tag) > 0 {
+			s += fmt.Sprintf(" %s", ctype.tag)
+		}
+		for _, field := range ctype.fields {
+			s += fmt.Sprintf(" (%s)", field)
+		}
+		s += ")"
+		return s
 	default:
 		_error("Unknown ctype: %d", ctype)
 	}
@@ -137,6 +147,11 @@ func (ast *Ast) String() string {
 		}
 		s += "}"
 		return s
+	case AST_STRUCT_REF:
+		s := ast.structref.struc.String()
+		s += "."
+		s += ast.structref.field.name.String()
+		return s
 	case AST_ADDR:
 		return uop_to_string("addr", ast)
 	case AST_DEREF:
@@ -196,4 +211,3 @@ func (tok *Token) ToCtring() Cstring {
 	_error("internal error: unknown token type: %d", tok.typ)
 	return nil
 }
-

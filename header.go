@@ -34,6 +34,7 @@ const (
 	AST_FOR
 	AST_RETURN
 	AST_COMPOUND_STMT
+	AST_STRUCT_REF
 	PUNCT_EQ
 	PUNCT_INC
 	PUNCT_DEC
@@ -47,12 +48,17 @@ const (
 	CTYPE_CHAR
 	CTYPE_ARRAY
 	CTYPE_PTR
+	CTYPE_STRUCT
 )
 
 type Ctype struct {
-	typ  int
-	ptr  *Ctype
-	size int
+	typ    int
+	ptr    *Ctype  // pointer or array
+	size   int     // array
+	name   Cstring // struct field
+	tag    Cstring // struct
+	fields []*Ctype
+	offset int // struct
 }
 
 type Ast struct {
@@ -119,11 +125,16 @@ type Ast struct {
 	compound struct {
 		stmts []*Ast
 	}
+	structref struct {
+		struc *Ast
+		field *Ctype
+	}
 }
 
 type Env struct {
-	vars []*Ast
-	next *Env
+	vars    []*Ast
+	next    *Env
+	structs []*Ast
 }
 
 var EMPTY_ENV = Env{}

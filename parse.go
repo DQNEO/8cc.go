@@ -7,14 +7,16 @@ import (
 
 const MAX_ARGS = 6
 const MAX_OP_PRIO = 16
+const MAX_ALIGN = 16
 
 var globalenv = &EMPTY_ENV
+var struct_defs []*Ctype
 var localenv *Env
 var localvars []*Ast
 var labelseq = 0
 
-var ctype_int = &Ctype{CTYPE_INT, nil, 0}
-var ctype_char = &Ctype{CTYPE_CHAR, nil, 0}
+var ctype_int = &Ctype{CTYPE_INT, nil, 0, nil, nil, nil, 0}
+var ctype_char = &Ctype{CTYPE_CHAR, nil, 0, nil, nil, nil, 0}
 
 func make_env(next *Env) *Env {
 	r := &Env{}
@@ -194,6 +196,15 @@ func ast_compound_stmt(stmts []*Ast) *Ast {
 	return r
 }
 
+func ast_struct_ref(struc *Ast, field *Ctype) *Ast {
+	r := &Ast{}
+	r.typ = AST_STRUCT_REF
+	r.ctype = field
+	r.structref.struc = struc
+	r.structref.field = field
+	return r
+}
+
 func make_ptr_type(ctype *Ctype) *Ctype {
 	r := &Ctype{}
 	r.typ = CTYPE_PTR
@@ -206,6 +217,22 @@ func make_array_type(ctype *Ctype, size int) *Ctype {
 	r.typ = CTYPE_ARRAY
 	r.ptr = ctype
 	r.size = size
+	return r
+}
+
+func make_struct_field_type(ctype *Ctype, name Cstring, offset int) *Ctype {
+	copy := *ctype
+	r := &copy
+	r.name = name
+	r.offset = offset
+	return r
+}
+
+func make_struct_type(ctypes []*Ctype, tag Cstring) *Ctype {
+	r := &Ctype{}
+	r.typ = CTYPE_STRUCT
+	r.fields = ctypes
+	r.tag = tag
 	return r
 }
 
@@ -222,11 +249,15 @@ func find_var(name Cstring) *Ast {
 
 func ensure_lvalue(ast *Ast) {
 	switch ast.typ {
-	case AST_LVAR, AST_GVAR, AST_DEREF:
+	case AST_LVAR, AST_GVAR, AST_DEREF, AST_STRUCT_REF:
 		return
 	}
 	_error("lvalue expected, but got %s", ast)
 	return
+}
+
+func is_ident(tok *Token, s string) bool {
+	return tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, NewCstringFromLiteral(s)) == 0
 }
 
 func is_right_assoc(tok *Token) bool {
@@ -235,6 +266,8 @@ func is_right_assoc(tok *Token) bool {
 
 func priority(tok *Token) int {
 	switch tok.v.punct {
+	case '.':
+		return 1
 	case PUNCT_INC, PUNCT_DEC:
 		return 2
 	case '*', '/':
@@ -454,6 +487,27 @@ func read_cond_expr(cond *Ast) *Ast {
 	return ast_ternary(then.ctype, cond, then, els)
 }
 
+func find_struct_field(struc *Ast, name Cstring) *Ctype {
+	for _, f := range struc.ctype.fields {
+		if strcmp(f.name, name) == 0 {
+			return f
+		}
+	}
+	return nil
+}
+
+func read_struct_field(struc *Ast) *Ast {
+	if struc.ctype.typ != CTYPE_STRUCT {
+		_error("struct expected, but got %s", struc)
+	}
+	name := read_token()
+	if name.typ != TTYPE_IDENT {
+		_error("field name expected, but got %s", name)
+	}
+	field := find_struct_field(struc, name.v.sval)
+	return ast_struct_ref(struc, field)
+}
+
 func read_expr_int(prec int) *Ast {
 	ast := read_unary_expr()
 	if ast == nil {
@@ -473,6 +527,10 @@ func read_expr_int(prec int) *Ast {
 
 		if is_punct(tok, '?') {
 			ast = read_cond_expr(ast)
+			continue
+		}
+		if is_punct(tok, '.') {
+			ast = read_struct_field(ast)
 			continue
 		}
 		if is_punct(tok, '=') {
@@ -514,7 +572,7 @@ func get_ctype(tok *Token) *Ctype {
 }
 
 func is_type_keyword(tok *Token) bool {
-	return get_ctype(tok) != nil
+	return get_ctype(tok) != nil || is_ident(tok, "struct")
 }
 
 func expect(punct byte) {
@@ -552,9 +610,72 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 	return ast_array_init(initlist)
 }
 
+func find_struct_def(name Cstring) *Ctype {
+	for _, t := range struct_defs {
+		if len(t.tag) > 0 && strcmp(t.tag, name) == 0 {
+			return t
+		}
+	}
+	return nil
+}
+
+func read_struct_def() *Ctype {
+	tok := read_token()
+	var tag Cstring
+	if tok.typ == TTYPE_IDENT {
+		tag = tok.v.sval
+	} else {
+		unget_token(tok)
+	}
+	ctype := find_struct_def(tag)
+	var fields []*Ctype
+	if ctype != nil {
+		return ctype
+	}
+	expect('{')
+	offset := 0
+	for {
+		if !is_type_keyword(peek_token()) {
+			break
+		}
+		fieldtype, name := read_decl_int()
+		size := ctype_size(fieldtype)
+		if size < MAX_ALIGN {
+
+		} else {
+			size = MAX_ALIGN
+		}
+		if offset%size != 0 {
+			offset += size - offset%size
+		}
+		fields = append(fields, make_struct_field_type(fieldtype, name.v.sval, offset))
+		offset += size
+		expect(';')
+	}
+	expect('}')
+	r := make_struct_type(fields, tag)
+	struct_defs = append(struct_defs, r)
+	return r
+}
+
+func read_decl_int() (*Ctype, *Token) {
+	ctype := read_decl_spec()
+	name := read_token()
+	if name.typ != TTYPE_IDENT {
+		_error("Identifier expected, but got %s", name)
+	}
+	ctype = read_array_dimensions(ctype)
+	return ctype, name
+}
+
 func read_decl_spec() *Ctype {
 	tok := read_token()
-	ctype := get_ctype(tok)
+	var ctype *Ctype
+	if is_ident(tok, "struct") {
+		ctype = read_struct_def()
+	} else {
+		ctype = get_ctype(tok)
+	}
 	if ctype == nil {
 		_error("Type expected, but got %s", tok)
 	}
@@ -650,12 +771,7 @@ func read_decl_init(variable *Ast) *Ast {
 }
 
 func read_decl() *Ast {
-	ctype := read_decl_spec()
-	varname := read_token()
-	if varname.typ != TTYPE_IDENT {
-		_error("Identifier expected, but got %s", varname)
-	}
-	ctype = read_array_dimensions(ctype)
+	ctype, varname := read_decl_int()
 	variable := ast_lvar(ctype, varname.v.sval)
 	return read_decl_init(variable)
 }
@@ -715,10 +831,6 @@ func read_return_stmt() *Ast {
 	retval := read_expr()
 	expect(';')
 	return ast_return(retval)
-}
-
-func is_ident(tok *Token, s string) bool {
-	return tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, NewCstringFromLiteral(s)) == 0
 }
 
 func read_stmt() *Ast {

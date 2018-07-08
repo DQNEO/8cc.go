@@ -1,3 +1,4 @@
+# Go
 * strcmp is messy than that of C language
-* null terminated []byte is boring
+* replace Cstring by string
 * determine union or struct problem

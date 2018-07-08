@@ -186,7 +186,7 @@ func (ast *Ast) String() string {
 
 func (tok *Token) String() string {
 	if tok == nil {
-		return NewCstringFromLiteral("(null)")
+		return "(null)"
 	}
 	switch tok.typ {
 	case TTYPE_IDENT:
@@ -201,7 +201,7 @@ func (tok *Token) String() string {
 	case TTYPE_CHAR:
 		return string([]byte{tok.v.c})
 	case TTYPE_INT:
-		return NewCstringFromLiteral(strconv.Itoa(tok.v.ival))
+		return strconv.Itoa(tok.v.ival)
 	case TTYPE_STRING:
 		return tok.v.sval
 	}

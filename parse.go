@@ -73,7 +73,7 @@ func make_label() string {
 	seq := labelseq
 	labelseq++
 	s := fmt.Sprintf(".L%d", seq)
-	return NewCstringFromLiteral(s)
+	return s
 }
 
 func ast_lvar(ctype *Ctype, name string) *Ast {
@@ -106,7 +106,7 @@ func ast_gvar(ctype *Ctype, name string, filelocal bool) *Ast {
 func ast_string(str string) *Ast {
 	r := &Ast{}
 	r.typ = AST_STRING
-	r.ctype = make_array_type(ctype_char, strlen(str)+1)
+	r.ctype = make_array_type(ctype_char, len(str)+1)
 	r.str.val = str
 	r.str.slabel = make_label()
 	return r
@@ -239,7 +239,7 @@ func make_struct_type(ctypes []*Ctype, tag string) *Ctype {
 func find_var(name string) *Ast {
 	for p := localenv; p != nil; p = p.next {
 		for _, v := range p.vars {
-			if strcmp(name, v.variable.varname) == 0 {
+			if name == v.variable.varname {
 				return v
 			}
 		}
@@ -257,7 +257,7 @@ func ensure_lvalue(ast *Ast) {
 }
 
 func is_ident(tok *Token, s string) bool {
-	return tok.typ == TTYPE_IDENT && strcmp(tok.v.sval, NewCstringFromLiteral(s)) == 0
+	return tok.typ == TTYPE_IDENT && tok.v.sval == s
 }
 
 func is_right_assoc(tok *Token) bool {
@@ -489,7 +489,7 @@ func read_cond_expr(cond *Ast) *Ast {
 
 func find_struct_field(struc *Ast, name string) *Ctype {
 	for _, f := range struc.ctype.fields {
-		if strcmp(f.name, name) == 0 {
+		if f.name == name {
 			return f
 		}
 	}
@@ -561,10 +561,10 @@ func get_ctype(tok *Token) *Ctype {
 		return nil
 	}
 
-	if strcmp(tok.v.sval, NewCstringFromLiteral("int")) == 0 {
+	if tok.v.sval == "int" {
 		return ctype_int
 	}
-	if strcmp(tok.v.sval, NewCstringFromLiteral("char")) == 0 {
+	if tok.v.sval == "char" {
 		return ctype_char
 	}
 
@@ -612,7 +612,7 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 
 func find_struct_def(name string) *Ctype {
 	for _, t := range struct_defs {
-		if len(t.tag) > 0 && strcmp(t.tag, name) == 0 {
+		if len(t.tag) > 0 && t.tag == name {
 			return t
 		}
 	}
@@ -696,7 +696,7 @@ func read_decl_init_val(v *Ast) *Ast {
 		init := read_decl_array_init_int(v.ctype)
 		var length int
 		if init.typ == AST_STRING {
-			length = strlen(init.str.val) + 1
+			length = len(init.str.val) + 1
 		} else {
 			length = len(init.array_initializer.arrayinit)
 		}
@@ -782,7 +782,7 @@ func read_if_stmt() *Ast {
 	expect(')')
 	then := read_stmt()
 	tok := read_token()
-	if tok == nil || tok.typ != TTYPE_IDENT || strcmp(tok.v.sval, NewCstringFromLiteral("else")) != 0 {
+	if tok == nil || tok.typ != TTYPE_IDENT ||tok.v.sval != "else" {
 		unget_token(tok)
 		return ast_if(cond, then, nil)
 	}

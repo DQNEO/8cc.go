@@ -57,29 +57,17 @@ func isalnum(c byte) bool {
 }
 
 func strcmp(a Cstring, b Cstring) int {
-	if strlen(a) != strlen(b) {
-		return -1
+	if string(a) == string(b) {
+		return 0
 	}
-	for i := 0; i < len(a); i++ {
-		if a[i] != b[i] {
-			return -1
-		}
-		if a[i] == 0 {
-			break
-		}
-	}
-	return 0
+	return 1
 }
 
 func strlen(str Cstring) int {
 	if len(str) == 0 {
 		return 0
 	}
-	var i int
-	for i = 0; str[i] != 0; i++ {
-
-	}
-	return i
+	return len(str) - 1
 }
 
 type Cstring []byte
@@ -103,8 +91,7 @@ func appendNullByte(b []byte) []byte {
 // "abc" => Cstring("abc\x00")
 func NewCstringFromLiteral(s string) Cstring {
 	b := []byte(s)
-	b = append(b, byte(0))
-	return Cstring(b)
+	return Cstring(appendNullByte(b))
 }
 
 func printf(format string, args ...interface{}) {

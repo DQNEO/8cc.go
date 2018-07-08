@@ -91,8 +91,7 @@ func read_char() *Token {
 }
 
 func read_string() *Token {
-	buf := make([]byte, BUFLEN)
-	i := 0
+	buf := make([]byte, 0, BUFLEN)
 	for {
 		c, err := getc(stdin)
 		if err != nil {
@@ -114,28 +113,25 @@ func read_string() *Token {
 				errorf("Unknown quote: %c", c)
 			}
 		}
-		buf[i] = c
-		i++
-		if i == BUFLEN-1 {
+		buf = append(buf, c)
+		if len(buf) == BUFLEN-1 {
 			errorf("String too long")
 		}
 	}
-	buf[i] = 0
+	buf = append(buf, 0)
 	return make_strtok(Cstring(buf))
 }
 
 func read_ident(c byte) *Token {
-	buf := make([]byte, BUFLEN)
-	buf[0] = c
-	i := 1
+	buf := make([]byte, 0, BUFLEN)
+	buf = append(buf, c)
 	for {
 		c2, _ := getc(stdin)
 		if isalnum(c2) || c2 == '_' {
-			buf[i] = c2
-			i++
+			buf = append(buf, c2)
 		} else {
 			ungetc(c2, stdin)
-			buf[i] = 0
+			buf = append(buf, 0)
 			return make_ident(Cstring(buf))
 		}
 	}

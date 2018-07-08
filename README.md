@@ -1,4 +1,4 @@
-# 8cc.go C Compiler by Go
+# 8cc.go C Compiler
 
 8cc.go is a C Compiler written in Go. It's a port of 8cc (https://github.com/rui314/8cc)
 

@@ -246,15 +246,16 @@ func emit_binop(ast *Ast) {
 		_error("invalid operator '%d", ast.typ)
 	}
 
-	emit_expr(ast.binop.right)
-	emit("push %%rax")
 	emit_expr(ast.binop.left)
+	emit("push %%rax")
+	emit_expr(ast.binop.right)
+	emit("mov %%rax, %%rcx")
 	if ast.typ == '/' {
-		emit("pop %%rcx")
+		emit("pop %%rax")
 		emit("mov $0, %%edx")
 		emit("idiv %%rcx")
 	} else {
-		emit("pop %%rcx")
+		emit("pop %%rax")
 		emit("%s %%rcx, %%rax", op)
 	}
 }

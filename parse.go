@@ -917,7 +917,7 @@ func read_params() []*Ast {
 	return params // this is never reached
 }
 
-func read_func_def(rettype *Ctype, fname []byte) *Ast {
+func read_func_def(rettype *Ctype, fname Cstring) *Ast {
 	expect('(')
 	localenv = make_env(globalenv)
 	params := read_params()

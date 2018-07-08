@@ -134,6 +134,7 @@ type Ast struct {
 type Env struct {
 	vars []*Ast
 	next *Env
+	structs []*Ast
 }
 
 var EMPTY_ENV = Env{}

@@ -185,12 +185,12 @@ func emit_assign(variable *Ast) {
 		return
 	}
 	switch variable.typ {
+	case AST_STRUCT_REF:
+		emit_assign_struct_ref(variable.structref.struc, variable.structref.field, 0)
 	case AST_LVAR:
 		emit_lsave(variable.ctype, variable.variable.loff)
 	case AST_GVAR:
 		emit_gsave(variable.variable.varname, variable.ctype, 0)
-	case AST_STRUCT_REF:
-		emit_assign_struct_ref(variable.structref.struc, variable.structref.field, 0)
 	default:
 		_error("internal error")
 	}

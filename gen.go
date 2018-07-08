@@ -342,8 +342,14 @@ func emit_expr(ast *Ast) {
 			emit_lsave(ast.decl.declvar.ctype, ast.decl.declvar.variable.loff)
 		}
 	case AST_ADDR:
-		assert(ast.unary.operand.typ == AST_LVAR)
-		emit("lea %d(%%rbp), %%rax", -ast.unary.operand.variable.loff)
+		switch ast.unary.operand.typ {
+		case AST_LVAR:
+			emit("lea %d(%%rbp), %%rax", -ast.unary.operand.variable.loff)
+		case AST_GVAR:
+			emit("lea %s(%%rip), %%rax", ast.unary.operand.variable.glabel)
+		default:
+			_error("internal error")
+		}
 	case AST_DEREF:
 		emit_expr(ast.unary.operand)
 		emit_load_deref(ast.ctype, ast.unary.operand.ctype, 0)

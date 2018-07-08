@@ -252,7 +252,7 @@ func ensure_lvalue(ast *Ast) {
 	case AST_LVAR, AST_GVAR, AST_DEREF, AST_STRUCT_REF:
 		return
 	}
-	_error("lvalue expected, but got %s", ast)
+	errorf("lvalue expected, but got %s", ast)
 	return
 }
 
@@ -309,11 +309,11 @@ func read_func_args(fname Cstring) *Ast {
 			break
 		}
 		if !is_punct(tok, ',') {
-			_error("Unexpected token: '%s'", tok)
+			errorf("Unexpected token: '%s'", tok)
 		}
 	}
 	if MAX_ARGS < len(args) {
-		_error("Too many arguments: %s", fname)
+		errorf("Too many arguments: %s", fname)
 	}
 	return ast_funcall(ctype_int, fname, args)
 }
@@ -327,7 +327,7 @@ func read_ident_or_func(name Cstring) *Ast {
 
 	v := find_var(name)
 	if v == nil {
-		_error("Undefined varaible: %s", name)
+		errorf("Undefined varaible: %s", name)
 	}
 	return v
 }
@@ -349,9 +349,9 @@ func read_prim() *Ast {
 		env_append(globalenv, r)
 		return r
 	case TTYPE_PUNCT:
-		_error("unexpected character: '%c'", tk.v.punct)
+		errorf("unexpected character: '%c'", tk.v.punct)
 	default:
-		_error("Don't know how to handle '%d'", tk.typ)
+		errorf("Don't know how to handle '%d'", tk.typ)
 	}
 
 	return nil
@@ -392,7 +392,7 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 		case CTYPE_PTR:
 			return b, nil
 		}
-		_error("internal error")
+		errorf("internal error")
 	case CTYPE_ARRAY:
 		if b.typ != CTYPE_ARRAY {
 			return nil, default_err
@@ -400,7 +400,7 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 
 		return result_type_int(op, a.ptr, b.ptr)
 	default:
-		_error("internal error: %s %s", a, b)
+		errorf("internal error: %s %s", a, b)
 	}
 
 	return nil, default_err
@@ -442,7 +442,7 @@ func convert_array(ctype *Ctype) *Ctype {
 func result_type(op byte, a *Ctype, b *Ctype) *Ctype {
 	ret, err := result_type_int(op, convert_array(a), convert_array(b))
 	if err != nil {
-		_error("incompatible operands: %c: <%s> and <%s>",
+		errorf("incompatible operands: %c: <%s> and <%s>",
 			op, a, b)
 	}
 	return ret
@@ -468,7 +468,7 @@ func read_unary_expr() *Ast {
 		operand := read_unary_expr()
 		ctype := convert_array(operand.ctype) // looks no need to call convert_array.
 		if ctype.typ != CTYPE_PTR {
-			_error("pointer type expected, but got %", ctype)
+			errorf("pointer type expected, but got %", ctype)
 		}
 		return ast_uop(AST_DEREF, operand.ctype.ptr, operand)
 	}
@@ -498,11 +498,11 @@ func find_struct_field(struc *Ast, name Cstring) *Ctype {
 
 func read_struct_field(struc *Ast) *Ast {
 	if struc.ctype.typ != CTYPE_STRUCT {
-		_error("struct expected, but got %s", struc)
+		errorf("struct expected, but got %s", struc)
 	}
 	name := read_token()
 	if name.typ != TTYPE_IDENT {
-		_error("field name expected, but got %s", name)
+		errorf("field name expected, but got %s", name)
 	}
 	field := find_struct_field(struc, name.v.sval)
 	return ast_struct_ref(struc, field)
@@ -578,7 +578,7 @@ func is_type_keyword(tok *Token) bool {
 func expect(punct byte) {
 	tok := read_token()
 	if !is_punct(tok, int(punct)) {
-		_error("'%c' expected but got %s", punct, tok)
+		errorf("'%c' expected but got %s", punct, tok)
 	}
 }
 
@@ -589,7 +589,7 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 	}
 
 	if !is_punct(tok, '{') {
-		_error("Expected an initializer list, but got %s", tok)
+		errorf("Expected an initializer list, but got %s", tok)
 	}
 	var initlist []*Ast
 	for {
@@ -662,7 +662,7 @@ func read_decl_int() (*Ctype, *Token) {
 	ctype := read_decl_spec()
 	name := read_token()
 	if name.typ != TTYPE_IDENT {
-		_error("Identifier expected, but got %s", name)
+		errorf("Identifier expected, but got %s", name)
 	}
 	ctype = read_array_dimensions(ctype)
 	return ctype, name
@@ -677,7 +677,7 @@ func read_decl_spec() *Ctype {
 		ctype = get_ctype(tok)
 	}
 	if ctype == nil {
-		_error("Type expected, but got %s", tok)
+		errorf("Type expected, but got %s", tok)
 	}
 	for {
 		tok = read_token()
@@ -703,7 +703,7 @@ func read_decl_init_val(v *Ast) *Ast {
 		if v.ctype.size == -1 {
 			v.ctype.size = length
 		} else if v.ctype.size != length {
-			_error("Invalid array initializer: expected %d items but got %d",
+			errorf("Invalid array initializer: expected %d items but got %d",
 				v.ctype.size, length)
 		}
 		expect(';')
@@ -719,7 +719,7 @@ func read_decl_init_val(v *Ast) *Ast {
 
 func check_intexp(ast *Ast) {
 	if ast.typ != AST_LITERAL || ast.ctype.typ != CTYPE_INT {
-		_error("Integer expected, but got %s", ast)
+		errorf("Integer expected, but got %s", ast)
 	}
 }
 
@@ -740,7 +740,7 @@ func read_array_dimensions_int() *Ctype {
 	sub := read_array_dimensions_int()
 	if sub != nil {
 		if sub.size == -1 && dim == -1 {
-			_error("Array size is not specified")
+			errorf("Array size is not specified")
 		}
 		return make_array_type(sub, dim)
 	}
@@ -899,7 +899,7 @@ func read_params() []*Ast {
 		ctype := read_decl_spec()
 		pname := read_token()
 		if pname.typ != TTYPE_IDENT {
-			_error("Identifier expected, but got %s", pname)
+			errorf("Identifier expected, but got %s", pname)
 		}
 		ctype = read_array_dimensions(ctype)
 		if ctype.typ == CTYPE_ARRAY {
@@ -911,7 +911,7 @@ func read_params() []*Ast {
 			return params
 		}
 		if !is_punct(tok, ',') {
-			_error("Comma expected, but got %s", tok)
+			errorf("Comma expected, but got %s", tok)
 		}
 	}
 	return params // this is never reached
@@ -938,7 +938,7 @@ func read_decl_or_func_def() *Ast {
 	ctype := read_decl_spec()
 	name := read_token()
 	if name.typ != TTYPE_IDENT {
-		_error("Identifier name expected, but got %s", name)
+		errorf("Identifier name expected, but got %s", name)
 	}
 	ctype = read_array_dimensions(ctype)
 	tok = peek_token()
@@ -954,7 +954,7 @@ func read_decl_or_func_def() *Ast {
 		gvar := ast_gvar(ctype, name.v.sval, false)
 		return ast_decl(gvar, nil)
 	}
-	_error("Don't know how to handle %s", tok)
+	errorf("Don't know how to handle %s", tok)
 	return nil
 }
 

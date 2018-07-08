@@ -20,7 +20,7 @@ func ctype_size(ctype *Ctype) int {
 		last := ctype.fields[len(ctype.fields)-1]
 		return last.offset + ctype_size(last)
 	default:
-		_error("internal error")
+		errorf("internal error")
 	}
 	return -1
 }
@@ -45,7 +45,7 @@ func emit_gload(ctype *Ctype, label Cstring, off int) {
 	case 8:
 		reg = "rax"
 	default:
-		_error("Unknown data size: %s: %d", ctype, size)
+		errorf("Unknown data size: %s: %d", ctype, size)
 	}
 
 	if off != 0 {
@@ -70,7 +70,7 @@ func emit_lload(ctype *Ctype, off int) {
 	case 8:
 		emit("mov %d(%%rbp), %%rax", -off)
 	default:
-		_error("Unknown data size: %s: %d", ctype, size)
+		errorf("Unknown data size: %s: %d", ctype, size)
 	}
 }
 
@@ -87,7 +87,7 @@ func emit_gsave(varname Cstring, ctype *Ctype, off int) {
 	case 8:
 		reg = "rax"
 	default:
-		_error("Unknown data size: %s: %d", ctype, size)
+		errorf("Unknown data size: %s: %d", ctype, size)
 	}
 
 	if off != 0 {
@@ -163,7 +163,7 @@ func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
 		emit_expr(v.unary.operand)
 		emit_assign_deref_int(field, field.offset+off)
 	default:
-		_error("internal error: %s", struc)
+		errorf("internal error: %s", struc)
 	}
 }
 
@@ -179,7 +179,7 @@ func emit_load_struct_ref(struc *Ast, field *Ctype, off int) {
 		emit_expr(struc.unary.operand)
 		emit_load_deref(struc.ctype, field, field.offset+off)
 	default:
-		_error("internal error: %s", struc)
+		errorf("internal error: %s", struc)
 	}
 }
 
@@ -198,7 +198,7 @@ func emit_assign(variable *Ast) {
 	case AST_GVAR:
 		emit_gsave(variable.variable.varname, variable.ctype, 0)
 	default:
-		_error("internal error")
+		errorf("internal error")
 	}
 }
 
@@ -243,7 +243,7 @@ func emit_binop(ast *Ast) {
 	case '/':
 		break
 	default:
-		_error("invalid operator '%d", ast.typ)
+		errorf("invalid operator '%d", ast.typ)
 	}
 
 	emit_expr(ast.binop.left)
@@ -302,7 +302,7 @@ func emit_expr(ast *Ast) {
 		case CTYPE_CHAR:
 			emit("mov $%d, %%rax", ast.c)
 		default:
-			_error("internal error")
+			errorf("internal error")
 		}
 	case AST_STRING:
 		emit("lea %s(%%rip), %%rax", ast.str.slabel)
@@ -358,7 +358,7 @@ func emit_expr(ast *Ast) {
 		case AST_GVAR:
 			emit("lea %s(%%rip), %%rax", ast.unary.operand.variable.glabel)
 		default:
-			_error("internal error")
+			errorf("internal error")
 		}
 	case AST_DEREF:
 		emit_expr(ast.unary.operand)
@@ -467,7 +467,7 @@ func emit_data_section() {
 			emit("%s:", v.str.slabel)
 			emit(".string \"%s\"", quote_cstring(v.str.val))
 		} else if v.typ != AST_GVAR {
-			_error("internal error: %s", v)
+			errorf("internal error: %s", v)
 		}
 	}
 }
@@ -483,7 +483,7 @@ func ceil8(n int) int {
 
 func emit_func_prologue(fn *Ast) {
 	if len(fn.fnc.params) > len(REGS) {
-		_error("Parameter list too long: %s", fn.fnc.fname)
+		errorf("Parameter list too long: %s", fn.fnc.fname)
 	}
 	emit(".text")
 	emit(".global %s\n", fn.fnc.fname)
@@ -526,7 +526,7 @@ func emit_data_int(data *Ast) {
 	case 8:
 		emit(".quad %d", data.ival)
 	default:
-		_error("internal error")
+		errorf("internal error")
 	}
 }
 
@@ -563,6 +563,6 @@ func emit_toplevel(v *Ast) {
 	} else if v.typ == AST_DECL {
 		emit_global_var(v)
 	} else {
-		_error("internal error")
+		errorf("internal error")
 	}
 }

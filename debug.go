@@ -31,7 +31,7 @@ func (ctype *Ctype) String() string {
 		s += ")"
 		return s
 	default:
-		_error("Unknown ctype: %d", ctype)
+		errorf("Unknown ctype: %d", ctype)
 	}
 
 	return ""
@@ -59,7 +59,7 @@ func (ast *Ast) String() string {
 		case CTYPE_CHAR:
 			return fmt.Sprintf("'%c'", ast.c)
 		default:
-			_error("internal error")
+			errorf("internal error")
 			return ""
 		}
 	case AST_STRING:
@@ -208,6 +208,6 @@ func (tok *Token) ToCtring() Cstring {
 	case TTYPE_STRING:
 		return tok.v.sval
 	}
-	_error("internal error: unknown token type: %d", tok.typ)
+	errorf("internal error: unknown token type: %d", tok.typ)
 	return nil
 }

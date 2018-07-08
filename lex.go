@@ -70,21 +70,21 @@ func read_number(c byte) *Token {
 func read_char() *Token {
 	c, err := getc(stdin)
 	if err != nil {
-		_error("Unterminated char")
+		errorf("Unterminated char")
 	}
 	if c == '\\' {
 		c, err = getc(stdin)
 		if err != nil {
-			_error("Unterminated char")
+			errorf("Unterminated char")
 		}
 	}
 
 	c2, err := getc(stdin)
 	if err != nil {
-		_error("Unterminated char")
+		errorf("Unterminated char")
 	}
 	if c2 != '\'' {
-		_error("Malformed char constant")
+		errorf("Malformed char constant")
 	}
 
 	return make_char(c)
@@ -96,7 +96,7 @@ func read_string() *Token {
 	for {
 		c, err := getc(stdin)
 		if err != nil {
-			_error("Unterminated string")
+			errorf("Unterminated string")
 		}
 		if c == '"' {
 			break
@@ -104,20 +104,20 @@ func read_string() *Token {
 		if c == '\\' {
 			c, err = getc(stdin)
 			if err != nil {
-				_error("Unterminated \\")
+				errorf("Unterminated \\")
 			}
 			switch c {
 			case '"':
 			case 'n':
 				c = '\n'
 			default:
-				_error("Unknown quote: %c", c)
+				errorf("Unknown quote: %c", c)
 			}
 		}
 		buf[i] = c
 		i++
 		if i == BUFLEN-1 {
-			_error("String too long")
+			errorf("String too long")
 		}
 	}
 	buf[i] = 0
@@ -183,7 +183,7 @@ func read_token_init() *Token {
 	case c == '\'':
 		return read_char()
 	default:
-		_error("Don't know how to handle '%c'", c)
+		errorf("Don't know how to handle '%c'", c)
 	}
 
 	return nil
@@ -198,7 +198,7 @@ func unget_token(tok *Token) {
 		return
 	}
 	if ungotten != nil {
-		_error("Push back buffer is already full")
+		errorf("Push back buffer is already full")
 	}
 	ungotten = tok
 }

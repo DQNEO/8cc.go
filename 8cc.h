@@ -149,6 +149,7 @@ typedef struct Ast {
 typedef struct Env {
   List *vars;
   struct Env *next;
+  struct List *structs;
 } Env;
 
 #define EMPTY_ENV                               \

@@ -102,6 +102,7 @@ testast '(int)f(){(| 1 2);}' '1|2;'
 testastf '(int)f(int c){c;}' 'int f(int c){c;}'
 testastf '(int)f(int c){c;}(int)g(int d){d;}' 'int f(int c){c;} int g(int d){d;}'
 testastf '(decl int a 3)' 'int a=3;'
+
 testastf '(decl (struct) a)' 'struct {} a;'
 testastf '(decl (struct (int) (char)) a)' 'struct {int x; char y;} a;'
 testast '(int)f(){(decl (struct (int)) a);a.x;}' 'struct {int x;} a; a.x;'
@@ -214,16 +215,13 @@ test 1 '1&3;'
 
 # Struct
 test 61 'struct {int a;} x; x.a = 61; x.a;'
-test 61 'struct {int a; int b[2];} x; x.a = 61; x.a;'
 test 63 'struct {int a; int b;} x; x.a = 61; x.b = 2; x.a + x.b;'
-test 63 'struct tag {int a; int b;} x; struct tag s; s.a = 61; s.b = 2; s.a + s.b;' # my test for tag
 test 67 'struct {int a; struct {char b; int c;} y; } x; x.a = 61; x.y.b = 3; x.y.c = 3; x.a + x.y.b + x.y.c;'
 test 67 'struct tag {int a; struct {char b; int c;} y; } x; struct tag s; s.a = 61; s.y.b = 3; s.y.c = 3; s.a + s.y.b + s.y.c;'
 test 68 'struct tag {int a;} x; struct tag *p = &x; x.a = 68; (*p).a;'
 test 69 'struct tag {int a;} x; struct tag *p = &x; (*p).a = 69; x.a;'
 test 71 'struct tag {int a; int b;} x; struct tag *p = &x; x.b = 71; (*p).b;'
 test 72 'struct tag {int a; int b;} x; struct tag *p = &x; (*p).b = 72; x.b;'
-
 testf 67 'struct {int a; struct {char b; int c;} y; } x; int f() { x.a = 61; x.y.b = 3; x.y.c = 3; x.a + x.y.b + x.y.c;}'
 testf 78 'struct tag {int a;} x; int f() { struct tag *p = &x; x.a = 78; (*p).a;}'
 testf 79 'struct tag {int a;} x; int f() { struct tag *p = &x; (*p).a = 79; x.a;}'

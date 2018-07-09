@@ -143,7 +143,12 @@ static Token *read_token_int(void) {
       return make_punct(c);
     case '=': return read_rep('=', '=', PUNCT_EQ);
     case '+': return read_rep('+', '+', PUNCT_INC);
-    case '-': return read_rep('-', '-', PUNCT_DEC);
+    case '-':
+      c = getc(stdin);
+      if (c == '-') return make_punct(PUNCT_DEC);
+      if (c == '>') return make_punct(PUNCT_ARROW);
+      ungetc(c, stdin);
+      return make_punct('-');
     case '&': return read_rep('&', '&', PUNCT_LOGAND);
     case '|': return read_rep('|', '|', PUNCT_LOGOR);
     case '"': return read_string();

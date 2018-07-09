@@ -771,6 +771,9 @@ func read_decl_init(variable *Ast) *Ast {
 	if is_punct(tok, '=') {
 		return read_decl_init_val(variable)
 	}
+	if variable.ctype.len == -1 {
+		errorf("Missing array initializer")
+	}
 	unget_token(tok)
 	expect(';')
 	return ast_decl(variable, nil)

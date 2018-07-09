@@ -516,6 +516,10 @@ func read_expr_int(prec int) *Ast {
 			continue
 		}
 		if is_punct(tok, PUNCT_ARROW) {
+			if ast.ctype.typ != CTYPE_PTR {
+				errorf("pointer type expected, but got %s %s",
+					ast.ctype, ast)
+			}
 			ast = ast_uop(AST_DEREF, ast.ctype.ptr, ast)
 			ast = read_struct_field(ast)
 			continue

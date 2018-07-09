@@ -678,14 +678,21 @@ func read_decl_int() (*Ctype, *Token) {
 	return ctype, name
 }
 
+func read_union_def() *Ctype {
+	return read_struct_def()
+}
+
 func read_decl_spec() *Ctype {
 	tok := read_token()
 	var ctype *Ctype
-	if is_ident(tok, "struct") || is_ident(tok, "union") {
+	if is_ident(tok, "struct") {
 		ctype = read_struct_def()
+	} else if is_ident(tok, "union") {
+		ctype = read_union_def()
 	} else {
 		ctype = get_ctype(tok)
 	}
+
 	if ctype == nil {
 		errorf("Type expected, but got %s", tok)
 	}

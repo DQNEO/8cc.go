@@ -478,7 +478,7 @@ func emit_func_prologue(fn *Ast) {
 		off += ceil8(v.ctype.size)
 		v.loff = off
 	}
-	if off > 0 {
+	if off != 0 {
 		emit("sub $%d, %%rsp", off)
 	}
 }

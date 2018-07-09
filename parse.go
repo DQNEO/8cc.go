@@ -15,8 +15,8 @@ var localenv *Env
 var localvars []*Ast
 var labelseq = 0
 
-var ctype_int = &Ctype{typ:CTYPE_INT}
-var ctype_char = &Ctype{typ:CTYPE_CHAR}
+var ctype_int = &Ctype{typ:CTYPE_INT, size:4,}
+var ctype_char = &Ctype{typ:CTYPE_CHAR, size:1,}
 
 func make_env(next *Env) *Env {
 	r := &Env{}
@@ -209,6 +209,7 @@ func make_ptr_type(ctype *Ctype) *Ctype {
 	r := &Ctype{}
 	r.typ = CTYPE_PTR
 	r.ptr = ctype
+	r.size = 8
 	return r
 }
 
@@ -217,6 +218,11 @@ func make_array_type(ctype *Ctype, len int) *Ctype {
 	r.typ = CTYPE_ARRAY
 	r.ptr = ctype
 	r.len = len
+	if len < 0 {
+		r.size = -1
+	} else {
+		r.size = ctype_size(r.ptr) * len
+	}
 	return r
 }
 
@@ -228,11 +234,12 @@ func make_struct_field_type(ctype *Ctype, name string, offset int) *Ctype {
 	return r
 }
 
-func make_struct_type(ctypes []*Ctype, tag string) *Ctype {
+func make_struct_type(ctypes []*Ctype, tag string, size int) *Ctype {
 	r := &Ctype{}
 	r.typ = CTYPE_STRUCT
 	r.fields = ctypes
 	r.tag = tag
+	r.size = size
 	return r
 }
 
@@ -656,7 +663,7 @@ func read_struct_def() *Ctype {
 		expect(';')
 	}
 	expect('}')
-	r := make_struct_type(fields, tag)
+	r := make_struct_type(fields, tag, offset)
 	struct_defs = append(struct_defs, r)
 	return r
 }
@@ -705,6 +712,7 @@ func read_decl_init_val(v *Ast) *Ast {
 		}
 		if v.ctype.len == -1 {
 			v.ctype.len = length
+			v.ctype.size = v.ctype.ptr.size * length
 		} else if v.ctype.len != length {
 			errorf("Invalid array initializer: expected %d items but got %d",
 				v.ctype.len, length)

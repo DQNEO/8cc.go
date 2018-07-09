@@ -7,22 +7,7 @@ func emit(format string, args ...interface{}) {
 }
 
 func ctype_size(ctype *Ctype) int {
-	switch ctype.typ {
-	case CTYPE_CHAR:
-		return 1
-	case CTYPE_INT:
-		return 4
-	case CTYPE_PTR:
-		return 8
-	case CTYPE_ARRAY:
-		return ctype_size(ctype.ptr) * ctype.len
-	case CTYPE_STRUCT:
-		last := ctype.fields[len(ctype.fields)-1]
-		return last.offset + ctype_size(last)
-	default:
-		errorf("internal error")
-	}
-	return -1
+	return ctype.size
 }
 
 func emit_gload(ctype *Ctype, label string, off int) {

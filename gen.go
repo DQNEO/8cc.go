@@ -132,8 +132,8 @@ func emit_assign_deref_int(ctype *Ctype, off int) {
 
 func emit_assign_deref(variable *Ast) {
 	emit("push %%rax")
-	emit_expr(variable.unary.operand)
-	emit_assign_deref_int(variable.unary.operand.ctype, 0)
+	emit_expr(variable.operand)
+	emit_assign_deref_int(variable.operand.ctype, 0)
 }
 
 func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
@@ -152,15 +152,15 @@ func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
 func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
 	switch struc.typ {
 	case AST_LVAR:
-		emit_lsave(field, struc.variable.loff-field.offset-off)
+		emit_lsave(field, struc.loff-field.offset-off)
 	case AST_GVAR:
-		emit_gsave(struc.variable.varname, field, field.offset+off)
+		emit_gsave(struc.varname, field, field.offset+off)
 	case AST_STRUCT_REF:
-		emit_assign_struct_ref(struc.structref.struc, field, off+struc.structref.field.offset)
+		emit_assign_struct_ref(struc.struc, field, off+struc.field.offset)
 	case AST_DEREF:
 		v := struc
 		emit("push %%rax")
-		emit_expr(v.unary.operand)
+		emit_expr(v.operand)
 		emit_assign_deref_int(field, field.offset+off)
 	default:
 		errorf("internal error: %s", struc)
@@ -170,13 +170,13 @@ func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
 func emit_load_struct_ref(struc *Ast, field *Ctype, off int) {
 	switch struc.typ {
 	case AST_LVAR:
-		emit_lload(field, struc.variable.loff-field.offset-off)
+		emit_lload(field, struc.loff-field.offset-off)
 	case AST_GVAR:
-		emit_gload(field, struc.variable.glabel, field.offset+off)
+		emit_gload(field, struc.glabel, field.offset+off)
 	case AST_STRUCT_REF:
-		emit_load_struct_ref(struc.structref.struc, field, struc.structref.field.offset+off)
+		emit_load_struct_ref(struc.struc, field, struc.field.offset+off)
 	case AST_DEREF:
-		emit_expr(struc.unary.operand)
+		emit_expr(struc.operand)
 		emit_load_deref(struc.ctype, field, field.offset+off)
 	default:
 		errorf("internal error: %s", struc)
@@ -192,11 +192,11 @@ func emit_assign(variable *Ast) {
 	case AST_DEREF:
 		emit_assign_deref(variable)
 	case AST_STRUCT_REF:
-		emit_assign_struct_ref(variable.structref.struc, variable.structref.field, 0)
+		emit_assign_struct_ref(variable.struc, variable.field, 0)
 	case AST_LVAR:
-		emit_lsave(variable.ctype, variable.variable.loff)
+		emit_lsave(variable.ctype, variable.loff)
 	case AST_GVAR:
-		emit_gsave(variable.variable.varname, variable.ctype, 0)
+		emit_gsave(variable.varname, variable.ctype, 0)
 	default:
 		errorf("internal error")
 	}
@@ -214,25 +214,25 @@ func emit_comp(inst string, a *Ast, b *Ast) {
 
 func emit_binop(ast *Ast) {
 	if ast.typ == '=' {
-		emit_expr(ast.binop.right)
-		emit_assign(ast.binop.left)
+		emit_expr(ast.right)
+		emit_assign(ast.left)
 		return
 	}
 	if ast.typ == PUNCT_EQ {
-		emit_comp("sete", ast.binop.left, ast.binop.right)
+		emit_comp("sete", ast.left, ast.right)
 		return
 	}
 	if ast.ctype.typ == CTYPE_PTR {
-		emit_pointer_arith(byte(ast.typ), ast.binop.left, ast.binop.right)
+		emit_pointer_arith(byte(ast.typ), ast.left, ast.right)
 		return
 	}
 	var op string
 	switch ast.typ {
 	case '<':
-		emit_comp("setl", ast.binop.left, ast.binop.right)
+		emit_comp("setl", ast.left, ast.right)
 		return
 	case '>':
-		emit_comp("setg", ast.binop.left, ast.binop.right)
+		emit_comp("setg", ast.left, ast.right)
 		return
 	case '+':
 		op = "add"
@@ -246,9 +246,9 @@ func emit_binop(ast *Ast) {
 		errorf("invalid operator '%d", ast.typ)
 	}
 
-	emit_expr(ast.binop.left)
+	emit_expr(ast.left)
 	emit("push %%rax")
-	emit_expr(ast.binop.right)
+	emit_expr(ast.right)
 	emit("mov %%rax, %%rcx")
 	if ast.typ == '/' {
 		emit("pop %%rax")
@@ -261,10 +261,10 @@ func emit_binop(ast *Ast) {
 }
 
 func emit_inc_dec(ast *Ast, op string) {
-	emit_expr(ast.unary.operand)
+	emit_expr(ast.operand)
 	emit("push %%rax")
 	emit("%s $1, %%rax", op)
-	emit_assign(ast.unary.operand)
+	emit_assign(ast.operand)
 	emit("pop %%rax")
 }
 
@@ -305,136 +305,136 @@ func emit_expr(ast *Ast) {
 			errorf("internal error")
 		}
 	case AST_STRING:
-		emit("lea %s(%%rip), %%rax", ast.str.slabel)
+		emit("lea %s(%%rip), %%rax", ast.slabel)
 	case AST_LVAR:
-		emit_lload(ast.ctype, ast.variable.loff)
+		emit_lload(ast.ctype, ast.loff)
 	case AST_GVAR:
-		emit_gload(ast.ctype, ast.variable.glabel, 0)
+		emit_gload(ast.ctype, ast.glabel, 0)
 	case AST_FUNCALL:
-		for i := 1; i < len(ast.fnc.args); i++ {
+		for i := 1; i < len(ast.args); i++ {
 			emit("push %%%s", REGS[i])
 		}
-		for _, v := range ast.fnc.args {
+		for _, v := range ast.args {
 			emit_expr(v)
 			emit("push %%rax")
 		}
-		for i := len(ast.fnc.args) - 1; i >= 0; i-- {
+		for i := len(ast.args) - 1; i >= 0; i-- {
 			emit("pop %%%s", REGS[i])
 		}
 		emit("mov $0, %%eax")
-		emit("call %s", ast.fnc.fname)
-		for i := len(ast.fnc.args) - 1; i > 0; i-- {
+		emit("call %s", ast.fname)
+		for i := len(ast.args) - 1; i > 0; i-- {
 			emit("pop %%%s", REGS[i])
 		}
 	case AST_DECL:
-		if ast.decl.declinit == nil {
+		if ast.declinit == nil {
 			return
 		}
-		if ast.decl.declinit.typ == AST_ARRAY_INIT {
+		if ast.declinit.typ == AST_ARRAY_INIT {
 			off := 0
-			for _, v := range ast.decl.declinit.array_initializer.arrayinit {
+			for _, v := range ast.declinit.arrayinit {
 				emit_expr(v)
-				emit_lsave(ast.decl.declvar.ctype.ptr, ast.decl.declvar.variable.loff-off)
-				off += ctype_size(ast.decl.declvar.ctype.ptr)
+				emit_lsave(ast.declvar.ctype.ptr, ast.declvar.loff-off)
+				off += ctype_size(ast.declvar.ctype.ptr)
 			}
-		} else if ast.decl.declvar.ctype.typ == CTYPE_ARRAY {
-			assert(ast.decl.declinit.typ == AST_STRING)
+		} else if ast.declvar.ctype.typ == CTYPE_ARRAY {
+			assert(ast.declinit.typ == AST_STRING)
 			var i int
-			for i, char := range ast.decl.declinit.str.val {
-				emit("movb $%d, %d(%%rbp)", char, -(ast.decl.declvar.variable.loff - i))
+			for i, char := range ast.declinit.val {
+				emit("movb $%d, %d(%%rbp)", char, -(ast.declvar.loff - i))
 			}
-			emit("movb $0, %d(%%rbp)", -(ast.decl.declvar.variable.loff - i))
-		} else if ast.decl.declinit.typ == AST_STRING {
-			emit_gload(ast.decl.declinit.ctype, ast.decl.declinit.str.slabel, 0)
-			emit_lsave(ast.decl.declvar.ctype, ast.decl.declvar.variable.loff)
+			emit("movb $0, %d(%%rbp)", -(ast.declvar.loff - i))
+		} else if ast.declinit.typ == AST_STRING {
+			emit_gload(ast.declinit.ctype, ast.declinit.slabel, 0)
+			emit_lsave(ast.declvar.ctype, ast.declvar.loff)
 		} else {
-			emit_expr(ast.decl.declinit)
-			emit_lsave(ast.decl.declvar.ctype, ast.decl.declvar.variable.loff)
+			emit_expr(ast.declinit)
+			emit_lsave(ast.declvar.ctype, ast.declvar.loff)
 		}
 	case AST_ADDR:
-		switch ast.unary.operand.typ {
+		switch ast.operand.typ {
 		case AST_LVAR:
-			emit("lea %d(%%rbp), %%rax", -ast.unary.operand.variable.loff)
+			emit("lea %d(%%rbp), %%rax", -ast.operand.loff)
 		case AST_GVAR:
-			emit("lea %s(%%rip), %%rax", ast.unary.operand.variable.glabel)
+			emit("lea %s(%%rip), %%rax", ast.operand.glabel)
 		default:
 			errorf("internal error")
 		}
 	case AST_DEREF:
-		emit_expr(ast.unary.operand)
-		emit_load_deref(ast.ctype, ast.unary.operand.ctype, 0)
+		emit_expr(ast.operand)
+		emit_load_deref(ast.ctype, ast.operand.ctype, 0)
 	case AST_IF, AST_TERNARY:
-		emit_expr(ast._if.cond)
+		emit_expr(ast.cond)
 		ne := make_label()
 		emit("test %%rax, %%rax")
 		emit("je %s", ne)
-		emit_expr(ast._if.then)
-		if ast._if.els != nil {
+		emit_expr(ast.then)
+		if ast.els != nil {
 			end := make_label()
 			emit("jmp %s", end)
 			emit("%s:", ne)
-			emit_expr(ast._if.els)
+			emit_expr(ast.els)
 			emit("%s:", end)
 		} else {
 			emit("%s:", ne)
 		}
 	case AST_FOR:
-		if ast._for.init != nil {
-			emit_expr(ast._for.init)
+		if ast.init != nil {
+			emit_expr(ast.init)
 		}
 		begin := make_label()
 		end := make_label()
 		emit("%s:", begin)
-		if ast._for.cond != nil {
-			emit_expr(ast._for.cond)
+		if ast.cond != nil {
+			emit_expr(ast.cond)
 			emit("test %%rax, %%rax")
 			emit("je %s", end)
 		}
-		emit_expr(ast._for.body)
-		if ast._for.step != nil {
-			emit_expr(ast._for.step)
+		emit_expr(ast.body)
+		if ast.step != nil {
+			emit_expr(ast.step)
 		}
 		emit("jmp %s", begin)
 		emit("%s:", end)
 	case AST_RETURN:
-		emit_expr(ast._return.retval)
+		emit_expr(ast.retval)
 		emit("leave")
 		emit("ret")
 		break
 	case AST_COMPOUND_STMT:
-		for _, v := range ast.compound.stmts {
+		for _, v := range ast.stmts {
 			emit_expr(v)
 		}
 	case AST_STRUCT_REF:
-		emit_load_struct_ref(ast.structref.struc, ast.structref.field, 0)
+		emit_load_struct_ref(ast.struc, ast.field, 0)
 	case PUNCT_INC:
 		emit_inc_dec(ast, "add")
 	case PUNCT_DEC:
 		emit_inc_dec(ast, "sub")
 	case '!':
-		emit_expr(ast.unary.operand)
+		emit_expr(ast.operand)
 		emit("cmp $0, %%rax")
 		emit("sete %%al")
 		emit("movzb %%al, %%eax")
 	case '&':
-		emit_expr(ast.binop.left)
+		emit_expr(ast.left)
 		emit("push %%rax")
-		emit_expr(ast.binop.right)
+		emit_expr(ast.right)
 		emit("pop %%rcx")
 		emit("and %%rcx, %%rax")
 	case '|':
-		emit_expr(ast.binop.left)
+		emit_expr(ast.left)
 		emit("push %%rax")
-		emit_expr(ast.binop.right)
+		emit_expr(ast.right)
 		emit("pop %%rcx")
 		emit("or %%rcx, %%rax")
 	case PUNCT_LOGAND:
 		end := make_label()
-		emit_expr(ast.binop.left)
+		emit_expr(ast.left)
 		emit("test %%rax, %%rax")
 		emit("mov $0, %%rax")
 		emit("je %s", end)
-		emit_expr(ast.binop.right)
+		emit_expr(ast.right)
 		emit("test %%rax, %%rax")
 		emit("mov $0, %%rax")
 		emit("je %s", end)
@@ -442,11 +442,11 @@ func emit_expr(ast *Ast) {
 		emit("%s:", end)
 	case PUNCT_LOGOR:
 		end := make_label()
-		emit_expr(ast.binop.left)
+		emit_expr(ast.left)
 		emit("test %%rax, %%rax")
 		emit("mov $1, %%rax")
 		emit("jne %s", end)
-		emit_expr(ast.binop.right)
+		emit_expr(ast.right)
 		emit("test %%rax, %%rax")
 		emit("mov $1, %%rax")
 		emit("jne %s", end)
@@ -464,8 +464,8 @@ func emit_data_section() {
 	emit(".data")
 	for _, v := range globalenv.vars {
 		if v.typ == AST_STRING {
-			emit("%s:", v.str.slabel)
-			emit(".string \"%s\"", quote_cstring(v.str.val))
+			emit("%s:", v.slabel)
+			emit(".string \"%s\"", quote_cstring(v.val))
 		} else if v.typ != AST_GVAR {
 			errorf("internal error: %s", v)
 		}
@@ -482,25 +482,25 @@ func ceil8(n int) int {
 }
 
 func emit_func_prologue(fn *Ast) {
-	if len(fn.fnc.params) > len(REGS) {
-		errorf("Parameter list too long: %s", fn.fnc.fname)
+	if len(fn.params) > len(REGS) {
+		errorf("Parameter list too long: %s", fn.fname)
 	}
 	emit(".text")
-	emit(".global %s\n", fn.fnc.fname)
-	emit("%s:", fn.fnc.fname)
+	emit(".global %s\n", fn.fname)
+	emit("%s:", fn.fname)
 	emit("push %%rbp")
 	emit("mov %%rsp, %%rbp")
 	off := 0
 	ri := 0
-	for _, v := range fn.fnc.params {
+	for _, v := range fn.params {
 		emit("push %%%s", REGS[ri])
 		ri++
 		off += ceil8(ctype_size(v.ctype))
-		v.variable.loff = off
+		v.loff = off
 	}
-	for _, v := range fn.fnc.localvars {
+	for _, v := range fn.localvars {
 		off += ceil8(ctype_size(v.ctype))
-		v.variable.loff = off
+		v.loff = off
 	}
 	if off > 0 {
 		emit("sub $%d, %%rsp", off)
@@ -531,24 +531,24 @@ func emit_data_int(data *Ast) {
 }
 
 func emit_data(v *Ast) {
-	emit_label(".global %s", v.decl.declvar.variable.varname)
-	emit_label("%s:", v.decl.declvar.variable.varname)
-	if v.decl.declinit.typ == AST_ARRAY_INIT {
-		for _, v := range v.decl.declinit.array_initializer.arrayinit {
+	emit_label(".global %s", v.declvar.varname)
+	emit_label("%s:", v.declvar.varname)
+	if v.declinit.typ == AST_ARRAY_INIT {
+		for _, v := range v.declinit.arrayinit {
 			emit_data_int(v)
 		}
 		return
 	}
-	assert(v.decl.declinit.typ == AST_LITERAL && v.decl.declinit.ctype.typ == CTYPE_INT)
-	emit_data_int(v.decl.declinit)
+	assert(v.declinit.typ == AST_LITERAL && v.declinit.ctype.typ == CTYPE_INT)
+	emit_data_int(v.declinit)
 }
 
 func emit_bss(v *Ast) {
-	emit(".lcomm %s, %d", v.decl.declvar.variable.varname, ctype_size(v.decl.declvar.ctype))
+	emit(".lcomm %s, %d", v.declvar.varname, ctype_size(v.declvar.ctype))
 }
 
 func emit_global_var(v *Ast) {
-	if v.decl.declinit != nil {
+	if v.declinit != nil {
 		emit_data(v)
 	} else {
 		emit_bss(v)
@@ -558,7 +558,7 @@ func emit_global_var(v *Ast) {
 func emit_toplevel(v *Ast) {
 	if v.typ == AST_FUNC {
 		emit_func_prologue(v)
-		emit_expr(v.fnc.body)
+		emit_expr(v.body)
 		emit_func_epilogue()
 	} else if v.typ == AST_DECL {
 		emit_global_var(v)

@@ -40,11 +40,11 @@ func (ctype *Ctype) String() string {
 type Block []*Ast
 
 func uop_to_string(op string, ast *Ast) string {
-	return fmt.Sprintf("(%s %s)", op, ast.unary.operand)
+	return fmt.Sprintf("(%s %s)", op, ast.operand)
 }
 
 func binop_to_string(op string, ast *Ast) string {
-	return fmt.Sprintf("(%s %s %s)", op, ast.binop.left, ast.binop.right)
+	return fmt.Sprintf("(%s %s %s)", op, ast.left, ast.right)
 }
 
 func (ast *Ast) String() string {
@@ -63,16 +63,16 @@ func (ast *Ast) String() string {
 			return ""
 		}
 	case AST_STRING:
-		return fmt.Sprintf("\"%s\"", quote_cstring(ast.str.val))
+		return fmt.Sprintf("\"%s\"", quote_cstring(ast.val))
 	case AST_LVAR:
-		return fmt.Sprintf("%s", ast.variable.varname)
+		return fmt.Sprintf("%s", ast.varname)
 	case AST_GVAR:
-		return fmt.Sprintf("%s", ast.variable.varname)
+		return fmt.Sprintf("%s", ast.varname)
 	case AST_FUNCALL:
-		s := fmt.Sprintf("(%s)%s(", ast.ctype, ast.fnc.fname)
-		for i, v := range ast.fnc.args {
+		s := fmt.Sprintf("(%s)%s(", ast.ctype, ast.fname)
+		for i, v := range ast.args {
 			s += v.String()
-			if i < len(ast.fnc.args)-1 {
+			if i < len(ast.args)-1 {
 				s += ","
 			}
 		}
@@ -81,36 +81,36 @@ func (ast *Ast) String() string {
 	case AST_FUNC:
 		s := fmt.Sprintf("(%s)%s(",
 			ast.ctype,
-			ast.fnc.fname)
-		for i, p := range ast.fnc.params {
+			ast.fname)
+		for i, p := range ast.params {
 			s += fmt.Sprintf("%s %s", p.ctype, p)
-			if i < (len(ast.fnc.params) - 1) {
+			if i < (len(ast.params) - 1) {
 				s += ","
 			}
 		}
 		s += ")"
-		s += ast.fnc.body.String()
+		s += ast.body.String()
 		return s
 	case AST_DECL:
 		var vname string
-		if ast.decl.declvar.typ == AST_GVAR {
-			vname = ast.decl.declvar.variable.varname
+		if ast.declvar.typ == AST_GVAR {
+			vname = ast.declvar.varname
 		} else {
-			vname = ast.decl.declvar.variable.varname
+			vname = ast.declvar.varname
 		}
 		s := fmt.Sprintf("(decl %s %s",
-			ast.decl.declvar.ctype,
+			ast.declvar.ctype,
 			vname)
-		if ast.decl.declinit != nil {
-			s += fmt.Sprintf(" %s", ast.decl.declinit)
+		if ast.declinit != nil {
+			s += fmt.Sprintf(" %s", ast.declinit)
 		}
 		s += ")"
 		return s
 	case AST_ARRAY_INIT:
 		s := "{"
-		for i, v := range ast.array_initializer.arrayinit {
+		for i, v := range ast.arrayinit {
 			s += v.String()
-			if i != len(ast.array_initializer.arrayinit)-1 {
+			if i != len(ast.arrayinit)-1 {
 				s += ","
 			}
 		}
@@ -118,39 +118,39 @@ func (ast *Ast) String() string {
 		return s
 	case AST_IF:
 		s := fmt.Sprintf("(if %s %s",
-			ast._if.cond,
-			ast._if.then)
-		if ast._if.els != nil {
-			s += fmt.Sprintf(" %s", ast._if.els)
+			ast.cond,
+			ast.then)
+		if ast.els != nil {
+			s += fmt.Sprintf(" %s", ast.els)
 		}
 		s += ")"
 		return s
 	case AST_TERNARY:
 		return fmt.Sprintf("(? %s %s %s)",
-			ast._if.cond,
-			ast._if.then,
-			ast._if.els)
+			ast.cond,
+			ast.then,
+			ast.els)
 	case AST_FOR:
 		s := fmt.Sprintf("(for %s %s %s %s)",
-			ast._for.init,
-			ast._for.cond,
-			ast._for.step,
-			ast._for.body)
+			ast.init,
+			ast.cond,
+			ast.step,
+			ast.body)
 		return s
 	case AST_RETURN:
-		return fmt.Sprintf("(return %s)", ast._return.retval)
+		return fmt.Sprintf("(return %s)", ast.retval)
 	case AST_COMPOUND_STMT:
 		s := "{"
-		for _, v := range ast.compound.stmts {
+		for _, v := range ast.stmts {
 			s += v.String()
 			s += ";"
 		}
 		s += "}"
 		return s
 	case AST_STRUCT_REF:
-		s := ast.structref.struc.String()
+		s := ast.struc.String()
 		s += "."
-		s += ast.structref.field.name
+		s += ast.field.name
 		return s
 	case AST_ADDR:
 		return uop_to_string("addr", ast)
@@ -171,8 +171,8 @@ func (ast *Ast) String() string {
 	case '|':
 		return binop_to_string("|", ast)
 	default:
-		left := ast.binop.left
-		right := ast.binop.right
+		left := ast.left
+		right := ast.right
 		var s string
 		if ast.typ == PUNCT_EQ {
 			s += "(== "
@@ -190,20 +190,20 @@ func (tok *Token) String() string {
 	}
 	switch tok.typ {
 	case TTYPE_IDENT:
-		return tok.v.sval
+		return tok.sval
 	case TTYPE_PUNCT:
 		if is_punct(tok, PUNCT_EQ) {
 			return "=="
 		} else {
 
-			return string([]byte{byte(tok.v.punct)})
+			return string([]byte{byte(tok.punct)})
 		}
 	case TTYPE_CHAR:
-		return string([]byte{tok.v.c})
+		return string([]byte{tok.c})
 	case TTYPE_INT:
-		return strconv.Itoa(tok.v.ival)
+		return strconv.Itoa(tok.ival)
 	case TTYPE_STRING:
-		return tok.v.sval
+		return tok.sval
 	}
 	errorf("internal error: unknown token type: %d", tok.typ)
 	return ""

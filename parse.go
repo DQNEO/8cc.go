@@ -34,7 +34,7 @@ func ast_uop(typ int, ctype *Ctype, operand *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
 	r.ctype = ctype
-	r.unary.operand = operand
+	r.operand = operand
 	return r
 }
 
@@ -44,11 +44,11 @@ func ast_binop(typ int, left *Ast, right *Ast) *Ast {
 	r.ctype = result_type(byte(typ), left.ctype, right.ctype)
 	if typ != '=' && convert_array(left.ctype).typ != CTYPE_PTR &&
 		convert_array(right.ctype).typ == CTYPE_PTR {
-		r.binop.left = right
-		r.binop.right = left
+		r.left = right
+		r.right = left
 	} else {
-		r.binop.left = left
-		r.binop.right = right
+		r.left = left
+		r.right = right
 	}
 	return r
 }
@@ -80,7 +80,7 @@ func ast_lvar(ctype *Ctype, name string) *Ast {
 	r := &Ast{}
 	r.typ = AST_LVAR
 	r.ctype = ctype
-	r.variable.varname = name
+	r.varname = name
 	env_append(localenv, r)
 	if localvars != nil {
 		localvars = append(localvars, r)
@@ -92,11 +92,11 @@ func ast_gvar(ctype *Ctype, name string, filelocal bool) *Ast {
 	r := &Ast{}
 	r.typ = AST_GVAR
 	r.ctype = ctype
-	r.variable.varname = name
+	r.varname = name
 	if filelocal {
-		r.variable.glabel = make_label()
+		r.glabel = make_label()
 	} else {
-		r.variable.glabel = name
+		r.glabel = name
 	}
 	globalenv.vars = append(globalenv.vars, r)
 	env_append(globalenv, r)
@@ -107,8 +107,8 @@ func ast_string(str string) *Ast {
 	r := &Ast{}
 	r.typ = AST_STRING
 	r.ctype = make_array_type(ctype_char, len(str)+1)
-	r.str.val = str
-	r.str.slabel = make_label()
+	r.val = str
+	r.slabel = make_label()
 	return r
 }
 
@@ -116,8 +116,8 @@ func ast_funcall(ctype *Ctype, fname string, args []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNCALL
 	r.ctype = ctype
-	r.fnc.fname = fname
-	r.fnc.args = args
+	r.fname = fname
+	r.args = args
 	return r
 }
 
@@ -125,10 +125,10 @@ func ast_func(rettype *Ctype, fname string, params []*Ast, localvars []*Ast, bod
 	r := &Ast{}
 	r.typ = AST_FUNC
 	r.ctype = rettype
-	r.fnc.fname = fname
-	r.fnc.params = params
-	r.fnc.localvars = localvars
-	r.fnc.body = body
+	r.fname = fname
+	r.params = params
+	r.localvars = localvars
+	r.body = body
 	return r
 }
 
@@ -136,8 +136,8 @@ func ast_decl(variable *Ast, init *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_DECL
 	r.ctype = nil
-	r.decl.declvar = variable
-	r.decl.declinit = init
+	r.declvar = variable
+	r.declinit = init
 	return r
 }
 
@@ -145,7 +145,7 @@ func ast_array_init(arrayinit []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_ARRAY_INIT
 	r.ctype = nil
-	r.array_initializer.arrayinit = arrayinit
+	r.arrayinit = arrayinit
 	return r
 }
 
@@ -153,9 +153,9 @@ func ast_if(cond *Ast, then *Ast, els *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_IF
 	r.ctype = nil
-	r._if.cond = cond
-	r._if.then = then
-	r._if.els = els
+	r.cond = cond
+	r.then = then
+	r.els = els
 	return r
 }
 
@@ -163,9 +163,9 @@ func ast_ternary(ctype *Ctype, cond *Ast, then *Ast, els *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_TERNARY
 	r.ctype = ctype
-	r._if.cond = cond
-	r._if.then = then
-	r._if.els = els
+	r.cond = cond
+	r.then = then
+	r.els = els
 	return r
 }
 
@@ -173,10 +173,10 @@ func ast_for(init *Ast, cond *Ast, step *Ast, body *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FOR
 	r.ctype = nil
-	r._for.init = init
-	r._for.cond = cond
-	r._for.step = step
-	r._for.body = body
+	r.init = init
+	r.cond = cond
+	r.step = step
+	r.body = body
 	return r
 }
 
@@ -184,7 +184,7 @@ func ast_return(retval *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_RETURN
 	r.ctype = nil
-	r._return.retval = retval
+	r.retval = retval
 	return r
 }
 
@@ -192,7 +192,7 @@ func ast_compound_stmt(stmts []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_COMPOUND_STMT
 	r.ctype = nil
-	r.compound.stmts = stmts
+	r.stmts = stmts
 	return r
 }
 
@@ -200,8 +200,8 @@ func ast_struct_ref(struc *Ast, field *Ctype) *Ast {
 	r := &Ast{}
 	r.typ = AST_STRUCT_REF
 	r.ctype = field
-	r.structref.struc = struc
-	r.structref.field = field
+	r.struc = struc
+	r.field = field
 	return r
 }
 
@@ -239,7 +239,7 @@ func make_struct_type(ctypes []*Ctype, tag string) *Ctype {
 func find_var(name string) *Ast {
 	for p := localenv; p != nil; p = p.next {
 		for _, v := range p.vars {
-			if name == v.variable.varname {
+			if name == v.varname {
 				return v
 			}
 		}
@@ -257,15 +257,15 @@ func ensure_lvalue(ast *Ast) {
 }
 
 func is_ident(tok *Token, s string) bool {
-	return tok.typ == TTYPE_IDENT && tok.v.sval == s
+	return tok.typ == TTYPE_IDENT && tok.sval == s
 }
 
 func is_right_assoc(tok *Token) bool {
-	return tok.v.punct == '='
+	return tok.punct == '='
 }
 
 func priority(tok *Token) int {
-	switch tok.v.punct {
+	switch tok.punct {
 	case '.':
 		return 1
 	case PUNCT_INC, PUNCT_DEC:
@@ -339,17 +339,17 @@ func read_prim() *Ast {
 	}
 	switch tk.typ {
 	case TTYPE_IDENT:
-		return read_ident_or_func(tk.v.sval)
+		return read_ident_or_func(tk.sval)
 	case TTYPE_INT:
-		return ast_int(tk.v.ival)
+		return ast_int(tk.ival)
 	case TTYPE_CHAR:
-		return ast_char(tk.v.c)
+		return ast_char(tk.c)
 	case TTYPE_STRING:
-		r := ast_string(tk.v.sval)
+		r := ast_string(tk.sval)
 		env_append(globalenv, r)
 		return r
 	case TTYPE_PUNCT:
-		errorf("unexpected character: '%c'", tk.v.punct)
+		errorf("unexpected character: '%c'", tk.punct)
 	default:
 		errorf("Don't know how to handle '%d'", tk.typ)
 	}
@@ -424,7 +424,7 @@ func read_postfix_expr() *Ast {
 			r = read_subscript_expr(r)
 		} else if is_punct(tok, PUNCT_INC) || is_punct(tok, PUNCT_DEC) {
 			ensure_lvalue(r)
-			r = ast_uop(tok.v.punct, r.ctype, r)
+			r = ast_uop(tok.punct, r.ctype, r)
 		} else {
 			unget_token(tok)
 			return r
@@ -504,7 +504,7 @@ func read_struct_field(struc *Ast) *Ast {
 	if name.typ != TTYPE_IDENT {
 		errorf("field name expected, but got %s", name)
 	}
-	field := find_struct_field(struc, name.v.sval)
+	field := find_struct_field(struc, name.sval)
 	return ast_struct_ref(struc, field)
 }
 
@@ -543,7 +543,7 @@ func read_expr_int(prec int) *Ast {
 			prec_incr = 0
 		}
 		rest := read_expr_int(prec2 + prec_incr)
-		ast = ast_binop(tok.v.punct, ast, rest)
+		ast = ast_binop(tok.punct, ast, rest)
 
 	}
 	return ast
@@ -561,10 +561,10 @@ func get_ctype(tok *Token) *Ctype {
 		return nil
 	}
 
-	if tok.v.sval == "int" {
+	if tok.sval == "int" {
 		return ctype_int
 	}
-	if tok.v.sval == "char" {
+	if tok.sval == "char" {
 		return ctype_char
 	}
 
@@ -585,7 +585,7 @@ func expect(punct byte) {
 func read_decl_array_init_int(ctype *Ctype) *Ast {
 	tok := read_token()
 	if ctype.ptr.typ == CTYPE_CHAR && tok.typ == TTYPE_STRING {
-		return ast_string(tok.v.sval)
+		return ast_string(tok.sval)
 	}
 
 	if !is_punct(tok, '{') {
@@ -623,7 +623,7 @@ func read_struct_def() *Ctype {
 	tok := read_token()
 	var tag string
 	if tok.typ == TTYPE_IDENT {
-		tag = tok.v.sval
+		tag = tok.sval
 	} else {
 		unget_token(tok)
 	}
@@ -648,7 +648,7 @@ func read_struct_def() *Ctype {
 		if offset%size != 0 {
 			offset += size - offset%size
 		}
-		fields = append(fields, make_struct_field_type(fieldtype, name.v.sval, offset))
+		fields = append(fields, make_struct_field_type(fieldtype, name.sval, offset))
 		offset += size
 		expect(';')
 	}
@@ -696,9 +696,9 @@ func read_decl_init_val(v *Ast) *Ast {
 		init := read_decl_array_init_int(v.ctype)
 		var length int
 		if init.typ == AST_STRING {
-			length = len(init.str.val) + 1
+			length = len(init.val) + 1
 		} else {
-			length = len(init.array_initializer.arrayinit)
+			length = len(init.arrayinit)
 		}
 		if v.ctype.size == -1 {
 			v.ctype.size = length
@@ -772,7 +772,7 @@ func read_decl_init(variable *Ast) *Ast {
 
 func read_decl() *Ast {
 	ctype, varname := read_decl_int()
-	variable := ast_lvar(ctype, varname.v.sval)
+	variable := ast_lvar(ctype, varname.sval)
 	return read_decl_init(variable)
 }
 
@@ -782,7 +782,7 @@ func read_if_stmt() *Ast {
 	expect(')')
 	then := read_stmt()
 	tok := read_token()
-	if tok == nil || tok.typ != TTYPE_IDENT ||tok.v.sval != "else" {
+	if tok == nil || tok.typ != TTYPE_IDENT ||tok.sval != "else" {
 		unget_token(tok)
 		return ast_if(cond, then, nil)
 	}
@@ -905,7 +905,7 @@ func read_params() []*Ast {
 		if ctype.typ == CTYPE_ARRAY {
 			ctype = make_ptr_type(ctype.ptr)
 		}
-		params = append(params, ast_lvar(ctype, pname.v.sval))
+		params = append(params, ast_lvar(ctype, pname.sval))
 		tok := read_token()
 		if is_punct(tok, ')') {
 			return params
@@ -943,15 +943,15 @@ func read_decl_or_func_def() *Ast {
 	ctype = read_array_dimensions(ctype)
 	tok = peek_token()
 	if is_punct(tok, '=') || ctype.typ == CTYPE_ARRAY {
-		gvar := ast_gvar(ctype, name.v.sval, false)
+		gvar := ast_gvar(ctype, name.sval, false)
 		return read_decl_init(gvar)
 	}
 	if is_punct(tok, '(') {
-		return read_func_def(ctype, name.v.sval)
+		return read_func_def(ctype, name.sval)
 	}
 	if is_punct(tok, ';') {
 		read_token()
-		gvar := ast_gvar(ctype, name.v.sval, false)
+		gvar := ast_gvar(ctype, name.sval, false)
 		return ast_decl(gvar, nil)
 	}
 	errorf("Don't know how to handle %s", tok)

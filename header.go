@@ -10,12 +10,12 @@ const (
 
 type Token struct {
 	typ int
-	v   struct { // wanna be Union
-		ival  int
-		sval  string
-		punct int
-		c     byte
-	}
+
+	// intends union
+	ival  int
+	sval  string
+	punct int
+	c     byte
 }
 
 const (
@@ -69,66 +69,47 @@ type Ast struct {
 	ival int
 	// Char
 	c byte
+
+	// pseudo Union
 	// String
-	str struct {
-		val    string
-		slabel string
-	}
+	val    string
+	slabel string
 	// Local/Global variable
-	variable struct {
-		varname string
-		loff    int
-		glabel  string
-	}
+	varname string
+	loff    int
+	glabel  string
 	// Binary operator
-	binop struct {
-		left  *Ast
-		right *Ast
-	}
+	left  *Ast
+	right *Ast
 	// Unary operator
-	unary struct {
-		operand *Ast
-	}
+	operand *Ast
 	// Function call or function declaration
-	fnc struct {
-		fname     string
-		args      []*Ast
-		params    []*Ast
-		localvars []*Ast
-		body      *Ast
-	}
+	fname     string
+	args      []*Ast
+	params    []*Ast
+	localvars []*Ast
+	body      *Ast
 	// Declaration
-	decl struct {
-		declvar  *Ast
-		declinit *Ast
-	}
+	declvar  *Ast
+	declinit *Ast
 	// Array initializer
-	array_initializer struct {
-		arrayinit []*Ast
-	}
+	arrayinit []*Ast
 	// If statement or ternary operator
-	_if struct {
-		cond *Ast
-		then *Ast
-		els  *Ast
-	}
+	cond *Ast
+	then *Ast
+	els  *Ast
 	// For statement
-	_for struct {
-		init *Ast
-		cond *Ast
-		step *Ast
-		body *Ast
-	}
-	_return struct {
-		retval *Ast
-	}
-	compound struct {
-		stmts []*Ast
-	}
-	structref struct {
-		struc *Ast
-		field *Ctype
-	}
+	init *Ast
+//	cond *Ast
+	step *Ast
+//	body *Ast
+	// return
+	retval *Ast
+	// compound
+	stmts []*Ast
+	// StructRef
+	struc *Ast
+	field *Ctype
 }
 
 type Env struct {

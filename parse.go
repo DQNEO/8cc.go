@@ -582,7 +582,7 @@ func get_ctype(tok *Token) *Ctype {
 }
 
 func is_type_keyword(tok *Token) bool {
-	return get_ctype(tok) != nil || is_ident(tok, "struct")
+	return get_ctype(tok) != nil || is_ident(tok, "struct") || is_ident(tok, "union")
 }
 
 func expect(punct byte) {
@@ -681,7 +681,7 @@ func read_decl_int() (*Ctype, *Token) {
 func read_decl_spec() *Ctype {
 	tok := read_token()
 	var ctype *Ctype
-	if is_ident(tok, "struct") {
+	if is_ident(tok, "struct") || is_ident(tok, "union") {
 		ctype = read_struct_def()
 	} else {
 		ctype = get_ctype(tok)

@@ -7,35 +7,35 @@ var ungotten *Token
 func make_ident(s string) *Token {
 	r := &Token{}
 	r.typ = TTYPE_IDENT
-	r.v.sval = s
+	r.sval = s
 	return r
 }
 
 func make_strtok(s string) *Token {
 	r := &Token{}
 	r.typ = TTYPE_STRING
-	r.v.sval = s
+	r.sval = s
 	return r
 }
 
 func make_punct(punct byte) *Token {
 	r := &Token{}
 	r.typ = TTYPE_PUNCT
-	r.v.punct = int(punct)
+	r.punct = int(punct)
 	return r
 }
 
 func make_int(n int) *Token {
 	r := &Token{}
 	r.typ = TTYPE_INT
-	r.v.ival = n
+	r.ival = n
 	return r
 }
 
 func make_char(c byte) *Token {
 	r := &Token{}
 	r.typ = TTYPE_CHAR
-	r.v.c = c
+	r.c = c
 	return r
 }
 
@@ -184,7 +184,7 @@ func read_token_init() *Token {
 }
 
 func is_punct(tok *Token, c int) bool {
-	return tok != nil && (tok.typ == TTYPE_PUNCT && tok.v.punct == c)
+	return tok != nil && (tok.typ == TTYPE_PUNCT && tok.punct == c)
 }
 
 func unget_token(tok *Token) {

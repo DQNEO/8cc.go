@@ -10,12 +10,12 @@ const (
 
 type Token struct {
 	typ int
-	v   struct { // wanna be Union
-		ival  int
-		sval  string
-		punct int
-		c     byte
-	}
+
+	// intends union
+	ival  int
+	sval  string
+	punct int
+	c     byte
 }
 
 const (

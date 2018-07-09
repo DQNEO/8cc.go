@@ -190,20 +190,20 @@ func (tok *Token) String() string {
 	}
 	switch tok.typ {
 	case TTYPE_IDENT:
-		return tok.v.sval
+		return tok.sval
 	case TTYPE_PUNCT:
 		if is_punct(tok, PUNCT_EQ) {
 			return "=="
 		} else {
 
-			return string([]byte{byte(tok.v.punct)})
+			return string([]byte{byte(tok.punct)})
 		}
 	case TTYPE_CHAR:
-		return string([]byte{tok.v.c})
+		return string([]byte{tok.c})
 	case TTYPE_INT:
-		return strconv.Itoa(tok.v.ival)
+		return strconv.Itoa(tok.ival)
 	case TTYPE_STRING:
-		return tok.v.sval
+		return tok.sval
 	}
 	errorf("internal error: unknown token type: %d", tok.typ)
 	return ""

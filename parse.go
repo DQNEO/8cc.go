@@ -257,15 +257,15 @@ func ensure_lvalue(ast *Ast) {
 }
 
 func is_ident(tok *Token, s string) bool {
-	return tok.typ == TTYPE_IDENT && tok.v.sval == s
+	return tok.typ == TTYPE_IDENT && tok.sval == s
 }
 
 func is_right_assoc(tok *Token) bool {
-	return tok.v.punct == '='
+	return tok.punct == '='
 }
 
 func priority(tok *Token) int {
-	switch tok.v.punct {
+	switch tok.punct {
 	case '.':
 		return 1
 	case PUNCT_INC, PUNCT_DEC:
@@ -339,17 +339,17 @@ func read_prim() *Ast {
 	}
 	switch tk.typ {
 	case TTYPE_IDENT:
-		return read_ident_or_func(tk.v.sval)
+		return read_ident_or_func(tk.sval)
 	case TTYPE_INT:
-		return ast_int(tk.v.ival)
+		return ast_int(tk.ival)
 	case TTYPE_CHAR:
-		return ast_char(tk.v.c)
+		return ast_char(tk.c)
 	case TTYPE_STRING:
-		r := ast_string(tk.v.sval)
+		r := ast_string(tk.sval)
 		env_append(globalenv, r)
 		return r
 	case TTYPE_PUNCT:
-		errorf("unexpected character: '%c'", tk.v.punct)
+		errorf("unexpected character: '%c'", tk.punct)
 	default:
 		errorf("Don't know how to handle '%d'", tk.typ)
 	}
@@ -424,7 +424,7 @@ func read_postfix_expr() *Ast {
 			r = read_subscript_expr(r)
 		} else if is_punct(tok, PUNCT_INC) || is_punct(tok, PUNCT_DEC) {
 			ensure_lvalue(r)
-			r = ast_uop(tok.v.punct, r.ctype, r)
+			r = ast_uop(tok.punct, r.ctype, r)
 		} else {
 			unget_token(tok)
 			return r
@@ -504,7 +504,7 @@ func read_struct_field(struc *Ast) *Ast {
 	if name.typ != TTYPE_IDENT {
 		errorf("field name expected, but got %s", name)
 	}
-	field := find_struct_field(struc, name.v.sval)
+	field := find_struct_field(struc, name.sval)
 	return ast_struct_ref(struc, field)
 }
 
@@ -543,7 +543,7 @@ func read_expr_int(prec int) *Ast {
 			prec_incr = 0
 		}
 		rest := read_expr_int(prec2 + prec_incr)
-		ast = ast_binop(tok.v.punct, ast, rest)
+		ast = ast_binop(tok.punct, ast, rest)
 
 	}
 	return ast
@@ -561,10 +561,10 @@ func get_ctype(tok *Token) *Ctype {
 		return nil
 	}
 
-	if tok.v.sval == "int" {
+	if tok.sval == "int" {
 		return ctype_int
 	}
-	if tok.v.sval == "char" {
+	if tok.sval == "char" {
 		return ctype_char
 	}
 
@@ -585,7 +585,7 @@ func expect(punct byte) {
 func read_decl_array_init_int(ctype *Ctype) *Ast {
 	tok := read_token()
 	if ctype.ptr.typ == CTYPE_CHAR && tok.typ == TTYPE_STRING {
-		return ast_string(tok.v.sval)
+		return ast_string(tok.sval)
 	}
 
 	if !is_punct(tok, '{') {
@@ -623,7 +623,7 @@ func read_struct_def() *Ctype {
 	tok := read_token()
 	var tag string
 	if tok.typ == TTYPE_IDENT {
-		tag = tok.v.sval
+		tag = tok.sval
 	} else {
 		unget_token(tok)
 	}
@@ -648,7 +648,7 @@ func read_struct_def() *Ctype {
 		if offset%size != 0 {
 			offset += size - offset%size
 		}
-		fields = append(fields, make_struct_field_type(fieldtype, name.v.sval, offset))
+		fields = append(fields, make_struct_field_type(fieldtype, name.sval, offset))
 		offset += size
 		expect(';')
 	}
@@ -772,7 +772,7 @@ func read_decl_init(variable *Ast) *Ast {
 
 func read_decl() *Ast {
 	ctype, varname := read_decl_int()
-	variable := ast_lvar(ctype, varname.v.sval)
+	variable := ast_lvar(ctype, varname.sval)
 	return read_decl_init(variable)
 }
 
@@ -782,7 +782,7 @@ func read_if_stmt() *Ast {
 	expect(')')
 	then := read_stmt()
 	tok := read_token()
-	if tok == nil || tok.typ != TTYPE_IDENT ||tok.v.sval != "else" {
+	if tok == nil || tok.typ != TTYPE_IDENT ||tok.sval != "else" {
 		unget_token(tok)
 		return ast_if(cond, then, nil)
 	}
@@ -905,7 +905,7 @@ func read_params() []*Ast {
 		if ctype.typ == CTYPE_ARRAY {
 			ctype = make_ptr_type(ctype.ptr)
 		}
-		params = append(params, ast_lvar(ctype, pname.v.sval))
+		params = append(params, ast_lvar(ctype, pname.sval))
 		tok := read_token()
 		if is_punct(tok, ')') {
 			return params
@@ -943,15 +943,15 @@ func read_decl_or_func_def() *Ast {
 	ctype = read_array_dimensions(ctype)
 	tok = peek_token()
 	if is_punct(tok, '=') || ctype.typ == CTYPE_ARRAY {
-		gvar := ast_gvar(ctype, name.v.sval, false)
+		gvar := ast_gvar(ctype, name.sval, false)
 		return read_decl_init(gvar)
 	}
 	if is_punct(tok, '(') {
-		return read_func_def(ctype, name.v.sval)
+		return read_func_def(ctype, name.sval)
 	}
 	if is_punct(tok, ';') {
 		read_token()
-		gvar := ast_gvar(ctype, name.v.sval, false)
+		gvar := ast_gvar(ctype, name.sval, false)
 		return ast_decl(gvar, nil)
 	}
 	errorf("Don't know how to handle %s", tok)

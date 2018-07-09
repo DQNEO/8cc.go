@@ -266,7 +266,7 @@ func is_right_assoc(tok *Token) bool {
 
 func priority(tok *Token) int {
 	switch tok.punct {
-	case '.':
+	case '[', '.':
 		return 1
 	case PUNCT_INC, PUNCT_DEC:
 		return 2
@@ -349,7 +349,8 @@ func read_prim() *Ast {
 		env_append(globalenv, r)
 		return r
 	case TTYPE_PUNCT:
-		errorf("unexpected character: '%c'", tk.punct)
+		unget_token(tk)
+		return nil
 	default:
 		errorf("Don't know how to handle '%d'", tk.typ)
 	}
@@ -413,25 +414,6 @@ func read_subscript_expr(ast *Ast) *Ast {
 	return ast_uop(AST_DEREF, t.ctype.ptr, t)
 }
 
-func read_postfix_expr() *Ast {
-	r := read_prim()
-	for {
-		tok := read_token()
-		if tok == nil {
-			return r
-		}
-		if is_punct(tok, '[') {
-			r = read_subscript_expr(r)
-		} else if is_punct(tok, PUNCT_INC) || is_punct(tok, PUNCT_DEC) {
-			ensure_lvalue(r)
-			r = ast_uop(tok.punct, r.ctype, r)
-		} else {
-			unget_token(tok)
-			return r
-		}
-	}
-}
-
 func convert_array(ctype *Ctype) *Ctype {
 	if ctype.typ != CTYPE_ARRAY {
 		return ctype
@@ -452,7 +434,7 @@ func read_unary_expr() *Ast {
 	tok := read_token()
 	if tok.typ != TTYPE_PUNCT {
 		unget_token(tok)
-		return read_postfix_expr()
+		return read_prim()
 	}
 	if is_punct(tok, '(') {
 		r := read_expr()
@@ -533,6 +515,15 @@ func read_expr_int(prec int) *Ast {
 			ast = read_struct_field(ast)
 			continue
 		}
+		if is_punct(tok, '[') {
+			ast = read_subscript_expr(ast)
+			continue
+		}
+		if is_punct(tok, PUNCT_INC) || is_punct(tok, PUNCT_DEC) {
+			ensure_lvalue(ast)
+			ast = ast_uop(tok.punct, ast.ctype, ast)
+			continue
+		}
 		if is_punct(tok, '=') {
 			ensure_lvalue(ast)
 		}
@@ -543,6 +534,9 @@ func read_expr_int(prec int) *Ast {
 			prec_incr = 0
 		}
 		rest := read_expr_int(prec2 + prec_incr)
+		if rest == nil {
+			errorf("second operand missing")
+		}
 		ast = ast_binop(tok.punct, ast, rest)
 
 	}

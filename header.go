@@ -54,8 +54,8 @@ const (
 
 type Ctype struct {
 	typ    int
-	ptr    *Ctype  // pointer or array
-	size   int     // array
+	ptr    *Ctype // pointer or array
+	len    int    // array
 	name   string // struct field
 	tag    string // struct
 	fields []*Ctype

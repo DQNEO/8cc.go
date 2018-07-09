@@ -19,7 +19,7 @@ func (ctype *Ctype) String() string {
 	case CTYPE_PTR:
 		return fmt.Sprintf("*%s", ctype.ptr)
 	case CTYPE_ARRAY:
-		return fmt.Sprintf("[%d]%s", ctype.size, ctype.ptr)
+		return fmt.Sprintf("[%d]%s", ctype.len, ctype.ptr)
 	case CTYPE_STRUCT:
 		s := "(struct"
 		if len(ctype.tag) > 0 {

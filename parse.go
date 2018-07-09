@@ -216,7 +216,7 @@ func make_array_type(ctype *Ctype, size int) *Ctype {
 	r := &Ctype{}
 	r.typ = CTYPE_ARRAY
 	r.ptr = ctype
-	r.size = size
+	r.len = size
 	return r
 }
 
@@ -703,11 +703,11 @@ func read_decl_init_val(v *Ast) *Ast {
 		} else {
 			length = len(init.arrayinit)
 		}
-		if v.ctype.size == -1 {
-			v.ctype.size = length
-		} else if v.ctype.size != length {
+		if v.ctype.len == -1 {
+			v.ctype.len = length
+		} else if v.ctype.len != length {
 			errorf("Invalid array initializer: expected %d items but got %d",
-				v.ctype.size, length)
+				v.ctype.len, length)
 		}
 		expect(';')
 		return ast_decl(v, init)
@@ -742,8 +742,8 @@ func read_array_dimensions_int() *Ctype {
 	expect(']')
 	sub := read_array_dimensions_int()
 	if sub != nil {
-		if sub.size == -1 && dim == -1 {
-			errorf("Array size is not specified")
+		if sub.len == -1 && dim == -1 {
+			errorf("Array len is not specified")
 		}
 		return make_array_type(sub, dim)
 	}

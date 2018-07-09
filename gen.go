@@ -15,7 +15,7 @@ func ctype_size(ctype *Ctype) int {
 	case CTYPE_PTR:
 		return 8
 	case CTYPE_ARRAY:
-		return ctype_size(ctype.ptr) * ctype.size
+		return ctype_size(ctype.ptr) * ctype.len
 	case CTYPE_STRUCT:
 		last := ctype.fields[len(ctype.fields)-1]
 		return last.offset + ctype_size(last)
@@ -45,7 +45,7 @@ func emit_gload(ctype *Ctype, label string, off int) {
 	case 8:
 		reg = "rax"
 	default:
-		errorf("Unknown data size: %s: %d", ctype, size)
+		errorf("Unknown data len: %s: %d", ctype, size)
 	}
 
 	if off != 0 {
@@ -70,7 +70,7 @@ func emit_lload(ctype *Ctype, off int) {
 	case 8:
 		emit("mov %d(%%rbp), %%rax", -off)
 	default:
-		errorf("Unknown data size: %s: %d", ctype, size)
+		errorf("Unknown data len: %s: %d", ctype, size)
 	}
 }
 
@@ -87,7 +87,7 @@ func emit_gsave(varname string, ctype *Ctype, off int) {
 	case 8:
 		reg = "rax"
 	default:
-		errorf("Unknown data size: %s: %d", ctype, size)
+		errorf("Unknown data len: %s: %d", ctype, size)
 	}
 
 	if off != 0 {

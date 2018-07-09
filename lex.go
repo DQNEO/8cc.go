@@ -162,10 +162,6 @@ func read_token_init() *Token {
 		c == '<' || c == '>' || c == '!' ||
 		c == '?' || c == ':':
 		return make_punct(int(c))
-	case c == '=':
-		return read_rep(int('='), int('='), PUNCT_EQ)
-	case c == '+':
-		return read_rep(int('+'), int('+'), PUNCT_INC)
 	case c == '-':
 		c,_ = getc(stdin)
 		if c == '-' {
@@ -176,6 +172,10 @@ func read_token_init() *Token {
 		}
 		ungetc(c, stdin)
 		return make_punct('-')
+	case c == '=':
+		return read_rep(int('='), int('='), PUNCT_EQ)
+	case c == '+':
+		return read_rep(int('+'), int('+'), PUNCT_INC)
 	case c == '&':
 		return read_rep(int('&'), int('&'), PUNCT_LOGAND)
 	case c == '|':

@@ -629,14 +629,18 @@ func find_struct_def(name string) *Ctype {
 	return nil
 }
 
-func read_struct_def() *Ctype {
+func read_struct_union_tag() string {
 	tok := read_token()
-	var tag string
 	if tok.typ == TTYPE_IDENT {
-		tag = tok.sval
+		return tok.sval
 	} else {
 		unget_token(tok)
+		return ""
 	}
+}
+
+func read_struct_def() *Ctype {
+	tag := read_struct_union_tag()
 	ctype := find_struct_def(tag)
 	var fields []*Ctype
 	if ctype != nil {

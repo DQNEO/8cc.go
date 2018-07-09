@@ -34,7 +34,7 @@ func ast_uop(typ int, ctype *Ctype, operand *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
 	r.ctype = ctype
-	r.unary.operand = operand
+	r.operand = operand
 	return r
 }
 
@@ -44,11 +44,11 @@ func ast_binop(typ int, left *Ast, right *Ast) *Ast {
 	r.ctype = result_type(byte(typ), left.ctype, right.ctype)
 	if typ != '=' && convert_array(left.ctype).typ != CTYPE_PTR &&
 		convert_array(right.ctype).typ == CTYPE_PTR {
-		r.binop.left = right
-		r.binop.right = left
+		r.left = right
+		r.right = left
 	} else {
-		r.binop.left = left
-		r.binop.right = right
+		r.left = left
+		r.right = right
 	}
 	return r
 }
@@ -80,7 +80,7 @@ func ast_lvar(ctype *Ctype, name string) *Ast {
 	r := &Ast{}
 	r.typ = AST_LVAR
 	r.ctype = ctype
-	r.variable.varname = name
+	r.varname = name
 	env_append(localenv, r)
 	if localvars != nil {
 		localvars = append(localvars, r)
@@ -92,11 +92,11 @@ func ast_gvar(ctype *Ctype, name string, filelocal bool) *Ast {
 	r := &Ast{}
 	r.typ = AST_GVAR
 	r.ctype = ctype
-	r.variable.varname = name
+	r.varname = name
 	if filelocal {
-		r.variable.glabel = make_label()
+		r.glabel = make_label()
 	} else {
-		r.variable.glabel = name
+		r.glabel = name
 	}
 	globalenv.vars = append(globalenv.vars, r)
 	env_append(globalenv, r)
@@ -107,8 +107,8 @@ func ast_string(str string) *Ast {
 	r := &Ast{}
 	r.typ = AST_STRING
 	r.ctype = make_array_type(ctype_char, len(str)+1)
-	r.str.val = str
-	r.str.slabel = make_label()
+	r.val = str
+	r.slabel = make_label()
 	return r
 }
 
@@ -116,8 +116,8 @@ func ast_funcall(ctype *Ctype, fname string, args []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNCALL
 	r.ctype = ctype
-	r.fnc.fname = fname
-	r.fnc.args = args
+	r.fname = fname
+	r.args = args
 	return r
 }
 
@@ -125,10 +125,10 @@ func ast_func(rettype *Ctype, fname string, params []*Ast, localvars []*Ast, bod
 	r := &Ast{}
 	r.typ = AST_FUNC
 	r.ctype = rettype
-	r.fnc.fname = fname
-	r.fnc.params = params
-	r.fnc.localvars = localvars
-	r.fnc.body = body
+	r.fname = fname
+	r.params = params
+	r.localvars = localvars
+	r.body = body
 	return r
 }
 
@@ -136,8 +136,8 @@ func ast_decl(variable *Ast, init *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_DECL
 	r.ctype = nil
-	r.decl.declvar = variable
-	r.decl.declinit = init
+	r.declvar = variable
+	r.declinit = init
 	return r
 }
 
@@ -145,7 +145,7 @@ func ast_array_init(arrayinit []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_ARRAY_INIT
 	r.ctype = nil
-	r.array_initializer.arrayinit = arrayinit
+	r.arrayinit = arrayinit
 	return r
 }
 
@@ -153,9 +153,9 @@ func ast_if(cond *Ast, then *Ast, els *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_IF
 	r.ctype = nil
-	r._if.cond = cond
-	r._if.then = then
-	r._if.els = els
+	r.cond = cond
+	r.then = then
+	r.els = els
 	return r
 }
 
@@ -163,9 +163,9 @@ func ast_ternary(ctype *Ctype, cond *Ast, then *Ast, els *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_TERNARY
 	r.ctype = ctype
-	r._if.cond = cond
-	r._if.then = then
-	r._if.els = els
+	r.cond = cond
+	r.then = then
+	r.els = els
 	return r
 }
 
@@ -173,10 +173,10 @@ func ast_for(init *Ast, cond *Ast, step *Ast, body *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_FOR
 	r.ctype = nil
-	r._for.init = init
-	r._for.cond = cond
-	r._for.step = step
-	r._for.body = body
+	r.init = init
+	r.cond = cond
+	r.step = step
+	r.body = body
 	return r
 }
 
@@ -184,7 +184,7 @@ func ast_return(retval *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_RETURN
 	r.ctype = nil
-	r._return.retval = retval
+	r.retval = retval
 	return r
 }
 
@@ -192,7 +192,7 @@ func ast_compound_stmt(stmts []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_COMPOUND_STMT
 	r.ctype = nil
-	r.compound.stmts = stmts
+	r.stmts = stmts
 	return r
 }
 
@@ -239,7 +239,7 @@ func make_struct_type(ctypes []*Ctype, tag string) *Ctype {
 func find_var(name string) *Ast {
 	for p := localenv; p != nil; p = p.next {
 		for _, v := range p.vars {
-			if name == v.variable.varname {
+			if name == v.varname {
 				return v
 			}
 		}
@@ -696,9 +696,9 @@ func read_decl_init_val(v *Ast) *Ast {
 		init := read_decl_array_init_int(v.ctype)
 		var length int
 		if init.typ == AST_STRING {
-			length = len(init.str.val) + 1
+			length = len(init.val) + 1
 		} else {
-			length = len(init.array_initializer.arrayinit)
+			length = len(init.arrayinit)
 		}
 		if v.ctype.size == -1 {
 			v.ctype.size = length

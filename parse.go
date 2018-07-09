@@ -659,7 +659,7 @@ func read_struct_def() *Ctype {
 			offset += size - offset%size
 		}
 		fields = append(fields, make_struct_field_type(fieldtype, name.sval, offset))
-		offset += size
+		offset += fieldtype.size
 		expect(';')
 	}
 	expect('}')

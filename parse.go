@@ -212,11 +212,11 @@ func make_ptr_type(ctype *Ctype) *Ctype {
 	return r
 }
 
-func make_array_type(ctype *Ctype, size int) *Ctype {
+func make_array_type(ctype *Ctype, len int) *Ctype {
 	r := &Ctype{}
 	r.typ = CTYPE_ARRAY
 	r.ptr = ctype
-	r.len = size
+	r.len = len
 	return r
 }
 

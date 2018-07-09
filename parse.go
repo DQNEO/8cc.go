@@ -642,17 +642,24 @@ func read_struct_union_tag() string {
 func read_struct_def() *Ctype {
 	tag := read_struct_union_tag()
 	ctype := find_struct_def(tag)
-	var fields []*Ctype
 	if ctype != nil {
 		return ctype
 	}
+	var rr []*Ctype
 	expect('{')
-	offset := 0
 	for {
 		if !is_type_keyword(peek_token()) {
 			break
 		}
 		fieldtype, name := read_decl_int()
+		rr = append(rr, make_struct_field_type(fieldtype, name.sval, 0))
+		expect(';')
+	}
+	expect('}')
+
+	fields := rr
+	offset := 0
+	for _,fieldtype := range fields {
 		var size int
 		if fieldtype.size < MAX_ALIGN {
 			size = fieldtype.size
@@ -662,11 +669,9 @@ func read_struct_def() *Ctype {
 		if offset%size != 0 {
 			offset += size - offset%size
 		}
-		fields = append(fields, make_struct_field_type(fieldtype, name.sval, offset))
+		fieldtype.offset = offset
 		offset += fieldtype.size
-		expect(';')
 	}
-	expect('}')
 	r := make_struct_type(fields, tag, offset)
 	struct_defs = append(struct_defs, r)
 	return r

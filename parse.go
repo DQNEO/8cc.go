@@ -217,12 +217,12 @@ func make_array_type(ctype *Ctype, len int) *Ctype {
 	r := &Ctype{}
 	r.typ = CTYPE_ARRAY
 	r.ptr = ctype
-	r.len = len
 	if len < 0 {
 		r.size = -1
 	} else {
 		r.size = r.ptr.size * len
 	}
+	r.len = len
 	return r
 }
 
@@ -551,7 +551,7 @@ func read_expr_int(prec int) *Ast {
 		}
 		rest := read_expr_int(prec2 + prec_incr)
 		if rest == nil {
-			errorf("second operand missing. ast:%s", ast)
+			errorf("second operand missing")
 		}
 		ast = ast_binop(tok.punct, ast, rest)
 
@@ -712,7 +712,7 @@ func read_decl_init_val(v *Ast) *Ast {
 		}
 		if v.ctype.len == -1 {
 			v.ctype.len = length
-			v.ctype.size = v.ctype.ptr.size * length
+			v.ctype.size = length * v.ctype.ptr.size
 		} else if v.ctype.len != length {
 			errorf("Invalid array initializer: expected %d items but got %d",
 				v.ctype.len, length)

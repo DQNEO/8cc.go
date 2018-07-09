@@ -37,7 +37,7 @@ static Env *make_env(Env *next) {
 static void env_append(Env *env, Ast *var) {
   assert(var->type == AST_LVAR || var->type == AST_GVAR ||
          var->type == AST_STRING);
-  list_append(env->vars, var);
+  list_push(env->vars, var);
 }
 
 static Ast *ast_uop(int type, Ctype *ctype, Ast *operand) {
@@ -93,7 +93,7 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
   r->varname = name;
   env_append(localenv, r);
   if (localvars)
-    list_append(localvars, r);
+    list_push(localvars, r);
   return r;
 }
 
@@ -277,7 +277,7 @@ static bool is_right_assoc(Token *tok) {
 
 static int priority(Token *tok) {
   switch (tok->punct) {
-    case '.':
+    case '[': case '.':
       return 1;
     case PUNCT_INC: case PUNCT_DEC:
       return 2;
@@ -312,7 +312,7 @@ static Ast *read_func_args(char *fname) {
     Token *tok = read_token();
     if (is_punct(tok, ')')) break;
     unget_token(tok);
-    list_append(args, read_expr());
+    list_push(args, read_expr());
     tok = read_token();
     if (is_punct(tok, ')')) break;
     if (!is_punct(tok, ','))
@@ -350,7 +350,8 @@ static Ast *read_prim(void) {
       return r;
     }
     case TTYPE_PUNCT:
-      error("unexpected character: '%c'", tok->punct);
+      unget_token(tok);
+      return NULL;
     default:
       error("internal error: unknown token type: %d", tok->type);
   }
@@ -403,24 +404,6 @@ static Ast *read_subscript_expr(Ast *ast) {
   return ast_uop(AST_DEREF, t->ctype->ptr, t);
 }
 
-static Ast *read_postfix_expr(void) {
-  Ast *r = read_prim();
-  for (;;) {
-    Token *tok = read_token();
-    if (!tok)
-      return r;
-    if (is_punct(tok, '[')) {
-      r = read_subscript_expr(r);
-    } else if (is_punct(tok, PUNCT_INC) || is_punct(tok, PUNCT_DEC)) {
-      ensure_lvalue(r);
-      r = ast_uop(tok->punct, r->ctype, r);
-    } else {
-      unget_token(tok);
-      return r;
-    }
-  }
-}
-
 static Ctype *convert_array(Ctype *ctype) {
   if (ctype->type != CTYPE_ARRAY)
     return ctype;
@@ -439,7 +422,7 @@ static Ast *read_unary_expr(void) {
   Token *tok = read_token();
   if (tok->type != TTYPE_PUNCT) {
     unget_token(tok);
-    return read_postfix_expr();
+    return read_prim();
   }
   if (is_punct(tok, '(')) {
     Ast *r = read_expr();
@@ -514,9 +497,20 @@ static Ast *read_expr_int(int prec) {
       ast = read_struct_field(ast);
       continue;
     }
+    if (is_punct(tok, '[')) {
+      ast = read_subscript_expr(ast);
+      continue;
+    }
+    if (is_punct(tok, PUNCT_INC) || is_punct(tok, PUNCT_DEC)) {
+      ensure_lvalue(ast);
+      ast = ast_uop(tok->punct, ast->ctype, ast);
+      continue;
+    }
     if (is_punct(tok, '='))
       ensure_lvalue(ast);
     Ast *rest = read_expr_int(prec2 + (is_right_assoc(tok) ? 1 : 0));
+    if (!rest)
+      error("second operand missing");
     ast = ast_binop(tok->punct, ast, rest);
   }
 }
@@ -554,7 +548,7 @@ static Ast *read_decl_array_init_int(Ctype *ctype) {
       break;
     unget_token(tok);
     Ast *init = read_expr();
-    list_append(initlist, init);
+    list_push(initlist, init);
     result_type('=', init->ctype, ctype->ptr);
     tok = read_token();
     if (!is_punct(tok, ','))
@@ -593,13 +587,13 @@ static Ctype *read_struct_def(void) {
     size = (size < MAX_ALIGN) ? size : MAX_ALIGN;
     if (offset % size != 0)
       offset += size - offset % size;
-    list_append(fields, make_struct_field_type(fieldtype, name->sval, offset));
+    list_push(fields, make_struct_field_type(fieldtype, name->sval, offset));
     offset += size;
     expect(';');
   }
   expect('}');
   Ctype *r = make_struct_type(fields, tag);
-  list_append(struct_defs, r);
+  list_push(struct_defs, r);
   return r;
 }
 
@@ -776,7 +770,7 @@ static Ast *read_compound_stmt(void) {
   List *list = make_list();
   for (;;) {
     Ast *stmt = read_decl_or_stmt();
-    if (stmt) list_append(list, stmt);
+    if (stmt) list_push(list, stmt);
     if (!stmt) break;
     Token *tok = read_token();
     if (is_punct(tok, '}'))
@@ -801,7 +795,7 @@ static List *read_params(void) {
     ctype = read_array_dimensions(ctype);
     if (ctype->type == CTYPE_ARRAY)
       ctype = make_ptr_type(ctype->ptr);
-    list_append(params, ast_lvar(ctype, pname->sval));
+    list_push(params, ast_lvar(ctype, pname->sval));
     Token *tok = read_token();
     if (is_punct(tok, ')'))
       return params;
@@ -851,6 +845,6 @@ List *read_toplevels(void) {
   for (;;) {
     Ast *ast = read_decl_or_func_def();
     if (!ast) return r;
-    list_append(r, ast);
+    list_push(r, ast);
   }
 }

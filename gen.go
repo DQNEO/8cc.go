@@ -37,17 +37,17 @@ func emit_gload(ctype *Ctype, label string, off int) {
 
 func emit_lload(ctype *Ctype, off int) {
 	if ctype.typ == CTYPE_ARRAY {
-		emit("lea %d(%%rbp), %%rax", -off)
+		emit("lea %d(%%rbp), %%rax", off)
 		return
 	}
 	switch ctype.size {
 	case 1:
 		emit("mov $0, %%eax")
-		emit("mov %d(%%rbp), %%al", -off)
+		emit("mov %d(%%rbp), %%al", off)
 	case 4:
-		emit("mov %d(%%rbp), %%eax", -off)
+		emit("mov %d(%%rbp), %%eax", off)
 	case 8:
-		emit("mov %d(%%rbp), %%rax", -off)
+		emit("mov %d(%%rbp), %%rax", off)
 	default:
 		errorf("Unknown data len: %s: %d", ctype, ctype.size)
 	}
@@ -85,7 +85,7 @@ func emit_lsave(ctype *Ctype, off int) {
 	case 8:
 		reg = "rax"
 	}
-	emit("mov %%%s, %d(%%rbp)", reg, -off)
+	emit("mov %%%s, %d(%%rbp)", reg, off)
 }
 
 func emit_assign_deref_int(ctype *Ctype, off int) {
@@ -128,7 +128,7 @@ func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
 func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
 	switch struc.typ {
 	case AST_LVAR:
-		emit_lsave(field, struc.loff-field.offset-off)
+		emit_lsave(field, struc.loff + field.offset + off)
 	case AST_GVAR:
 		emit_gsave(struc.varname, field, field.offset+off)
 	case AST_STRUCT_REF:
@@ -146,9 +146,9 @@ func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
 func emit_load_struct_ref(struc *Ast, field *Ctype, off int) {
 	switch struc.typ {
 	case AST_LVAR:
-		emit_lload(field, struc.loff-field.offset-off)
+		emit_lload(field, struc.loff + field.offset + off)
 	case AST_GVAR:
-		emit_gload(field, struc.glabel, field.offset+off)
+		emit_gload(field, struc.glabel, field.offset + off)
 	case AST_STRUCT_REF:
 		emit_load_struct_ref(struc.struc, field, struc.field.offset+off)
 	case AST_DEREF:
@@ -310,16 +310,16 @@ func emit_expr(ast *Ast) {
 			off := 0
 			for _, v := range ast.declinit.arrayinit {
 				emit_expr(v)
-				emit_lsave(ast.declvar.ctype.ptr, ast.declvar.loff-off)
+				emit_lsave(ast.declvar.ctype.ptr, ast.declvar.loff + off)
 				off += ast.declvar.ctype.ptr.size
 			}
 		} else if ast.declvar.ctype.typ == CTYPE_ARRAY {
 			assert(ast.declinit.typ == AST_STRING)
 			var i int
 			for i, char := range ast.declinit.val {
-				emit("movb $%d, %d(%%rbp)", char, -(ast.declvar.loff - i))
+				emit("movb $%d, %d(%%rbp)", char, ast.declvar.loff + i)
 			}
-			emit("movb $0, %d(%%rbp)", -(ast.declvar.loff - i))
+			emit("movb $0, %d(%%rbp)", ast.declvar.loff + i)
 		} else if ast.declinit.typ == AST_STRING {
 			emit_gload(ast.declinit.ctype, ast.declinit.slabel, 0)
 			emit_lsave(ast.declvar.ctype, ast.declvar.loff)
@@ -330,7 +330,7 @@ func emit_expr(ast *Ast) {
 	case AST_ADDR:
 		switch ast.operand.typ {
 		case AST_LVAR:
-			emit("lea %d(%%rbp), %%rax", -ast.operand.loff)
+			emit("lea %d(%%rbp), %%rax", ast.operand.loff)
 		case AST_GVAR:
 			emit("lea %s(%%rip), %%rax", ast.operand.glabel)
 		default:
@@ -471,15 +471,15 @@ func emit_func_prologue(fn *Ast) {
 	for _, v := range fn.params {
 		emit("push %%%s", REGS[ri])
 		ri++
-		off += ceil8(v.ctype.size)
+		off -= ceil8(v.ctype.size)
 		v.loff = off
 	}
 	for _, v := range fn.localvars {
-		off += ceil8(v.ctype.size)
+		off -= ceil8(v.ctype.size)
 		v.loff = off
 	}
 	if off != 0 {
-		emit("sub $%d, %%rsp", off)
+		emit("sub $%d, %%rsp", -off)
 	}
 }
 

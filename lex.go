@@ -18,10 +18,10 @@ func make_strtok(s string) *Token {
 	return r
 }
 
-func make_punct(punct byte) *Token {
+func make_punct(punct int) *Token {
 	r := &Token{}
 	r.typ = TTYPE_PUNCT
-	r.punct = int(punct)
+	r.punct = punct
 	return r
 }
 
@@ -138,10 +138,10 @@ func read_ident(c byte) *Token {
 func read_rep(expect int, t1 int, t2 int) *Token {
 	c, _ := getc(stdin)
 	if c == byte(expect) {
-		return make_punct(byte(t2))
+		return make_punct(t2)
 	}
 	ungetc(c, stdin)
-	return make_punct(byte(t1))
+	return make_punct(t1)
 }
 
 func read_token_init() *Token {
@@ -161,13 +161,21 @@ func read_token_init() *Token {
 		c == '[' || c == ']' || c == '{' || c == '}' ||
 		c == '<' || c == '>' || c == '!' ||
 		c == '?' || c == ':':
-		return make_punct(c)
+		return make_punct(int(c))
 	case c == '=':
 		return read_rep(int('='), int('='), PUNCT_EQ)
 	case c == '+':
 		return read_rep(int('+'), int('+'), PUNCT_INC)
 	case c == '-':
-		return read_rep(int('-'), int('-'), PUNCT_DEC)
+		c,_ = getc(stdin)
+		if c == '-' {
+			return make_punct(PUNCT_DEC)
+		}
+		if c == '>' {
+			return make_punct(PUNCT_ARROW)
+		}
+		ungetc(c, stdin)
+		return make_punct('-')
 	case c == '&':
 		return read_rep(int('&'), int('&'), PUNCT_LOGAND)
 	case c == '|':

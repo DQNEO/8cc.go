@@ -266,7 +266,7 @@ func is_right_assoc(tok *Token) bool {
 
 func priority(tok *Token) int {
 	switch tok.punct {
-	case '[', '.':
+	case '[', '.', PUNCT_ARROW:
 		return 1
 	case PUNCT_INC, PUNCT_DEC:
 		return 2
@@ -515,6 +515,11 @@ func read_expr_int(prec int) *Ast {
 			ast = read_struct_field(ast)
 			continue
 		}
+		if is_punct(tok, PUNCT_ARROW) {
+			ast = ast_uop(AST_DEREF, ast.ctype.ptr, ast)
+			ast = read_struct_field(ast)
+			continue
+		}
 		if is_punct(tok, '[') {
 			ast = read_subscript_expr(ast)
 			continue
@@ -535,7 +540,7 @@ func read_expr_int(prec int) *Ast {
 		}
 		rest := read_expr_int(prec2 + prec_incr)
 		if rest == nil {
-			errorf("second operand missing")
+			errorf("second operand missing. ast:%s", ast)
 		}
 		ast = ast_binop(tok.punct, ast, rest)
 

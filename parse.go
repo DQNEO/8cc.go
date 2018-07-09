@@ -221,7 +221,7 @@ func make_array_type(ctype *Ctype, len int) *Ctype {
 	if len < 0 {
 		r.size = -1
 	} else {
-		r.size = ctype_size(r.ptr) * len
+		r.size = r.ptr.size * len
 	}
 	return r
 }
@@ -649,9 +649,9 @@ func read_struct_def() *Ctype {
 			break
 		}
 		fieldtype, name := read_decl_int()
-		size := ctype_size(fieldtype)
-		if size < MAX_ALIGN {
-
+		var size int
+		if fieldtype.size < MAX_ALIGN {
+			size  = fieldtype.size
 		} else {
 			size = MAX_ALIGN
 		}

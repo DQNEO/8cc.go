@@ -6,10 +6,6 @@ func emit(format string, args ...interface{}) {
 	printf(format+"\n\t", args...)
 }
 
-func ctype_size(ctype *Ctype) int {
-	return ctype.size
-}
-
 func emit_gload(ctype *Ctype, label string, off int) {
 	if ctype.typ == CTYPE_ARRAY {
 		if off != 0 {
@@ -20,8 +16,7 @@ func emit_gload(ctype *Ctype, label string, off int) {
 		return
 	}
 	var reg string
-	size := ctype_size(ctype)
-	switch size {
+	switch ctype.size {
 	case 1:
 		reg = "al"
 		emit("mov $0, %%eax")
@@ -30,7 +25,7 @@ func emit_gload(ctype *Ctype, label string, off int) {
 	case 8:
 		reg = "rax"
 	default:
-		errorf("Unknown data len: %s: %d", ctype, size)
+		errorf("Unknown data len: %s: %d", ctype, ctype.size)
 	}
 
 	if off != 0 {
@@ -45,8 +40,7 @@ func emit_lload(ctype *Ctype, off int) {
 		emit("lea %d(%%rbp), %%rax", -off)
 		return
 	}
-	size := ctype_size(ctype)
-	switch size {
+	switch ctype.size {
 	case 1:
 		emit("mov $0, %%eax")
 		emit("mov %d(%%rbp), %%al", -off)
@@ -55,7 +49,7 @@ func emit_lload(ctype *Ctype, off int) {
 	case 8:
 		emit("mov %d(%%rbp), %%rax", -off)
 	default:
-		errorf("Unknown data len: %s: %d", ctype, size)
+		errorf("Unknown data len: %s: %d", ctype, ctype.size)
 	}
 }
 
@@ -63,8 +57,7 @@ func emit_gsave(varname string, ctype *Ctype, off int) {
 	assert(ctype.typ != CTYPE_ARRAY)
 	var reg string
 
-	size := ctype_size(ctype)
-	switch size {
+	switch ctype.size {
 	case 1:
 		reg = "al"
 	case 4:
@@ -72,7 +65,7 @@ func emit_gsave(varname string, ctype *Ctype, off int) {
 	case 8:
 		reg = "rax"
 	default:
-		errorf("Unknown data len: %s: %d", ctype, size)
+		errorf("Unknown data len: %s: %d", ctype, ctype.size)
 	}
 
 	if off != 0 {
@@ -84,8 +77,7 @@ func emit_gsave(varname string, ctype *Ctype, off int) {
 
 func emit_lsave(ctype *Ctype, off int) {
 	var reg string
-	size := ctype_size(ctype)
-	switch size {
+	switch ctype.size {
 	case 1:
 		reg = "al"
 	case 4:
@@ -99,8 +91,7 @@ func emit_lsave(ctype *Ctype, off int) {
 func emit_assign_deref_int(ctype *Ctype, off int) {
 	var reg string
 	emit("pop %%rcx")
-	size := ctype_size(ctype)
-	switch size {
+	switch ctype.size {
 	case 1:
 		reg = "cl"
 	case 4:
@@ -125,7 +116,7 @@ func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
 	emit_expr(left)
 	emit("push %%rax")
 	emit_expr(right)
-	size := ctype_size(left.ctype.ptr)
+	size := left.ctype.ptr.size
 	if size > 1 {
 		emit("imul $%d, %%rax", size)
 	}
@@ -259,7 +250,7 @@ func emit_load_deref(result_type *Ctype, operand_type *Ctype, off int) {
 		return
 	}
 	var reg string
-	switch ctype_size(result_type) {
+	switch result_type.size {
 	case 1:
 		reg = "%cl"
 		emit("mov $0, %%ecx")
@@ -320,7 +311,7 @@ func emit_expr(ast *Ast) {
 			for _, v := range ast.declinit.arrayinit {
 				emit_expr(v)
 				emit_lsave(ast.declvar.ctype.ptr, ast.declvar.loff-off)
-				off += ctype_size(ast.declvar.ctype.ptr)
+				off += ast.declvar.ctype.ptr.size
 			}
 		} else if ast.declvar.ctype.typ == CTYPE_ARRAY {
 			assert(ast.declinit.typ == AST_STRING)
@@ -480,11 +471,11 @@ func emit_func_prologue(fn *Ast) {
 	for _, v := range fn.params {
 		emit("push %%%s", REGS[ri])
 		ri++
-		off += ceil8(ctype_size(v.ctype))
+		off += ceil8(v.ctype.size)
 		v.loff = off
 	}
 	for _, v := range fn.localvars {
-		off += ceil8(ctype_size(v.ctype))
+		off += ceil8(v.ctype.size)
 		v.loff = off
 	}
 	if off > 0 {
@@ -503,7 +494,7 @@ func emit_label(fmt string, args ...interface{}) {
 
 func emit_data_int(data *Ast) {
 	assert(data.ctype.typ != CTYPE_ARRAY)
-	switch ctype_size(data.ctype) {
+	switch data.ctype.size {
 	case 1:
 		emit(".byte %d", data.ival)
 	case 4:
@@ -529,7 +520,7 @@ func emit_data(v *Ast) {
 }
 
 func emit_bss(v *Ast) {
-	emit(".lcomm %s, %d", v.declvar.varname, ctype_size(v.declvar.ctype))
+	emit(".lcomm %s, %d", v.declvar.varname, v.declvar.ctype.size)
 }
 
 func emit_global_var(v *Ast) {

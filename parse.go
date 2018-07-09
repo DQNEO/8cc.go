@@ -741,8 +741,7 @@ func read_array_dimensions_int(basetype *Ctype) *Ctype {
 		return nil
 	}
 	dim := -1
-	tok = peek_token()
-	if !is_punct(tok, ']') {
+	if !is_punct(peek_token(), ']') {
 		size := read_expr()
 		check_intexp(size)
 		dim = size.ival

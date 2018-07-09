@@ -15,8 +15,8 @@ var localenv *Env
 var localvars []*Ast
 var labelseq = 0
 
-var ctype_int = &Ctype{typ:CTYPE_INT, size:4,}
-var ctype_char = &Ctype{typ:CTYPE_CHAR, size:1,}
+var ctype_int = &Ctype{typ: CTYPE_INT, size: 4}
+var ctype_char = &Ctype{typ: CTYPE_CHAR, size: 1}
 
 func make_env(next *Env) *Env {
 	r := &Env{}
@@ -651,7 +651,7 @@ func read_struct_def() *Ctype {
 		fieldtype, name := read_decl_int()
 		var size int
 		if fieldtype.size < MAX_ALIGN {
-			size  = fieldtype.size
+			size = fieldtype.size
 		} else {
 			size = MAX_ALIGN
 		}
@@ -791,7 +791,7 @@ func read_if_stmt() *Ast {
 	expect(')')
 	then := read_stmt()
 	tok := read_token()
-	if tok == nil || tok.typ != TTYPE_IDENT ||tok.sval != "else" {
+	if tok == nil || tok.typ != TTYPE_IDENT || tok.sval != "else" {
 		unget_token(tok)
 		return ast_if(cond, then, nil)
 	}

@@ -163,7 +163,7 @@ func read_token_init() *Token {
 		c == '?' || c == ':':
 		return make_punct(int(c))
 	case c == '-':
-		c,_ = getc(stdin)
+		c, _ = getc(stdin)
 		if c == '-' {
 			return make_punct(PUNCT_DEC)
 		}

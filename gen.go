@@ -128,7 +128,7 @@ func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
 func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
 	switch struc.typ {
 	case AST_LVAR:
-		emit_lsave(field, struc.loff + field.offset + off)
+		emit_lsave(field, struc.loff+field.offset+off)
 	case AST_GVAR:
 		emit_gsave(struc.varname, field, field.offset+off)
 	case AST_STRUCT_REF:
@@ -146,9 +146,9 @@ func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
 func emit_load_struct_ref(struc *Ast, field *Ctype, off int) {
 	switch struc.typ {
 	case AST_LVAR:
-		emit_lload(field, struc.loff + field.offset + off)
+		emit_lload(field, struc.loff+field.offset+off)
 	case AST_GVAR:
-		emit_gload(field, struc.glabel, field.offset + off)
+		emit_gload(field, struc.glabel, field.offset+off)
 	case AST_STRUCT_REF:
 		emit_load_struct_ref(struc.struc, field, struc.field.offset+off)
 	case AST_DEREF:
@@ -310,16 +310,16 @@ func emit_expr(ast *Ast) {
 			off := 0
 			for _, v := range ast.declinit.arrayinit {
 				emit_expr(v)
-				emit_lsave(ast.declvar.ctype.ptr, ast.declvar.loff + off)
+				emit_lsave(ast.declvar.ctype.ptr, ast.declvar.loff+off)
 				off += ast.declvar.ctype.ptr.size
 			}
 		} else if ast.declvar.ctype.typ == CTYPE_ARRAY {
 			assert(ast.declinit.typ == AST_STRING)
 			var i int
 			for i, char := range ast.declinit.val {
-				emit("movb $%d, %d(%%rbp)", char, ast.declvar.loff + i)
+				emit("movb $%d, %d(%%rbp)", char, ast.declvar.loff+i)
 			}
-			emit("movb $0, %d(%%rbp)", ast.declvar.loff + i)
+			emit("movb $0, %d(%%rbp)", ast.declvar.loff+i)
 		} else if ast.declinit.typ == AST_STRING {
 			emit_gload(ast.declinit.ctype, ast.declinit.slabel, 0)
 			emit_lsave(ast.declvar.ctype, ast.declvar.loff)

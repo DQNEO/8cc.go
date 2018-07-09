@@ -102,9 +102,9 @@ type Ast struct {
 	els  *Ast
 	// For statement
 	init *Ast
-//	cond *Ast
+	//	cond *Ast
 	step *Ast
-//	body *Ast
+	//	body *Ast
 	// return
 	retval *Ast
 	// compound

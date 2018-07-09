@@ -726,7 +726,7 @@ func check_intexp(ast *Ast) {
 	}
 }
 
-func read_array_dimensions_int() *Ctype {
+func read_array_dimensions_int(basetype *Ctype) *Ctype {
 	tok := read_token()
 	if !is_punct(tok, '[') {
 		unget_token(tok)
@@ -740,7 +740,7 @@ func read_array_dimensions_int() *Ctype {
 		dim = size.ival
 	}
 	expect(']')
-	sub := read_array_dimensions_int()
+	sub := read_array_dimensions_int(basetype)
 	if sub != nil {
 		if sub.len == -1 && dim == -1 {
 			errorf("Array len is not specified")
@@ -748,18 +748,14 @@ func read_array_dimensions_int() *Ctype {
 		return make_array_type(sub, dim)
 	}
 
-	return make_array_type(nil, dim)
+	return make_array_type(basetype, dim)
 }
 
 func read_array_dimensions(basetype *Ctype) *Ctype {
-	ctype := read_array_dimensions_int()
+	ctype := read_array_dimensions_int(basetype)
 	if ctype == nil {
 		return basetype
 	}
-	p := ctype
-	for ; p.ptr != nil; p = p.ptr {
-	}
-	p.ptr = basetype
 	return ctype
 }
 

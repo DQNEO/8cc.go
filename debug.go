@@ -148,9 +148,9 @@ func (ast *Ast) String() string {
 		s += "}"
 		return s
 	case AST_STRUCT_REF:
-		s := ast.structref.struc.String()
+		s := ast.struc.String()
 		s += "."
-		s += ast.structref.field.name
+		s += ast.field.name
 		return s
 	case AST_ADDR:
 		return uop_to_string("addr", ast)

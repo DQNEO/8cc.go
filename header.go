@@ -125,10 +125,9 @@ type Ast struct {
 	compound struct {
 		stmts []*Ast
 	}
-	structref struct {
-		struc *Ast
-		field *Ctype
-	}
+	// StructRef
+	struc *Ast
+	field *Ctype
 }
 
 type Env struct {

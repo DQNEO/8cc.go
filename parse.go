@@ -200,8 +200,8 @@ func ast_struct_ref(struc *Ast, field *Ctype) *Ast {
 	r := &Ast{}
 	r.typ = AST_STRUCT_REF
 	r.ctype = field
-	r.structref.struc = struc
-	r.structref.field = field
+	r.struc = struc
+	r.field = field
 	return r
 }
 

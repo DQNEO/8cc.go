@@ -501,6 +501,7 @@ static Ast *read_expr_int(int prec) {
       ast = read_subscript_expr(ast);
       continue;
     }
+    // this is BUG!! ++ should be in read_unary_expr() , I think.
     if (is_punct(tok, PUNCT_INC) || is_punct(tok, PUNCT_DEC)) {
       ensure_lvalue(ast);
       ast = ast_uop(tok->punct, ast->ctype, ast);

@@ -691,8 +691,31 @@ func read_decl_int() (*Ctype, *Token) {
 }
 
 func read_union_def() *Ctype {
-	return read_struct_def()
+	tag := read_struct_union_tag()
+	ctype := find_struct_union_def(struct_defs, tag)
+	if ctype != nil {
+		return ctype
+	}
+	fields := read_struct_union_fields()
+	offset := 0
+	for _,fieldtype := range fields {
+		var size int
+		if fieldtype.size < MAX_ALIGN {
+			size = fieldtype.size
+		} else {
+			size = MAX_ALIGN
+		}
+		if offset%size != 0 {
+			offset += size - offset%size
+		}
+		fieldtype.offset = offset
+		offset += fieldtype.size
+	}
+	r := make_struct_type(fields, tag, offset)
+	struct_defs = append(struct_defs, r)
+	return r
 }
+
 
 func read_decl_spec() *Ctype {
 	tok := read_token()

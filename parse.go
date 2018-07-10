@@ -355,7 +355,7 @@ func read_prim() *Ast {
 	switch tk.typ {
 	case TTYPE_IDENT:
 		return read_ident_or_func(tk.sval)
-	case TTYPE_INT:
+	case TTYPE_NUMBER:
 		return ast_int(tk.ival)
 	case TTYPE_CHAR:
 		return ast_char(tk.c)

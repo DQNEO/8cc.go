@@ -200,7 +200,7 @@ func (tok *Token) String() string {
 		}
 	case TTYPE_CHAR:
 		return string([]byte{tok.c})
-	case TTYPE_INT:
+	case TTYPE_NUMBER:
 		return strconv.Itoa(tok.ival)
 	case TTYPE_STRING:
 		return tok.sval

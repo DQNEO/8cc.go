@@ -27,9 +27,9 @@ func make_punct(punct int) *Token {
 	return r
 }
 
-func make_int(s string) *Token {
+func make_number(s string) *Token {
 	r := &Token{}
-	r.typ = TTYPE_INT
+	r.typ = TTYPE_NUMBER
 	r.ival,_ = strconv.Atoi(s)
 	return r
 }
@@ -64,7 +64,7 @@ func read_number(c byte) *Token {
 		c, _ := getc(stdin)
 		if !isdigit(c) {
 			ungetc(c, stdin)
-			return make_int(string(b))
+			return make_number(string(b))
 		}
 		b = append(b, c)
 	}

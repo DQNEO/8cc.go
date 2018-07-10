@@ -6,6 +6,33 @@ func emit(format string, args ...interface{}) {
 	printf(format+"\n\t", args...)
 }
 
+func get_int_reg(ctype *Ctype, r byte) string {
+	assert(r == 'a' || r == 'c')
+	switch ctype.size {
+	case 1:
+		if r == 'a' {
+			return "al"
+		} else {
+			return "cl"
+		}
+	case 4:
+		if r == 'a' {
+			return "eax"
+		} else {
+			return "ecx"
+		}
+	case 8:
+		if r == 'a' {
+			return "rax"
+		} else {
+			return "rcx"
+		}
+	default:
+		errorf("Unknown data size: %s: %d", ctype, ctype.size);
+	}
+	return ""
+}
+
 func emit_gload(ctype *Ctype, label string, off int) {
 	if ctype.typ == CTYPE_ARRAY {
 		if off != 0 {
@@ -15,19 +42,10 @@ func emit_gload(ctype *Ctype, label string, off int) {
 		}
 		return
 	}
-	var reg string
-	switch ctype.size {
-	case 1:
-		reg = "al"
+	reg := get_int_reg(ctype, 'a')
+	if ctype.size == 1 {
 		emit("mov $0, %%eax")
-	case 4:
-		reg = "eax"
-	case 8:
-		reg = "rax"
-	default:
-		errorf("Unknown data len: %s: %d", ctype, ctype.size)
 	}
-
 	if off != 0 {
 		emit("mov %s+%d(%%rip), %%%s", label, off, reg)
 	} else {
@@ -40,34 +58,17 @@ func emit_lload(ctype *Ctype, off int) {
 		emit("lea %d(%%rbp), %%rax", off)
 		return
 	}
-	switch ctype.size {
-	case 1:
+	reg := get_int_reg(ctype, 'a')
+	if ctype.size == 1 {
 		emit("mov $0, %%eax")
-		emit("mov %d(%%rbp), %%al", off)
-	case 4:
-		emit("mov %d(%%rbp), %%eax", off)
-	case 8:
-		emit("mov %d(%%rbp), %%rax", off)
-	default:
-		errorf("Unknown data len: %s: %d", ctype, ctype.size)
 	}
+	emit("mov %d(%%rbp), %%%s", off, reg)
+
 }
 
 func emit_gsave(varname string, ctype *Ctype, off int) {
 	assert(ctype.typ != CTYPE_ARRAY)
-	var reg string
-
-	switch ctype.size {
-	case 1:
-		reg = "al"
-	case 4:
-		reg = "eax"
-	case 8:
-		reg = "rax"
-	default:
-		errorf("Unknown data len: %s: %d", ctype, ctype.size)
-	}
-
+	reg := get_int_reg(ctype, 'a')
 	if off != 0 {
 		emit("mov %%%s, %s+%d(%%rip)", reg, varname, off)
 	} else {
@@ -76,29 +77,13 @@ func emit_gsave(varname string, ctype *Ctype, off int) {
 }
 
 func emit_lsave(ctype *Ctype, off int) {
-	var reg string
-	switch ctype.size {
-	case 1:
-		reg = "al"
-	case 4:
-		reg = "eax"
-	case 8:
-		reg = "rax"
-	}
+	reg := get_int_reg(ctype, 'a')
 	emit("mov %%%s, %d(%%rbp)", reg, off)
 }
 
 func emit_assign_deref_int(ctype *Ctype, off int) {
-	var reg string
 	emit("mov (%%rsp), %%rcx")
-	switch ctype.size {
-	case 1:
-		reg = "cl"
-	case 4:
-		reg = "ecx"
-	case 8:
-		reg = "rcx"
-	}
+	reg := get_int_reg(ctype, 'c')
 	if off != 0 {
 		emit("mov %%%s, %d(%%rax)", reg, off)
 	} else {
@@ -250,21 +235,14 @@ func emit_load_deref(result_type *Ctype, operand_type *Ctype, off int) {
 		operand_type.ptr.typ == CTYPE_ARRAY {
 		return
 	}
-	var reg string
-	switch result_type.size {
-	case 1:
-		reg = "%cl"
+	if result_type.size == 1 {
 		emit("mov $0, %%ecx")
-	case 4:
-		reg = "%ecx"
-	default:
-		reg = "%rcx"
 	}
-
+	reg := get_int_reg(result_type, 'c')
 	if off != 0 {
-		emit("mov %d(%%rax), %s", off, reg)
+		emit("mov %d(%%rax), %%%s", off, reg)
 	} else {
-		emit("mov (%%rax), %s", reg)
+		emit("mov (%%rax), %%%s", reg)
 	}
 	emit("mov %%rcx, %%rax")
 

@@ -1,7 +1,5 @@
 package main
 
-import "strconv"
-
 const BUFLEN = 256
 
 var ungotten *Token
@@ -31,7 +29,6 @@ func make_number(s string) *Token {
 	r := &Token{}
 	r.typ = TTYPE_NUMBER
 	r.sval = s
-	r.ival,_ = strconv.Atoi(s)
 	return r
 }
 

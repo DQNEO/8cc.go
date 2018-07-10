@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 )
 
 func (ctype *Ctype) String() string {
@@ -201,7 +200,7 @@ func (tok *Token) String() string {
 	case TTYPE_CHAR:
 		return string([]byte{tok.c})
 	case TTYPE_NUMBER:
-		return strconv.Itoa(tok.ival)
+		return tok.sval
 	case TTYPE_STRING:
 		return tok.sval
 	}

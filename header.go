@@ -12,7 +12,6 @@ type Token struct {
 	typ int
 
 	// intends union
-	ival  int
 	sval  string
 	punct int
 	c     byte

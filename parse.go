@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"strconv"
 )
 
 const MAX_ARGS = 6
@@ -356,7 +357,8 @@ func read_prim() *Ast {
 	case TTYPE_IDENT:
 		return read_ident_or_func(tk.sval)
 	case TTYPE_NUMBER:
-		return ast_int(tk.ival)
+		ival ,_ := strconv.Atoi(tk.sval)
+		return ast_int(ival)
 	case TTYPE_CHAR:
 		return ast_char(tk.c)
 	case TTYPE_STRING:

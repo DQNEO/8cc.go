@@ -32,7 +32,7 @@ hello world
 * assign to local variables
 * assign to global variables
 * primitiv data types (int, char)
-* composite data types (array, struct, pointer)
+* composite data types (array, struct, union, pointer)
 * arithmetic of pointer
 * dereference of pointer
 

@@ -46,6 +46,7 @@ const (
 	CTYPE_VOID int = iota
 	CTYPE_INT
 	CTYPE_CHAR
+	CTYPE_FLOAT
 	CTYPE_ARRAY
 	CTYPE_PTR
 	CTYPE_STRUCT
@@ -68,6 +69,8 @@ type Ast struct {
 	// want to be "union"
 	// Integer
 	ival int
+	// Float
+	fval float32
 	// Char
 	c byte
 

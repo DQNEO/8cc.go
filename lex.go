@@ -60,7 +60,7 @@ func read_number(c byte) *Token {
 	b = append(b, c)
 	for {
 		c, _ := getc(stdin)
-		if !isdigit(c) {
+		if !isdigit(c) && c != '.' {
 			ungetc(c, stdin)
 			return make_number(string(b))
 		}

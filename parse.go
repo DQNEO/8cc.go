@@ -19,6 +19,7 @@ var labelseq = 0
 
 var ctype_int = &Ctype{typ: CTYPE_INT, size: 4}
 var ctype_char = &Ctype{typ: CTYPE_CHAR, size: 1}
+var ctype_float = &Ctype{typ:CTYPE_FLOAT, size: 4}
 
 func make_env(next *Env) *Env {
 	r := &Env{}
@@ -60,6 +61,14 @@ func ast_int(val int) *Ast {
 	r.typ = AST_LITERAL
 	r.ctype = ctype_int
 	r.ival = val
+	return r
+}
+
+func ast_float(val float32) *Ast {
+	r := &Ast{}
+	r.typ = AST_LITERAL
+	r.ctype = ctype_float
+	r.fval = val
 	return r
 }
 
@@ -348,6 +357,37 @@ func read_ident_or_func(name string) *Ast {
 	return v
 }
 
+func is_int(s string) bool {
+	for _,c := range []byte(s) {
+		if !isdigit(c) {
+			return false
+		}
+	}
+	return true
+}
+
+
+func is_float(s string) bool {
+	var c byte
+	var i int
+	var b = []byte(s)
+	for i,c = range b {
+		if !isdigit(c) {
+			break
+		}
+	}
+	if c != '.' {
+		return false
+	}
+	i++
+	for j := i; j < len(b) ; j++ {
+		if !isdigit(b[j]) {
+			return false
+		}
+	}
+	return true
+}
+
 func read_prim() *Ast {
 	tok := read_token()
 	if tok == nil {
@@ -357,8 +397,15 @@ func read_prim() *Ast {
 	case TTYPE_IDENT:
 		return read_ident_or_func(tok.sval)
 	case TTYPE_NUMBER:
-		ival ,_ := strconv.Atoi(tok.sval)
-		return ast_int(ival)
+		if is_int(tok.sval) {
+			ival ,_ := strconv.Atoi(tok.sval)
+			return ast_int(ival)
+		}
+		if is_float(tok.sval) {
+			fval,_ := strconv.ParseFloat(tok.sval, 32)
+			return ast_float(float32(fval))
+		}
+		errorf("Malformed number: %s", tok);
 	case TTYPE_CHAR:
 		return ast_char(tok.c)
 	case TTYPE_STRING:
@@ -405,12 +452,19 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 			fallthrough
 		case CTYPE_CHAR:
 			return ctype_int, nil
+		case CTYPE_FLOAT:
+			return ctype_float, nil
 		case CTYPE_ARRAY:
 			fallthrough
 		case CTYPE_PTR:
 			return b, nil
 		}
 		errorf("internal error")
+	case CTYPE_FLOAT:
+		if b.typ == CTYPE_FLOAT {
+			return ctype_float, nil
+		}
+		return nil, default_err
 	case CTYPE_ARRAY:
 		if b.typ != CTYPE_ARRAY {
 			return nil, default_err

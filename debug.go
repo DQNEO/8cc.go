@@ -55,6 +55,8 @@ func (ast *Ast) String() string {
 		switch ast.ctype.typ {
 		case CTYPE_INT:
 			return fmt.Sprintf("%d", ast.ival)
+		case CTYPE_FLOAT:
+			return fmt.Sprintf("%f", ast.fval)
 		case CTYPE_CHAR:
 			return fmt.Sprintf("'%c'", ast.c)
 		default:

@@ -641,6 +641,9 @@ func get_ctype(tok *Token) *Ctype {
 	if tok.sval == "char" {
 		return ctype_char
 	}
+	if tok.sval == "float" {
+		return ctype_float
+	}
 
 	return nil
 }

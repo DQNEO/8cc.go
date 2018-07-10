@@ -15,6 +15,8 @@ func (ctype *Ctype) String() string {
 		return "int"
 	case CTYPE_CHAR:
 		return "char"
+	case CTYPE_FLOAT:
+		return "float"
 	case CTYPE_PTR:
 		return fmt.Sprintf("*%s", ctype.ptr)
 	case CTYPE_ARRAY:

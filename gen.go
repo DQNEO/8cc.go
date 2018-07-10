@@ -427,12 +427,12 @@ func emit_data_section() {
 	}
 }
 
-func ceil8(n int) int {
-	rem := n % 8
+func ceil(n int, m int) int {
+	rem := n % m
 	if rem == 0 {
 		return n
 	} else {
-		return n - rem + 8
+		return n - rem + m
 	}
 }
 
@@ -450,11 +450,11 @@ func emit_func_prologue(fn *Ast) {
 	for _, v := range fn.params {
 		emit("push %%%s", REGS[ri])
 		ri++
-		off -= ceil8(v.ctype.size)
+		off -= ceil(v.ctype.size, 8)
 		v.loff = off
 	}
 	for _, v := range fn.localvars {
-		off -= ceil8(v.ctype.size)
+		off -= ceil(v.ctype.size, 8)
 		v.loff = off
 	}
 	if off != 0 {

@@ -662,21 +662,13 @@ func read_union_def() *Ctype {
 		return ctype
 	}
 	fields := read_struct_union_fields()
-	offset := 0
+	maxsize := 0
 	for _,fieldtype := range fields {
-		var size int
-		if fieldtype.size < MAX_ALIGN {
-			size = fieldtype.size
-		} else {
-			size = MAX_ALIGN
+		if maxsize < fieldtype.size  {
+			maxsize = fieldtype.size
 		}
-		if offset%size != 0 {
-			offset += size - offset%size
-		}
-		fieldtype.offset = offset
-		offset += fieldtype.size
 	}
-	r := make_struct_type(fields, tag, offset)
+	r := make_struct_type(fields, tag, maxsize)
 	struct_defs = append(union_defs, r)
 	return r
 }

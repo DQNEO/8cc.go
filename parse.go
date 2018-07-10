@@ -620,8 +620,8 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 	return ast_array_init(initlist)
 }
 
-func find_struct_def(name string) *Ctype {
-	for _, t := range struct_defs {
+func find_struct_union_def(list []*Ctype, name string) *Ctype {
+	for _, t := range list {
 		if len(t.tag) > 0 && t.tag == name {
 			return t
 		}
@@ -656,7 +656,7 @@ func read_struct_union_fields() []*Ctype {
 
 func read_struct_def() *Ctype {
 	tag := read_struct_union_tag()
-	ctype := find_struct_def(tag)
+	ctype := find_struct_union_def(struct_defs, tag)
 	if ctype != nil {
 		return ctype
 	}

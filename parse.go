@@ -639,25 +639,28 @@ func read_struct_union_tag() string {
 	}
 }
 
-func read_struct_def() *Ctype {
-	tag := read_struct_union_tag()
-	ctype := find_struct_def(tag)
-	if ctype != nil {
-		return ctype
-	}
-	var rr []*Ctype
+func read_struct_union_fields() []*Ctype {
+	var r []*Ctype
 	expect('{')
 	for {
 		if !is_type_keyword(peek_token()) {
 			break
 		}
 		fieldtype, name := read_decl_int()
-		rr = append(rr, make_struct_field_type(fieldtype, name.sval, 0))
+		r = append(r, make_struct_field_type(fieldtype, name.sval, 0))
 		expect(';')
 	}
 	expect('}')
+	return r
+}
 
-	fields := rr
+func read_struct_def() *Ctype {
+	tag := read_struct_union_tag()
+	ctype := find_struct_def(tag)
+	if ctype != nil {
+		return ctype
+	}
+	fields := read_struct_union_fields()
 	offset := 0
 	for _,fieldtype := range fields {
 		var size int

@@ -11,6 +11,7 @@ const MAX_ALIGN = 16
 
 var globalenv = &EMPTY_ENV
 var struct_defs []*Ctype
+var union_defs []*Ctype
 var localenv *Env
 var localvars []*Ast
 var labelseq = 0
@@ -656,7 +657,7 @@ func read_struct_union_fields() []*Ctype {
 
 func read_union_def() *Ctype {
 	tag := read_struct_union_tag()
-	ctype := find_struct_union_def(struct_defs, tag)
+	ctype := find_struct_union_def(union_defs, tag)
 	if ctype != nil {
 		return ctype
 	}
@@ -676,7 +677,7 @@ func read_union_def() *Ctype {
 		offset += fieldtype.size
 	}
 	r := make_struct_type(fields, tag, offset)
-	struct_defs = append(struct_defs, r)
+	struct_defs = append(union_defs, r)
 	return r
 }
 

@@ -64,7 +64,7 @@ func ast_int(val int) *Ast {
 	return r
 }
 
-func ast_float(val float32) *Ast {
+func ast_float(val float) *Ast {
 	r := &Ast{}
 	r.typ = AST_LITERAL
 	r.ctype = ctype_float
@@ -402,8 +402,8 @@ func read_prim() *Ast {
 			return ast_int(ival)
 		}
 		if is_float(tok.sval) {
-			fval,_ := strconv.ParseFloat(tok.sval, 32)
-			return ast_float(float32(fval))
+			fval,_ := strconv.ParseFloat(tok.sval, FLOAT_SIZE)
+			return ast_float(float(fval))
 		}
 		errorf("Malformed number: %s", tok);
 	case TTYPE_CHAR:

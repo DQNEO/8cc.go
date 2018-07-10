@@ -90,7 +90,7 @@ func emit_lsave(ctype *Ctype, off int) {
 
 func emit_assign_deref_int(ctype *Ctype, off int) {
 	var reg string
-	emit("pop %%rcx")
+	emit("mov (%%rsp), %%rcx")
 	switch ctype.size {
 	case 1:
 		reg = "cl"
@@ -104,12 +104,13 @@ func emit_assign_deref_int(ctype *Ctype, off int) {
 	} else {
 		emit("mov %%%s, (%%rax)", reg)
 	}
+	emit("pop %%rax")
 }
 
 func emit_assign_deref(variable *Ast) {
 	emit("push %%rax")
 	emit_expr(variable.operand)
-	emit_assign_deref_int(variable.operand.ctype, 0)
+	emit_assign_deref_int(variable.operand.ctype.ptr, 0)
 }
 
 func emit_pointer_arith(_ byte, left *Ast, right *Ast) {

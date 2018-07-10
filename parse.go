@@ -349,27 +349,27 @@ func read_ident_or_func(name string) *Ast {
 }
 
 func read_prim() *Ast {
-	tk := read_token()
-	if tk == nil {
+	tok := read_token()
+	if tok == nil {
 		return nil
 	}
-	switch tk.typ {
+	switch tok.typ {
 	case TTYPE_IDENT:
-		return read_ident_or_func(tk.sval)
+		return read_ident_or_func(tok.sval)
 	case TTYPE_NUMBER:
-		ival ,_ := strconv.Atoi(tk.sval)
+		ival ,_ := strconv.Atoi(tok.sval)
 		return ast_int(ival)
 	case TTYPE_CHAR:
-		return ast_char(tk.c)
+		return ast_char(tok.c)
 	case TTYPE_STRING:
-		r := ast_string(tk.sval)
+		r := ast_string(tok.sval)
 		env_append(globalenv, r)
 		return r
 	case TTYPE_PUNCT:
-		unget_token(tk)
+		unget_token(tok)
 		return nil
 	default:
-		errorf("Don't know how to handle '%d'", tk.typ)
+		errorf("Don't know how to handle '%d'", tok.typ)
 	}
 
 	return nil

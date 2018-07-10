@@ -263,6 +263,13 @@ func ensure_lvalue(ast *Ast) {
 	return
 }
 
+func expect(punct byte) {
+	tok := read_token()
+	if !is_punct(tok, int(punct)) {
+		errorf("'%c' expected but got %s", punct, tok)
+	}
+}
+
 func is_ident(tok *Token, s string) bool {
 	return tok.typ == TTYPE_IDENT && tok.sval == s
 }
@@ -585,13 +592,6 @@ func is_type_keyword(tok *Token) bool {
 	return get_ctype(tok) != nil || is_ident(tok, "struct") || is_ident(tok, "union")
 }
 
-func expect(punct byte) {
-	tok := read_token()
-	if !is_punct(tok, int(punct)) {
-		errorf("'%c' expected but got %s", punct, tok)
-	}
-}
-
 func read_decl_array_init_int(ctype *Ctype) *Ast {
 	tok := read_token()
 	if ctype.ptr.typ == CTYPE_CHAR && tok.typ == TTYPE_STRING {
@@ -654,42 +654,6 @@ func read_struct_union_fields() []*Ctype {
 	return r
 }
 
-func read_struct_def() *Ctype {
-	tag := read_struct_union_tag()
-	ctype := find_struct_union_def(struct_defs, tag)
-	if ctype != nil {
-		return ctype
-	}
-	fields := read_struct_union_fields()
-	offset := 0
-	for _,fieldtype := range fields {
-		var size int
-		if fieldtype.size < MAX_ALIGN {
-			size = fieldtype.size
-		} else {
-			size = MAX_ALIGN
-		}
-		if offset%size != 0 {
-			offset += size - offset%size
-		}
-		fieldtype.offset = offset
-		offset += fieldtype.size
-	}
-	r := make_struct_type(fields, tag, offset)
-	struct_defs = append(struct_defs, r)
-	return r
-}
-
-func read_decl_int() (*Ctype, *Token) {
-	ctype := read_decl_spec()
-	name := read_token()
-	if name.typ != TTYPE_IDENT {
-		errorf("Identifier expected, but got %s", name)
-	}
-	ctype = read_array_dimensions(ctype)
-	return ctype, name
-}
-
 func read_union_def() *Ctype {
 	tag := read_struct_union_tag()
 	ctype := find_struct_union_def(struct_defs, tag)
@@ -716,6 +680,31 @@ func read_union_def() *Ctype {
 	return r
 }
 
+func read_struct_def() *Ctype {
+	tag := read_struct_union_tag()
+	ctype := find_struct_union_def(struct_defs, tag)
+	if ctype != nil {
+		return ctype
+	}
+	fields := read_struct_union_fields()
+	offset := 0
+	for _,fieldtype := range fields {
+		var size int
+		if fieldtype.size < MAX_ALIGN {
+			size = fieldtype.size
+		} else {
+			size = MAX_ALIGN
+		}
+		if offset%size != 0 {
+			offset += size - offset%size
+		}
+		fieldtype.offset = offset
+		offset += fieldtype.size
+	}
+	r := make_struct_type(fields, tag, offset)
+	struct_defs = append(struct_defs, r)
+	return r
+}
 
 func read_decl_spec() *Ctype {
 	tok := read_token()
@@ -743,6 +732,22 @@ func read_decl_spec() *Ctype {
 	return ctype
 }
 
+func check_intexp(ast *Ast) {
+	if ast.typ != AST_LITERAL || ast.ctype.typ != CTYPE_INT {
+		errorf("Integer expected, but got %s", ast)
+	}
+}
+
+func read_decl_int() (*Ctype, *Token) {
+	ctype := read_decl_spec()
+	name := read_token()
+	if name.typ != TTYPE_IDENT {
+		errorf("Identifier expected, but got %s", name)
+	}
+	ctype = read_array_dimensions(ctype)
+	return ctype, name
+}
+
 func read_decl_init_val(v *Ast) *Ast {
 	if v.ctype.typ == CTYPE_ARRAY {
 		init := read_decl_array_init_int(v.ctype)
@@ -768,12 +773,6 @@ func read_decl_init_val(v *Ast) *Ast {
 		check_intexp(init)
 	}
 	return ast_decl(v, init)
-}
-
-func check_intexp(ast *Ast) {
-	if ast.typ != AST_LITERAL || ast.ctype.typ != CTYPE_INT {
-		errorf("Integer expected, but got %s", ast)
-	}
 }
 
 func read_array_dimensions_int(basetype *Ctype) *Ctype {

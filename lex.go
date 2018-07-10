@@ -1,5 +1,7 @@
 package main
 
+import "strconv"
+
 const BUFLEN = 256
 
 var ungotten *Token
@@ -25,10 +27,10 @@ func make_punct(punct int) *Token {
 	return r
 }
 
-func make_int(n int) *Token {
+func make_int(s string) *Token {
 	r := &Token{}
 	r.typ = TTYPE_INT
-	r.ival = n
+	r.ival,_ = strconv.Atoi(s)
 	return r
 }
 
@@ -56,14 +58,15 @@ func getc_nonspace() (byte, error) {
 }
 
 func read_number(c byte) *Token {
-	n := int(c - '0')
+	var b []byte
+	b = append(b, c)
 	for {
 		c, _ := getc(stdin)
 		if !isdigit(c) {
 			ungetc(c, stdin)
-			return make_int(n)
+			return make_int(string(b))
 		}
-		n = n*10 + int(c-'0')
+		b = append(b, c)
 	}
 }
 

@@ -266,20 +266,45 @@ func emit_expr(ast *Ast) {
 	case AST_GVAR:
 		emit_gload(ast.ctype, ast.glabel, 0)
 	case AST_FUNCALL:
-		for i := 1; i < len(ast.args); i++ {
-			emit("push %%%s", REGS[i])
+		ireg := 0
+		for _, v := range ast.args {
+			if v.ctype.typ == CTYPE_FLOAT {
+
+			} else {
+				emit("push %%%s", REGS[ireg])
+				ireg++
+			}
 		}
 		for _, v := range ast.args {
 			emit_expr(v)
-			emit("push %%rax")
+			if v.ctype.typ == CTYPE_FLOAT {
+
+			} else {
+				emit("push %%rax")
+			}
 		}
-		for i := len(ast.args) - 1; i >= 0; i-- {
-			emit("pop %%%s", REGS[i])
+		ir := ireg
+		var reversed_args []*Ast
+		for i:= len(ast.args) -1 ; i >= 0 ; i-- {
+			reversed_args = append(reversed_args, ast.args[i])
 		}
-		emit("mov $0, %%eax")
+		for _,v := range reversed_args {
+			if v.ctype.typ == CTYPE_FLOAT {
+
+			} else {
+				ir--
+				emit("pop %%%s", REGS[ir])
+			}
+		}
+		emit("mov $%d, %%eax", 0)
 		emit("call %s", ast.fname)
-		for i := len(ast.args) - 1; i > 0; i-- {
-			emit("pop %%%s", REGS[i])
+		for _,v := range reversed_args {
+			if v.ctype.typ == CTYPE_FLOAT {
+
+			} else {
+				ireg--
+				emit("pop %%%s", REGS[ireg])
+			}
 		}
 	case AST_DECL:
 		if ast.declinit == nil {

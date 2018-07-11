@@ -207,7 +207,6 @@ func emit_binop(ast *Ast) {
 		emit_pointer_arith(byte(ast.typ), ast.left, ast.right)
 		return
 	}
-	var op string
 	switch ast.typ {
 	case '<':
 		emit_comp("setl", ast.left, ast.right)
@@ -215,6 +214,10 @@ func emit_binop(ast *Ast) {
 	case '>':
 		emit_comp("setg", ast.left, ast.right)
 		return
+	}
+
+	var op string
+	switch ast.typ {
 	case '+':
 		op = "add"
 	case '-':

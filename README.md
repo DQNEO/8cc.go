@@ -43,3 +43,6 @@ $ docker run -it --rm -v `pwd`:/mnt  dqneo/ubuntu-build-essential:go bash
 root@62b0d706a586:/# cd /mnt/
 root@62b0d706a586:/mnt# ./gotest.sh
 ```
+
+# LICENSE
+MIT License

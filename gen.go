@@ -1,5 +1,6 @@
 package main
 
+import "unsafe"
 var REGS = []string{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}
 
 func emit(format string, args ...interface{}) {
@@ -58,6 +59,10 @@ func emit_lload(ctype *Ctype, off int) {
 		emit("lea %d(%%rbp), %%rax", off)
 		return
 	}
+	if ctype.typ == CTYPE_FLOAT {
+		emit("movss %d(%%rbp), %%xmm0", off)
+		return
+	}
 	reg := get_int_reg(ctype, 'a')
 	if ctype.size == 1 {
 		emit("mov $0, %%eax")
@@ -77,8 +82,12 @@ func emit_gsave(varname string, ctype *Ctype, off int) {
 }
 
 func emit_lsave(ctype *Ctype, off int) {
-	reg := get_int_reg(ctype, 'a')
-	emit("mov %%%s, %d(%%rbp)", reg, off)
+	if ctype.typ == CTYPE_FLOAT {
+		emit("movss %%xmm0, %d(%%rbp)", off)
+	} else {
+		reg := get_int_reg(ctype, 'a')
+		emit("mov %%%s, %d(%%rbp)", reg, off)
+	}
 }
 
 func emit_assign_deref_int(ctype *Ctype, off int) {
@@ -174,6 +183,16 @@ func emit_comp(inst string, a *Ast, b *Ast) {
 	emit("movzb %%al, %%eax")
 }
 
+func emit_push_xmm(reg int) {
+	emit("sub $8, %%rsp")
+	emit("movss %%xmm%d, (%%rsp)", reg)
+}
+
+func emit_pop_xmm(reg int) {
+	emit("movss (%%rsp), %%xmm%d", reg)
+	emit("add $8, %%rsp")
+}
+
 func emit_binop(ast *Ast) {
 	if ast.typ == '=' {
 		emit_expr(ast.right)
@@ -256,6 +275,8 @@ func emit_expr(ast *Ast) {
 			emit("mov $%d, %%eax", ast.ival)
 		case CTYPE_CHAR:
 			emit("mov $%d, %%rax", ast.c)
+		case CTYPE_FLOAT:
+			emit("movss %s(%%rip), %%xmm0", ast.flabel)
 		default:
 			errorf("internal error")
 		}
@@ -267,9 +288,11 @@ func emit_expr(ast *Ast) {
 		emit_gload(ast.ctype, ast.glabel, 0)
 	case AST_FUNCALL:
 		ireg := 0
+		xreg := 0
 		for _, v := range ast.args {
 			if v.ctype.typ == CTYPE_FLOAT {
-
+				emit_push_xmm(xreg)
+				xreg++
 			} else {
 				emit("push %%%s", REGS[ireg])
 				ireg++
@@ -278,29 +301,33 @@ func emit_expr(ast *Ast) {
 		for _, v := range ast.args {
 			emit_expr(v)
 			if v.ctype.typ == CTYPE_FLOAT {
-
+				emit_push_xmm(0)
 			} else {
 				emit("push %%rax")
 			}
 		}
 		ir := ireg
+		xr := xreg
 		var reversed_args []*Ast
 		for i:= len(ast.args) -1 ; i >= 0 ; i-- {
 			reversed_args = append(reversed_args, ast.args[i])
 		}
 		for _,v := range reversed_args {
 			if v.ctype.typ == CTYPE_FLOAT {
-
+				xr--
+				emit_pop_xmm(xr)
+				emit("cvtps2pd %%xmm%d, %%xmm%d", xr, xr)
 			} else {
 				ir--
 				emit("pop %%%s", REGS[ir])
 			}
 		}
-		emit("mov $%d, %%eax", 0)
+		emit("mov $%d, %%eax", xreg)
 		emit("call %s", ast.fname)
 		for _,v := range reversed_args {
 			if v.ctype.typ == CTYPE_FLOAT {
-
+				xreg--
+				emit_pop_xmm(xreg)
 			} else {
 				ireg--
 				emit("pop %%%s", REGS[ireg])
@@ -450,6 +477,13 @@ func emit_data_section() {
 			errorf("internal error: %s", v)
 		}
 	}
+	for _,v := range floats {
+		label := make_label()
+		v.flabel = label
+		emit_label("%s:", label)
+		long := *(* int)(unsafe.Pointer(&v.fval))
+		emit(".long %d", long)
+	}
 }
 
 func ceil(n int, m int) int {
@@ -483,7 +517,7 @@ func emit_func_prologue(fn *Ast) {
 		v.loff = off
 	}
 	if off != 0 {
-		emit("sub $%d, %%rsp", -off)
+		emit("sub $%d, %%rsp", ceil(-off, 16))
 	}
 }
 

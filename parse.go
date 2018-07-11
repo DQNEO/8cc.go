@@ -11,6 +11,7 @@ const MAX_OP_PRIO = 16
 const MAX_ALIGN = 16
 
 var globalenv = &EMPTY_ENV
+var floats []*Ast
 var struct_defs []*Ctype
 var union_defs []*Ctype
 var localenv *Env
@@ -69,6 +70,7 @@ func ast_float(val float) *Ast {
 	r.typ = AST_LITERAL
 	r.ctype = ctype_float
 	r.fval = val
+	floats = append(floats, r)
 	return r
 }
 

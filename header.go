@@ -73,6 +73,7 @@ type Ast struct {
 	ival int
 	// Float
 	fval float
+	flabel string
 	// Char
 	c byte
 

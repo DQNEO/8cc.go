@@ -8,7 +8,7 @@
 enum {
   TTYPE_IDENT,
   TTYPE_PUNCT,
-  TTYPE_INT,
+  TTYPE_NUMBER,
   TTYPE_CHAR,
   TTYPE_STRING,
 };
@@ -16,7 +16,6 @@ enum {
 typedef struct {
   int type;
   union {
-    int ival;
     char *sval;
     int punct;
     char c;
@@ -58,6 +57,7 @@ enum {
   CTYPE_VOID,
   CTYPE_INT,
   CTYPE_CHAR,
+  CTYPE_FLOAT,
   CTYPE_ARRAY,
   CTYPE_PTR,
   CTYPE_STRUCT,
@@ -80,6 +80,11 @@ typedef struct Ast {
   union {
     // Integer
     int ival;
+    // Float
+    struct {
+      float fval;
+      char *flabel;
+    };
     // Char
     char c;
     // String
@@ -177,5 +182,6 @@ extern void emit_data_section(void);
 extern void emit_toplevel(Ast *v);
 
 extern Env *globalenv;
+extern List *floats;
 
 #endif /* EIGHTCC_H */

@@ -183,6 +183,35 @@ func emit_comp(inst string, a *Ast, b *Ast) {
 	emit("movzb %%al, %%eax")
 }
 
+func emit_bion_int_arith(ast *Ast) {
+	var op string
+	switch ast.typ {
+	case '+':
+		op = "add"
+	case '-':
+		op = "sub"
+	case '*':
+		op = "imul"
+	case '/':
+		break
+	default:
+		errorf("invalid operator '%d", ast.typ)
+	}
+
+	emit_expr(ast.left)
+	emit("push %%rax")
+	emit_expr(ast.right)
+	emit("mov %%rax, %%rcx")
+	if ast.typ == '/' {
+		emit("pop %%rax")
+		emit("mov $0, %%edx")
+		emit("idiv %%rcx")
+	} else {
+		emit("pop %%rax")
+		emit("%s %%rcx, %%rax", op)
+	}
+}
+
 func emit_push_xmm(reg int) {
 	emit("sub $8, %%rsp")
 	emit("movss %%xmm%d, (%%rsp)", reg)
@@ -216,32 +245,7 @@ func emit_binop(ast *Ast) {
 		return
 	}
 
-	var op string
-	switch ast.typ {
-	case '+':
-		op = "add"
-	case '-':
-		op = "sub"
-	case '*':
-		op = "imul"
-	case '/':
-		break
-	default:
-		errorf("invalid operator '%d", ast.typ)
-	}
-
-	emit_expr(ast.left)
-	emit("push %%rax")
-	emit_expr(ast.right)
-	emit("mov %%rax, %%rcx")
-	if ast.typ == '/' {
-		emit("pop %%rax")
-		emit("mov $0, %%edx")
-		emit("idiv %%rcx")
-	} else {
-		emit("pop %%rax")
-		emit("%s %%rcx, %%rax", op)
-	}
+	emit_bion_int_arith(ast)
 }
 
 func emit_inc_dec(ast *Ast, op string) {

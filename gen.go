@@ -54,6 +54,20 @@ func emit_gload(ctype *Ctype, label string, off int) {
 	}
 }
 
+func emit_toint(ctype *Ctype) {
+	if ctype.typ != CTYPE_FLOAT {
+		return
+	}
+	emit("cvttss2si %%xmm0, %%eax")
+}
+
+func emit_tofloat(ctype *Ctype) {
+	if ctype.typ == CTYPE_FLOAT {
+		return
+	}
+	emit("cvtsi2ss %%eax, %%xmm0")
+}
+
 func emit_lload(ctype *Ctype, off int) {
 	if ctype.typ == CTYPE_ARRAY {
 		emit("lea %d(%%rbp), %%rax", off)
@@ -199,15 +213,16 @@ func emit_bion_int_arith(ast *Ast) {
 	}
 
 	emit_expr(ast.left)
+	emit_toint(ast.left.ctype)
 	emit("push %%rax")
 	emit_expr(ast.right)
+	emit_toint(ast.right.ctype)
 	emit("mov %%rax, %%rcx")
+	emit("pop %%rax")
 	if ast.typ == '/' {
-		emit("pop %%rax")
 		emit("mov $0, %%edx")
 		emit("idiv %%rcx")
 	} else {
-		emit("pop %%rax")
 		emit("%s %%rcx, %%rax", op)
 	}
 }
@@ -220,6 +235,30 @@ func emit_push_xmm(reg int) {
 func emit_pop_xmm(reg int) {
 	emit("movss (%%rsp), %%xmm%d", reg)
 	emit("add $8, %%rsp")
+}
+
+func emit_binop_float_arith(ast *Ast) {
+	var op string
+	switch ast.typ {
+	case '+':
+		op = "addss"
+	case '-':
+		op = "subss"
+	case '*':
+	op = "muss"
+	case '/':
+		op = "divss"
+	default :
+		errorf("invalid operator '%d'", ast.typ)
+	}
+	 emit_expr(ast.left)
+	 emit_tofloat(ast.left.ctype)
+	 emit_push_xmm(0)
+	 emit_expr(ast.right)
+	 emit_tofloat(ast.right.ctype)
+	 emit("movsd %%xmm0, %%xmm1")
+	 emit_pop_xmm(0)
+	 emit("%s %%xmm1, %%xmm0", op)
 }
 
 func emit_binop(ast *Ast) {
@@ -245,7 +284,13 @@ func emit_binop(ast *Ast) {
 		return
 	}
 
-	emit_bion_int_arith(ast)
+	if ast.ctype.typ == CTYPE_INT {
+		emit_bion_int_arith(ast)
+	} else if ast.ctype.typ == CTYPE_FLOAT {
+		emit_binop_float_arith(ast)
+	} else {
+		errorf("internal error")
+	}
 }
 
 func emit_inc_dec(ast *Ast, op string) {

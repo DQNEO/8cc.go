@@ -201,10 +201,10 @@ func emit_comp(inst string, ast *Ast) {
 	if ast.ctype.typ == CTYPE_FLOAT {
 		emit_expr(ast.left)
 		emit_tofloat(ast.left.ctype)
-		emit("pushq %%xmm0")
+		emit_push_xmm(0)
 		emit_expr(ast.right)
 		emit_tofloat(ast.right.ctype)
-		emit("popq %%xmm1")
+		emit_pop_xmm(1)
 		emit("ucomiss %%xmm0, %%xmm1")
 	} else {
 		emit_expr(ast.left)

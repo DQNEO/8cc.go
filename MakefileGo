@@ -15,10 +15,11 @@ clean:
 fmt:
 	gofmt -w *.go
 
-test: 8ccg $(TESTS)
+test: 8cc 8ccg $(TESTS)
 	@for test in $(TESTS); do \
 	    ./$$test;             \
 	done
+	cp 8ccg 8cc
 	./test.sh
 
 test/%.s: test/%.c 8ccg

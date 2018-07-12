@@ -3,6 +3,8 @@ package main
 import "unsafe"
 var REGS = []string{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}
 
+var stackpos int
+
 func emit(format string, args ...interface{}) {
 	printf(format+"\n\t", args...)
 }
@@ -37,20 +39,27 @@ func get_int_reg(ctype *Ctype, r byte) string {
 func push_xmm(reg int) {
 	emit("sub $8, %%rsp")
 	emit("movss %%xmm%d, (%%rsp)", reg)
+	stackpos += 8
 }
 
 func pop_xmm(reg int) {
 	emit("movss (%%rsp), %%xmm%d", reg)
 	emit("add $8, %%rsp")
+	stackpos -= 8
+	assert(stackpos >= 8)
 }
 
 func push(reg string) {
 	emit("push %%%s", reg)
+	stackpos += 8
 }
 
 func pop(reg string) {
 	emit("pop %%%s", reg)
+	stackpos -= 8
+	assert(stackpos >= 8)
 }
+
 func emit_gload(ctype *Ctype, label string, off int) {
 	if ctype.typ == CTYPE_ARRAY {
 		if off != 0 {
@@ -596,6 +605,7 @@ func emit_func_prologue(fn *Ast) {
 	if off != 0 {
 		emit("sub $%d, %%rsp", align(-off, 16))
 	}
+	stackpos += -(off - 8)
 }
 
 func emit_func_epilogue() {
@@ -647,6 +657,7 @@ func emit_global_var(v *Ast) {
 }
 
 func emit_toplevel(v *Ast) {
+	stackpos = 0
 	if v.typ == AST_FUNC {
 		emit_func_prologue(v)
 		emit_expr(v.body)

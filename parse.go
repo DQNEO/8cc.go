@@ -536,9 +536,9 @@ func read_unary_expr() *Ast {
 }
 
 func read_cond_expr(cond *Ast) *Ast {
-	then := read_unary_expr()
+	then := read_expr()
 	expect(':')
-	els := read_unary_expr()
+	els := read_expr()
 	return ast_ternary(then.ctype, cond, then, els)
 }
 

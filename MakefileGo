@@ -2,34 +2,31 @@ GO_OBJS=main.go header.go lex.go adapter.go util.go gen.go parse.go debug.go
 TESTS := $(patsubst %.c,%,$(wildcard test/*.c))
 CFLAGS=-Wall -std=gnu99 -g -I. -no-pie
 
-8gg.linux: $(GO_OBJS)
-	GOOS=linux  GOARCH=amd64 go build -o 8gg.linux $(GO_OBJS)
-
-8gg.mac:  $(GO_OBJS)
-	GOOS=darwin GOARCH=amd64 go build -o 8gg.mac   $(GO_OBJS)
+8ccg: $(GO_OBJS)
+	GOOS=linux  GOARCH=amd64 go build -o 8ccg $(GO_OBJS)
 
 clean:
 	rm -f 8gg.* 8cc
 	make clean
 
-8cc: 8gg.linux
-	cp 8gg.linux 8cc
+8cc: 8ccg
+	cp 8ccg 8cc
 
 fmt:
 	gofmt -w *.go
 
-test: 8gg.linux $(TESTS)
+test: 8ccg $(TESTS)
 	@for test in $(TESTS); do \
 	    ./$$test;             \
 	done
 	./test.sh
 
-test/%.s: test/%.c 8gg.linux
-	./8gg.linux < $< > $@
+test/%.s: test/%.c 8ccg
+	./8ccg < $< > $@
 
-test/%: test/%.s 8gg.linux
+test/%: test/%.s 8ccg
 	$(CC) $(CFLAGS) -o $@ $<
 
-nqueen: 8gg.linux sample/nqueen.c
-	./8gg.linux < sample/nqueen.c > sample/nqueen.s
+nqueen: 8ccg sample/nqueen.c
+	./8ccg < sample/nqueen.c > sample/nqueen.s
 	$(CC) $(CFLAGS) -o sample/nqueen sample/nqueen.s

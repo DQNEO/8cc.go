@@ -34,6 +34,16 @@ func get_int_reg(ctype *Ctype, r byte) string {
 	return ""
 }
 
+func emit_push_xmm(reg int) {
+	emit("sub $8, %%rsp")
+	emit("movss %%xmm%d, (%%rsp)", reg)
+}
+
+func emit_pop_xmm(reg int) {
+	emit("movss (%%rsp), %%xmm%d", reg)
+	emit("add $8, %%rsp")
+}
+
 func emit_gload(ctype *Ctype, label string, off int) {
 	if ctype.typ == CTYPE_ARRAY {
 		if off != 0 {
@@ -237,16 +247,6 @@ func emit_bion_int_arith(ast *Ast) {
 	} else {
 		emit("%s %%rcx, %%rax", op)
 	}
-}
-
-func emit_push_xmm(reg int) {
-	emit("sub $8, %%rsp")
-	emit("movss %%xmm%d, (%%rsp)", reg)
-}
-
-func emit_pop_xmm(reg int) {
-	emit("movss (%%rsp), %%xmm%d", reg)
-	emit("add $8, %%rsp")
 }
 
 func emit_binop_float_arith(ast *Ast) {

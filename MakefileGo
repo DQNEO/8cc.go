@@ -16,6 +16,7 @@ fmt:
 	gofmt -w *.go
 
 test: 8cc 8ccg $(TESTS)
+	@echo
 	@for test in $(TESTS); do \
 	    ./$$test;             \
 	done

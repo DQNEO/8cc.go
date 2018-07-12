@@ -1,8 +1,11 @@
 #!/bin/bash
 
+rm tmp.s
 cat > tmp.s
-cat tmp.s >/dev/stderr
-echo "---------"
+if [[ $1 = "-v" ]]; then
+   cat tmp.s >/dev/stderr
+   echo "---------"
+fi
 gcc -no-pie -o tmp.out tmp.s
 ./tmp.out
 echo

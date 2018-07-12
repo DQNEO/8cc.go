@@ -56,7 +56,12 @@ static void ast_to_string_int(String *buf, Ast *ast) {
           string_appendf(buf, "%f", ast->fval);
           break;
         case CTYPE_CHAR:
-          string_appendf(buf, "'%c'", ast->c);
+          if (ast->c == '\n')
+            string_appendf(buf, "'\n'");
+          else if (ast->c == '\\')
+            string_appendf(buf, "'\\\\'");
+          else
+            string_appendf(buf, "'%c'", ast->c);
           break;
         default:
           error("internal error");

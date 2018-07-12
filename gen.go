@@ -187,10 +187,10 @@ func emit_assign(variable *Ast) {
 	}
 }
 
-func emit_comp(inst string, a *Ast, b *Ast) {
-	emit_expr(a)
+func emit_comp(inst string, ast *Ast) {
+	emit_expr(ast.left)
 	emit("push %%rax")
-	emit_expr(b)
+	emit_expr(ast.right)
 	emit("pop %%rcx")
 	emit("cmp %%rax, %%rcx")
 	emit("%s %%al", inst)
@@ -274,7 +274,7 @@ func emit_binop(ast *Ast) {
 		return
 	}
 	if ast.typ == PUNCT_EQ {
-		emit_comp("sete", ast.left, ast.right)
+		emit_comp("sete", ast)
 		return
 	}
 	if ast.ctype.typ == CTYPE_PTR {
@@ -283,10 +283,10 @@ func emit_binop(ast *Ast) {
 	}
 	switch ast.typ {
 	case '<':
-		emit_comp("setl", ast.left, ast.right)
+		emit_comp("setl", ast)
 		return
 	case '>':
-		emit_comp("setg", ast.left, ast.right)
+		emit_comp("setg", ast)
 		return
 	}
 

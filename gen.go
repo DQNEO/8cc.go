@@ -34,12 +34,12 @@ func get_int_reg(ctype *Ctype, r byte) string {
 	return ""
 }
 
-func emit_push_xmm(reg int) {
+func push_xmm(reg int) {
 	emit("sub $8, %%rsp")
 	emit("movss %%xmm%d, (%%rsp)", reg)
 }
 
-func emit_pop_xmm(reg int) {
+func pop_xmm(reg int) {
 	emit("movss (%%rsp), %%xmm%d", reg)
 	emit("add $8, %%rsp")
 }
@@ -208,10 +208,10 @@ func emit_comp(inst string, ast *Ast) {
 	if ast.ctype.typ == CTYPE_FLOAT {
 		emit_expr(ast.left)
 		emit_tofloat(ast.left.ctype)
-		emit_push_xmm(0)
+		push_xmm(0)
 		emit_expr(ast.right)
 		emit_tofloat(ast.right.ctype)
-		emit_pop_xmm(1)
+		pop_xmm(1)
 		emit("ucomiss %%xmm0, %%xmm1")
 	} else {
 		emit_expr(ast.left)
@@ -272,11 +272,11 @@ func emit_binop_float_arith(ast *Ast) {
 	}
 	 emit_expr(ast.left)
 	 emit_tofloat(ast.left.ctype)
-	 emit_push_xmm(0)
+	 push_xmm(0)
 	 emit_expr(ast.right)
 	 emit_tofloat(ast.right.ctype)
 	 emit("movsd %%xmm0, %%xmm1")
-	 emit_pop_xmm(0)
+	 pop_xmm(0)
 	 emit("%s %%xmm1, %%xmm0", op)
 }
 
@@ -368,7 +368,7 @@ func emit_expr(ast *Ast) {
 		xreg := 0
 		for _, v := range ast.args {
 			if v.ctype.typ == CTYPE_FLOAT {
-				emit_push_xmm(xreg)
+				push_xmm(xreg)
 				xreg++
 			} else {
 				push(REGS[ireg])
@@ -378,7 +378,7 @@ func emit_expr(ast *Ast) {
 		for _, v := range ast.args {
 			emit_expr(v)
 			if v.ctype.typ == CTYPE_FLOAT {
-				emit_push_xmm(0)
+				push_xmm(0)
 			} else {
 				push("rax")
 			}
@@ -392,7 +392,7 @@ func emit_expr(ast *Ast) {
 		for _,v := range reversed_args {
 			if v.ctype.typ == CTYPE_FLOAT {
 				xr--
-				emit_pop_xmm(xr)
+				pop_xmm(xr)
 				emit("cvtps2pd %%xmm%d, %%xmm%d", xr, xr)
 			} else {
 				ir--
@@ -404,7 +404,7 @@ func emit_expr(ast *Ast) {
 		for _,v := range reversed_args {
 			if v.ctype.typ == CTYPE_FLOAT {
 				xreg--
-				emit_pop_xmm(xreg)
+				pop_xmm(xreg)
 			} else {
 				ireg--
 				pop(REGS[ireg])

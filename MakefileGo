@@ -7,7 +7,7 @@ GO_OBJS=main.go header.go lex.go adapter.go util.go gen.go parse.go debug.go
 	GOOS=darwin GOARCH=amd64 go build -o 8gg.mac   $(GO_OBJS)
 
 clean:
-	rm -f 8gg.*
+	rm -f 8gg.* 8cc
 	make clean
 
 8cc: 8gg.linux
@@ -16,8 +16,8 @@ clean:
 fmt:
 	gofmt -w *.go
 
-test:
-	./gotest.sh
+test: 8cc
+	./test.sh
 
 nqueen: 8gg.linux
 	./8gg.linux < sample/nqueen.c > nqueen.s

@@ -60,7 +60,13 @@ func (ast *Ast) String() string {
 		case CTYPE_FLOAT:
 			return fmt.Sprintf("%f", ast.fval)
 		case CTYPE_CHAR:
-			return fmt.Sprintf("'%c'", ast.c)
+			if ast.c == '\n' {
+				return "'\n'"
+			} else if ast.c == '\\' {
+				return "'\\\\'"
+			} else {
+				return fmt.Sprintf("'%c'", ast.c)
+			}
 		default:
 			errorf("internal error")
 			return ""

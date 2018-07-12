@@ -556,7 +556,7 @@ func emit_data_section() {
 	}
 }
 
-func ceil(n int, m int) int {
+func align(n int, m int) int {
 	rem := n % m
 	if rem == 0 {
 		return n
@@ -579,15 +579,15 @@ func emit_func_prologue(fn *Ast) {
 	for _, v := range fn.params {
 		emit("push %%%s", REGS[ri])
 		ri++
-		off -= ceil(v.ctype.size, 8)
+		off -= align(v.ctype.size, 8)
 		v.loff = off
 	}
 	for _, v := range fn.localvars {
-		off -= ceil(v.ctype.size, 8)
+		off -= align(v.ctype.size, 8)
 		v.loff = off
 	}
 	if off != 0 {
-		emit("sub $%d, %%rsp", ceil(-off, 16))
+		emit("sub $%d, %%rsp", align(-off, 16))
 	}
 }
 

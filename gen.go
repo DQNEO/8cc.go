@@ -188,13 +188,17 @@ func emit_assign(variable *Ast) {
 }
 
 func emit_comp(inst string, ast *Ast) {
-	emit_expr(ast.left)
-	emit("push %%rax")
-	emit_expr(ast.right)
-	emit("pop %%rcx")
-	emit("cmp %%rax, %%rcx")
-	emit("%s %%al", inst)
-	emit("movzb %%al, %%eax")
+	if ast.ctype.typ == CTYPE_FLOAT {
+
+	} else {
+		emit_expr(ast.left)
+		emit("push %%rax")
+		emit_expr(ast.right)
+		emit("pop %%rcx")
+		emit("cmp %%rax, %%rcx")
+		emit("%s %%al", inst)
+		emit("movzb %%al, %%eax")
+	}
 }
 
 func emit_bion_int_arith(ast *Ast) {

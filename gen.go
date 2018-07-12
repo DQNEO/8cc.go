@@ -44,6 +44,13 @@ func emit_pop_xmm(reg int) {
 	emit("add $8, %%rsp")
 }
 
+func push(reg string) {
+	emit("push %%%s", reg)
+}
+
+func pop(reg string) {
+	emit("pop %%%s", reg)
+}
 func emit_gload(ctype *Ctype, label string, off int) {
 	if ctype.typ == CTYPE_ARRAY {
 		if off != 0 {
@@ -122,25 +129,25 @@ func emit_assign_deref_int(ctype *Ctype, off int) {
 	} else {
 		emit("mov %%%s, (%%rax)", reg)
 	}
-	emit("pop %%rax")
+	pop("rax")
 }
 
 func emit_assign_deref(variable *Ast) {
-	emit("push %%rax")
+	push("rax")
 	emit_expr(variable.operand)
 	emit_assign_deref_int(variable.operand.ctype.ptr, 0)
 }
 
 func emit_pointer_arith(_ byte, left *Ast, right *Ast) {
 	emit_expr(left)
-	emit("push %%rax")
+	push("rax")
 	emit_expr(right)
 	size := left.ctype.ptr.size
 	if size > 1 {
 		emit("imul $%d, %%rax", size)
 	}
 	emit("mov %%rax, %%rcx")
-	emit("pop %%rax")
+	pop("rax")
 	emit("add %%rcx, %%rax")
 }
 
@@ -154,7 +161,7 @@ func emit_assign_struct_ref(struc *Ast, field *Ctype, off int) {
 		emit_assign_struct_ref(struc.struc, field, off+struc.field.offset)
 	case AST_DEREF:
 		v := struc
-		emit("push %%rax")
+		push("rax")
 		emit_expr(v.operand)
 		emit_assign_deref_int(field, field.offset+off)
 	default:
@@ -209,10 +216,10 @@ func emit_comp(inst string, ast *Ast) {
 	} else {
 		emit_expr(ast.left)
 		emit_toint(ast.left.ctype)
-		emit("push %%rax")
+		push("rax")
 		emit_expr(ast.right)
 		emit_toint(ast.right.ctype)
-		emit("pop %%rcx")
+		pop("rcx")
 		emit("cmp %%rax, %%rcx")
 		emit("%s %%al", inst)
 		emit("movzb %%al, %%eax")
@@ -236,11 +243,11 @@ func emit_bion_int_arith(ast *Ast) {
 
 	emit_expr(ast.left)
 	emit_toint(ast.left.ctype)
-	emit("push %%rax")
+	push("rax")
 	emit_expr(ast.right)
 	emit_toint(ast.right.ctype)
 	emit("mov %%rax, %%rcx")
-	emit("pop %%rax")
+	pop("rax")
 	if ast.typ == '/' {
 		emit("mov $0, %%edx")
 		emit("idiv %%rcx")
@@ -313,10 +320,10 @@ func emit_binop(ast *Ast) {
 
 func emit_inc_dec(ast *Ast, op string) {
 	emit_expr(ast.operand)
-	emit("push %%rax")
+	push("rax")
 	emit("%s $1, %%rax", op)
 	emit_assign(ast.operand)
-	emit("pop %%rax")
+	pop("rax")
 }
 
 func emit_load_deref(result_type *Ctype, operand_type *Ctype, off int) {
@@ -364,7 +371,7 @@ func emit_expr(ast *Ast) {
 				emit_push_xmm(xreg)
 				xreg++
 			} else {
-				emit("push %%%s", REGS[ireg])
+				push(REGS[ireg])
 				ireg++
 			}
 		}
@@ -373,7 +380,7 @@ func emit_expr(ast *Ast) {
 			if v.ctype.typ == CTYPE_FLOAT {
 				emit_push_xmm(0)
 			} else {
-				emit("push %%rax")
+				push("rax")
 			}
 		}
 		ir := ireg
@@ -389,7 +396,7 @@ func emit_expr(ast *Ast) {
 				emit("cvtps2pd %%xmm%d, %%xmm%d", xr, xr)
 			} else {
 				ir--
-				emit("pop %%%s", REGS[ir])
+				pop(REGS[ir])
 			}
 		}
 		emit("mov $%d, %%eax", xreg)
@@ -400,7 +407,7 @@ func emit_expr(ast *Ast) {
 				emit_pop_xmm(xreg)
 			} else {
 				ireg--
-				emit("pop %%%s", REGS[ireg])
+				pop(REGS[ireg])
 			}
 		}
 	case AST_DECL:
@@ -495,15 +502,15 @@ func emit_expr(ast *Ast) {
 		emit("movzb %%al, %%eax")
 	case '&':
 		emit_expr(ast.left)
-		emit("push %%rax")
+		push("rax")
 		emit_expr(ast.right)
-		emit("pop %%rcx")
+		pop("rcx")
 		emit("and %%rcx, %%rax")
 	case '|':
 		emit_expr(ast.left)
-		emit("push %%rax")
+		push("rax")
 		emit_expr(ast.right)
-		emit("pop %%rcx")
+		pop("rcx")
 		emit("or %%rcx, %%rax")
 	case PUNCT_LOGAND:
 		end := make_label()
@@ -572,12 +579,12 @@ func emit_func_prologue(fn *Ast) {
 	emit(".text")
 	emit(".global %s\n", fn.fname)
 	emit("%s:", fn.fname)
-	emit("push %%rbp")
+	push("rbp")
 	emit("mov %%rsp, %%rbp")
 	off := 0
 	ri := 0
 	for _, v := range fn.params {
-		emit("push %%%s", REGS[ri])
+		push(REGS[ri])
 		ri++
 		off -= align(v.ctype.size, 8)
 		v.loff = off

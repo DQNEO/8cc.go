@@ -264,6 +264,12 @@ func emit_binop_float_arith(ast *Ast) {
 func emit_binop(ast *Ast) {
 	if ast.typ == '=' {
 		emit_expr(ast.right)
+		if ast.ctype.typ == CTYPE_FLOAT {
+			emit_tofloat(ast.right.ctype)
+		} else {
+			emit_toint(ast.right.ctype)
+		}
+
 		emit_assign(ast.left)
 		return
 	}

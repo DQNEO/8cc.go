@@ -9,13 +9,10 @@ clean:
 	rm -f 8gg.* 8cc
 	make clean
 
-8cc: 8ccg
-	cp 8ccg 8cc
-
 fmt:
 	gofmt -w *.go
 
-test: 8cc 8ccg $(TESTS)
+test: 8ccg $(TESTS)
 	@echo
 	@for test in $(TESTS); do \
 	    ./$$test;             \

@@ -76,6 +76,10 @@ func pop(reg string) {
 	assert(stackpos >= 8)
 }
 
+func is_flotype(ctype *Ctype) bool {
+	return ctype.typ == CTYPE_FLOAT
+}
+
 func emit_gload(ctype *Ctype, label string, off int) {
 	if ctype.typ == CTYPE_ARRAY {
 		if off != 0 {
@@ -97,14 +101,14 @@ func emit_gload(ctype *Ctype, label string, off int) {
 }
 
 func emit_toint(ctype *Ctype) {
-	if ctype.typ != CTYPE_FLOAT {
+	if !is_flotype(ctype) {
 		return
 	}
 	emit("cvttss2si %%xmm0, %%eax")
 }
 
 func emit_tofloat(ctype *Ctype) {
-	if ctype.typ == CTYPE_FLOAT {
+	if is_flotype(ctype) {
 		return
 	}
 	emit("cvtsi2ss %%eax, %%xmm0")
@@ -115,7 +119,7 @@ func emit_lload(ctype *Ctype, off int) {
 		emit("lea %d(%%rbp), %%rax", off)
 		return
 	}
-	if ctype.typ == CTYPE_FLOAT {
+	if is_flotype(ctype) {
 		emit("movss %d(%%rbp), %%xmm0", off)
 		return
 	}
@@ -138,7 +142,7 @@ func emit_gsave(varname string, ctype *Ctype, off int) {
 }
 
 func emit_lsave(ctype *Ctype, off int) {
-	if ctype.typ == CTYPE_FLOAT {
+	if is_flotype(ctype) {
 		emit("movss %%xmm0, %d(%%rbp)", off)
 	} else {
 		reg := get_int_reg(ctype, 'a')
@@ -230,7 +234,7 @@ func emit_assign(variable *Ast) {
 }
 
 func emit_comp(inst string, ast *Ast) {
-	if ast.ctype.typ == CTYPE_FLOAT {
+	if is_flotype(ast.ctype) {
 		emit_expr(ast.left)
 		emit_tofloat(ast.left.ctype)
 		push_xmm(0)
@@ -308,7 +312,7 @@ func emit_binop_float_arith(ast *Ast) {
 func emit_binop(ast *Ast) {
 	if ast.typ == '=' {
 		emit_expr(ast.right)
-		if ast.ctype.typ == CTYPE_FLOAT {
+		if is_flotype(ast.ctype) {
 			emit_tofloat(ast.right.ctype)
 		} else {
 			emit_toint(ast.right.ctype)
@@ -336,7 +340,7 @@ func emit_binop(ast *Ast) {
 
 	if ast.ctype.typ == CTYPE_INT {
 		emit_bion_int_arith(ast)
-	} else if ast.ctype.typ == CTYPE_FLOAT {
+	} else if is_flotype(ast.ctype) {
 		emit_binop_float_arith(ast)
 	} else {
 		errorf("internal error")
@@ -392,7 +396,7 @@ func emit_expr(ast *Ast) {
 		ireg := 0
 		xreg := 0
 		for _, v := range ast.args {
-			if v.ctype.typ == CTYPE_FLOAT {
+			if is_flotype(v.ctype) {
 				push_xmm(xreg)
 				xreg++
 			} else {
@@ -402,7 +406,7 @@ func emit_expr(ast *Ast) {
 		}
 		for _, v := range ast.args {
 			emit_expr(v)
-			if v.ctype.typ == CTYPE_FLOAT {
+			if is_flotype(v.ctype) {
 				push_xmm(0)
 			} else {
 				push("rax")
@@ -415,7 +419,7 @@ func emit_expr(ast *Ast) {
 			reversed_args = append(reversed_args, ast.args[i])
 		}
 		for _,v := range reversed_args {
-			if v.ctype.typ == CTYPE_FLOAT {
+			if is_flotype(v.ctype) {
 				xr--
 				pop_xmm(xr)
 				emit("cvtps2pd %%xmm%d, %%xmm%d", xr, xr)
@@ -433,7 +437,7 @@ func emit_expr(ast *Ast) {
 			emit("add $8, %%rsp")
 		}
 		for _,v := range reversed_args {
-			if v.ctype.typ == CTYPE_FLOAT {
+			if is_flotype(v.ctype) {
 				xreg--
 				pop_xmm(xreg)
 			} else {
@@ -610,7 +614,7 @@ func emit_func_prologue(fn *Ast) {
 	ireg := 0
 	xreg := 0
 	for _, v := range fn.params {
-		if v.ctype.typ == CTYPE_FLOAT {
+		if is_flotype(v.ctype) {
 			emit("cvtpd2ps %%xmm%d, %%xmm%d", xreg, xreg)
 			push_xmm(xreg)
 			xreg++

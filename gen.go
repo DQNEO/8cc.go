@@ -3,6 +3,7 @@ package main
 import "unsafe"
 import "runtime"
 import "fmt"
+import "strings"
 
 var REGS = []string{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}
 
@@ -18,7 +19,8 @@ func emit_int(format string, args ...interface{}) {
 		errorf("Unable to get caller")
 	}
 	details := runtime.FuncForPC(pc)
-	caller := fmt.Sprintf(" %s %d", details.Name(),  no)
+	callerName := (strings.Split(details.Name(), "."))[1]
+	caller := fmt.Sprintf(" %s %d", callerName ,  no)
 	numSpaces := 27 - len(code)
 	printf("%s %*c %s\n", code, numSpaces, '#', caller )
 }

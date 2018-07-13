@@ -598,9 +598,17 @@ func emit_func_prologue(fn *Ast) {
 	emit("mov %%rsp, %%rbp")
 	off := 0
 	ireg := 0
+	xreg := 0
 	for _, v := range fn.params {
-		push(REGS[ireg])
-		ireg++
+		if v.ctype.typ == CTYPE_FLOAT {
+			emit("cvtpd2ps %%xmm%d, %%xmm%d", xreg, xreg)
+			push_xmm(xreg)
+			xreg++
+		} else {
+			push(REGS[ireg])
+			ireg++
+		}
+
 		off -= align(v.ctype.size, 8)
 		v.loff = off
 	}

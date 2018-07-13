@@ -1,12 +1,28 @@
 package main
 
 import "unsafe"
+import "runtime"
+import "fmt"
+import "strings"
+
 var REGS = []string{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}
 
 var stackpos int
 
 func emit(format string, args ...interface{}) {
-	printf(format+"\n\t", args...)
+	emit_int("\t" + format, args...)
+}
+func emit_int(format string, args ...interface{}) {
+	code := fmt.Sprintf(format, args...)
+	pc, _, no, ok := runtime.Caller(3)
+	if !ok  {
+		errorf("Unable to get caller")
+	}
+	details := runtime.FuncForPC(pc)
+	callerName := (strings.Split(details.Name(), "."))[1]
+	caller := fmt.Sprintf(" %s %d", callerName ,  no)
+	numSpaces := 27 - len(code)
+	printf("%s %*c %s\n", code, numSpaces, '#', caller )
 }
 
 func get_int_reg(ctype *Ctype, r byte) string {
@@ -560,7 +576,7 @@ func emit_data_section() {
 	emit(".data")
 	for _, v := range globalenv.vars {
 		if v.typ == AST_STRING {
-			emit("%s:", v.slabel)
+			emit_label("%s:", v.slabel)
 			emit(".string \"%s\"", quote_cstring(v.val))
 		} else if v.typ != AST_GVAR {
 			errorf("internal error: %s", v)
@@ -586,8 +602,8 @@ func align(n int, m int) int {
 
 func emit_func_prologue(fn *Ast) {
 	emit(".text")
-	emit(".global %s\n", fn.fname)
-	emit("%s:", fn.fname)
+	emit_label(".global %s\n", fn.fname)
+	emit_label("%s:", fn.fname)
 	push("rbp")
 	emit("mov %%rsp, %%rbp")
 	off := 0
@@ -622,7 +638,7 @@ func emit_func_epilogue() {
 }
 
 func emit_label(fmt string, args ...interface{}) {
-	emit(fmt, args...)
+	emit_int(fmt, args...)
 }
 
 func emit_data_int(data *Ast) {

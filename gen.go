@@ -9,6 +9,9 @@ var REGS = []string{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}
 var stackpos int
 
 func emit(format string, args ...interface{}) {
+	emit_int("\t" + format, args...)
+}
+func emit_int(format string, args ...interface{}) {
 	code := fmt.Sprintf(format, args...)
 	pc, _, no, ok := runtime.Caller(1)
 	if !ok  {
@@ -633,7 +636,7 @@ func emit_func_epilogue() {
 }
 
 func emit_label(fmt string, args ...interface{}) {
-	emit(fmt, args...)
+	emit_int(fmt, args...)
 }
 
 func emit_data_int(data *Ast) {

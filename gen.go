@@ -557,9 +557,6 @@ func emit_expr(ast *Ast) {
 }
 
 func emit_data_section() {
-	if len(globalenv.vars) == 0 {
-		return
-	}
 	emit(".data")
 	for _, v := range globalenv.vars {
 		if v.typ == AST_STRING {
@@ -588,9 +585,6 @@ func align(n int, m int) int {
 }
 
 func emit_func_prologue(fn *Ast) {
-	if len(fn.params) > len(REGS) {
-		errorf("Parameter list too long: %s", fn.fname)
-	}
 	emit(".text")
 	emit(".global %s\n", fn.fname)
 	emit("%s:", fn.fname)
@@ -617,7 +611,7 @@ func emit_func_prologue(fn *Ast) {
 		v.loff = off
 	}
 	if off != 0 {
-		emit("sub $%d, %%rsp", align(-off, 16))
+		emit("add $%d, %%rsp", off)
 	}
 	stackpos += -(off - 8)
 }

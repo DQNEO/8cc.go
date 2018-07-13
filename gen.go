@@ -13,7 +13,7 @@ func emit(format string, args ...interface{}) {
 }
 func emit_int(format string, args ...interface{}) {
 	code := fmt.Sprintf(format, args...)
-	pc, _, no, ok := runtime.Caller(1)
+	pc, _, no, ok := runtime.Caller(3)
 	if !ok  {
 		errorf("Unable to get caller")
 	}

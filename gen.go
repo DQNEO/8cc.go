@@ -597,10 +597,10 @@ func emit_func_prologue(fn *Ast) {
 	push("rbp")
 	emit("mov %%rsp, %%rbp")
 	off := 0
-	ri := 0
+	ireg := 0
 	for _, v := range fn.params {
-		push(REGS[ri])
-		ri++
+		push(REGS[ireg])
+		ireg++
 		off -= align(v.ctype.size, 8)
 		v.loff = off
 	}

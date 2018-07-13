@@ -409,7 +409,13 @@ func emit_expr(ast *Ast) {
 			}
 		}
 		emit("mov $%d, %%eax", xreg)
+		if stackpos % 16 != 0 {
+			emit("sub $8, %%rsp")
+		}
 		emit("call %s", ast.fname)
+		if stackpos % 16 != 0 {
+			emit("add $8, %%rsp")
+		}
 		for _,v := range reversed_args {
 			if v.ctype.typ == CTYPE_FLOAT {
 				xreg--

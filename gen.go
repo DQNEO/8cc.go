@@ -560,7 +560,7 @@ func emit_data_section() {
 	emit(".data")
 	for _, v := range globalenv.vars {
 		if v.typ == AST_STRING {
-			emit("%s:", v.slabel)
+			emit_label("%s:", v.slabel)
 			emit(".string \"%s\"", quote_cstring(v.val))
 		} else if v.typ != AST_GVAR {
 			errorf("internal error: %s", v)
@@ -586,8 +586,8 @@ func align(n int, m int) int {
 
 func emit_func_prologue(fn *Ast) {
 	emit(".text")
-	emit(".global %s\n", fn.fname)
-	emit("%s:", fn.fname)
+	emit_label(".global %s\n", fn.fname)
+	emit_label("%s:", fn.fname)
 	push("rbp")
 	emit("mov %%rsp, %%rbp")
 	off := 0

@@ -1,12 +1,23 @@
 package main
 
 import "unsafe"
+import "runtime"
+import "fmt"
+
 var REGS = []string{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}
 
 var stackpos int
 
 func emit(format string, args ...interface{}) {
-	printf(format+"\n\t", args...)
+	code := fmt.Sprintf(format, args...)
+	pc, _, no, ok := runtime.Caller(1)
+	if !ok  {
+		errorf("Unable to get caller")
+	}
+	details := runtime.FuncForPC(pc)
+	caller := fmt.Sprintf(" %s %d", details.Name(),  no)
+	numSpaces := 27 - len(code)
+	printf("%s %*c %s\n", code, numSpaces, '#', caller )
 }
 
 func get_int_reg(ctype *Ctype, r byte) string {

@@ -586,7 +586,7 @@ func emit_data_section() {
 			errorf("internal error: %s", v)
 		}
 	}
-	for _,v := range floats {
+	for _,v := range flonums {
 		label := make_label()
 		v.flabel = label
 		emit_label("%s:", label)

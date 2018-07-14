@@ -184,6 +184,6 @@ extern void emit_data_section(void);
 extern void emit_toplevel(Ast *v);
 
 extern Env *globalenv;
-extern List *floats;
+extern List *flonums;
 
 #endif /* EIGHTCC_H */

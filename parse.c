@@ -10,7 +10,7 @@
 #define MAX_ALIGN 16
 
 Env *globalenv = &EMPTY_ENV;
-List *floats = &EMPTY_LIST;
+List *flonums = &EMPTY_LIST;
 static List *struct_defs = &EMPTY_LIST;
 static List *union_defs = &EMPTY_LIST;
 static Env *localenv = NULL;
@@ -82,7 +82,7 @@ static Ast *ast_float(float val) {
     r->type = AST_LITERAL;
     r->ctype = ctype_float;
     r->fval = val;
-    list_push(floats, r);
+    list_push(flonums, r);
     return r;
 }
 
@@ -358,7 +358,7 @@ static bool is_int(char *p) {
     return true;
 }
 
-static bool is_float(char *p) {
+static bool is_flonum(char *p) {
     for (; *p; p++)
         if (!isdigit(*p))
             break;
@@ -379,7 +379,7 @@ static Ast *read_prim(void) {
     case TTYPE_NUMBER:
         if (is_int(tok->sval))
             return ast_int(atoi(tok->sval));
-        if (is_float(tok->sval))
+        if (is_flonum(tok->sval))
             return ast_float(atof(tok->sval));
         error("Malformed number: %s", token_to_string(tok));
     case TTYPE_CHAR:
@@ -578,12 +578,9 @@ static Ctype *get_ctype(Token *tok) {
     if (!tok) return NULL;
     if (tok->type != TTYPE_IDENT)
         return NULL;
-    if (!strcmp(tok->sval, "int"))
-        return ctype_int;
-    if (!strcmp(tok->sval, "char"))
-        return ctype_char;
-    if (!strcmp(tok->sval, "float"))
-        return ctype_float;
+    if (!strcmp(tok->sval, "int"))    return ctype_int;
+    if (!strcmp(tok->sval, "char"))   return ctype_char;
+    if (!strcmp(tok->sval, "float"))  return ctype_float;
     return NULL;
 }
 

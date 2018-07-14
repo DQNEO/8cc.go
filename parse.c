@@ -19,6 +19,7 @@ static List *localvars = NULL;
 static Ctype *ctype_int = &(Ctype){ CTYPE_INT, NULL, 4 };
 static Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, NULL, 1 };
 static Ctype *ctype_float = &(Ctype){ CTYPE_FLOAT, NULL, 4 };
+static Ctype *ctype_double = &(Ctype){ CTYPE_DOUBLE, NULL, 8 };
 
 static int labelseq = 0;
 
@@ -77,10 +78,10 @@ static Ast *ast_int(int val) {
     return r;
 }
 
-static Ast *ast_float(float val) {
+static Ast *ast_double(double val) {
     Ast *r = malloc(sizeof(Ast));
     r->type = AST_LITERAL;
-    r->ctype = ctype_float;
+    r->ctype = ctype_double;
     r->fval = val;
     list_push(flonums, r);
     return r;
@@ -380,7 +381,7 @@ static Ast *read_prim(void) {
         if (is_int(tok->sval))
             return ast_int(atoi(tok->sval));
         if (is_flonum(tok->sval))
-            return ast_float(atof(tok->sval));
+            return ast_double(atof(tok->sval));
         error("Malformed number: %s", token_to_string(tok));
     case TTYPE_CHAR:
         return ast_char(tok->c);
@@ -422,15 +423,20 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
         case CTYPE_CHAR:
             return ctype_int;
         case CTYPE_FLOAT:
-            return ctype_float;
+        case CTYPE_DOUBLE:
+            return ctype_double;
         case CTYPE_ARRAY:
         case CTYPE_PTR:
             return b;
         }
         error("internal error");
     case CTYPE_FLOAT:
-        if (b->type == CTYPE_FLOAT)
-            return ctype_float;
+        if (b->type == CTYPE_FLOAT || b->type == CTYPE_DOUBLE)
+            return ctype_double;
+        goto err;
+    case CTYPE_DOUBLE:
+        if (b->type == CTYPE_DOUBLE)
+            return ctype_double;
         goto err;
     case CTYPE_ARRAY:
         if (b->type != CTYPE_ARRAY)
@@ -581,6 +587,7 @@ static Ctype *get_ctype(Token *tok) {
     if (!strcmp(tok->sval, "int"))    return ctype_int;
     if (!strcmp(tok->sval, "char"))   return ctype_char;
     if (!strcmp(tok->sval, "float"))  return ctype_float;
+    if (!strcmp(tok->sval, "double")) return ctype_double;
     return NULL;
 }
 

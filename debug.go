@@ -17,6 +17,8 @@ func (ctype *Ctype) String() string {
 		return "char"
 	case CTYPE_FLOAT:
 		return "float"
+	case CTYPE_DOUBLE:
+		return "double"
 	case CTYPE_PTR:
 		return fmt.Sprintf("*%s", ctype.ptr)
 	case CTYPE_ARRAY:
@@ -57,7 +59,7 @@ func (ast *Ast) String() string {
 		switch ast.ctype.typ {
 		case CTYPE_INT:
 			return fmt.Sprintf("%d", ast.ival)
-		case CTYPE_FLOAT:
+		case CTYPE_FLOAT, CTYPE_DOUBLE:
 			return fmt.Sprintf("%f", ast.fval)
 		case CTYPE_CHAR:
 			if ast.c == '\n' {

@@ -77,7 +77,7 @@ func pop(reg string) {
 }
 
 func is_flotype(ctype *Ctype) bool {
-	return ctype.typ == CTYPE_FLOAT
+	return ctype.typ == CTYPE_FLOAT || ctype.typ == CTYPE_DOUBLE
 }
 
 func emit_gload(ctype *Ctype, label string, off int) {
@@ -117,10 +117,10 @@ func emit_todouble(ctype *Ctype) {
 func emit_lload(ctype *Ctype, off int) {
 	if ctype.typ == CTYPE_ARRAY {
 		emit("lea %d(%%rbp), %%rax", off)
-		return
-	} else if is_flotype(ctype) {
-		emit("movss %d(%%rbp), %%xmm0", off)
-		return
+	} else if ctype.typ == CTYPE_FLOAT {
+		emit("cvtps2pd %d(%%rbp), %%xmm0", off)
+	} else if ctype.typ == CTYPE_DOUBLE {
+		emit("movsd %d(%%rbp), %%xmm0", off)
 	} else {
 		reg := get_int_reg(ctype, 'a')
 		if ctype.size == 1 {
@@ -141,8 +141,10 @@ func emit_gsave(varname string, ctype *Ctype, off int) {
 }
 
 func emit_lsave(ctype *Ctype, off int) {
-	if is_flotype(ctype) {
-		emit("movss %%xmm0, %d(%%rbp)", off)
+	if ctype.typ == CTYPE_FLOAT {
+		emit("cvtpd2ps %%xmm0, %d(%%rbp)", off)
+	} else if (ctype.typ == CTYPE_DOUBLE) {
+		emit("movsd %%xmm0, %d(%%rbp)", off);
 	} else {
 		reg := get_int_reg(ctype, 'a')
 		emit("mov %%%s, %d(%%rbp)", reg, off)
@@ -380,8 +382,8 @@ func emit_expr(ast *Ast) {
 			emit("mov $%d, %%eax", ast.ival)
 		case CTYPE_CHAR:
 			emit("mov $%d, %%rax", ast.c)
-		case CTYPE_FLOAT:
-			emit("movss %s(%%rip), %%xmm0", ast.flabel)
+		case CTYPE_FLOAT, CTYPE_DOUBLE:
+			emit("movsd %s(%%rip), %%xmm0", ast.flabel)
 		default:
 			errorf("internal error")
 		}
@@ -421,7 +423,6 @@ func emit_expr(ast *Ast) {
 			if is_flotype(v.ctype) {
 				xr--
 				pop_xmm(xr)
-				emit("cvtps2pd %%xmm%d, %%xmm%d", xr, xr)
 			} else {
 				ir--
 				pop(REGS[ir])
@@ -590,6 +591,7 @@ func emit_data_section() {
 		v.flabel = label
 		emit_label("%s:", label)
 		long := *(* int)(unsafe.Pointer(&v.fval))
+		// @TODO
 		emit(".long %d", long)
 	}
 }
@@ -615,6 +617,9 @@ func emit_func_prologue(fn *Ast) {
 	for _, v := range fn.params {
 		if is_flotype(v.ctype) {
 			emit("cvtpd2ps %%xmm%d, %%xmm%d", xreg, xreg)
+			push_xmm(xreg)
+			xreg++
+		} else if v.ctype.typ == CTYPE_DOUBLE {
 			push_xmm(xreg)
 			xreg++
 		} else {

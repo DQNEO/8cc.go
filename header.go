@@ -49,6 +49,7 @@ const (
 	CTYPE_INT
 	CTYPE_CHAR
 	CTYPE_FLOAT
+	CTYPE_DOUBLE
 	CTYPE_ARRAY
 	CTYPE_PTR
 	CTYPE_STRUCT
@@ -69,10 +70,10 @@ type Ast struct {
 	typ   int
 	ctype *Ctype
 	// want to be "union"
-	// Integer
+	// Integers
 	ival int
-	// Float
-	fval float
+	// Float or double
+	fval float64
 	flabel string
 	// Char
 	c byte

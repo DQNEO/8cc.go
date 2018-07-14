@@ -21,6 +21,7 @@ var labelseq = 0
 var ctype_int = &Ctype{typ: CTYPE_INT, size: 4}
 var ctype_char = &Ctype{typ: CTYPE_CHAR, size: 1}
 var ctype_float = &Ctype{typ:CTYPE_FLOAT, size: 4}
+var ctype_double = &Ctype{typ:CTYPE_DOUBLE, size: 8}
 
 func make_env(next *Env) *Env {
 	r := &Env{}
@@ -65,10 +66,10 @@ func ast_int(val int) *Ast {
 	return r
 }
 
-func ast_float(val float) *Ast {
+func ast_double(val float64) *Ast {
 	r := &Ast{}
 	r.typ = AST_LITERAL
-	r.ctype = ctype_float
+	r.ctype = ctype_double
 	r.fval = val
 	flonums = append(flonums, r)
 	return r
@@ -404,8 +405,8 @@ func read_prim() *Ast {
 			return ast_int(ival)
 		}
 		if is_flonum(tok.sval) {
-			fval,_ := strconv.ParseFloat(tok.sval, FLOAT_SIZE)
-			return ast_float(float(fval))
+			fval,_ := strconv.ParseFloat(tok.sval, 64)
+			return ast_double(float64(fval))
 		}
 		errorf("Malformed number: %s", tok);
 	case TTYPE_CHAR:
@@ -454,8 +455,8 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 			fallthrough
 		case CTYPE_CHAR:
 			return ctype_int, nil
-		case CTYPE_FLOAT:
-			return ctype_float, nil
+		case CTYPE_FLOAT, CTYPE_DOUBLE:
+			return ctype_double, nil
 		case CTYPE_ARRAY:
 			fallthrough
 		case CTYPE_PTR:
@@ -463,10 +464,14 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 		}
 		errorf("internal error")
 	case CTYPE_FLOAT:
-		if b.typ == CTYPE_FLOAT {
-			return ctype_float, nil
+		if b.typ == CTYPE_FLOAT || b.typ == CTYPE_DOUBLE {
+			return ctype_double, nil
 		}
 		return nil, default_err
+	case CTYPE_DOUBLE:
+		if b.typ == CTYPE_DOUBLE {
+			return ctype_double, nil
+		}
 	case CTYPE_ARRAY:
 		if b.typ != CTYPE_ARRAY {
 			return nil, default_err
@@ -645,6 +650,9 @@ func get_ctype(tok *Token) *Ctype {
 	}
 	if tok.sval == "float" {
 		return ctype_float
+	}
+	if tok.sval == "double" {
+		return ctype_double
 	}
 
 	return nil

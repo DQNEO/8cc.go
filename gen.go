@@ -54,12 +54,12 @@ func get_int_reg(ctype *Ctype, r byte) string {
 
 func push_xmm(reg int) {
 	emit("sub $8, %%rsp")
-	emit("movss %%xmm%d, (%%rsp)", reg)
+	emit("movsd %%xmm%d, (%%rsp)", reg)
 	stackpos += 8
 }
 
 func pop_xmm(reg int) {
-	emit("movss (%%rsp), %%xmm%d", reg)
+	emit("movsd (%%rsp), %%xmm%d", reg)
 	emit("add $8, %%rsp")
 	stackpos -= 8
 	assert(stackpos >= 8)
@@ -104,14 +104,14 @@ func emit_toint(ctype *Ctype) {
 	if !is_flotype(ctype) {
 		return
 	}
-	emit("cvttss2si %%xmm0, %%eax")
+	emit("cvttsd2si %%xmm0, %%eax")
 }
 
 func emit_tofloat(ctype *Ctype) {
 	if is_flotype(ctype) {
 		return
 	}
-	emit("cvtsi2ss %%eax, %%xmm0")
+	emit("cvtsi2sd %%eax, %%xmm0")
 }
 
 func emit_lload(ctype *Ctype, off int) {
@@ -241,7 +241,7 @@ func emit_comp(inst string, ast *Ast) {
 		emit_expr(ast.right)
 		emit_tofloat(ast.right.ctype)
 		pop_xmm(1)
-		emit("ucomiss %%xmm0, %%xmm1")
+		emit("ucomisd %%xmm0, %%xmm1")
 	} else {
 		emit_expr(ast.left)
 		emit_toint(ast.left.ctype)
@@ -289,13 +289,13 @@ func emit_binop_float_arith(ast *Ast) {
 	var op string
 	switch ast.typ {
 	case '+':
-		op = "addss"
+		op = "addsd"
 	case '-':
-		op = "subss"
+		op = "subsd"
 	case '*':
-	op = "muss"
+	op = "mulsd"
 	case '/':
-		op = "divss"
+		op = "divsd"
 	default :
 		errorf("invalid operator '%d'", ast.typ)
 	}

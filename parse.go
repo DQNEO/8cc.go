@@ -369,7 +369,7 @@ func is_int(s string) bool {
 }
 
 
-func is_float(s string) bool {
+func is_flonum(s string) bool {
 	var c byte
 	var i int
 	var b = []byte(s)
@@ -403,7 +403,7 @@ func read_prim() *Ast {
 			ival ,_ := strconv.Atoi(tok.sval)
 			return ast_int(ival)
 		}
-		if is_float(tok.sval) {
+		if is_flonum(tok.sval) {
 			fval,_ := strconv.ParseFloat(tok.sval, FLOAT_SIZE)
 			return ast_float(float(fval))
 		}

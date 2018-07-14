@@ -107,7 +107,7 @@ func emit_toint(ctype *Ctype) {
 	emit("cvttsd2si %%xmm0, %%eax")
 }
 
-func emit_tofloat(ctype *Ctype) {
+func emit_todouble(ctype *Ctype) {
 	if is_flotype(ctype) {
 		return
 	}
@@ -236,10 +236,10 @@ func emit_assign(variable *Ast) {
 func emit_comp(inst string, ast *Ast) {
 	if is_flotype(ast.ctype) {
 		emit_expr(ast.left)
-		emit_tofloat(ast.left.ctype)
+		emit_todouble(ast.left.ctype)
 		push_xmm(0)
 		emit_expr(ast.right)
-		emit_tofloat(ast.right.ctype)
+		emit_todouble(ast.right.ctype)
 		pop_xmm(1)
 		emit("ucomisd %%xmm0, %%xmm1")
 	} else {
@@ -300,10 +300,10 @@ func emit_binop_float_arith(ast *Ast) {
 		errorf("invalid operator '%d'", ast.typ)
 	}
 	 emit_expr(ast.left)
-	 emit_tofloat(ast.left.ctype)
+	 emit_todouble(ast.left.ctype)
 	 push_xmm(0)
 	 emit_expr(ast.right)
-	 emit_tofloat(ast.right.ctype)
+	 emit_todouble(ast.right.ctype)
 	 emit("movsd %%xmm0, %%xmm1")
 	 pop_xmm(0)
 	 emit("%s %%xmm1, %%xmm0", op)
@@ -313,7 +313,7 @@ func emit_binop(ast *Ast) {
 	if ast.typ == '=' {
 		emit_expr(ast.right)
 		if is_flotype(ast.ctype) {
-			emit_tofloat(ast.right.ctype)
+			emit_todouble(ast.right.ctype)
 		} else {
 			emit_toint(ast.right.ctype)
 		}

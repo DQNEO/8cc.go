@@ -590,9 +590,13 @@ func emit_data_section() {
 		label := make_label()
 		v.flabel = label
 		emit_label("%s:", label)
-		long := *(* int)(unsafe.Pointer(&v.fval))
-		// @TODO
-		emit(".long %d", long)
+
+		up1 := unsafe.Pointer(&v.fval)
+		up2 := unsafe.Pointer(uintptr(up1) + 4) // 4 means the size of int32
+		i1 := *(* int32)(up1)
+		i2 := *(* int32)(up2)
+		emit(".long %d", i1)
+		emit(".long %d", i2)
 	}
 }
 

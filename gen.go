@@ -118,17 +118,16 @@ func emit_lload(ctype *Ctype, off int) {
 	if ctype.typ == CTYPE_ARRAY {
 		emit("lea %d(%%rbp), %%rax", off)
 		return
-	}
-	if is_flotype(ctype) {
+	} else if is_flotype(ctype) {
 		emit("movss %d(%%rbp), %%xmm0", off)
 		return
+	} else {
+		reg := get_int_reg(ctype, 'a')
+		if ctype.size == 1 {
+			emit("mov $0, %%eax")
+		}
+		emit("mov %d(%%rbp), %%%s", off, reg)
 	}
-	reg := get_int_reg(ctype, 'a')
-	if ctype.size == 1 {
-		emit("mov $0, %%eax")
-	}
-	emit("mov %d(%%rbp), %%%s", off, reg)
-
 }
 
 func emit_gsave(varname string, ctype *Ctype, off int) {

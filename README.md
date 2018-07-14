@@ -31,7 +31,7 @@ hello world
 * function call
 * assign to local variables
 * assign to global variables
-* primitiv data types (int, char)
+* primitiv data types (int, char, char *, float, double)
 * composite data types (array, struct, union, pointer)
 * arithmetic of pointer
 * dereference of pointer

@@ -3,7 +3,7 @@ package main
 type float float32
 const FLOAT_SIZE = 32
 const (
-	TTYPE_IDENT int = iota
+	TTYPE_IDENT = iota
 	TTYPE_PUNCT
 	TTYPE_NUMBER
 	TTYPE_CHAR
@@ -20,7 +20,7 @@ type Token struct {
 }
 
 const (
-	AST_LITERAL int = iota + 256
+	AST_LITERAL = iota + 256
 	AST_STRING
 	AST_LVAR
 	AST_GVAR

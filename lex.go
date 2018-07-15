@@ -185,14 +185,13 @@ func read_token_int() *Token {
 		if c == '/' {
 			skip_line_comment()
 			return read_token_int()
-		} else if c == '*' {
+		}
+		if c == '*' {
 			skip_block_comment()
 			return read_token_int()
-		} else {
-			ungetc(c, stdin)
-			return make_punct('/')
 		}
-		return make_punct(int(c))
+		ungetc(c, stdin)
+		return make_punct('/')
 	case c == '*' || c == '(' ||
 		c == ')' || c == ',' || c == ';' || c == '.' ||
 		c == '[' || c == ']' || c == '{' || c == '}' ||

@@ -157,11 +157,13 @@ func read_token_init() *Token {
 		return read_number(c)
 	case ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_':
 		return read_ident(c)
-	case c == '/' || c == '*' || c == '(' ||
+	case c == '*' || c == '(' ||
 		c == ')' || c == ',' || c == ';' || c == '.' ||
 		c == '[' || c == ']' || c == '{' || c == '}' ||
 		c == '<' || c == '>' || c == '!' ||
 		c == '?' || c == ':':
+		return make_punct(int(c))
+	case c == '/':
 		return make_punct(int(c))
 	case c == '-':
 		c, _ = getc(stdin)

@@ -292,6 +292,30 @@ func is_right_assoc(tok *Token) bool {
 	return tok.punct == '='
 }
 
+func eval_intexpr(ast *Ast) int {
+	switch ast.typ {
+	case AST_LITERAL:
+		if ast.ctype.typ == CTYPE_INT {
+			return ast.ival
+		}
+		if ast.ctype.typ == CTYPE_CHAR {
+			return int(ast.c)
+		}
+		errorf("Integer expression expected, but got %s", ast)
+	case '+':
+		return eval_intexpr(ast.left) + eval_intexpr(ast.right)
+	case '-':
+		return eval_intexpr(ast.left) - eval_intexpr(ast.right)
+	case '*':
+		return eval_intexpr(ast.left) * eval_intexpr(ast.right)
+	case '/':
+		return eval_intexpr(ast.left) / eval_intexpr(ast.right)
+	default:
+		errorf("Integer expression expected, but got %s", ast)
+	}
+	return -1
+}
+
 func priority(tok *Token) int {
 	switch tok.punct {
 	case '[', '.', PUNCT_ARROW:
@@ -794,12 +818,6 @@ func read_decl_spec() *Ctype {
 	return ctype
 }
 
-func check_intexp(ast *Ast) {
-	if ast.typ != AST_LITERAL || ast.ctype.typ != CTYPE_INT {
-		errorf("Integer expected, but got %s", ast)
-	}
-}
-
 func read_decl_int() (*Ctype, *Token) {
 	ctype := read_decl_spec()
 	name := read_token()
@@ -832,7 +850,7 @@ func read_decl_init_val(v *Ast) *Ast {
 	init := read_expr()
 	expect(';')
 	if v.typ == AST_GVAR {
-		check_intexp(init)
+		init = ast_int(eval_intexpr(init))
 	}
 	return ast_decl(v, init)
 }
@@ -846,8 +864,7 @@ func read_array_dimensions_int(basetype *Ctype) *Ctype {
 	dim := -1
 	if !is_punct(peek_token(), ']') {
 		size := read_expr()
-		check_intexp(size)
-		dim = size.ival
+		dim = eval_intexpr(size)
 	}
 	expect(']')
 	sub := read_array_dimensions_int(basetype)

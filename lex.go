@@ -145,6 +145,20 @@ func skip_line_comment() byte {
 	}
 }
 
+func skip_block_comment() {
+	for {
+		c,_ := getc(stdin)
+		if c == '*' {
+			d,_ := getc(stdin)
+			if d == '/' {
+				return
+			}
+			skip_block_comment()
+			return
+		}
+	}
+}
+
 func read_rep(expect int, t1 int, t2 int) *Token {
 	c, _ := getc(stdin)
 	if c == byte(expect) {
@@ -176,6 +190,9 @@ func read_token_init() *Token {
 		c, _ = getc(stdin)
 		if c == '/' {
 			skip_line_comment()
+			return read_token_init()
+		} else if c == '*' {
+			skip_block_comment()
 			return read_token_init()
 		} else {
 			ungetc(c, stdin)

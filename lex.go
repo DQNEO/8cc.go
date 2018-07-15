@@ -136,11 +136,11 @@ func read_ident(c byte) *Token {
 	}
 }
 
-func skip_line_comment() byte {
+func skip_line_comment()  {
 	for {
 		c,err := getc(stdin)
 		if c == '\n' || err != nil {
-			return c
+			return
 		}
 	}
 }

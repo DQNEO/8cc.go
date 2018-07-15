@@ -136,6 +136,15 @@ func read_ident(c byte) *Token {
 	}
 }
 
+func skip_line_comment() byte {
+	for {
+		c,err := getc(stdin)
+		if c == '\n' || err != nil {
+			return c
+		}
+	}
+}
+
 func read_rep(expect int, t1 int, t2 int) *Token {
 	c, _ := getc(stdin)
 	if c == byte(expect) {
@@ -164,6 +173,14 @@ func read_token_init() *Token {
 		c == '?' || c == ':':
 		return make_punct(int(c))
 	case c == '/':
+		c, _ = getc(stdin)
+		if c == '/' {
+			skip_line_comment()
+			return read_token_init()
+		} else {
+			ungetc(c, stdin)
+			return make_punct('/')
+		}
 		return make_punct(int(c))
 	case c == '-':
 		c, _ = getc(stdin)

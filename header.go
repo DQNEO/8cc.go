@@ -20,7 +20,7 @@ type Token struct {
 }
 
 const (
-	AST_LITERAL int = iota
+	AST_LITERAL int = iota + 256
 	AST_STRING
 	AST_LVAR
 	AST_GVAR

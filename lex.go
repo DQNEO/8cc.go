@@ -146,14 +146,18 @@ func skip_line_comment()  {
 }
 
 func skip_block_comment() {
+	const (
+		in_comment  = 1
+		asterisk_read  = 2
+	)
+	state := in_comment
 	for {
 		c,_ := getc(stdin)
-		if c == '*' {
-			d,_ := getc(stdin)
-			if d == '/' {
-				return
+		if state == in_comment {
+			if c == '*' {
+				state = asterisk_read
 			}
-			skip_block_comment()
+		} else if c == '/' {
 			return
 		}
 	}

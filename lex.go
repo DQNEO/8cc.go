@@ -168,7 +168,7 @@ func read_rep(expect int, t1 int, t2 int) *Token {
 	return make_punct(t1)
 }
 
-func read_token_init() *Token {
+func read_token_int() *Token {
 	c, err := getc_nonspace()
 	if err != nil {
 		// EOF
@@ -190,10 +190,10 @@ func read_token_init() *Token {
 		c, _ = getc(stdin)
 		if c == '/' {
 			skip_line_comment()
-			return read_token_init()
+			return read_token_int()
 		} else if c == '*' {
 			skip_block_comment()
-			return read_token_init()
+			return read_token_int()
 		} else {
 			ungetc(c, stdin)
 			return make_punct('/')
@@ -255,5 +255,5 @@ func read_token() *Token {
 		return tok
 	}
 
-	return read_token_init()
+	return read_token_int()
 }

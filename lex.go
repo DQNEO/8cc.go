@@ -180,12 +180,6 @@ func read_token_int() *Token {
 		return read_number(c)
 	case ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_':
 		return read_ident(c)
-	case c == '*' || c == '(' ||
-		c == ')' || c == ',' || c == ';' || c == '.' ||
-		c == '[' || c == ']' || c == '{' || c == '}' ||
-		c == '<' || c == '>' || c == '!' ||
-		c == '?' || c == ':':
-		return make_punct(int(c))
 	case c == '/':
 		c, _ = getc(stdin)
 		if c == '/' {
@@ -198,6 +192,12 @@ func read_token_int() *Token {
 			ungetc(c, stdin)
 			return make_punct('/')
 		}
+		return make_punct(int(c))
+	case c == '*' || c == '(' ||
+		c == ')' || c == ',' || c == ';' || c == '.' ||
+		c == '[' || c == ']' || c == '{' || c == '}' ||
+		c == '<' || c == '>' || c == '!' ||
+		c == '?' || c == ':':
 		return make_punct(int(c))
 	case c == '-':
 		c, _ = getc(stdin)

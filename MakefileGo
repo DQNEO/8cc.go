@@ -1,5 +1,5 @@
 GO_OBJS=main.go header.go lex.go adapter.go util.go gen.go parse.go debug.go
-TESTS := $(patsubst %.c,%,$(wildcard test/*.c))
+TESTS := $(patsubst %.c,%.bin,$(wildcard test/*.c))
 CFLAGS=-Wall -std=gnu99 -g -I. -no-pie
 
 8ccg: $(GO_OBJS)
@@ -23,7 +23,7 @@ test: 8ccg $(TESTS)
 test/%.s: test/%.c 8ccg
 	./8ccg < $< > $@
 
-test/%: test/%.s 8ccg
+test/%.bin: test/%.s 8ccg
 	$(CC) $(CFLAGS) -o $@ $<
 
 nqueen: 8ccg sample/nqueen.c

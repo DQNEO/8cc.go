@@ -58,12 +58,12 @@ func (ast *Ast) String() string {
 	case AST_LITERAL:
 		switch ast.ctype.typ {
 		case CTYPE_CHAR:
-			if ast.c == '\n' {
+			if ast.ival == '\n' {
 				return "'\n'"
-			} else if ast.c == '\\' {
+			} else if ast.ival == '\\' {
 				return "'\\\\'"
 			} else {
-				return fmt.Sprintf("'%c'", ast.c)
+				return fmt.Sprintf("'%c'", ast.ival)
 			}
 		case CTYPE_INT:
 			return fmt.Sprintf("%d", ast.ival)

@@ -58,10 +58,10 @@ func ast_binop(typ int, left *Ast, right *Ast) *Ast {
 	return r
 }
 
-func ast_int(val int) *Ast {
+func ast_inttype(ctype *Ctype, val int) *Ast {
 	r := &Ast{}
 	r.typ = AST_LITERAL
-	r.ctype = ctype_int
+	r.ctype = ctype
 	r.ival = val
 	return r
 }
@@ -72,14 +72,6 @@ func ast_double(val float64) *Ast {
 	r.ctype = ctype_double
 	r.fval = val
 	flonums = append(flonums, r)
-	return r
-}
-
-func ast_char(c byte) *Ast {
-	r := &Ast{}
-	r.typ = AST_LITERAL
-	r.ctype = ctype_char
-	r.c = c
 	return r
 }
 
@@ -299,7 +291,7 @@ func eval_intexpr(ast *Ast) int {
 			return ast.ival
 		}
 		if ast.ctype.typ == CTYPE_CHAR {
-			return int(ast.c)
+			return int(ast.ival)
 		}
 		errorf("Integer expression expected, but got %s", ast)
 	case '+':
@@ -425,7 +417,7 @@ func read_prim() *Ast {
 	case TTYPE_NUMBER:
 		if is_int(tok.sval) {
 			ival, _ := strconv.Atoi(tok.sval)
-			return ast_int(ival)
+			return ast_inttype(ctype_int, ival)
 		}
 		if is_flonum(tok.sval) {
 			fval, _ := strconv.ParseFloat(tok.sval, 64)
@@ -433,7 +425,7 @@ func read_prim() *Ast {
 		}
 		errorf("Malformed number: %s", tok)
 	case TTYPE_CHAR:
-		return ast_char(tok.c)
+		return ast_inttype(ctype_char, int(tok.c))
 	case TTYPE_STRING:
 		r := ast_string(tok.sval)
 		env_append(globalenv, r)
@@ -843,7 +835,7 @@ func read_decl_init_val(v *Ast) *Ast {
 	init := read_expr()
 	expect(';')
 	if v.typ == AST_GVAR {
-		init = ast_int(eval_intexpr(init))
+		init = ast_inttype(ctype_int, eval_intexpr(init))
 	}
 	return ast_decl(v, init)
 }

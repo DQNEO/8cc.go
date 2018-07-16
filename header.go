@@ -71,13 +71,11 @@ type Ast struct {
 	typ   int
 	ctype *Ctype
 	// want to be "union"
-	// Integers
+	// Char, int
 	ival int
 	// Float or double
 	fval   float64
 	flabel string
-	// Char
-	c byte
 
 	// pseudo Union
 	// String

@@ -381,7 +381,7 @@ func read_ident_or_func(name string) *Ast {
 	return v
 }
 
-func is_int(s string) bool {
+func is_int_token(s string) bool {
 	for _, c := range []byte(s) {
 		if !isdigit(c) {
 			return false
@@ -420,7 +420,7 @@ func read_prim() *Ast {
 	case TTYPE_IDENT:
 		return read_ident_or_func(tok.sval)
 	case TTYPE_NUMBER:
-		if is_int(tok.sval) {
+		if is_int_token(tok.sval) {
 			ival, _ := strconv.Atoi(tok.sval)
 			return ast_inttype(ctype_int, ival)
 		}

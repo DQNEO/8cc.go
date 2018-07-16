@@ -1,6 +1,7 @@
 package main
 
 type float float32
+
 const FLOAT_SIZE = 32
 const (
 	TTYPE_IDENT = iota
@@ -73,7 +74,7 @@ type Ast struct {
 	// Integers
 	ival int
 	// Float or double
-	fval float64
+	fval   float64
 	flabel string
 	// Char
 	c byte

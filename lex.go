@@ -136,9 +136,9 @@ func read_ident(c byte) *Token {
 	}
 }
 
-func skip_line_comment()  {
+func skip_line_comment() {
 	for {
-		c,err := getc(stdin)
+		c, err := getc(stdin)
 		if c == '\n' || err != nil {
 			return
 		}
@@ -147,12 +147,12 @@ func skip_line_comment()  {
 
 func skip_block_comment() {
 	const (
-		in_comment  = 1
-		asterisk_read  = 2
+		in_comment    = 1
+		asterisk_read = 2
 	)
 	state := in_comment
 	for {
-		c,_ := getc(stdin)
+		c, _ := getc(stdin)
 		if state == in_comment {
 			if c == '*' {
 				state = asterisk_read

@@ -10,19 +10,19 @@ var REGS = []string{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}
 var stackpos int
 
 func emit(format string, args ...interface{}) {
-	emit_int("\t" + format, args...)
+	emit_int("\t"+format, args...)
 }
 func emit_int(format string, args ...interface{}) {
 	code := fmt.Sprintf(format, args...)
 	pc, _, no, ok := runtime.Caller(3)
-	if !ok  {
+	if !ok {
 		errorf("Unable to get caller")
 	}
 	details := runtime.FuncForPC(pc)
 	callerName := (strings.Split(details.Name(), "."))[1]
-	caller := fmt.Sprintf(" %s %d", callerName ,  no)
+	caller := fmt.Sprintf(" %s %d", callerName, no)
 	numSpaces := 27 - len(code)
-	printf("%s %*c %s\n", code, numSpaces, '#', caller )
+	printf("%s %*c %s\n", code, numSpaces, '#', caller)
 }
 
 func get_int_reg(ctype *Ctype, r byte) string {
@@ -47,7 +47,7 @@ func get_int_reg(ctype *Ctype, r byte) string {
 			return "rcx"
 		}
 	default:
-		errorf("Unknown data size: %s: %d", ctype, ctype.size);
+		errorf("Unknown data size: %s: %d", ctype, ctype.size)
 	}
 	return ""
 }
@@ -143,8 +143,8 @@ func emit_gsave(varname string, ctype *Ctype, off int) {
 func emit_lsave(ctype *Ctype, off int) {
 	if ctype.typ == CTYPE_FLOAT {
 		emit("cvtpd2ps %%xmm0, %d(%%rbp)", off)
-	} else if (ctype.typ == CTYPE_DOUBLE) {
-		emit("movsd %%xmm0, %d(%%rbp)", off);
+	} else if ctype.typ == CTYPE_DOUBLE {
+		emit("movsd %%xmm0, %d(%%rbp)", off)
 	} else {
 		reg := get_int_reg(ctype, 'a')
 		emit("mov %%%s, %d(%%rbp)", reg, off)
@@ -294,20 +294,20 @@ func emit_binop_float_arith(ast *Ast) {
 	case '-':
 		op = "subsd"
 	case '*':
-	op = "mulsd"
+		op = "mulsd"
 	case '/':
 		op = "divsd"
-	default :
+	default:
 		errorf("invalid operator '%d'", ast.typ)
 	}
-	 emit_expr(ast.left)
-	 emit_todouble(ast.left.ctype)
-	 push_xmm(0)
-	 emit_expr(ast.right)
-	 emit_todouble(ast.right.ctype)
-	 emit("movsd %%xmm0, %%xmm1")
-	 pop_xmm(0)
-	 emit("%s %%xmm1, %%xmm0", op)
+	emit_expr(ast.left)
+	emit_todouble(ast.left.ctype)
+	push_xmm(0)
+	emit_expr(ast.right)
+	emit_todouble(ast.right.ctype)
+	emit("movsd %%xmm0, %%xmm1")
+	pop_xmm(0)
+	emit("%s %%xmm1, %%xmm0", op)
 }
 
 func emit_binop(ast *Ast) {
@@ -416,10 +416,10 @@ func emit_expr(ast *Ast) {
 		ir := ireg
 		xr := xreg
 		var reversed_args []*Ast
-		for i:= len(ast.args) -1 ; i >= 0 ; i-- {
+		for i := len(ast.args) - 1; i >= 0; i-- {
 			reversed_args = append(reversed_args, ast.args[i])
 		}
-		for _,v := range reversed_args {
+		for _, v := range reversed_args {
 			if is_flotype(v.ctype) {
 				xr--
 				pop_xmm(xr)
@@ -429,14 +429,14 @@ func emit_expr(ast *Ast) {
 			}
 		}
 		emit("mov $%d, %%eax", xreg)
-		if stackpos % 16 != 0 {
+		if stackpos%16 != 0 {
 			emit("sub $8, %%rsp")
 		}
 		emit("call %s", ast.fname)
-		if stackpos % 16 != 0 {
+		if stackpos%16 != 0 {
 			emit("add $8, %%rsp")
 		}
-		for _,v := range reversed_args {
+		for _, v := range reversed_args {
 			if is_flotype(v.ctype) {
 				xreg--
 				pop_xmm(xreg)
@@ -586,15 +586,15 @@ func emit_data_section() {
 			errorf("internal error: %s", v)
 		}
 	}
-	for _,v := range flonums {
+	for _, v := range flonums {
 		label := make_label()
 		v.flabel = label
 		emit_label("%s:", label)
 
 		up1 := unsafe.Pointer(&v.fval)
 		up2 := unsafe.Pointer(uintptr(up1) + 4) // 4 means the size of int32
-		i1 := *(* int32)(up1)
-		i2 := *(* int32)(up2)
+		i1 := *(*int32)(up1)
+		i2 := *(*int32)(up2)
 		emit(".long %d", i1)
 		emit(".long %d", i2)
 	}

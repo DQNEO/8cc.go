@@ -20,8 +20,8 @@ var labelseq = 0
 
 var ctype_int = &Ctype{typ: CTYPE_INT, size: 4}
 var ctype_char = &Ctype{typ: CTYPE_CHAR, size: 1}
-var ctype_float = &Ctype{typ:CTYPE_FLOAT, size: 4}
-var ctype_double = &Ctype{typ:CTYPE_DOUBLE, size: 8}
+var ctype_float = &Ctype{typ: CTYPE_FLOAT, size: 4}
+var ctype_double = &Ctype{typ: CTYPE_DOUBLE, size: 8}
 
 func make_env(next *Env) *Env {
 	r := &Env{}
@@ -385,7 +385,7 @@ func read_ident_or_func(name string) *Ast {
 }
 
 func is_int(s string) bool {
-	for _,c := range []byte(s) {
+	for _, c := range []byte(s) {
 		if !isdigit(c) {
 			return false
 		}
@@ -393,12 +393,11 @@ func is_int(s string) bool {
 	return true
 }
 
-
 func is_flonum(s string) bool {
 	var c byte
 	var i int
 	var b = []byte(s)
-	for i,c = range b {
+	for i, c = range b {
 		if !isdigit(c) {
 			break
 		}
@@ -407,7 +406,7 @@ func is_flonum(s string) bool {
 		return false
 	}
 	i++
-	for j := i; j < len(b) ; j++ {
+	for j := i; j < len(b); j++ {
 		if !isdigit(b[j]) {
 			return false
 		}
@@ -425,14 +424,14 @@ func read_prim() *Ast {
 		return read_ident_or_func(tok.sval)
 	case TTYPE_NUMBER:
 		if is_int(tok.sval) {
-			ival ,_ := strconv.Atoi(tok.sval)
+			ival, _ := strconv.Atoi(tok.sval)
 			return ast_int(ival)
 		}
 		if is_flonum(tok.sval) {
-			fval,_ := strconv.ParseFloat(tok.sval, 64)
+			fval, _ := strconv.ParseFloat(tok.sval, 64)
 			return ast_double(float64(fval))
 		}
-		errorf("Malformed number: %s", tok);
+		errorf("Malformed number: %s", tok)
 	case TTYPE_CHAR:
 		return ast_char(tok.c)
 	case TTYPE_STRING:
@@ -471,9 +470,9 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 	switch a.typ {
 	case CTYPE_VOID:
 		return nil, default_err
-	case CTYPE_CHAR,CTYPE_INT:
+	case CTYPE_CHAR, CTYPE_INT:
 		switch b.typ {
-		case CTYPE_CHAR,CTYPE_INT:
+		case CTYPE_CHAR, CTYPE_INT:
 			return ctype_int, nil
 		case CTYPE_FLOAT, CTYPE_DOUBLE:
 			return ctype_double, nil
@@ -752,8 +751,8 @@ func read_union_def() *Ctype {
 	}
 	fields := read_struct_union_fields()
 	maxsize := 0
-	for _,fieldtype := range fields {
-		if maxsize < fieldtype.size  {
+	for _, fieldtype := range fields {
+		if maxsize < fieldtype.size {
 			maxsize = fieldtype.size
 		}
 	}
@@ -770,7 +769,7 @@ func read_struct_def() *Ctype {
 	}
 	fields := read_struct_union_fields()
 	offset := 0
-	for _,fieldtype := range fields {
+	for _, fieldtype := range fields {
 		var size int
 		if fieldtype.size < MAX_ALIGN {
 			size = fieldtype.size

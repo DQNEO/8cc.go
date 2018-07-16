@@ -260,6 +260,10 @@ func find_var(name string) *Ast {
 	return nil
 }
 
+func is_flotype(ctype *Ctype) bool {
+	return ctype.typ == CTYPE_FLOAT || ctype.typ == CTYPE_DOUBLE
+}
+
 func ensure_lvalue(ast *Ast) {
 	switch ast.typ {
 	case AST_LVAR, AST_GVAR, AST_DEREF, AST_STRUCT_REF:

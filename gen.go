@@ -76,10 +76,6 @@ func pop(reg string) {
 	assert(stackpos >= 8)
 }
 
-func is_flotype(ctype *Ctype) bool {
-	return ctype.typ == CTYPE_FLOAT || ctype.typ == CTYPE_DOUBLE
-}
-
 func emit_gload(ctype *Ctype, label string, off int) {
 	if ctype.typ == CTYPE_ARRAY {
 		if off != 0 {

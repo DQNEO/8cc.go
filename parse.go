@@ -19,6 +19,7 @@ var localvars []*Ast
 var labelseq = 0
 
 var ctype_int = &Ctype{typ: CTYPE_INT, size: 4}
+var ctype_long = &Ctype{typ: CTYPE_LONG, size:8}
 var ctype_char = &Ctype{typ: CTYPE_CHAR, size: 1}
 var ctype_float = &Ctype{typ: CTYPE_FLOAT, size: 4}
 var ctype_double = &Ctype{typ: CTYPE_DOUBLE, size: 8}

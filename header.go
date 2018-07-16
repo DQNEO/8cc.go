@@ -49,6 +49,7 @@ const (
 	CTYPE_VOID int = iota
 	CTYPE_CHAR
 	CTYPE_INT
+	CTYPE_LONG
 	CTYPE_FLOAT
 	CTYPE_DOUBLE
 	CTYPE_ARRAY
@@ -71,7 +72,7 @@ type Ast struct {
 	typ   int
 	ctype *Ctype
 	// want to be "union"
-	// Char, int
+	// Char, int, or long
 	ival int
 	// Float or double
 	fval   float64

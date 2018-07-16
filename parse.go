@@ -471,13 +471,9 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 	switch a.typ {
 	case CTYPE_VOID:
 		return nil, default_err
-	case CTYPE_INT:
-		fallthrough
-	case CTYPE_CHAR:
+	case CTYPE_CHAR,CTYPE_INT:
 		switch b.typ {
-		case CTYPE_INT:
-			fallthrough
-		case CTYPE_CHAR:
+		case CTYPE_CHAR,CTYPE_INT:
 			return ctype_int, nil
 		case CTYPE_FLOAT, CTYPE_DOUBLE:
 			return ctype_double, nil

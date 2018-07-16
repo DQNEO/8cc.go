@@ -57,10 +57,6 @@ func (ast *Ast) String() string {
 	switch ast.typ {
 	case AST_LITERAL:
 		switch ast.ctype.typ {
-		case CTYPE_INT:
-			return fmt.Sprintf("%d", ast.ival)
-		case CTYPE_FLOAT, CTYPE_DOUBLE:
-			return fmt.Sprintf("%f", ast.fval)
 		case CTYPE_CHAR:
 			if ast.c == '\n' {
 				return "'\n'"
@@ -69,6 +65,10 @@ func (ast *Ast) String() string {
 			} else {
 				return fmt.Sprintf("'%c'", ast.c)
 			}
+		case CTYPE_INT:
+			return fmt.Sprintf("%d", ast.ival)
+		case CTYPE_FLOAT, CTYPE_DOUBLE:
+			return fmt.Sprintf("%f", ast.fval)
 		default:
 			errorf("internal error")
 			return ""

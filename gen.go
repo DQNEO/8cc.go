@@ -378,10 +378,10 @@ func emit_expr(ast *Ast) {
 	switch ast.typ {
 	case AST_LITERAL:
 		switch ast.ctype.typ {
-		case CTYPE_INT:
-			emit("mov $%d, %%eax", ast.ival)
 		case CTYPE_CHAR:
 			emit("mov $%d, %%rax", ast.c)
+		case CTYPE_INT:
+			emit("mov $%d, %%eax", ast.ival)
 		case CTYPE_FLOAT, CTYPE_DOUBLE:
 			emit("movsd %s(%%rip), %%xmm0", ast.flabel)
 		default:

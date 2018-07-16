@@ -335,7 +335,7 @@ func emit_binop(ast *Ast) {
 		return
 	}
 
-	if ast.ctype.typ == CTYPE_INT {
+	if is_inttype(ast.ctype) {
 		emit_bion_int_arith(ast)
 	} else if is_flotype(ast.ctype) {
 		emit_binop_float_arith(ast)
@@ -672,7 +672,7 @@ func emit_data(v *Ast) {
 		}
 		return
 	}
-	assert(v.declinit.typ == AST_LITERAL && v.declinit.ctype.typ == CTYPE_INT)
+	assert(v.declinit.typ == AST_LITERAL && is_inttype(v.declinit.ctype))
 	emit_data_int(v.declinit)
 }
 

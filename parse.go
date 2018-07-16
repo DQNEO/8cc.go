@@ -260,6 +260,10 @@ func find_var(name string) *Ast {
 	return nil
 }
 
+func is_inttype(ctype *Ctype) bool {
+	return ctype.typ == CTYPE_CHAR || ctype.typ == CTYPE_INT
+}
+
 func is_flotype(ctype *Ctype) bool {
 	return ctype.typ == CTYPE_FLOAT || ctype.typ == CTYPE_DOUBLE
 }
@@ -291,11 +295,8 @@ func is_right_assoc(tok *Token) bool {
 func eval_intexpr(ast *Ast) int {
 	switch ast.typ {
 	case AST_LITERAL:
-		if ast.ctype.typ == CTYPE_INT {
+		if is_inttype(ast.ctype) {
 			return ast.ival
-		}
-		if ast.ctype.typ == CTYPE_CHAR {
-			return int(ast.ival)
 		}
 		errorf("Integer expression expected, but got %s", ast)
 	case '+':
@@ -457,7 +458,7 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 		if op != '+' && op != '-' {
 			return nil, default_err
 		}
-		if a.typ != CTYPE_INT {
+		if !is_inttype(a) {
 			return nil, default_err
 		}
 		return b, nil

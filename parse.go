@@ -476,9 +476,7 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 			return ctype_int, nil
 		case CTYPE_FLOAT, CTYPE_DOUBLE:
 			return ctype_double, nil
-		case CTYPE_ARRAY:
-			fallthrough
-		case CTYPE_PTR:
+		case CTYPE_ARRAY, CTYPE_PTR:
 			return b, nil
 		}
 		errorf("internal error")

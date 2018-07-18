@@ -12,6 +12,10 @@ var stackpos int
 func emit(format string, args ...interface{}) {
 	emit_int("\t"+format, args...)
 }
+func emit_label(fmt string, args ...interface{}) {
+	emit_int(fmt, args...)
+}
+
 func emit_int(format string, args ...interface{}) {
 	code := fmt.Sprintf(format, args...)
 	pc, _, no, ok := runtime.Caller(3)
@@ -607,6 +611,45 @@ func align(n int, m int) int {
 	}
 }
 
+func emit_data_int(data *Ast) {
+	assert(data.ctype.typ != CTYPE_ARRAY)
+	switch data.ctype.size {
+	case 1:
+		emit(".byte %d", data.ival)
+	case 4:
+		emit(".long %d", data.ival)
+	case 8:
+		emit(".quad %d", data.ival)
+	default:
+		errorf("internal error")
+	}
+}
+
+func emit_data(v *Ast) {
+	emit_label(".global %s", v.declvar.varname)
+	emit_label("%s:", v.declvar.varname)
+	if v.declinit.typ == AST_ARRAY_INIT {
+		for _, v := range v.declinit.arrayinit {
+			emit_data_int(v)
+		}
+		return
+	}
+	assert(v.declinit.typ == AST_LITERAL && is_inttype(v.declinit.ctype))
+	emit_data_int(v.declinit)
+}
+
+func emit_bss(v *Ast) {
+	emit(".lcomm %s, %d", v.declvar.varname, v.declvar.ctype.size)
+}
+
+func emit_global_var(v *Ast) {
+	if v.declinit != nil {
+		emit_data(v)
+	} else {
+		emit_bss(v)
+	}
+}
+
 func emit_func_prologue(fn *Ast) {
 	emit(".text")
 	emit_label(".global %s\n", fn.fname)
@@ -645,49 +688,6 @@ func emit_func_prologue(fn *Ast) {
 func emit_func_epilogue() {
 	emit("leave")
 	emit("ret")
-}
-
-func emit_label(fmt string, args ...interface{}) {
-	emit_int(fmt, args...)
-}
-
-func emit_data_int(data *Ast) {
-	assert(data.ctype.typ != CTYPE_ARRAY)
-	switch data.ctype.size {
-	case 1:
-		emit(".byte %d", data.ival)
-	case 4:
-		emit(".long %d", data.ival)
-	case 8:
-		emit(".quad %d", data.ival)
-	default:
-		errorf("internal error")
-	}
-}
-
-func emit_data(v *Ast) {
-	emit_label(".global %s", v.declvar.varname)
-	emit_label("%s:", v.declvar.varname)
-	if v.declinit.typ == AST_ARRAY_INIT {
-		for _, v := range v.declinit.arrayinit {
-			emit_data_int(v)
-		}
-		return
-	}
-	assert(v.declinit.typ == AST_LITERAL && is_inttype(v.declinit.ctype))
-	emit_data_int(v.declinit)
-}
-
-func emit_bss(v *Ast) {
-	emit(".lcomm %s, %d", v.declvar.varname, v.declvar.ctype.size)
-}
-
-func emit_global_var(v *Ast) {
-	if v.declinit != nil {
-		emit_data(v)
-	} else {
-		emit_bss(v)
-	}
 }
 
 func emit_toplevel(v *Ast) {

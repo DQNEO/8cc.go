@@ -12,7 +12,7 @@ clean:
 fmt:
 	gofmt -w *.go
 
-test: 8ccg $(TESTS)
+test: 8ccg $(TESTS) test.sh
 	@echo
 	@for test in $(TESTS); do \
 	    ./$$test;             \

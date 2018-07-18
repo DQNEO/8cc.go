@@ -589,33 +589,6 @@ static void emit_expr(Ast *ast) {
     }
 }
 
-void emit_data_section(void) {
-    SAVE;
-    emit(".data");
-    for (Iter *i = list_iter(globalenv->vars); !iter_end(i);) {
-        Ast *v = iter_next(i);
-        if (v->type == AST_STRING) {
-            emit_label("%s:", v->slabel);
-            emit(".string \"%s\"", quote_cstring(v->sval));
-        } else if (v->type != AST_GVAR) {
-            error("internal error: %s", ast_to_string(v));
-        }
-    }
-    for (Iter *i = list_iter(flonums); !iter_end(i);) {
-        Ast *v = iter_next(i);
-        char *label = make_label();
-        v->flabel = label;
-        emit_label("%s:", label);
-        emit(".long %d", ((int *)&v->fval)[0]);
-        emit(".long %d", ((int *)&v->fval)[1]);
-    }
-}
-
-static int align(int n, int m) {
-    int rem = n % m;
-    return (rem == 0) ? n : n - rem + m;
-}
-
 static void emit_data_int(Ast *data) {
     SAVE;
     assert(data->ctype->type != CTYPE_ARRAY);
@@ -652,6 +625,33 @@ static void emit_global_var(Ast *v) {
         emit_data(v);
     else
         emit_bss(v);
+}
+
+void emit_data_section(void) {
+    SAVE;
+    emit(".data");
+    for (Iter *i = list_iter(globalenv->vars); !iter_end(i);) {
+        Ast *v = iter_next(i);
+        if (v->type == AST_STRING) {
+            emit_label("%s:", v->slabel);
+            emit(".string \"%s\"", quote_cstring(v->sval));
+        } else if (v->type != AST_GVAR) {
+            error("internal error: %s", ast_to_string(v));
+        }
+    }
+    for (Iter *i = list_iter(flonums); !iter_end(i);) {
+        Ast *v = iter_next(i);
+        char *label = make_label();
+        v->flabel = label;
+        emit_label("%s:", label);
+        emit(".long %d", ((int *)&v->fval)[0]);
+        emit(".long %d", ((int *)&v->fval)[1]);
+    }
+}
+
+static int align(int n, int m) {
+    int rem = n % m;
+    return (rem == 0) ? n : n - rem + m;
 }
 
 static void emit_func_prologue(Ast *func) {

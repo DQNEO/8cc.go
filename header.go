@@ -59,13 +59,15 @@ const (
 
 type Ctype struct {
 	typ    int
-	ptr    *Ctype // pointer or array
 	size   int
-	len    int    // array
-	name   string // struct field
-	tag    string // struct
+	ptr    *Ctype // pointer or array
+	// array length
+	len    int
+	// struct
+	name   string
+	tag    string
 	fields []*Ctype
-	offset int // struct
+	offset int
 }
 
 type Ast struct {

@@ -8,6 +8,8 @@ import (
 	"unicode"
 )
 
+const UINT_MAX = 4294967295
+
 type pseudoStdin struct {
 	buf []byte
 	i   int

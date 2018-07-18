@@ -67,6 +67,8 @@ func (ast *Ast) String() string {
 			}
 		case CTYPE_INT:
 			return fmt.Sprintf("%d", ast.ival)
+		case CTYPE_LONG:
+			return fmt.Sprintf("%dL", ast.ival)
 		case CTYPE_FLOAT, CTYPE_DOUBLE:
 			return fmt.Sprintf("%f", ast.fval)
 		default:

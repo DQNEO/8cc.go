@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 const MAX_ARGS = 6
@@ -382,6 +383,15 @@ func read_ident_or_func(name string) *Ast {
 	return v
 }
 
+func is_long_token(s string) bool {
+	for i,c := range []byte(s) {
+		if !isdigit(c){
+			return (c == 'L' || c == 'l') && (i == len(s) - 1)
+		}
+	}
+	return false
+}
+
 func is_int_token(s string) bool {
 	for _, c := range []byte(s) {
 		if !isdigit(c) {
@@ -412,6 +422,12 @@ func is_float_token(s string) bool {
 	return true
 }
 
+func atol(sval string) int {
+	s := strings.TrimSuffix(sval,"L")
+	i, _ := strconv.Atoi(s)
+	return i
+}
+
 func read_prim() *Ast {
 	tok := read_token()
 	if tok == nil {
@@ -421,9 +437,16 @@ func read_prim() *Ast {
 	case TTYPE_IDENT:
 		return read_ident_or_func(tok.sval)
 	case TTYPE_NUMBER:
+		if is_long_token(tok.sval) {
+			ival := atol(tok.sval)
+			return ast_inttype(ctype_long, ival)
+		}
 		if is_int_token(tok.sval) {
-			ival, _ := strconv.Atoi(tok.sval)
-			return ast_inttype(ctype_int, ival)
+			val, _ := strconv.Atoi(tok.sval)
+			if val >= UINT_MAX {
+				return ast_inttype(ctype_long, val)
+			}
+			return ast_inttype(ctype_int, val)
 		}
 		if is_float_token(tok.sval) {
 			fval, _ := strconv.ParseFloat(tok.sval, 64)

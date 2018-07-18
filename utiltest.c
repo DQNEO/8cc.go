@@ -2,17 +2,32 @@
 #include <string.h>
 #include "8cc.h"
 
-void assert_string_equal(char *s, char *t) {
+#define assert_true(expr) assert_true2(__LINE__, #expr, (expr))
+#define assert_null(...) assert_null2(__LINE__, __VA_ARGS__)
+#define assert_string_equal(...) assert_string_equal2(__LINE__, __VA_ARGS__)
+#define assert_int_equal(...) assert_int_equal2(__LINE__, __VA_ARGS__)
+
+static void assert_true2(int line, char *expr, int result) {
+    if (!result)
+        error("%d: assert_true: %s", line, expr);
+}
+
+static void assert_null2(int line, void *p) {
+    if (p)
+        error("%d: Null expected", line);
+}
+
+static void assert_string_equal2(int line, char *s, char *t) {
     if (strcmp(s, t))
-        error("Expected %s but got %s", s, t);
+        error("%d: Expected %s but got %s", line, s, t);
 }
 
-void assert_int_equal(long a, long b) {
+static void assert_int_equal2(int line, long a, long b) {
     if (a != b)
-        error("Expected %ld but got %ld", a, b);
+        error("%d: Expected %ld but got %ld", line, a, b);
 }
 
-void test_string(void) {
+static void test_string(void) {
     String *s = make_string();
     string_append(s, 'a');
     assert_string_equal("a", get_cstring(s));
@@ -25,7 +40,7 @@ void test_string(void) {
     assert_string_equal("ab.0123456789", get_cstring(s));
 }
 
-void test_list(void) {
+static void test_list(void) {
     List *list = make_list();
     list_push(list, (void *)1);
     list_push(list, (void *)2);
@@ -50,9 +65,28 @@ void test_list(void) {
     assert_int_equal(0, (long)list_pop(rev));
 }
 
+static void test_dict(void) {
+    Dict *dict = make_dict(NULL);
+    assert_null(dict_parent(dict));
+    assert_null(dict_get(dict, "abc"));
+    dict_put(dict, "abc", (void *)50);
+    dict_put(dict, "xyz", (void *)70);
+    assert_int_equal(50, (long)dict_get(dict, "abc"));
+    assert_int_equal(70, (long)dict_get(dict, "xyz"));
+
+    Dict *dict2 = make_dict(dict);
+    assert_true(dict_parent(dict2) == dict);
+    assert_int_equal(50, (long)dict_get(dict, "abc"));
+    assert_int_equal(70, (long)dict_get(dict, "xyz"));
+    dict_put(dict2, "ABC", (void *)110);
+    assert_int_equal(110, (long)dict_get(dict2, "ABC"));
+    assert_null(dict_get(dict, "ABC"));
+}
+
 int main(int argc, char **argv) {
     test_string();
     test_list();
+    test_dict();
     printf("Passed\n");
     return 0;
 }

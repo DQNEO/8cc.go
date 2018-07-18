@@ -1,5 +1,5 @@
 CFLAGS=-Wall -std=gnu99 -g -I. -no-pie
-OBJS=lex.o string.o util.o gen.o parse.o list.o debug.o
+OBJS=lex.o string.o util.o gen.o parse.o list.o debug.o dict.o
 TESTS := $(patsubst %.c,%.bin,$(wildcard test/*.c))
 
 8cc: 8cc.h main.o $(OBJS)
@@ -31,5 +31,5 @@ nqueen: 8cc sample/nqueen.c
 
 .PHONY: clean test
 clean:
-	rm -f 8cc *.o tmp.* test/*.s test/*.o sample/*.o utiltest sample/nqueen.s sample/nqueen 
+	rm -f 8cc *.o tmp.* test/*.s test/*.o sample/*.o utiltest sample/nqueen.s sample/nqueen
 	rm -f $(TESTS)

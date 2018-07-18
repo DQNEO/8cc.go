@@ -263,7 +263,7 @@ func find_var(name string) *Ast {
 }
 
 func is_inttype(ctype *Ctype) bool {
-	return ctype.typ == CTYPE_CHAR || ctype.typ == CTYPE_INT
+	return ctype.typ == CTYPE_CHAR || ctype.typ == CTYPE_INT || ctype.typ == CTYPE_LONG
 }
 
 func is_flotype(ctype *Ctype) bool {
@@ -495,6 +495,18 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 		switch b.typ {
 		case CTYPE_CHAR, CTYPE_INT:
 			return ctype_int, nil
+		case CTYPE_LONG:
+			return ctype_long, nil
+		case CTYPE_FLOAT, CTYPE_DOUBLE:
+			return ctype_double, nil
+		case CTYPE_ARRAY, CTYPE_PTR:
+			return b, nil
+		}
+		errorf("internal error")
+	case CTYPE_LONG:
+		switch b.typ {
+		case CTYPE_LONG:
+			return ctype_long, nil
 		case CTYPE_FLOAT, CTYPE_DOUBLE:
 			return ctype_double, nil
 		case CTYPE_ARRAY, CTYPE_PTR:
@@ -682,6 +694,9 @@ func get_ctype(tok *Token) *Ctype {
 
 	if tok.sval == "int" {
 		return ctype_int
+	}
+	if tok.sval == "long" {
+		return ctype_long
 	}
 	if tok.sval == "char" {
 		return ctype_char

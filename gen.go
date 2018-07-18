@@ -378,6 +378,8 @@ func emit_expr(ast *Ast) {
 			emit("mov $%d, %%rax", ast.ival)
 		case CTYPE_INT:
 			emit("mov $%d, %%eax", ast.ival)
+		case CTYPE_LONG:
+			emit("mov $%d, %%rax", ast.ival)
 		case CTYPE_FLOAT, CTYPE_DOUBLE:
 			emit("movsd %s(%%rip), %%xmm0", ast.flabel)
 		default:

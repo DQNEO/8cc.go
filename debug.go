@@ -13,6 +13,8 @@ func (ctype *Ctype) String() string {
 		return "void"
 	case CTYPE_INT:
 		return "int"
+	case CTYPE_LONG:
+		return "long"
 	case CTYPE_CHAR:
 		return "char"
 	case CTYPE_FLOAT:

@@ -7,8 +7,12 @@ type DictCtypeEntry struct {
 	val *Ctype
 }
 
-func dict_ctype_get(dict DictCtype, key string) *Ctype {
-	for _, e := range dict {
+func NewDictCtype() *DictCtype {
+	return &DictCtype{}
+}
+
+func (dict *DictCtype) Get(key string) *Ctype {
+	for _, e := range *dict {
 		if e.key == key {
 			return e.val
 		}
@@ -16,7 +20,7 @@ func dict_ctype_get(dict DictCtype, key string) *Ctype {
 	return nil
 }
 
-func dict_ctype_put(dict *DictCtype, key string, val *Ctype)  {
+func (dict *DictCtype) Put(key string, val *Ctype)  {
 	e := &DictCtypeEntry{
 		key: key,
 		val: val,
@@ -24,17 +28,17 @@ func dict_ctype_put(dict *DictCtype, key string, val *Ctype)  {
 	*dict = append(*dict, e)
 }
 
-func dict_ctype_keys(dict DictCtype) []string {
+func (dict *DictCtype) Keys() []string {
 	var r []string
-	for _, e := range dict {
+	for _, e := range *dict {
 		r = append(r, e.key)
 	}
 	return r
 }
 
-func dic_ctype_values(dict DictCtype) []*Ctype {
+func (dict *DictCtype) Values() []*Ctype {
 	var r []*Ctype
-	for _, e := range dict {
+	for _, e := range *dict {
 		r = append(r, e.val)
 	}
 	return r

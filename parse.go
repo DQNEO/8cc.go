@@ -242,7 +242,7 @@ func make_struct_field_type(ctype *Ctype, name string, offset int) *Ctype {
 	return r
 }
 
-func make_struct_type(fields DictCtype, tag string, size int) *Ctype {
+func make_struct_type(fields *DictCtype, tag string, size int) *Ctype {
 	r := &Ctype{}
 	r.typ = CTYPE_STRUCT
 	r.fields = fields
@@ -605,7 +605,7 @@ func read_struct_field(struc *Ast) *Ast {
 	if name.typ != TTYPE_IDENT {
 		errorf("field name expected, but got %s", name)
 	}
-	field := dict_ctype_get(struc.ctype.fields, name.sval)
+	field := struc.ctype.fields.Get(name.sval)
 	return ast_struct_ref(struc, field)
 }
 
@@ -753,15 +753,15 @@ func read_struct_union_tag() string {
 	}
 }
 
-func read_struct_union_fields() DictCtype {
-	var r DictCtype
+func read_struct_union_fields() *DictCtype {
+	r := NewDictCtype()
 	expect('{')
 	for {
 		if !is_type_keyword(peek_token()) {
 			break
 		}
 		fieldtype, name := read_decl_int()
-		dict_ctype_put(&r, name.sval, make_struct_field_type(fieldtype, name.sval, 0))
+		r.Put(name.sval, make_struct_field_type(fieldtype, name.sval, 0))
 		expect(';')
 	}
 	expect('}')
@@ -776,7 +776,7 @@ func read_union_def() *Ctype {
 	}
 	fields := read_struct_union_fields()
 	maxsize := 0
-	for _, fieldtype := range dic_ctype_values(fields) {
+	for _, fieldtype := range fields.Values() {
 		if maxsize < fieldtype.size {
 			maxsize = fieldtype.size
 		}
@@ -794,7 +794,7 @@ func read_struct_def() *Ctype {
 	}
 	fields := read_struct_union_fields()
 	offset := 0
-	for _, fieldtype := range dic_ctype_values(fields) {
+	for _, fieldtype := range fields.Values() {
 		var size int
 		if fieldtype.size < MAX_ALIGN {
 			size = fieldtype.size

@@ -66,7 +66,7 @@ type Ctype struct {
 	// struct
 	name   string
 	tag    string
-	fields DictCtype
+	fields *DictCtype
 	offset int
 }
 

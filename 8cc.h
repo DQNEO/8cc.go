@@ -73,9 +73,8 @@ typedef struct Ctype {
     // array length
     int len;
     // struct
-    char *name;
     char *tag;
-    List *fields;
+    Dict *fields;
     int offset;
 } Ctype;
 
@@ -151,7 +150,7 @@ typedef struct Ast {
         // Struct reference
         struct {
             struct Ast *struc;
-            Ctype *field;
+            //Ctype *fieldtype;
         };
     };
 } Ast;

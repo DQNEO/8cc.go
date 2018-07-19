@@ -118,7 +118,7 @@ type Ast struct {
 	stmts []*Ast
 	// StructRef
 	struc *Ast
-	field string
+	field string // only for debug.go
 }
 
 type Env struct {

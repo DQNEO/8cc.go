@@ -1081,14 +1081,14 @@ func read_decl_or_func_def() *Ast {
 }
 
 func read_toplevels() []*Ast {
-	var func_list []*Ast
+	var r []*Ast
 
 	for {
 		ast := read_decl_or_func_def()
 		if ast == nil {
-			return func_list
+			return r
 		}
-		func_list = append(func_list, ast)
+		r = append(r, ast)
 	}
 
 	return nil

@@ -10,12 +10,12 @@
 #define MAX_OP_PRIO 16
 #define MAX_ALIGN 16
 
-Env *globalenv = &EMPTY_ENV;
 List *strings = &EMPTY_LIST;
 List *flonums = &EMPTY_LIST;
-static List *struct_defs = &EMPTY_LIST;
-static List *union_defs = &EMPTY_LIST;
-static Env *localenv = NULL;
+static Dict *globalenv = &EMPTY_DICT;
+static Dict *localenv = NULL;
+static Dict *struct_defs = &EMPTY_DICT;
+static Dict *union_defs = &EMPTY_DICT;
 static List *localvars = NULL;
 
 static Ctype *ctype_int = &(Ctype){ CTYPE_INT, 4, NULL };
@@ -35,19 +35,6 @@ static Ctype *result_type(char op, Ctype *a, Ctype *b);
 static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
 static Ctype *read_decl_int(Token **name);
-
-static Env *make_env(Env *next) {
-    Env *r = malloc(sizeof(Env));
-    r->next = next;
-    r->vars = make_list();
-    return r;
-}
-
-static void env_append(Env *env, Ast *var) {
-    assert(var->type == AST_LVAR || var->type == AST_GVAR ||
-           var->type == AST_STRING);
-    list_push(env->vars, var);
-}
 
 static Ast *ast_uop(int type, Ctype *ctype, Ast *operand) {
     Ast *r = malloc(sizeof(Ast));
@@ -101,7 +88,7 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
     r->type = AST_LVAR;
     r->ctype = ctype;
     r->varname = name;
-    env_append(localenv, r);
+    dict_put(localenv, name, r);
     if (localvars)
         list_push(localvars, r);
     return r;
@@ -113,7 +100,7 @@ static Ast *ast_gvar(Ctype *ctype, char *name, bool filelocal) {
     r->ctype = ctype;
     r->varname = name;
     r->glabel = filelocal ? make_label() : name;
-    env_append(globalenv, r);
+    dict_put(globalenv, name, r);
     return r;
 }
 
@@ -217,7 +204,6 @@ static Ast *ast_struct_ref(Ctype *ctype, Ast *struc, char *name) {
     r->ctype = ctype;
     r->struc = struc;
     r->field = name;
-    //r->fieldtype = field;
     return r;
 }
 
@@ -245,24 +231,12 @@ static Ctype* make_struct_field_type(Ctype *ctype, int offset) {
     return r;
 }
 
-static Ctype* make_struct_type(Dict *fields, char *tag, int size) {
+static Ctype* make_struct_type(Dict *fields, int size) {
     Ctype *r = malloc(sizeof(Ctype));
     r->type = CTYPE_STRUCT;
     r->fields = fields;
-    r->tag = tag;
     r->size = size;
     return r;
-}
-
-static Ast *find_var(char *name) {
-    for (Env *p = localenv; p; p = p->next) {
-        for (Iter *i = list_iter(p->vars); !iter_end(i);) {
-            Ast *v = iter_next(i);
-            if (!strcmp(name, v->varname))
-                return v;
-        }
-    }
-    return NULL;
 }
 
 bool is_inttype(Ctype *ctype) {
@@ -365,7 +339,7 @@ static Ast *read_ident_or_func(char *name) {
     if (is_punct(tok, '('))
         return read_func_args(name);
     unget_token(tok);
-    Ast *v = find_var(name);
+    Ast *v = dict_get(localenv, name);
     if (!v)
         error("Undefined varaible: %s", name);
     return v;
@@ -654,15 +628,6 @@ static Ast *read_decl_array_init_int(Ctype *ctype) {
     return ast_array_init(initlist);
 }
 
-static Ctype *find_struct_union_def(List *list, char *name) {
-    for (Iter *i = list_iter(list); !iter_end(i);) {
-        Ctype *t = iter_next(i);
-        if (t->tag && !strcmp(t->tag, name))
-            return t;
-    }
-    return NULL;
-}
-
 static char *read_struct_union_tag(void) {
     Token *tok = read_token();
     if (tok->type == TTYPE_IDENT)
@@ -688,7 +653,7 @@ static Dict *read_struct_union_fields(void) {
 
 static Ctype *read_union_def(void) {
     char *tag = read_struct_union_tag();
-    Ctype *ctype = find_struct_union_def(union_defs, tag);
+    Ctype *ctype = dict_get(union_defs, tag);
     if (ctype) return ctype;
     Dict *fields = read_struct_union_fields();
     int maxsize = 0;
@@ -696,14 +661,15 @@ static Ctype *read_union_def(void) {
         Ctype *fieldtype = iter_next(i);
         maxsize = (maxsize < fieldtype->size) ? fieldtype->size : maxsize;
     }
-    Ctype *r = make_struct_type(fields, tag, maxsize);
-    list_push(union_defs, r);
+    Ctype *r = make_struct_type(fields, maxsize);
+    if (tag)
+        dict_put(union_defs, tag, r);
     return r;
 }
 
 static Ctype *read_struct_def(void) {
     char *tag = read_struct_union_tag();
-    Ctype *ctype = find_struct_union_def(struct_defs, tag);
+    Ctype *ctype = dict_get(struct_defs, tag);
     if (ctype) return ctype;
     Dict *fields = read_struct_union_fields();
     int offset = 0;
@@ -715,8 +681,9 @@ static Ctype *read_struct_def(void) {
         fieldtype->offset = offset;
         offset += fieldtype->size;
     }
-    Ctype *r = make_struct_type(fields, tag, offset);
-    list_push(struct_defs, r);
+    Ctype *r = make_struct_type(fields, offset);
+    if (tag)
+        dict_put(struct_defs, tag, r);
     return r;
 }
 
@@ -846,14 +813,14 @@ static Ast *read_opt_expr(void) {
 
 static Ast *read_for_stmt(void) {
     expect('(');
-    localenv = make_env(localenv);
+    localenv = make_dict(localenv);
     Ast *init = read_opt_decl_or_stmt();
     Ast *cond = read_opt_expr();
     Ast *step = is_punct(peek_token(), ')')
         ? NULL : read_expr();
     expect(')');
     Ast *body = read_stmt();
-    localenv = localenv->next;
+    localenv = dict_parent(localenv);
     return ast_for(init, cond, step, body);
 }
 
@@ -882,7 +849,7 @@ static Ast *read_decl_or_stmt(void) {
 }
 
 static Ast *read_compound_stmt(void) {
-    localenv = make_env(localenv);
+    localenv = make_dict(localenv);
     List *list = make_list();
     for (;;) {
         Ast *stmt = read_decl_or_stmt();
@@ -893,7 +860,7 @@ static Ast *read_compound_stmt(void) {
             break;
         unget_token(tok);
     }
-    localenv = localenv->next;
+    localenv = dict_parent(localenv);
     return ast_compound_stmt(list);
 }
 
@@ -922,13 +889,14 @@ static List *read_params(void) {
 
 static Ast *read_func_def(Ctype *rettype, char *fname) {
     expect('(');
-    localenv = make_env(globalenv);
+    localenv = make_dict(globalenv);
     List *params = read_params();
     expect('{');
-    localenv = make_env(localenv);
+    localenv = make_dict(localenv);
     localvars = make_list();
     Ast *body = read_compound_stmt();
     Ast *r = ast_func(rettype, fname, params, body, localvars);
+    localenv = NULL;
     localvars = NULL;
     return r;
 }
@@ -963,4 +931,5 @@ List *read_toplevels(void) {
         if (!ast) return r;
         list_push(r, ast);
     }
+    return r;
 }

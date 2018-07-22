@@ -64,6 +64,7 @@ enum {
     CTYPE_ARRAY,
     CTYPE_PTR,
     CTYPE_STRUCT,
+    //CTYPE_FUNC, // not used
 };
 
 typedef struct Ctype {
@@ -73,7 +74,6 @@ typedef struct Ctype {
     // array length
     int len;
     // struct
-    char *tag;
     Dict *fields;
     int offset;
 } Ctype;
@@ -156,15 +156,6 @@ typedef struct Ast {
     };
 } Ast;
 
-typedef struct Env {
-    List *vars;
-    struct Env *next;
-    struct List *structs;
-} Env;
-
-#define EMPTY_ENV                                       \
-    (((Env){ .vars = &EMPTY_LIST, .next = NULL }))
-
 extern String *make_string(void);
 extern char *get_cstring(String *s);
 extern void string_append(String *s, char c);
@@ -186,7 +177,6 @@ extern bool is_flotype(Ctype *ctype);
 extern void emit_data_section(void);
 extern void emit_toplevel(Ast *v);
 
-extern Env *globalenv;
 extern List *strings;
 extern List *flonums;
 

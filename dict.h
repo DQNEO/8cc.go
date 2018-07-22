@@ -8,6 +8,9 @@ typedef struct Dict {
     struct Dict *parent;
 } Dict;
 
+#define EMPTY_DICT                              \
+    ((Dict){ &EMPTY_LIST, NULL })
+
 void *make_dict(void *parent);
 void *dict_get(Dict *dict, char *key);
 void dict_put(Dict *dict, char *key, void *val);

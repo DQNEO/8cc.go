@@ -17,6 +17,7 @@ static Dict *localenv = NULL;
 static Dict *struct_defs = &EMPTY_DICT;
 static Dict *union_defs = &EMPTY_DICT;
 static List *localvars = NULL;
+static Ctype *current_func_rettype = NULL;
 
 static Ctype *ctype_int = &(Ctype){ CTYPE_INT, 4, NULL };
 static Ctype *ctype_long = &(Ctype){ CTYPE_LONG, 8, NULL };
@@ -183,10 +184,10 @@ static Ast *ast_for(Ast *init, Ast *cond, Ast *step, Ast *body) {
     return r;
 }
 
-static Ast *ast_return(Ast *retval) {
+static Ast *ast_return(Ctype *rettype, Ast *retval) {
     Ast *r = malloc(sizeof(Ast));
     r->type = AST_RETURN;
-    r->ctype = NULL;
+    r->ctype = rettype;
     r->retval = retval;
     return r;
 }
@@ -849,7 +850,7 @@ static Ast *read_for_stmt(void) {
 static Ast *read_return_stmt(void) {
     Ast *retval = read_expr();
     expect(';');
-    return ast_return(retval);
+    return ast_return(current_func_rettype, retval);
 }
 
 static Ast *read_stmt(void) {
@@ -912,10 +913,12 @@ static List *read_params(void) {
 static Ast *read_func_def(Ctype *rettype, char *fname, List *params) {
     localenv = make_dict(localenv);
     localvars = make_list();
+    current_func_rettype = rettype;
     Ast *body = read_compound_stmt();
     Ctype *type = make_func_type(rettype, param_types(params));
     Ast *r = ast_func(type, fname, params, body, localvars);
     dict_put(globalenv, fname, type);
+    current_func_rettype = NULL;
     localenv = NULL;
     localvars = NULL;
     return r;

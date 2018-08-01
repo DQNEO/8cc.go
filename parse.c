@@ -347,6 +347,12 @@ static Ast *read_func_args(char *fname) {
     }
     if (MAX_ARGS < list_len(args))
         error("Too many arguments: %s", fname);
+    Ctype *decl = dict_get(localenv, fname);
+    if (decl) {
+        if (decl->type != CTYPE_FUNC)
+            error("%s is not a function, but %s", fname, ctype_to_string(decl));
+        return ast_funcall(decl->rettype, fname, args);
+    }
     return ast_funcall(ctype_int, fname, args);
 }
 

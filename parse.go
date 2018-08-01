@@ -359,6 +359,13 @@ func read_func_args(fname string) *Ast {
 	if MAX_ARGS < len(args) {
 		errorf("Too many arguments: %s", fname)
 	}
+	decl := localenv.GetCtype(fname)
+	if decl != nil {
+		if decl.typ != CTYPE_FUNC {
+			errorf("%s is not a function, but %s", fname, decl)
+		}
+		return ast_funcall(decl.rettype, fname, args)
+	}
 	return ast_funcall(ctype_int, fname, args)
 }
 

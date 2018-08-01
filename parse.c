@@ -925,7 +925,7 @@ static Ast *read_func_decl_or_def(Ctype *rettype, char *fname) {
     // must expect(';'); here
     Ctype *type = make_func_type(rettype, param_types(params));
     dict_put(globalenv, fname, type);
-    return read_toplevel();
+    return read_toplevel(); // is this right?
 }
 
 static Ast *read_toplevel(void) {

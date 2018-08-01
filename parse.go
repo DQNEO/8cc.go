@@ -18,6 +18,7 @@ var localenv *Dict
 var struct_defs Dict
 var union_defs Dict
 var localvars []*Ast
+var current_func_rettype *Ctype
 var labelseq = 0
 
 var ctype_int = &Ctype{typ: CTYPE_INT, size: 4}
@@ -177,10 +178,10 @@ func ast_for(init *Ast, cond *Ast, step *Ast, body *Ast) *Ast {
 	return r
 }
 
-func ast_return(retval *Ast) *Ast {
+func ast_return(rettype *Ctype, retval *Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_RETURN
-	r.ctype = nil
+	r.ctype = rettype
 	r.retval = retval
 	return r
 }
@@ -976,7 +977,7 @@ func read_for_stmt() *Ast {
 func read_return_stmt() *Ast {
 	retval := read_expr()
 	expect(';')
-	return ast_return(retval)
+	return ast_return(current_func_rettype, retval)
 }
 
 func read_stmt() *Ast {
@@ -1066,10 +1067,12 @@ func read_params() []*Ast {
 func read_func_def(rettype *Ctype, fname string, params []*Ast) *Ast {
 	localenv = localenv.MakeDict()
 	localvars = make([]*Ast, 0)
+	current_func_rettype = rettype
 	body := read_compound_stmt()
 	typ := make_func_type(rettype, param_types(params))
 	r := ast_func(typ, fname, params, localvars, body)
 	globalenv.PutCtype(fname, typ)
+	current_func_rettype = nil
 	localenv = nil
 	localvars = nil
 	return r

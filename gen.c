@@ -684,7 +684,7 @@ static void emit_func_prologue(Ast *func) {
         v->loff = off;
     }
     if (off)
-        emit("add $%d, %%rsp", off);
+        emit("sub $%d, %%rsp", -off);
     stackpos += -(off - 8);
 }
 

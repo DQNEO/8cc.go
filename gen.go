@@ -674,12 +674,14 @@ func emit_func_prologue(fn *Ast) {
 		off -= align(v.ctype.size, 8)
 		v.loff = off
 	}
+	localarea := 0
 	for _, v := range fn.localvars {
 		off -= align(v.ctype.size, 8)
 		v.loff = off
+		localarea += off
 	}
-	if off != 0 {
-		emit("sub $%d, %%rsp", -off)
+	if localarea != 0 {
+		emit("sub $%d, %%rsp", -localarea)
 	}
 	stackpos += -(off - 8)
 }

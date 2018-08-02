@@ -20,10 +20,10 @@ static List *localvars = NULL;
 static Ctype *current_func_rettype = NULL;
 
 Ctype *ctype_int = &(Ctype){ CTYPE_INT, 4, NULL };
-static Ctype *ctype_long = &(Ctype){ CTYPE_LONG, 8, NULL };
-static Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, 1, NULL };
-static Ctype *ctype_float = &(Ctype){ CTYPE_FLOAT, 4, NULL };
-static Ctype *ctype_double = &(Ctype){ CTYPE_DOUBLE, 8, NULL };
+Ctype *ctype_long = &(Ctype){ CTYPE_LONG, 8, NULL };
+Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, 1, NULL };
+Ctype *ctype_float = &(Ctype){ CTYPE_FLOAT, 4, NULL };
+Ctype *ctype_double = &(Ctype){ CTYPE_DOUBLE, 8, NULL };
 
 static int labelseq = 0;
 

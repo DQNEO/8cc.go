@@ -377,6 +377,19 @@ func emit_load_deref(result_type *Ctype, operand_type *Ctype, off int) {
 
 }
 
+func get_arg_types(ast *Ast) []*Ctype{
+	var r []*Ctype
+	for i, v := range ast.args {
+		var ptype *Ctype
+		if len(ast.paramtypes) > i {
+			ptype = ast.paramtypes[i]
+		} else {
+			ptype = result_type('=', v.ctype, ctype_int)
+		}
+		r = append(r, ptype)
+	}
+	return r
+}
 func emit_expr(ast *Ast) {
 	switch ast.typ {
 	case AST_LITERAL:
@@ -401,6 +414,8 @@ func emit_expr(ast *Ast) {
 	case AST_FUNCALL:
 		ireg := 0
 		xreg := 0
+		argtypes := get_arg_types(ast)
+		emit("# %s", argtypes)
 		for _, v := range ast.args {
 			if is_flotype(v.ctype) {
 				if xreg > 0 {

@@ -415,9 +415,8 @@ func emit_expr(ast *Ast) {
 		ireg := 0
 		xreg := 0
 		argtypes := get_arg_types(ast)
-		emit("# %s", argtypes)
-		for _, v := range ast.args {
-			if is_flotype(v.ctype) {
+		for _, v := range argtypes {
+			if is_flotype(v) {
 				if xreg > 0 {
 					push_xmm(xreg)
 				}
@@ -427,9 +426,9 @@ func emit_expr(ast *Ast) {
 				ireg++
 			}
 		}
-		for _, v := range ast.args {
+		for i, v := range ast.args {
 			emit_expr(v)
-			if is_flotype(v.ctype) {
+			if is_flotype(argtypes[i]) {
 				push_xmm(0)
 			} else {
 				push("rax")
@@ -437,12 +436,12 @@ func emit_expr(ast *Ast) {
 		}
 		ir := ireg
 		xr := xreg
-		var reversed_args []*Ast
-		for i := len(ast.args) - 1; i >= 0; i-- {
-			reversed_args = append(reversed_args, ast.args[i])
+		var reversed_args []*Ctype
+		for i := len(argtypes) - 1; i >= 0; i-- {
+			reversed_args = append(reversed_args, argtypes[i])
 		}
 		for _, v := range reversed_args {
-			if is_flotype(v.ctype) {
+			if is_flotype(v) {
 				xr--
 				pop_xmm(xr)
 			} else {
@@ -459,7 +458,7 @@ func emit_expr(ast *Ast) {
 			emit("add $8, %%rsp")
 		}
 		for _, v := range reversed_args {
-			if is_flotype(v.ctype) {
+			if is_flotype(v) {
 				if xreg != 1 {
 					xreg--
 					pop_xmm(xreg)

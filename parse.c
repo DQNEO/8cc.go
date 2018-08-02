@@ -115,12 +115,13 @@ static Ast *ast_string(char *str) {
     return r;
 }
 
-static Ast *ast_funcall(Ctype *ctype, char *fname, List *args) {
+static Ast *ast_funcall(Ctype *ctype, char *fname, List *args, List *paramtypes) {
     Ast *r = malloc(sizeof(Ast));
     r->type = AST_FUNCALL;
     r->ctype = ctype;
     r->fname = fname;
     r->args = args;
+    r->paramtypes = paramtypes;
     return r;
 }
 
@@ -352,9 +353,10 @@ static Ast *read_func_args(char *fname) {
     if (decl) {
         if (decl->type != CTYPE_FUNC)
             error("%s is not a function, but %s", fname, ctype_to_string(decl));
-        return ast_funcall(decl->rettype, fname, args);
+        assert(decl->params);
+        return ast_funcall(decl->rettype, fname, args, decl->params);
     }
-    return ast_funcall(ctype_int, fname, args);
+    return ast_funcall(ctype_int, fname, args, make_list());
 }
 
 static Ast *read_ident_or_func(char *name) {

@@ -117,7 +117,9 @@ typedef struct Ast {
         // Function call or function declaration
         struct {
             char *fname;
+            // Function call
             struct List *args;
+            struct List *paramtypes;
             struct List *params;
             struct List *localvars;
             struct Ast *body;

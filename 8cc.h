@@ -120,6 +120,7 @@ typedef struct Ast {
             // Function call
             struct List *args;
             struct List *paramtypes;
+            // Function declaration
             struct List *params;
             struct List *localvars;
             struct Ast *body;

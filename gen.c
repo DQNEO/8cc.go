@@ -408,7 +408,8 @@ static void emit_expr(Ast *ast) {
         for (Iter *i = list_iter(ast->args); !iter_end(i);) {
             Ast *v = iter_next(i);
             if (is_flotype(v->ctype)) {
-                push_xmm(xreg++);
+                if (xreg > 0) push_xmm(xreg);
+                xreg++;
             } else {
                 push(REGS[ireg++]);
             }
@@ -439,7 +440,8 @@ static void emit_expr(Ast *ast) {
         for (Iter *i = list_iter(list_reverse(ast->args)); !iter_end(i);) {
             Ast *v = iter_next(i);
             if (is_flotype(v->ctype)) {
-                pop_xmm(--xreg);
+                if (xreg != 1)
+                    pop_xmm(--xreg);
             } else {
                 pop(REGS[--ireg]);
             }

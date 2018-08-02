@@ -157,6 +157,8 @@ typedef struct Ast {
     };
 } Ast;
 
+extern Ctype *ctype_int;
+
 extern String *make_string(void);
 extern char *get_cstring(String *s);
 extern void string_append(String *s, char c);
@@ -174,6 +176,7 @@ extern char *make_label(void);
 extern List *read_toplevels(void);
 extern bool is_inttype(Ctype *ctype);
 extern bool is_flotype(Ctype *ctype);
+extern Ctype *result_type(char op, Ctype *a, Ctype *b);
 
 extern void emit_data_section(void);
 extern void emit_toplevel(Ast *v);

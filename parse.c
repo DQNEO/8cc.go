@@ -19,7 +19,7 @@ static Dict *union_defs = &EMPTY_DICT;
 static List *localvars = NULL;
 static Ctype *current_func_rettype = NULL;
 
-static Ctype *ctype_int = &(Ctype){ CTYPE_INT, 4, NULL };
+Ctype *ctype_int = &(Ctype){ CTYPE_INT, 4, NULL };
 static Ctype *ctype_long = &(Ctype){ CTYPE_LONG, 8, NULL };
 static Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, 1, NULL };
 static Ctype *ctype_float = &(Ctype){ CTYPE_FLOAT, 4, NULL };
@@ -32,7 +32,6 @@ static Ctype* make_ptr_type(Ctype *ctype);
 static Ctype* make_array_type(Ctype *ctype, int size);
 static Ast *read_compound_stmt(void);
 static Ast *read_decl_or_stmt(void);
-static Ctype *result_type(char op, Ctype *a, Ctype *b);
 static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
 static Ctype *read_decl_int(Token **name);
@@ -517,7 +516,7 @@ static Ctype *convert_array(Ctype *ctype) {
     return make_ptr_type(ctype->ptr);
 }
 
-static Ctype *result_type(char op, Ctype *a, Ctype *b) {
+Ctype *result_type(char op, Ctype *a, Ctype *b) {
     jmp_buf jmpbuf;
     if (setjmp(jmpbuf) == 0)
         return result_type_int(&jmpbuf, op, convert_array(a), convert_array(b));

@@ -371,6 +371,17 @@ static void emit_load_deref(Ctype *result_type, Ctype *operand_type, int off) {
     emit("mov %%rcx, %%rax");
 }
 
+static List *get_arg_types(Ast *ast) {
+    List *r = make_list();
+    for (Iter *i = list_iter(ast->args), *j = list_iter(ast->paramtypes);
+         !iter_end(i);) {
+        Ast *v = iter_next(i);
+        Ctype *ptype = iter_next(j);
+        list_push(r, ptype ? ptype : result_type('=', v->ctype, ctype_int));
+    }
+    return r;
+}
+
 static void emit_expr(Ast *ast) {
     SAVE;
     switch (ast->type) {
@@ -405,6 +416,7 @@ static void emit_expr(Ast *ast) {
     case AST_FUNCALL: {
         int ireg = 0;
         int xreg = 0;
+        List *argtypes = get_arg_types(ast);
         for (Iter *i = list_iter(ast->args); !iter_end(i);) {
             Ast *v = iter_next(i);
             if (is_flotype(v->ctype)) {

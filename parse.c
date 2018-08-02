@@ -335,6 +335,19 @@ static List *param_types(List *params) {
     return r;
 }
 
+static void function_type_check(char *fname, List *params, List *args) {
+    if (list_len(args) < list_len(params))
+        error("Too few arguments: %s", fname);
+    for (Iter *i = list_iter(params), *j = list_iter(args); !iter_end(j);) {
+        Ctype *param = iter_next(i);
+        Ctype *arg = iter_next(j);
+        if (param)
+            result_type('=', param, arg);
+        else
+            result_type('=', arg, ctype_int);
+    }
+}
+
 static Ast *read_func_args(char *fname) {
     List *args = make_list();
     for (;;) {
@@ -354,6 +367,7 @@ static Ast *read_func_args(char *fname) {
         if (decl->type != CTYPE_FUNC)
             error("%s is not a function, but %s", fname, ctype_to_string(decl));
         assert(decl->params);
+        function_type_check(fname, decl->params, param_types(args));
         return ast_funcall(decl->rettype, fname, args, decl->params);
     }
     return ast_funcall(ctype_int, fname, args, make_list());

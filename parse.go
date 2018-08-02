@@ -341,6 +341,20 @@ func param_types(params []*Ast) []*Ctype {
 	return r
 }
 
+func function_type_check(fname string, params []*Ctype, args []*Ctype) {
+	if len(args) < len(params) {
+		errorf("Too few arguments: %s", fname)
+	}
+	for i, arg := range args {
+		if i < len(params)  {
+			param := params[i]
+			result_type('=', param, arg)
+		} else {
+			result_type('=', arg, ctype_int)
+		}
+	}
+}
+
 func read_func_args(fname string) *Ast {
 	var args []*Ast
 	for {
@@ -366,6 +380,7 @@ func read_func_args(fname string) *Ast {
 		if decl.typ != CTYPE_FUNC {
 			errorf("%s is not a function, but %s", fname, decl)
 		}
+		function_type_check(fname, decl.params, param_types(args))
  		return ast_funcall(decl.rettype, fname, args, decl.params)
 	}
 	return ast_funcall(ctype_int, fname, args, nil)

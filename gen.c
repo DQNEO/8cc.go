@@ -678,13 +678,15 @@ static void emit_func_prologue(Ast *func) {
         off -= align(v->ctype->size, 8);
         v->loff = off;
     }
+    int localarea = 0;
     for (Iter *i = list_iter(func->localvars); !iter_end(i);) {
         Ast *v = iter_next(i);
         off -= align(v->ctype->size, 8);
         v->loff = off;
+        localarea += off;
     }
-    if (off)
-        emit("sub $%d, %%rsp", -off);
+    if (localarea)
+        emit("sub $%d, %%rsp", -localarea);
     stackpos += -(off - 8);
 }
 

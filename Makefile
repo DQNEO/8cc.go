@@ -4,7 +4,6 @@ TESTS := $(patsubst %.c,%.bin,$(wildcard test/*.c))
 
 8cc: 8cc.h main.o $(OBJS)
 	$(CC) $(CFLAGS) -o $@ main.o $(OBJS)
-	cp 8cc 8cc_c
 
 $(OBJS) utiltest.o main.o: 8cc.h
 

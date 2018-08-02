@@ -310,15 +310,18 @@ func emit_binop_float_arith(ast *Ast) {
 	emit("%s %%xmm1, %%xmm0", op)
 }
 
+func emit_load_convert(to *Ctype, from *Ctype) {
+	if is_flotype(to) {
+		emit_todouble(from)
+	} else {
+		emit_toint(from)
+	}
+}
+
 func emit_binop(ast *Ast) {
 	if ast.typ == '=' {
 		emit_expr(ast.right)
-		if is_flotype(ast.ctype) {
-			emit_todouble(ast.right.ctype)
-		} else {
-			emit_toint(ast.right.ctype)
-		}
-
+		emit_load_convert(ast.ctype, ast.right.ctype)
 		emit_assign(ast.left)
 		return
 	}

@@ -21,7 +21,7 @@ var localvars []*Ast
 var labelseq = 0
 
 var ctype_int = &Ctype{typ: CTYPE_INT, size: 4}
-var ctype_long = &Ctype{typ: CTYPE_LONG, size:8}
+var ctype_long = &Ctype{typ: CTYPE_LONG, size: 8}
 var ctype_char = &Ctype{typ: CTYPE_CHAR, size: 1}
 var ctype_float = &Ctype{typ: CTYPE_FLOAT, size: 4}
 var ctype_double = &Ctype{typ: CTYPE_DOUBLE, size: 8}
@@ -361,9 +361,9 @@ func read_ident_or_func(name string) *Ast {
 }
 
 func is_long_token(s string) bool {
-	for i,c := range []byte(s) {
-		if !isdigit(c){
-			return (c == 'L' || c == 'l') && (i == len(s) - 1)
+	for i, c := range []byte(s) {
+		if !isdigit(c) {
+			return (c == 'L' || c == 'l') && (i == len(s)-1)
 		}
 	}
 	return false
@@ -400,7 +400,7 @@ func is_float_token(s string) bool {
 }
 
 func atol(sval string) int {
-	s := strings.TrimSuffix(sval,"L")
+	s := strings.TrimSuffix(sval, "L")
 	i, _ := strconv.Atoi(s)
 	return i
 }
@@ -729,7 +729,7 @@ func read_struct_union_fields() *DictCtype {
 			break
 		}
 		fieldtype, name := read_decl_int()
-		r.Put(name.sval, make_struct_field_type(fieldtype,0))
+		r.Put(name.sval, make_struct_field_type(fieldtype, 0))
 		expect(';')
 	}
 	expect('}')
@@ -751,7 +751,7 @@ func read_union_def() *Ctype {
 	}
 	r := make_struct_type(fields, maxsize)
 	if tag != "" {
-		union_defs.Put(tag,r)
+		union_defs.Put(tag, r)
 	}
 	return r
 }

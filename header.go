@@ -59,11 +59,11 @@ const (
 )
 
 type Ctype struct {
-	typ    int
-	size   int
-	ptr    *Ctype // pointer or array
+	typ  int
+	size int
+	ptr  *Ctype // pointer or array
 	// array length
-	len    int
+	len int
 	// struct
 	fields *DictCtype
 	offset int
@@ -117,8 +117,8 @@ type Ast struct {
 	// compound
 	stmts []*Ast
 	// StructRef
-	struc *Ast
-	field string // only for debug.go
+	struc     *Ast
+	field     string // only for debug.go
 	fieldtype *Ctype // not used
 }
 

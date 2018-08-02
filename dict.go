@@ -1,11 +1,11 @@
 package main
 
 type DictAst struct {
-	list []*DictAstEntry
+	list   []*DictAstEntry
 	parent *DictAst
 }
 type DictCtype struct {
-	list []*DictCtypeEntry
+	list   []*DictCtypeEntry
 	parent *DictCtype
 }
 
@@ -15,8 +15,7 @@ type DictAstEntry struct {
 }
 
 func NewDictAst() *DictAst {
-	return &DictAst{
-	}
+	return &DictAst{}
 }
 
 func (dict *DictAst) MakeDict() *DictAst {
@@ -31,7 +30,7 @@ func (dict *DictAst) Parent() *DictAst {
 }
 
 func (dict *DictAst) Get(key string) *Ast {
-	for d := dict;d != nil; d = d.parent {
+	for d := dict; d != nil; d = d.parent {
 		for _, e := range d.list {
 			if e.key == key {
 				return e.val
@@ -41,7 +40,7 @@ func (dict *DictAst) Get(key string) *Ast {
 	return nil
 }
 
-func (dict *DictAst) Put(key string, val *Ast)  {
+func (dict *DictAst) Put(key string, val *Ast) {
 	e := &DictAstEntry{
 		key: key,
 		val: val,
@@ -51,7 +50,7 @@ func (dict *DictAst) Put(key string, val *Ast)  {
 
 func (dict *DictAst) Keys() []string {
 	var r []string
-	for d := dict;d != nil; d = d.parent {
+	for d := dict; d != nil; d = d.parent {
 		for _, e := range d.list {
 			r = append(r, e.key)
 		}
@@ -61,7 +60,7 @@ func (dict *DictAst) Keys() []string {
 
 func (dict *DictAst) Values() []*Ast {
 	var r []*Ast
-	for d := dict;d != nil; d = d.parent {
+	for d := dict; d != nil; d = d.parent {
 		for _, e := range d.list {
 			r = append(r, e.val)
 		}
@@ -87,7 +86,7 @@ func (dict *DictCtype) Get(key string) *Ctype {
 	return nil
 }
 
-func (dict *DictCtype) Put(key string, val *Ctype)  {
+func (dict *DictCtype) Put(key string, val *Ctype) {
 	e := &DictCtypeEntry{
 		key: key,
 		val: val,
@@ -110,4 +109,3 @@ func (dict *DictCtype) Values() []*Ctype {
 	}
 	return r
 }
-

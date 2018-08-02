@@ -417,28 +417,28 @@ static void emit_expr(Ast *ast) {
         int ireg = 0;
         int xreg = 0;
         List *argtypes = get_arg_types(ast);
-        for (Iter *i = list_iter(ast->args); !iter_end(i);) {
-            Ast *v = iter_next(i);
-            if (is_flotype(v->ctype)) {
+        for (Iter *i = list_iter(argtypes); !iter_end(i);) {
+            if (is_flotype(iter_next(i))) {
                 if (xreg > 0) push_xmm(xreg);
                 xreg++;
             } else {
                 push(REGS[ireg++]);
             }
         }
-        for (Iter *i = list_iter(ast->args); !iter_end(i);) {
+        for (Iter *i = list_iter(ast->args), *j = list_iter(argtypes);
+             !iter_end(i);) {
             Ast *v = iter_next(i);
             emit_expr(v);
-            if (is_flotype(v->ctype))
+            Ctype *ptype = iter_next(j);
+            if (is_flotype(ptype))
                 push_xmm(0);
             else
                 push("rax");
         }
         int ir = ireg;
         int xr = xreg;
-        for (Iter *i = list_iter(list_reverse(ast->args)); !iter_end(i);) {
-            Ast *v = iter_next(i);
-            if (is_flotype(v->ctype))
+        for (Iter *i = list_iter(list_reverse(argtypes)); !iter_end(i);) {
+            if (is_flotype(iter_next(i)))
                 pop_xmm(--xr);
             else
                 pop(REGS[--ir]);
@@ -449,9 +449,8 @@ static void emit_expr(Ast *ast) {
         emit("call %s", ast->fname);
         if (stackpos % 16)
             emit("add $8, %%rsp");
-        for (Iter *i = list_iter(list_reverse(ast->args)); !iter_end(i);) {
-            Ast *v = iter_next(i);
-            if (is_flotype(v->ctype)) {
+        for (Iter *i = list_iter(list_reverse(argtypes)); !iter_end(i);) {
+            if (is_flotype(iter_next(i))) {
                 if (xreg != 1)
                     pop_xmm(--xreg);
             } else {

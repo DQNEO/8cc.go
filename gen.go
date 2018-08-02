@@ -403,7 +403,9 @@ func emit_expr(ast *Ast) {
 		xreg := 0
 		for _, v := range ast.args {
 			if is_flotype(v.ctype) {
-				push_xmm(xreg)
+				if xreg > 0 {
+					push_xmm(xreg)
+				}
 				xreg++
 			} else {
 				push(REGS[ireg])
@@ -443,8 +445,10 @@ func emit_expr(ast *Ast) {
 		}
 		for _, v := range reversed_args {
 			if is_flotype(v.ctype) {
-				xreg--
-				pop_xmm(xreg)
+				if xreg != 1 {
+					xreg--
+					pop_xmm(xreg)
+				}
 			} else {
 				ireg--
 				pop(REGS[ireg])

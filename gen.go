@@ -318,6 +318,16 @@ func emit_load_convert(to *Ctype, from *Ctype) {
 	}
 }
 
+func emit_save_convert(to *Ctype, from *Ctype) {
+	if is_inttype(from) && to.typ == CTYPE_FLOAT {
+		emit("cvtsi2ss %%eax, %%xmm0")
+	} else if (is_flotype(from) && to.typ == CTYPE_FLOAT) {
+		emit("cvtpd2ps %%xmm0, %%xmm0")
+	} else {
+		emit_load_convert(to, from)
+	}
+}
+
 func emit_binop(ast *Ast) {
 	if ast.typ == '=' {
 		emit_expr(ast.right)
@@ -428,7 +438,9 @@ func emit_expr(ast *Ast) {
 		}
 		for i, v := range ast.args {
 			emit_expr(v)
-			if is_flotype(argtypes[i]) {
+			ptype := argtypes[i]
+			emit_save_convert(ptype, v.ctype)
+			if is_flotype(ptype) {
 				push_xmm(0)
 			} else {
 				push("rax")
@@ -467,6 +479,9 @@ func emit_expr(ast *Ast) {
 				ireg--
 				pop(REGS[ireg])
 			}
+		}
+		if ast.ctype.typ == CTYPE_FLOAT {
+			emit("cvtps2pd %%xmm0, %%xmm0")
 		}
 	case AST_DECL:
 		if ast.declinit == nil {
@@ -540,6 +555,7 @@ func emit_expr(ast *Ast) {
 		emit("%s:", end)
 	case AST_RETURN:
 		emit_expr(ast.retval)
+		emit_save_convert(ast.ctype, ast.retval.ctype)
 		emit("leave")
 		emit("ret")
 		break
@@ -678,7 +694,6 @@ func emit_func_prologue(fn *Ast) {
 	xreg := 0
 	for _, v := range fn.params {
 		if is_flotype(v.ctype) {
-			emit("cvtpd2ps %%xmm%d, %%xmm%d", xreg, xreg)
 			push_xmm(xreg)
 			xreg++
 		} else if v.ctype.typ == CTYPE_DOUBLE {

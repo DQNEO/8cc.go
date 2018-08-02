@@ -679,7 +679,7 @@ func emit_func_prologue(fn *Ast) {
 		v.loff = off
 	}
 	if off != 0 {
-		emit("add $%d, %%rsp", off)
+		emit("sub $%d, %%rsp", -off)
 	}
 	stackpos += -(off - 8)
 }

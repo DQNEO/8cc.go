@@ -407,10 +407,11 @@ static void emit_expr(Ast *ast) {
         int xreg = 0;
         for (Iter *i = list_iter(ast->args); !iter_end(i);) {
             Ast *v = iter_next(i);
-            if (is_flotype(v->ctype))
+            if (is_flotype(v->ctype)) {
                 push_xmm(xreg++);
-            else
+            } else {
                 push(REGS[ireg++]);
+            }
         }
         for (Iter *i = list_iter(ast->args); !iter_end(i);) {
             Ast *v = iter_next(i);
@@ -437,10 +438,11 @@ static void emit_expr(Ast *ast) {
             emit("add $8, %%rsp");
         for (Iter *i = list_iter(list_reverse(ast->args)); !iter_end(i);) {
             Ast *v = iter_next(i);
-            if (is_flotype(v->ctype))
+            if (is_flotype(v->ctype)) {
                 pop_xmm(--xreg);
-            else
+            } else {
                 pop(REGS[--ireg]);
+            }
         }
         break;
     }

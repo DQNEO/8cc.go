@@ -6,6 +6,8 @@ int expectf(float a, float b) {
     }
 }
 
+float  tf1(float a)  { return a; }
+
 int main() {
     printf("Testing float ... ");
 
@@ -20,6 +22,8 @@ int main() {
     expectf(2.0, 1.0 * 2);
     expectf(0.25, 1.0 / 4);
 
+    expectf(10.5, tf1(10.5));
+    expectf(10.0, tf1(10));
     printf("OK\n");
     return 0;
 }

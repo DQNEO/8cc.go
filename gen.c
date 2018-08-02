@@ -307,14 +307,19 @@ static void emit_binop_float_arith(Ast *ast) {
     emit("%s %%xmm1, %%xmm0", op);
 }
 
+static void emit_load_convert(Ctype *to, Ctype *from) {
+    SAVE;
+    if (is_flotype(to))
+        emit_todouble(from);
+    else
+        emit_toint(from);
+}
+
 static void emit_binop(Ast *ast) {
     SAVE;
     if (ast->type == '=') {
         emit_expr(ast->right);
-        if (is_flotype(ast->ctype))
-            emit_todouble(ast->right->ctype);
-        else
-            emit_toint(ast->right->ctype);
+        emit_load_convert(ast->ctype, ast->right->ctype);
         emit_assign(ast->left);
         return;
     }

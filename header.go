@@ -98,6 +98,7 @@ type Ast struct {
 	// Function call or function declaration
 	fname     string
 	args      []*Ast
+	paramtypes []*Ctype
 	params    []*Ast
 	localvars []*Ast
 	body      *Ast

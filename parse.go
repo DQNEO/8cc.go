@@ -110,12 +110,13 @@ func ast_string(str string) *Ast {
 	return r
 }
 
-func ast_funcall(ctype *Ctype, fname string, args []*Ast) *Ast {
+func ast_funcall(ctype *Ctype, fname string, args []*Ast, paramtypes []*Ctype) *Ast {
 	r := &Ast{}
 	r.typ = AST_FUNCALL
 	r.ctype = ctype
 	r.fname = fname
 	r.args = args
+	r.paramtypes = paramtypes
 	return r
 }
 
@@ -365,9 +366,9 @@ func read_func_args(fname string) *Ast {
 		if decl.typ != CTYPE_FUNC {
 			errorf("%s is not a function, but %s", fname, decl)
 		}
-		return ast_funcall(decl.rettype, fname, args)
+ 		return ast_funcall(decl.rettype, fname, args, decl.params)
 	}
-	return ast_funcall(ctype_int, fname, args)
+	return ast_funcall(ctype_int, fname, args, nil)
 }
 
 func read_ident_or_func(name string) *Ast {

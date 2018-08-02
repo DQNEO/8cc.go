@@ -7,6 +7,8 @@ int expectf(float a, float b) {
 }
 
 float  tf1(float a)  { return a; }
+float  tf2(double a) { return a; }
+float  tf3(int a)    { return a; }
 
 int main() {
     printf("Testing float ... ");
@@ -24,6 +26,10 @@ int main() {
 
     expectf(10.5, tf1(10.5));
     expectf(10.0, tf1(10));
+    expectf(10.5, tf2(10.5));
+    expectf(10.0, tf2(10));
+    expectf(10.0, tf3(10.5));
+    expectf(10.0, tf3(10));
     printf("OK\n");
     return 0;
 }

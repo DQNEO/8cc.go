@@ -27,8 +27,9 @@ func (ctype *Ctype) String() string {
 		return fmt.Sprintf("[%d]%s", ctype.len, ctype.ptr)
 	case CTYPE_STRUCT:
 		s := "(struct"
-		for _, field := range ctype.fields.Values() {
-			s += fmt.Sprintf(" (%s)", field)
+		for _, v := range ctype.fields.Values() {
+			field := v
+			s += fmt.Sprintf(" (%s)", field.ctype)
 		}
 		s += ")"
 		return s

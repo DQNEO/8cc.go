@@ -65,7 +65,7 @@ type Ctype struct {
 	// array length
 	len int
 	// struct
-	fields *DictCtype
+	fields *Dict
 	offset int
 }
 

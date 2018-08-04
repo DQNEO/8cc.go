@@ -13,10 +13,10 @@ const MAX_ALIGN = 16
 
 var gstrings []*Ast
 var flonums []*Ast
-var globalenv = &DictAst{}
-var localenv *DictAst
-var struct_defs DictCtype
-var union_defs DictCtype
+var globalenv = &Dict{}
+var localenv *Dict
+var struct_defs Dict
+var union_defs Dict
 var localvars []*Ast
 var labelseq = 0
 
@@ -78,7 +78,7 @@ func ast_lvar(ctype *Ctype, name string) *Ast {
 	r.typ = AST_LVAR
 	r.ctype = ctype
 	r.varname = name
-	localenv.Put(name, r)
+	localenv.PutAst(name, r)
 	if localvars != nil {
 		localvars = append(localvars, r)
 	}
@@ -96,7 +96,7 @@ func ast_gvar(ctype *Ctype, name string, filelocal bool) *Ast {
 	} else {
 		r.glabel = name
 	}
-	globalenv.Put(name, r)
+	globalenv.PutAst(name, r)
 	return r
 }
 
@@ -231,7 +231,7 @@ func make_struct_field_type(ctype *Ctype, offset int) *Ctype {
 	return r
 }
 
-func make_struct_type(fields *DictCtype, size int) *Ctype {
+func make_struct_type(fields *Dict, size int) *Ctype {
 	r := &Ctype{}
 	r.typ = CTYPE_STRUCT
 	r.fields = fields
@@ -353,7 +353,7 @@ func read_ident_or_func(name string) *Ast {
 	}
 	unget_token(ch)
 
-	v := localenv.Get(name)
+	v := localenv.GetAst(name)
 	if v == nil {
 		errorf("Undefined varaible: %s", name)
 	}
@@ -582,7 +582,7 @@ func read_struct_field(struc *Ast) *Ast {
 	if name.typ != TTYPE_IDENT {
 		errorf("field name expected, but got %s", name)
 	}
-	field := struc.ctype.fields.Get(name.sval)
+	field := struc.ctype.fields.GetCtype(name.sval)
 	return ast_struct_ref(field, struc, name.sval)
 }
 
@@ -721,15 +721,15 @@ func read_struct_union_tag() string {
 	}
 }
 
-func read_struct_union_fields() *DictCtype {
-	r := NewDictCtype()
+func read_struct_union_fields() *Dict {
+	r := NewDict()
 	expect('{')
 	for {
 		if !is_type_keyword(peek_token()) {
 			break
 		}
 		fieldtype, name := read_decl_int()
-		r.Put(name.sval, make_struct_field_type(fieldtype, 0))
+		r.PutCtype(name.sval, make_struct_field_type(fieldtype, 0))
 		expect(';')
 	}
 	expect('}')
@@ -738,33 +738,35 @@ func read_struct_union_fields() *DictCtype {
 
 func read_union_def() *Ctype {
 	tag := read_struct_union_tag()
-	ctype := union_defs.Get(tag)
+	ctype := union_defs.GetCtype(tag)
 	if ctype != nil {
 		return ctype
 	}
 	fields := read_struct_union_fields()
 	maxsize := 0
-	for _, fieldtype := range fields.Values() {
+	for _, v := range fields.Values() {
+		fieldtype := v.ctype
 		if maxsize < fieldtype.size {
 			maxsize = fieldtype.size
 		}
 	}
 	r := make_struct_type(fields, maxsize)
 	if tag != "" {
-		union_defs.Put(tag, r)
+		union_defs.PutCtype(tag, r)
 	}
 	return r
 }
 
 func read_struct_def() *Ctype {
 	tag := read_struct_union_tag()
-	ctype := struct_defs.Get(tag)
+	ctype := struct_defs.GetCtype(tag)
 	if ctype != nil {
 		return ctype
 	}
 	fields := read_struct_union_fields()
 	offset := 0
-	for _, fieldtype := range fields.Values() {
+	for _, v := range fields.Values() {
+		fieldtype := v.ctype
 		var size int
 		if fieldtype.size < MAX_ALIGN {
 			size = fieldtype.size
@@ -779,7 +781,7 @@ func read_struct_def() *Ctype {
 	}
 	r := make_struct_type(fields, offset)
 	if tag != "" {
-		struct_defs.Put(tag, r)
+		struct_defs.PutCtype(tag, r)
 	}
 	return r
 }

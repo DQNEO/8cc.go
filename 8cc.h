@@ -117,14 +117,10 @@ typedef struct Ast {
         // Function call or function declaration
         struct {
             char *fname;
-            struct {
-                struct List *args;
-                struct {
-                    struct List *params;
-                    struct List *localvars;
-                    struct Ast *body;
-                };
-            };
+            struct List *args;
+            struct List *params;
+            struct List *localvars;
+            struct Ast *body;
         };
         // Declaration
         struct {

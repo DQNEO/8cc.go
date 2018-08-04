@@ -34,6 +34,8 @@ char *ctype_to_string(Ctype *ctype) {
         for (Iter *i = list_iter(ctype->params); !iter_end(i);) {
             Ctype *t = iter_next(i);
             string_appendf(s, "%s", ctype_to_string(t));
+            if (!iter_end(i))
+                string_append(s, ',');
         }
         string_append(s, ')');
         return get_cstring(s);

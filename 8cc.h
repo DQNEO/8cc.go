@@ -2,6 +2,7 @@
 #define EIGHTCC_H
 
 #include <stdbool.h>
+#include <stdio.h>
 #include "util.h"
 #include "list.h"
 #include "dict.h"

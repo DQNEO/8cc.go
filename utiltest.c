@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <string.h>
 #include "8cc.h"
 

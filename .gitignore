@@ -6,3 +6,4 @@ utiltest
 nqueen.s
 nqueen
 *.bin
+/test/*.s

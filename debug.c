@@ -214,10 +214,9 @@ char *token_to_string(Token *tok) {
     }
     case TTYPE_NUMBER:
         return tok->sval;
-    case TTYPE_STRING: {
+    case TTYPE_STRING:
         string_appendf(s, "\"%s\"", tok->sval);
         return get_cstring(s);
-    }
     }
     error("internal error: unknown token type: %d", tok->type);
 }

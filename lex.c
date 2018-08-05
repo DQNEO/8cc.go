@@ -198,20 +198,20 @@ bool is_punct(Token *tok, int c) {
     return tok && (tok->type == TTYPE_PUNCT) && (tok->punct == c);
 }
 
-void unget_token(Token *tok) {
+void unget_cpp_token(Token *tok) {
     if (!tok) return;
     if (ungotten)
         error("Push back buffer is already full");
     ungotten = tok;
 }
 
-Token *peek_token(void) {
+Token *peek_cpp_token(void) {
     Token *tok = read_token();
     unget_token(tok);
     return tok;
 }
 
-Token *read_token(void) {
+Token *read_cpp_token(void) {
     if (ungotten) {
         Token *tok = ungotten;
         ungotten = NULL;

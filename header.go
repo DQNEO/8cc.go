@@ -97,8 +97,10 @@ type Ast struct {
 	operand *Ast
 	// Function call or function declaration
 	fname     string
+	// Function call
 	args      []*Ast
 	paramtypes []*Ctype
+	// Function declaration
 	params    []*Ast
 	localvars []*Ast
 	body      *Ast

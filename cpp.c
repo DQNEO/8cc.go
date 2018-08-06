@@ -11,5 +11,6 @@ Token *peek_token(void) {
 }
 
 Token *read_token(void) {
-    return read_cpp_token();
+    Token *tok = read_cpp_token();
+    return tok;
 }

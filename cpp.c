@@ -5,7 +5,9 @@ void unget_token(Token *tok) {
 }
 
 Token *peek_token(void) {
-    return peek_cpp_token();
+    Token *r = read_token();
+    unget_token(r);
+    return r;
 }
 
 Token *read_token(void) {

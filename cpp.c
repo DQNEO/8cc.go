@@ -14,5 +14,7 @@ Token *peek_token(void) {
 
 Token *read_token(void) {
     Token *tok = (list_len(buffer) > 0) ? list_pop(buffer) : read_cpp_token();
+    if (!tok)
+        return NULL;
     return tok;
 }

@@ -38,6 +38,7 @@ Token *read_token(void) {
         }
         if (bol && is_punct(tok, '#')) {
             read_directive();
+            bol = true;
             continue;
         }
         bol = false;

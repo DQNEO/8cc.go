@@ -217,6 +217,8 @@ char *token_to_string(Token *tok) {
     case TTYPE_STRING:
         string_appendf(s, "\"%s\"", tok->sval);
         return get_cstring(s);
+    case TTYPE_NEWLINE:
+        return "(newline)";
     }
     error("internal error: unknown token type: %d", tok->type);
 }

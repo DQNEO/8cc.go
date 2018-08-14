@@ -2,5 +2,5 @@
 
 cat > /tmp/input
 make -s 8cc
-cat /tmp/input | ./8cc_c "$@"
+cat /tmp/input | ./8cc "$@"
 echo

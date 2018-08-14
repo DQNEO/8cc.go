@@ -29,6 +29,11 @@ void list_push(List *list, void *elem) {
     list->len++;
 }
 
+void list_append(List *a, List *b) {
+    for (Iter *i = list_iter(b); !iter_end(i);)
+        list_push(a, iter_next(i));
+}
+
 void *list_pop(List *list) {
     if (!list->head) return NULL;
     void *r = list->tail->elem;

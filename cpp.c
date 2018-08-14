@@ -63,5 +63,4 @@ Token *read_token(void) {
         bol = false;
         return expand(tok);
     }
-
 }

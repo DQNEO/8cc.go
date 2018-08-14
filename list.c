@@ -46,7 +46,7 @@ void *list_pop(List *list) {
     return r;
 }
 
-static void list_unshift(List *list, void *elem) {
+void list_unshift(List *list, void *elem) {
     ListNode *node = make_node(elem);
     node->next = list->head;
     if (list->head)

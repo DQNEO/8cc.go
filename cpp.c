@@ -4,6 +4,10 @@ static Dict *macros = &EMPTY_DICT;
 static List *buffer = &EMPTY_LIST;
 static bool bol = true;
 
+static Token *expand(Token *tok) {
+    return tok;
+}
+
 static void read_define(void) {
     Token *name = read_cpp_token();
     if (name->type != TTYPE_IDENT)
@@ -51,7 +55,7 @@ Token *read_token(void) {
             continue;
         }
         bol = false;
-        return tok;
+        return expand(tok);
     }
 
 }

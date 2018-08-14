@@ -12,8 +12,8 @@ int expect(int a, int b) {
 int main() {
     printf("Testing macros ... ");
 
-    expect(1, 1);
-    expect(2, 2);
+    expect(1, ONE);
+    expect(2, TWO);
 
     printf("OK\n");
     return 0;

@@ -16,5 +16,7 @@ Token *read_token(void) {
     Token *tok = (list_len(buffer) > 0) ? list_pop(buffer) : read_cpp_token();
     if (!tok)
         return NULL;
+    if (tok->type == TTYPE_NEWLINE)
+        return read_token();
     return tok;
 }

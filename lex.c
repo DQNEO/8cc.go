@@ -3,6 +3,7 @@
 #include "8cc.h"
 
 static Token *ungotten = NULL;
+static Token *newline_token = &(Token){ .type = TTYPE_NEWLINE };
 
 static Token *make_ident(String *s) {
     Token *r = malloc(sizeof(Token));
@@ -42,7 +43,7 @@ static Token *make_char(char c) {
 static int getc_nonspace(void) {
     int c;
     while ((c = getc(stdin)) != EOF) {
-        if (isspace(c) || c == '\n' || c == '\r')
+        if (c == ' ' || c == '\t')
             continue;
         return c;
     }
@@ -146,6 +147,8 @@ static Token *read_rep(int expect, int t1, int t2) {
 static Token *read_token_int(void) {
     int c = getc_nonspace();
     switch (c) {
+    case '\n':
+        return newline_token;
     case '0': case '1': case '2': case '3': case '4':
     case '5': case '6': case '7': case '8': case '9':
         return read_number(c);

@@ -13,6 +13,7 @@ enum {
     TTYPE_NUMBER,
     TTYPE_CHAR,
     TTYPE_STRING,
+    TTYPE_NEWLINE,
 };
 
 typedef struct {

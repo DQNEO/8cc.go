@@ -5,6 +5,9 @@ static bool bol = true;
 
 
 static void read_define(void) {
+    Token *name = read_cpp_token();
+    if (name->type != TTYPE_IDENT)
+        error("macro name must be an identifier, but got %s", token_to_string(name));
     for (;;) {
         Token *tok = read_cpp_token();
         if (tok->type == TTYPE_NEWLINE)

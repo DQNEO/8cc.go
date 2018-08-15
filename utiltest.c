@@ -3,8 +3,8 @@
 
 #define assert_true(expr) assert_true2(__LINE__, #expr, (expr))
 #define assert_null(...) assert_null2(__LINE__, __VA_ARGS__)
-#define assert_string_equal(...) assert_string_equal2(__LINE__, __VA_ARGS__)
-#define assert_int_equal(...) assert_int_equal2(__LINE__, __VA_ARGS__)
+#define assert_string_equal(...) assert_string2(__LINE__, __VA_ARGS__)
+#define assert_int_equal(...) assert_int2(__LINE__, __VA_ARGS__)
 
 static void assert_true2(int line, char *expr, int result) {
     if (!result)
@@ -16,12 +16,12 @@ static void assert_null2(int line, void *p) {
         error("%d: Null expected", line);
 }
 
-static void assert_string_equal2(int line, char *s, char *t) {
+static void assert_string2(int line, char *s, char *t) {
     if (strcmp(s, t))
         error("%d: Expected %s but got %s", line, s, t);
 }
 
-static void assert_int_equal2(int line, long a, long b) {
+static void assert_int2(int line, long a, long b) {
     if (a != b)
         error("%d: Expected %ld but got %ld", line, a, b);
 }

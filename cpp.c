@@ -6,6 +6,13 @@ static bool bol = true;
 
 static Token *read_token_int(Dict *hideset);
 
+static Token *read_ident(void) {
+    Token *r = read_cpp_token();
+    if (r->type != TTYPE_IDENT)
+        error("identifier expected, but got %s", token_to_string(r));
+    return r;
+}
+
 static Token *expand(Dict *hideset, Token *tok) {
     if (tok->type != TTYPE_IDENT)
         return tok;
@@ -20,9 +27,7 @@ static Token *expand(Dict *hideset, Token *tok) {
 }
 
 static void read_define(void) {
-    Token *name = read_cpp_token();
-    if (name->type != TTYPE_IDENT)
-        error("macro name must be an identifier, but got %s", token_to_string(name));
+    Token *name = read_ident();
     List *body = make_list();
     for (;;) {
         Token *tok = read_cpp_token();

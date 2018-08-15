@@ -38,10 +38,19 @@ static void read_define(void) {
     dict_put(macros, name->sval, body);
 }
 
+static void read_undef(void) {
+    Token *name = read_ident();
+    Token *tok = read_cpp_token();
+    if (!tok || tok->type != TTYPE_NEWLINE)
+        error("Newline expected, but got %s", token_to_string(tok));
+}
+
 static void read_directive(void) {
     Token *tok = read_cpp_token();
     if (is_ident(tok, "define"))
         read_define();
+    else if (is_ident(tok, "undef"))
+        read_undef();
     else
         error("unsupported preprocessor directive: %s", token_to_string(tok));
 }

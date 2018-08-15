@@ -28,6 +28,7 @@ int undef() {
     int a = 3;
 #define a 10
     expect(10, a);
+#undef a
 }
 
 int main() {

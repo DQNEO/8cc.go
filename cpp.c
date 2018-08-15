@@ -13,6 +13,12 @@ static Token *read_ident(void) {
     return r;
 }
 
+static void expect_newline(void) {
+    Token *tok = read_cpp_token();
+    if (!tok || tok->type != TTYPE_NEWLINE)
+        error("Newline expected, but got %s", token_to_string(tok));
+}
+
 static Token *expand(Dict *hideset, Token *tok) {
     if (tok->type != TTYPE_IDENT)
         return tok;
@@ -40,9 +46,7 @@ static void read_define(void) {
 
 static void read_undef(void) {
     Token *name = read_ident();
-    Token *tok = read_cpp_token();
-    if (!tok || tok->type != TTYPE_NEWLINE)
-        error("Newline expected, but got %s", token_to_string(tok));
+    expect_newline();
     dict_remove(macros, name->sval);
 }
 

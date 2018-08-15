@@ -9,11 +9,15 @@ int expect(int a, int b) {
 #define ONE 1
 #define TWO ONE + ONE
 
+int simple() {
+    expect(1, ONE);
+    expect(2, TWO);
+}
+
 int main() {
     printf("Testing macros ... ");
 
-    expect(1, ONE);
-    expect(2, TWO);
+    simple();
 
     printf("OK\n");
     return 0;

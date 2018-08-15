@@ -24,11 +24,18 @@ int loop() {
     expect(2, VAR2);
 }
 
+int undef() {
+    int a = 3;
+#define a 10
+    expect(10, a);
+}
+
 int main() {
     printf("Testing macros ... ");
 
     simple();
     loop();
+    undef();
 
     printf("OK\n");
     return 0;

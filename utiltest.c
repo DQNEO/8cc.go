@@ -91,6 +91,12 @@ static void test_dict(void) {
     assert_int(2, list_len(dict_values(dict)));
     assert_int(3, list_len(dict_keys(dict2)));
     assert_int(2, list_len(dict_keys(dict)));
+
+    Dict *dict3 = make_dict(NULL);
+    dict_put(dict3, "abc", (void *)10);
+    assert_int(10, (long)dict_get(dict3, "abc"));
+    dict_remove(dict3, "abc");
+    assert_int(0, (long)dict_get(dict3, "abc"));
 }
 
 int main(int argc, char **argv) {

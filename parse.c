@@ -605,7 +605,6 @@ static Ast *read_expr_int(int prec) {
             ast = read_subscript_expr(ast);
             continue;
         }
-        // this is BUG!! ++ should be in read_unary_expr() , I think.
         if (is_punct(tok, PUNCT_INC) || is_punct(tok, PUNCT_DEC)) {
             ensure_lvalue(ast);
             ast = ast_uop(tok->punct, ast->ctype, ast);
@@ -945,10 +944,9 @@ static Ast *read_func_decl_or_def(Ctype *rettype, char *fname) {
     Token *tok = read_token();
     if (is_punct(tok, '{'))
         return read_func_def(rettype, fname, params);
-    // must expect(';'); here
     Ctype *type = make_func_type(rettype, param_types(params));
     dict_put(globalenv, fname, type);
-    return read_toplevel(); // is this right?
+    return read_toplevel();
 }
 
 static Ast *read_toplevel(void) {

@@ -43,6 +43,7 @@ static void read_undef(void) {
     Token *tok = read_cpp_token();
     if (!tok || tok->type != TTYPE_NEWLINE)
         error("Newline expected, but got %s", token_to_string(tok));
+    dict_remove(macros, name->sval);
 }
 
 static void read_directive(void) {

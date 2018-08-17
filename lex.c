@@ -50,6 +50,10 @@ static int getc_nonspace(void) {
     return EOF;
 }
 
+void skip_cond_incl(void) {
+    return;
+}
+
 static Token *read_number(char c) {
     String *s = make_string();
     string_append(s, c);

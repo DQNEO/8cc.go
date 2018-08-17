@@ -26,7 +26,6 @@ Ctype *ctype_double = &(Ctype){ CTYPE_DOUBLE, 8, NULL };
 
 static int labelseq = 0;
 
-static Ast *read_expr(void);
 static Ctype* make_ptr_type(Ctype *ctype);
 static Ctype* make_array_type(Ctype *ctype, int size);
 static Ast *read_compound_stmt(void);
@@ -280,7 +279,7 @@ static bool is_right_assoc(Token *tok) {
     return tok->punct == '=';
 }
 
-static int eval_intexpr(Ast *ast) {
+int eval_intexpr(Ast *ast) {
     switch (ast->type) {
     case AST_LITERAL:
         if (is_inttype(ast->ctype))
@@ -619,7 +618,7 @@ static Ast *read_expr_int(int prec) {
     }
 }
 
-static Ast *read_expr(void) {
+Ast *read_expr(void) {
     return read_expr_int(MAX_OP_PRIO);
 }
 

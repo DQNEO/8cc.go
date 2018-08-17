@@ -50,19 +50,13 @@ static void read_undef(void) {
     dict_remove(macros, name->sval);
 }
 
-static void skip_cond_incl(void) {
-    return;
-}
-
 static bool read_constexpr(void) {
-    Token *val = read_token();
-    bool cond = (strcmp(val->sval, "0") == 0);
-    return cond;
+    Ast *expr = read_expr();
+    return eval_intexpr(expr);
 }
 
 static void read_if(void) {
     bool cond = read_constexpr();
-    expect_newline();
     if (!cond)
         skip_cond_incl();
 }

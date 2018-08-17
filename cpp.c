@@ -50,12 +50,33 @@ static void read_undef(void) {
     dict_remove(macros, name->sval);
 }
 
+static void read_if(void) {
+    return;
+}
+
+static void read_else(void) {
+    return;
+}
+
+static void read_elif(void) {
+    return;
+}
+
+static void read_endif(void) {
+    return;
+}
+
+
 static void read_directive(void) {
     Token *tok = read_cpp_token();
     if (is_ident(tok, "define"))
         read_define();
     else if (is_ident(tok, "undef"))
         read_undef();
+    else if (is_ident(tok, "if")) read_if();
+    else if (is_ident(tok, "else")) read_else();
+    else if (is_ident(tok, "elif")) read_elif();
+    else if (is_ident(tok, "endif")) read_endif();
     else
         error("unsupported preprocessor directive: %s", token_to_string(tok));
 }

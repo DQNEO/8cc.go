@@ -36,8 +36,6 @@ int cond_incl() {
     int a = 1;
 #if
     a = 1;
-#elif
-    a = 1;
 #else
     a = 1;
 #endif

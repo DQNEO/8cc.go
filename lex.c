@@ -2,7 +2,7 @@
 #include <ctype.h>
 #include "8cc.h"
 
-static Token *ungotten = NULL;
+static List *ungotten = &EMPTY_LIST;
 static Token *newline_token = &(Token){ .type = TTYPE_NEWLINE };
 
 static Token *make_ident(String *s) {
@@ -207,22 +207,17 @@ bool is_punct(Token *tok, int c) {
 
 void unget_cpp_token(Token *tok) {
     if (!tok) return;
-    if (ungotten)
-        error("Push back buffer is already full");
-    ungotten = tok;
+    list_push(ungotten, tok);
 }
 
 Token *peek_cpp_token(void) {
     Token *tok = read_token();
-    unget_token(tok);
+    unget_cpp_token(tok);
     return tok;
 }
 
 Token *read_cpp_token(void) {
-    if (ungotten) {
-        Token *tok = ungotten;
-        ungotten = NULL;
-        return tok;
-    }
+    if (list_len(ungotten) > 0)
+        return list_pop(ungotten);
     return read_token_int();
 }

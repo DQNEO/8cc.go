@@ -96,9 +96,13 @@ Token *peek_token(void) {
     return r;
 }
 
+static Token *get_token(void) {
+    return (list_len(buffer) > 0) ? list_pop(buffer) : read_cpp_token();
+}
+
 static Token *read_token_int(Dict *hideset) {
     for (;;) {
-        Token *tok = (list_len(buffer) > 0) ? list_pop(buffer) : read_cpp_token();
+        Token *tok = get_token();
         if (!tok)
             return NULL;
         if (tok && tok->type == TTYPE_NEWLINE) {

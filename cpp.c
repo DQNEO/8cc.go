@@ -2,6 +2,7 @@
 
 static Dict *macros = &EMPTY_DICT;
 static List *buffer = &EMPTY_LIST;
+static List *altbuffer = NULL;
 static bool bol = true;
 
 static Token *read_token_int(Dict *hideset);
@@ -87,7 +88,7 @@ static void read_directive(void) {
 }
 
 void unget_token(Token *tok) {
-    list_push(buffer, tok);
+    list_push(altbuffer ? altbuffer : buffer, tok);
 }
 
 Token *peek_token(void) {
@@ -97,6 +98,8 @@ Token *peek_token(void) {
 }
 
 static Token *get_token(void) {
+    if (altbuffer)
+        return list_pop(altbuffer);
     return (list_len(buffer) > 0) ? list_pop(buffer) : read_cpp_token();
 }
 

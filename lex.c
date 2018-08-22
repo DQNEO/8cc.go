@@ -50,8 +50,34 @@ static int getc_nonspace(void) {
     return EOF;
 }
 
+static void skip_line(void) {
+    for (;;) {
+        int c = getc(stdin);
+        if (c == EOF || c == '\n')
+            return;
+    }
+}
+
 void skip_cond_incl(void) {
-    return;
+    for (;;) {
+        int c = getc_nonspace();
+        if (c != '#') {
+            skip_line();
+            continue;
+        }
+        Token *tok = read_cpp_token();
+        if (tok->type == TTYPE_NEWLINE)
+            continue;
+        if (tok->type != TTYPE_IDENT) {
+            skip_line();
+        } else if (is_ident(tok, "endif")) {
+            unget_cpp_token(tok);
+            unget_cpp_token(make_punct('#'));
+            return;
+        } else {
+            skip_line();
+        }
+    }
 }
 
 static Token *read_number(char c) {

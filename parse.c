@@ -575,6 +575,8 @@ static Ast *read_expr_int(int prec) {
     if (!ast) return NULL;
     for (;;) {
         Token *tok = read_token();
+        if (!tok)
+            return ast;
         if (tok->type != TTYPE_PUNCT) {
             unget_token(tok);
             return ast;

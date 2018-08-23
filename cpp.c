@@ -65,7 +65,7 @@ static bool read_constexpr(void) {
     altbuffer = list_reverse(read_line());
     Ast *expr = read_expr();
     if (list_len(altbuffer) > 0)
-        error("Stray token: %s", token_to_string(list_pop(altbuffer)));
+        error("Stray token: %s", token_to_string(list_shift(altbuffer)));
     altbuffer = NULL;
     return eval_intexpr(expr);
 }

@@ -54,8 +54,6 @@ static void test_list(void) {
     assert_int(0, (long)iter_next(iter));
     assert_int(true, iter_end(iter));
 
-    assert_int(2, (long)list_last(list));
-
     List *rev = list_reverse(list);
     iter = list_iter(rev);
     assert_int(2, (long)iter_next(iter));

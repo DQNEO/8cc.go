@@ -30,7 +30,6 @@ void *list_shift(List *list);
 void list_unshift(List *list, void *elem);
 List *list_reverse(List *list);
 int list_len(List *list);
-void *list_last(List *list);
 Iter *list_iter(List *list);
 void *iter_next(Iter *iter);
 bool iter_end(Iter *iter);

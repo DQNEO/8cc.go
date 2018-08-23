@@ -6,6 +6,7 @@ int expect(int a, int b) {
     }
 }
 
+#define ZERO 0
 #define ONE 1
 #define TWO ONE + ONE
 
@@ -81,6 +82,13 @@ int const_expr() {
     a = 7;
 #endif
     expect(7, a);
+
+#if ZERO
+    a = 8;
+#else
+    a = 9;
+#endif
+    expect(9, a);
 }
 
 int main() {

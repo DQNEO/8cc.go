@@ -4,13 +4,12 @@
 static Dict *macros = &EMPTY_DICT;
 static List *buffer = &EMPTY_LIST;
 static List *altbuffer = NULL;
+static List *cond_incl_stack = &EMPTY_LIST;
 static bool bol = true;
-
 typedef struct {
     bool wastrue;
 } CondIncl;
 
-static CondIncl *ci;
 
 static Token *read_token_int(Dict *hideset, bool return_at_eol);
 
@@ -84,18 +83,20 @@ static bool read_constexpr(void) {
 
 static void read_if(void) {
     bool cond = read_constexpr();
-    ci = make_cond_incl(cond);
+    list_push(cond_incl_stack, make_cond_incl(cond));
     if (!cond)
         skip_cond_incl();
 }
 
 static void read_else(void) {
+    CondIncl *ci = list_tail(cond_incl_stack);
     expect_newline();
     if (ci->wastrue)
         skip_cond_incl();
 }
 
 static void read_elif(void) {
+    CondIncl *ci = list_tail(cond_incl_stack);
     if (ci->wastrue)
         skip_cond_incl();
     else {
@@ -107,6 +108,7 @@ static void read_elif(void) {
 }
 
 static void read_endif(void) {
+    list_pop(cond_incl_stack);
     expect_newline();
 }
 

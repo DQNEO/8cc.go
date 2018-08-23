@@ -84,14 +84,14 @@ static void read_else(void) {
 }
 
 static void read_elif(void) {
-    if (wastrue) {
+    if (wastrue)
         skip_cond_incl();
-        return;
+    else {
+        bool cond = read_constexpr();
+        wastrue = cond;
+        if (!cond)
+            skip_cond_incl();
     }
-    bool cond = read_constexpr();
-    wastrue = cond;
-    if (!cond)
-        skip_cond_incl();
 }
 
 static void read_endif(void) {

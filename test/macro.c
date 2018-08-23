@@ -97,6 +97,13 @@ int const_expr() {
     a = 11;
 #endif
     expect(10, a);
+
+#if LOOP - 1
+    a = 12;
+#else
+    a = 13;
+#endif
+    expect(13, a);
 }
 
 int main() {

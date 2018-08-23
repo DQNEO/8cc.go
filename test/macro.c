@@ -59,6 +59,30 @@ int cond_incl() {
     expect(12, a);
 }
 
+int const_expr() {
+    int a = 1;
+#if 0 + 1
+    a = 2;
+#else
+    a = 3;
+#endif
+    expect(2, a);
+
+#if 0 + 1 * 2 + 4 / 2
+    a = 4;
+#else
+    a = 5;
+#endif
+    expect(4, a);
+
+#if 0 + 0
+    a = 6;
+#else
+    a = 7;
+#endif
+    expect(7, a);
+}
+
 int main() {
     printf("Testing macros ... ");
 
@@ -66,6 +90,7 @@ int main() {
     loop();
     undef();
     cond_incl();
+    const_expr();
 
     printf("OK\n");
     return 0;

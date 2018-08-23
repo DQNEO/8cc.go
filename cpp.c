@@ -72,7 +72,10 @@ static List *read_intexpr_line(void) {
     for (;;) {
         Token *tok = read_token_int(&EMPTY_DICT, true);
         if (!tok) return r;
-        list_push(r, tok);
+        if (tok->type == TTYPE_IDENT)
+            list_push(r, cpp_token_one);
+        else
+            list_push(r, tok);
     }
 }
 

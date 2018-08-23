@@ -1,12 +1,24 @@
+#include <stdlib.h>
 #include "8cc.h"
 
 static Dict *macros = &EMPTY_DICT;
 static List *buffer = &EMPTY_LIST;
 static List *altbuffer = NULL;
 static bool bol = true;
-static bool wastrue = false;
+
+typedef struct {
+    bool wastrue;
+} CondIncl;
+
+static CondIncl *ci;
 
 static Token *read_token_int(Dict *hideset, bool return_at_eol);
+
+static CondIncl *make_cond_incl(bool wastrue) {
+    CondIncl *r = malloc(sizeof(CondIncl));
+    r->wastrue = wastrue;
+    return r;
+}
 
 static Token *read_ident(void) {
     Token *r = read_cpp_token();
@@ -72,23 +84,23 @@ static bool read_constexpr(void) {
 
 static void read_if(void) {
     bool cond = read_constexpr();
-    wastrue = cond;
+    ci = make_cond_incl(cond);
     if (!cond)
         skip_cond_incl();
 }
 
 static void read_else(void) {
     expect_newline();
-    if (wastrue)
+    if (ci->wastrue)
         skip_cond_incl();
 }
 
 static void read_elif(void) {
-    if (wastrue)
+    if (ci->wastrue)
         skip_cond_incl();
     else {
         bool cond = read_constexpr();
-        wastrue = cond;
+        ci->wastrue = cond;
         if (!cond)
             skip_cond_incl();
     }

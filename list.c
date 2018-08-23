@@ -69,6 +69,14 @@ void list_unshift(List *list, void *elem) {
     list->len++;
 }
 
+void *list_head(List *list) {
+    return list->head ? list->head->elem : NULL;
+}
+
+void *list_tail(List *list) {
+    return list->tail ? list->tail->elem : NULL;
+}
+
 List *list_reverse(List *list) {
     List *r = make_list();
     for (Iter *i = list_iter(list); !iter_end(i);)

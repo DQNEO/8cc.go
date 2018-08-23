@@ -70,10 +70,19 @@ static void test_list(void) {
     List *list2 = make_list();
     list_push(list2, (void *)5);
     list_push(list2, (void *)6);
-
     assert_int(5, (long)list_shift(list2));
     assert_int(6, (long)list_shift(list2));
     assert_int(0, (long)list_shift(list2));
+
+    List *list3 = make_list();
+    assert_int(0, (long)list_head(list3));
+    assert_int(0, (long)list_tail(list3));
+    list_push(list3, (void *)1);
+    assert_int(1, (long)list_head(list3));
+    assert_int(1, (long)list_tail(list3));
+    list_push(list3, (void *)2);
+    assert_int(1, (long)list_head(list3));
+    assert_int(2, (long)list_tail(list3));
 }
 
 static void test_dict(void) {

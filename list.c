@@ -46,6 +46,18 @@ void *list_pop(List *list) {
     return r;
 }
 
+void *list_shift(List *list) {
+    if (!list->head) return NULL;
+    void *r = list->head->elem;
+    list->head = list->head->next;
+    if (list->head)
+        list->head->prev = NULL;
+    else
+        list->tail = NULL;
+    list->len--;
+    return r;
+}
+
 void list_unshift(List *list, void *elem) {
     ListNode *node = make_node(elem);
     node->next = list->head;

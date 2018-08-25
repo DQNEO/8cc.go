@@ -108,15 +108,15 @@ int const_expr() {
 
 int defined_op() {
     int a = 0;
-#if 1
+#if defined ZERO
     a = 1;
 #endif
     expect(1, a);
-#if 1
+#if defined(ZERO)
     a = 2;
 #endif
     expect(2, a);
-#if 0
+#if defined(NO_SUCH_MACRO)
     a = 3;
 #else
     a = 4;

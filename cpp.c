@@ -23,6 +23,12 @@ static CondIncl *make_cond_incl(enum CondInclCtx ctx, bool wastrue) {
     return r;
 }
 
+static void expect(char punct) {
+    Token *tok = read_cpp_token();
+    if (!tok || !is_punct(tok, punct))
+        error("%c expected, but got %s", punct, t2s(tok));
+}
+
 static Token *read_ident(void) {
     Token *r = read_cpp_token();
     if (r->type != TTYPE_IDENT)
@@ -65,12 +71,6 @@ static void read_undef(void) {
     Token *name = read_ident();
     expect_newline();
     dict_remove(macros, name->sval);
-}
-
-static void expect(char punct) {
-    Token *tok = read_cpp_token();
-    if (!tok || !is_punct(tok, punct))
-        error("%c expected, but got %s", punct, t2s(tok));
 }
 
 static Token *read_defined_operator(void) {

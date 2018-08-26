@@ -14,6 +14,14 @@ typedef struct {
     bool wastrue;
 } CondIncl;
 
+typedef enum { MACRO_OBJ, MACRO_FUNC } MacroType;
+
+typedef struct {
+    MacroType type;
+    int nargs;
+    List *body;
+} Macro;
+
 static Token *read_token_int(Dict *hideset, bool return_at_eol);
 static Token *get_token(void);
 
@@ -21,6 +29,29 @@ static CondIncl *make_cond_incl(CondInclCtx ctx, bool wastrue) {
     CondIncl *r = malloc(sizeof(CondIncl));
     r->ctx = ctx;
     r->wastrue = wastrue;
+    return r;
+}
+
+static Macro *make_obj_macro(List *body) {
+    Macro *r = malloc(sizeof(Macro));
+    r->type = MACRO_OBJ;
+    r->body = body;
+    return r;
+}
+
+static Macro *make_func_macro(List *body, int nargs) {
+    Macro *r = malloc(sizeof(Macro));
+    r->type = MACRO_FUNC;
+    r->nargs = nargs;
+    r->body = body;
+    return r;
+}
+
+static Token *make_macro_token(int position) {
+    Token *r = malloc(sizeof(Token));
+    r->type = TTYPE_MACRO_PARAM;
+    r->position = position;
+    r->space = false;
     return r;
 }
 
@@ -43,17 +74,80 @@ static void expect_newline(void) {
         error("Newline expected, but got %s", t2s(tok));
 }
 
-static Token *expand(Dict *hideset, Token *tok) {
+static void unget_all(List *tokens) {
+    for (Iter *i = list_iter(list_reverse(tokens)); !iter_end(i);)
+        unget_token(iter_next(i));
+}
+
+static Token *read_expand(Dict *hideset) {
+    Token *tok = get_token();
+    if (!tok) return NULL;
     if (tok->type != TTYPE_IDENT)
         return tok;
-    if (dict_get(hideset, tok->sval))
+    char *name = tok->sval;
+    Macro *macro = dict_get(macros, name);
+    if (!macro || dict_get(hideset, name))
         return tok;
-    List *body = dict_get(macros, tok->sval);
-    if (!body)
-        return tok;
-    dict_put(hideset, tok->sval, (void *)1);
-    list_append(buffer, list_reverse(body));
-    return read_token_int(hideset, false);
+
+    switch (macro->type) {
+    case MACRO_OBJ: {
+        dict_put(hideset, name, (void *)1);
+        List *tokens = macro->body;
+        unget_all(tokens);
+        return read_token_int(hideset, false);
+    }
+    case MACRO_FUNC: {
+        error("TBD: func macro %s", name);
+    }
+    default:
+        error("internal error");
+    }
+}
+
+static void read_funclike_macro_args(Dict *param) {
+    int pos = 0;
+    for (;;) {
+        Token *tok = get_token();
+        if (is_punct(tok, ')'))
+            return;
+        if (pos) {
+            if (!is_punct(tok, ','))
+                error("',' expected, but got '%s'", t2s(tok));
+            tok = get_token();
+        }
+        if (!tok || tok->type == TTYPE_NEWLINE)
+            error("missing ')' in macro parameter list");
+        if (tok->type != TTYPE_IDENT)
+            error("identifier expected, but got '%s'", t2s(tok));
+        dict_put(param, tok->sval, make_macro_token(pos++));
+    }
+}
+
+static List *read_funclike_macro_body(Dict *param) {
+    List *r = make_list();
+    for (;;) {
+        Token *tok = get_token();
+        if (!tok || tok->type == TTYPE_NEWLINE)
+            return r;
+        if (tok->type == TTYPE_IDENT) {
+            Token *subst = dict_get(param, tok->sval);
+            if (subst) {
+                list_push(r, subst);
+                continue;
+            }
+
+        }
+        list_push(r, tok);
+    }
+    return r;
+}
+
+static void read_funclike_macro(char *name) {
+    Dict *param = make_dict(NULL);
+    read_funclike_macro_args(param);
+    List *body = read_funclike_macro_body(param);
+    Macro *macro = make_func_macro(body, list_len(dict_keys(param)));
+    dict_put(macros, name, macro);
 }
 
 static void read_obj_macro(char *name) {
@@ -62,13 +156,21 @@ static void read_obj_macro(char *name) {
         Token *tok = get_token();
         if (!tok || tok->type == TTYPE_NEWLINE)
             break;
+        printf("# pushing token %s to obj macro body\n", t2s(tok));
         list_push(body, tok);
     }
-    dict_put(macros, name, body);
+    dict_put(macros, name, make_obj_macro(body));
 }
 
 static void read_define(void) {
     Token *name = read_ident();
+    Token *tok = get_token();
+    if (tok && is_punct(tok, '(') && !tok->space) {
+        error("funclike macro found");
+        read_funclike_macro(name->sval);
+        return;
+    }
+    unget_token(tok);
     read_obj_macro(name->sval);
 }
 
@@ -199,7 +301,8 @@ static Token *read_token_int(Dict *hideset, bool return_at_eol) {
             continue;
         }
         bol = false;
-        return expand(hideset, tok);
+        unget_token(tok);
+        return read_expand(hideset);
     }
 }
 

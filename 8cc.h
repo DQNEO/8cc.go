@@ -15,14 +15,20 @@ enum {
     TTYPE_STRING,
     // Only in CPP
     TTYPE_NEWLINE,
+    TTYPE_SPACE,
+    TTYPE_MACRO_PARAM,
 };
 
 typedef struct {
     int type;
+    bool space;
     union {
         char *sval;
         int punct;
         char c;
+        union {
+            int position;
+        };
     };
 } Token;
 

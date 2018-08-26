@@ -6,12 +6,14 @@ Token *cpp_token_zero = &(Token){ .type = TTYPE_NUMBER, .sval = "0" };
 Token *cpp_token_one = &(Token){ .type = TTYPE_NUMBER, .sval = "1" };
 
 static List *ungotten = &EMPTY_LIST;
-static Token *newline_token = &(Token){ .type = TTYPE_NEWLINE };
+static Token *newline_token = &(Token){ .type = TTYPE_NEWLINE, .space = false };
+static Token *space_token = &(Token){ .type = TTYPE_SPACE, .space = false };
 
 static Token *make_ident(String *s) {
     Token *r = malloc(sizeof(Token));
     r->type = TTYPE_IDENT;
     r->sval = get_cstring(s);
+    r->space = false;
     return r;
 }
 
@@ -19,6 +21,7 @@ static Token *make_strtok(String *s) {
     Token *r = malloc(sizeof(Token));
     r->type = TTYPE_STRING;
     r->sval = get_cstring(s);
+    r->space = false;
     return r;
 }
 
@@ -26,6 +29,7 @@ static Token *make_punct(int punct) {
     Token *r = malloc(sizeof(Token));
     r->type = TTYPE_PUNCT;
     r->punct = punct;
+    r->space = false;
     return r;
 }
 
@@ -33,6 +37,7 @@ static Token *make_number(char *s) {
     Token *r = malloc(sizeof(Token));
     r->type = TTYPE_NUMBER;
     r->sval = s;
+    r->space = false;
     return r;
 }
 
@@ -40,6 +45,7 @@ static Token *make_char(char c) {
     Token *r = malloc(sizeof(Token));
     r->type = TTYPE_CHAR;
     r->c = c;
+    r->space = false;
     return r;
 }
 
@@ -161,6 +167,16 @@ static void skip_line_comment(void) {
     }
 }
 
+static void skip_space(void) {
+    for (;;) {
+        int c = getc(stdin);
+        if (c == ' ' || c == '\t')
+            continue;
+        ungetc(c, stdin);
+        return;
+    }
+}
+
 static void skip_block_comment(void) {
     enum { in_comment, asterisk_read } state = in_comment;
     for (;;) {
@@ -183,8 +199,11 @@ static Token *read_rep(int expect, int t1, int t2) {
 }
 
 static Token *read_token_int(void) {
-    int c = getc_nonspace();
+    int c = getc(stdin);
     switch (c) {
+    case ' ': case '\t':
+        skip_space();
+        return space_token;
     case '\n':
         return newline_token;
     case '0': case '1': case '2': case '3': case '4':
@@ -253,5 +272,10 @@ Token *peek_cpp_token(void) {
 Token *read_cpp_token(void) {
     if (list_len(ungotten) > 0)
         return list_pop(ungotten);
-    return read_token_int();
+    Token *tok = read_token_int();
+    while (tok && tok->type == TTYPE_SPACE) {
+        tok = read_token_int();
+        if (tok) tok->space = true;
+    }
+    return tok;
 }

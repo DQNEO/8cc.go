@@ -7,17 +7,17 @@ static List *altbuffer = NULL;
 static List *cond_incl_stack = &EMPTY_LIST;
 static bool bol = true;
 
-enum CondInclCtx { IN_THEN, IN_ELSE };
+typedef enum { IN_THEN, IN_ELSE } CondInclCtx;
 
 typedef struct {
-    enum CondInclCtx ctx;
+    CondInclCtx ctx;
     bool wastrue;
 } CondIncl;
 
 static Token *read_token_int(Dict *hideset, bool return_at_eol);
 static Token *get_token(void);
 
-static CondIncl *make_cond_incl(enum CondInclCtx ctx, bool wastrue) {
+static CondIncl *make_cond_incl(CondInclCtx ctx, bool wastrue) {
     CondIncl *r = malloc(sizeof(CondIncl));
     r->ctx = ctx;
     r->wastrue = wastrue;

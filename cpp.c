@@ -15,6 +15,7 @@ typedef struct {
 } CondIncl;
 
 static Token *read_token_int(Dict *hideset, bool return_at_eol);
+static Token *get_token(void);
 
 static CondIncl *make_cond_incl(enum CondInclCtx ctx, bool wastrue) {
     CondIncl *r = malloc(sizeof(CondIncl));
@@ -24,20 +25,20 @@ static CondIncl *make_cond_incl(enum CondInclCtx ctx, bool wastrue) {
 }
 
 static void expect(char punct) {
-    Token *tok = read_cpp_token();
+    Token *tok = get_token();
     if (!tok || !is_punct(tok, punct))
         error("%c expected, but got %s", punct, t2s(tok));
 }
 
 static Token *read_ident(void) {
-    Token *r = read_cpp_token();
+    Token *r = get_token();
     if (r->type != TTYPE_IDENT)
         error("identifier expected, but got %s", t2s(r));
     return r;
 }
 
 static void expect_newline(void) {
-    Token *tok = read_cpp_token();
+    Token *tok = get_token();
     if (!tok || tok->type != TTYPE_NEWLINE)
         error("Newline expected, but got %s", t2s(tok));
 }
@@ -59,7 +60,7 @@ static void read_define(void) {
     Token *name = read_ident();
     List *body = make_list();
     for (;;) {
-        Token *tok = read_cpp_token();
+        Token *tok = get_token();
         if (!tok || tok->type == TTYPE_NEWLINE)
             break;
         list_push(body, tok);
@@ -74,9 +75,9 @@ static void read_undef(void) {
 }
 
 static Token *read_defined_operator(void) {
-    Token *tok = read_cpp_token();
+    Token *tok = get_token();
     if (is_punct(tok, '(')) {
-        tok = read_cpp_token();
+        tok = get_token();
         expect(')');
     }
     if (tok->type != TTYPE_IDENT)
@@ -150,7 +151,7 @@ static void read_endif(void) {
 }
 
 static void read_directive(void) {
-    Token *tok = read_cpp_token();
+    Token *tok = get_token();
     if (is_ident(tok, "define"))     read_define();
     else if (is_ident(tok, "undef")) read_undef();
     else if (is_ident(tok, "if"))    read_if();

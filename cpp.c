@@ -56,8 +56,7 @@ static Token *expand(Dict *hideset, Token *tok) {
     return read_token_int(hideset, false);
 }
 
-static void read_define(void) {
-    Token *name = read_ident();
+static void read_obj_macro(char *name) {
     List *body = make_list();
     for (;;) {
         Token *tok = get_token();
@@ -65,7 +64,12 @@ static void read_define(void) {
             break;
         list_push(body, tok);
     }
-    dict_put(macros, name->sval, body);
+    dict_put(macros, name, body);
+}
+
+static void read_define(void) {
+    Token *name = read_ident();
+    read_obj_macro(name->sval);
 }
 
 static void read_undef(void) {

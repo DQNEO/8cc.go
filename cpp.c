@@ -52,7 +52,7 @@ static Token *expand(Dict *hideset, Token *tok) {
     if (!body)
         return tok;
     dict_put(hideset, tok->sval, (void *)1);
-    list_append(buffer, body);
+    list_append(buffer, list_reverse(body));
     return read_token_int(hideset, false);
 }
 

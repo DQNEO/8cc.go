@@ -94,7 +94,7 @@ static Token *read_expand(Dict *hideset) {
         dict_put(hideset, name, (void *)1);
         List *tokens = macro->body;
         unget_all(tokens);
-        return read_token_int(hideset, false);
+        return read_expand(hideset);
     }
     case MACRO_FUNC: {
         error("TBD: func macro %s", name);

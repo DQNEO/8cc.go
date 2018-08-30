@@ -22,6 +22,7 @@ enum {
 typedef struct {
     int type;
     bool space;
+    Dict *hideset;
     union {
         char *sval;
         int punct;

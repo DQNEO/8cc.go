@@ -12,6 +12,7 @@ static Token *space_token = &(Token){ .type = TTYPE_SPACE, .space = false };
 static Token *make_ident(String *s) {
     Token *r = malloc(sizeof(Token));
     r->type = TTYPE_IDENT;
+    r->hideset = make_dict(NULL);
     r->sval = get_cstring(s);
     r->space = false;
     return r;
@@ -20,6 +21,7 @@ static Token *make_ident(String *s) {
 static Token *make_strtok(String *s) {
     Token *r = malloc(sizeof(Token));
     r->type = TTYPE_STRING;
+    r->hideset = make_dict(NULL);
     r->sval = get_cstring(s);
     r->space = false;
     return r;
@@ -28,6 +30,7 @@ static Token *make_strtok(String *s) {
 static Token *make_punct(int punct) {
     Token *r = malloc(sizeof(Token));
     r->type = TTYPE_PUNCT;
+    r->hideset = make_dict(NULL);
     r->punct = punct;
     r->space = false;
     return r;
@@ -36,6 +39,7 @@ static Token *make_punct(int punct) {
 static Token *make_number(char *s) {
     Token *r = malloc(sizeof(Token));
     r->type = TTYPE_NUMBER;
+    r->hideset = make_dict(NULL);
     r->sval = s;
     r->space = false;
     return r;
@@ -44,6 +48,7 @@ static Token *make_number(char *s) {
 static Token *make_char(char c) {
     Token *r = malloc(sizeof(Token));
     r->type = TTYPE_CHAR;
+    r->hideset = make_dict(NULL);
     r->c = c;
     r->space = false;
     return r;

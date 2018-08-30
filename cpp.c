@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "8cc.h"
 
 static Dict *macros = &EMPTY_DICT;
@@ -50,8 +51,15 @@ static Macro *make_func_macro(List *body, int nargs) {
 static Token *make_macro_token(int position) {
     Token *r = malloc(sizeof(Token));
     r->type = TTYPE_MACRO_PARAM;
+    r->hideset = make_dict(NULL);
     r->position = position;
     r->space = false;
+    return r;
+}
+
+static Token *copy_token(Token *tok) {
+    Token *r = malloc(sizeof(Token));
+    memcpy(r, tok, sizeof(Token));
     return r;
 }
 
@@ -74,27 +82,65 @@ static void expect_newline(void) {
         error("Newline expected, but got %s", t2s(tok));
 }
 
+static Dict *dict_union(Dict *a, Dict *b) {
+    Dict *r = make_dict(NULL);
+    for (Iter *i = list_iter(dict_keys(a)); !iter_end(i);) {
+        char *key = iter_next(i);
+        dict_put(r, key, dict_get(a, key));
+    }
+    for (Iter *i = list_iter(dict_keys(b)); !iter_end(i);) {
+        char *key = iter_next(i);
+        dict_put(r, key, dict_get(b, key));
+    }
+    return r;
+}
+
+static Dict *dict_append(Dict *dict, char *s) {
+    Dict *r = make_dict(dict);
+    dict_put(r, s, (void *)1);
+    return r;
+}
+
+static List *add_hide_set(List *tokens, Dict *hideset) {
+    List *r = make_list();
+    for (Iter *i = list_iter(tokens); !iter_end(i);) {
+        Token *t = copy_token(iter_next(i));
+        t->hideset = dict_union(t->hideset, hideset);
+        list_push(r, t);
+    }
+    return r;
+}
+
+static List *subst(Macro *macro, Dict *hideset) {
+    List *r = make_list();
+    for (int i = 0; i < list_len(macro->body); i++) {
+        Token *t0 = list_get(macro->body, i);
+        list_push(r, t0);
+    }
+    return add_hide_set(r, hideset);
+}
+
 static void unget_all(List *tokens) {
     for (Iter *i = list_iter(list_reverse(tokens)); !iter_end(i);)
         unget_token(iter_next(i));
 }
 
-static Token *read_expand(Dict *hideset) {
+static Token *read_expand(void) {
     Token *tok = get_token();
     if (!tok) return NULL;
     if (tok->type != TTYPE_IDENT)
         return tok;
     char *name = tok->sval;
     Macro *macro = dict_get(macros, name);
-    if (!macro || dict_get(hideset, name))
+    if (!macro || dict_get(tok->hideset, name))
         return tok;
 
     switch (macro->type) {
     case MACRO_OBJ: {
-        dict_put(hideset, name, (void *)1);
-        List *tokens = macro->body;
+        Dict *hideset = dict_append(tok->hideset, name);
+        List *tokens = subst(macro, hideset);
         unget_all(tokens);
-        return read_expand(hideset);
+        return read_expand();
     }
     case MACRO_FUNC: {
         error("TBD: func macro %s", name);
@@ -302,7 +348,7 @@ static Token *read_token_int(bool return_at_eol) {
         }
         bol = false;
         unget_token(tok);
-        return read_expand(&EMPTY_DICT);
+        return read_expand();
     }
 }
 

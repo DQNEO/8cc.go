@@ -69,6 +69,15 @@ void list_unshift(List *list, void *elem) {
     list->len++;
 }
 
+void *list_get(List *list, int index) {
+    if (index < 0 || list->len <= index)
+        return NULL;
+    ListNode *p = list->head;
+    for (int i = 0; i < index; i++)
+        p = p->next;
+    return p->elem;
+}
+
 void *list_head(List *list) {
     return list->head ? list->head->elem : NULL;
 }

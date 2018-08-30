@@ -22,7 +22,7 @@ typedef struct {
     List *body;
 } Macro;
 
-static Token *read_token_int(Dict *hideset, bool return_at_eol);
+static Token *read_token_int(bool return_at_eol);
 static Token *get_token(void);
 
 static CondIncl *make_cond_incl(CondInclCtx ctx, bool wastrue) {
@@ -195,7 +195,7 @@ static Token *read_defined_operator(void) {
 static List *read_intexpr_line(void) {
     List *r = make_list();
     for (;;) {
-        Token *tok = read_token_int(&EMPTY_DICT, true);
+        Token *tok = read_token_int(true);
         if (!tok) return r;
         if (is_ident(tok, "defined"))
             list_push(r, read_defined_operator());
@@ -284,7 +284,7 @@ static Token *get_token(void) {
     return (list_len(buffer) > 0) ? list_pop(buffer) : read_cpp_token();
 }
 
-static Token *read_token_int(Dict *hideset, bool return_at_eol) {
+static Token *read_token_int(bool return_at_eol) {
     for (;;) {
         Token *tok = get_token();
         if (!tok)
@@ -302,10 +302,10 @@ static Token *read_token_int(Dict *hideset, bool return_at_eol) {
         }
         bol = false;
         unget_token(tok);
-        return read_expand(hideset);
+        return read_expand(&EMPTY_DICT);
     }
 }
 
 Token *read_token(void) {
-    return read_token_int(&EMPTY_DICT, false);
+    return read_token_int(false);
 }

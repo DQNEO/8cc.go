@@ -76,6 +76,8 @@ void skip_cond_incl(void) {
     int nest = 0;
     for (;;) {
         int c = getc_nonspace();
+        if (c == EOF)
+            return;
         if (c != '#') {
             skip_line();
             continue;

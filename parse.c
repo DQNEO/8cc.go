@@ -805,7 +805,7 @@ static Ctype *read_decl_int(Token **name) {
     Ctype *ctype = read_decl_spec();
     *name = read_token();
     if ((*name)->type != TTYPE_IDENT)
-        error("Identifier expected, but got %s", t2s(*name));
+        error("identifier expected, but got %s", t2s(*name));
     return read_array_dimensions(ctype);
 }
 

@@ -524,6 +524,8 @@ Ctype *result_type(char op, Ctype *a, Ctype *b) {
 
 static Ast *read_unary_expr(void) {
     Token *tok = read_token();
+
+    if (!tok) error("premature end of input");
     if (tok->type != TTYPE_PUNCT) {
         unget_token(tok);
         return read_prim();

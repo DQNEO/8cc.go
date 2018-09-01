@@ -24,6 +24,7 @@ typedef struct {
 } Macro;
 
 static Token *read_token_int(bool return_at_eol);
+static Token *read_expand(void);
 static Token *get_token(void);
 
 static CondIncl *make_cond_incl(CondInclCtx ctx, bool wastrue) {
@@ -82,6 +83,52 @@ static void expect_newline(void) {
         error("Newline expected, but got %s", t2s(tok));
 }
 
+static List *read_args_int() {
+    Token *tok = get_token();
+    if (!tok || !is_punct(tok, '(')) {
+        unget_token(tok);
+        return NULL;
+    }
+    List *r = make_list();
+    List *arg = make_list();
+    int depth = 0;
+    for (;;) {
+        tok = get_token();
+        if (!tok)
+            error("unterminated macro argument list");
+        if (tok->type == TTYPE_NEWLINE)
+            continue;
+        if (depth) {
+            if (is_punct(tok, ')'))
+                depth--;
+            list_push(arg, tok);
+            continue;
+        }
+        if (is_punct(tok, '('))
+            depth++;
+        if (is_punct(tok, ')')) {
+            unget_token(tok);
+            if (list_len(r) != 0 || list_len(arg) != 0)
+                list_push(r, arg);
+            return r;
+        }
+        if (is_punct(tok, ',')) {
+            list_push(r, arg);
+            arg = make_list();
+            continue;
+        }
+        list_push(arg, tok);
+    }
+}
+
+static List *read_args(Macro *macro) {
+    List *args = read_args_int();
+    if (!args) return NULL;
+    if (list_len(args) != macro->nargs)
+        error("Macro argument number does not match");
+    return args;
+}
+
 static Dict *dict_union(Dict *a, Dict *b) {
     Dict *r = make_dict(NULL);
     for (Iter *i = list_iter(dict_keys(a)); !iter_end(i);) {
@@ -91,6 +138,16 @@ static Dict *dict_union(Dict *a, Dict *b) {
     for (Iter *i = list_iter(dict_keys(b)); !iter_end(i);) {
         char *key = iter_next(i);
         dict_put(r, key, dict_get(b, key));
+    }
+    return r;
+}
+
+static Dict *dict_intersection(Dict *a, Dict *b) {
+    Dict *r = make_dict(NULL);
+    for (Iter *i = list_iter(dict_keys(a)); !iter_end(i);) {
+        char *key = iter_next(i);
+        if (dict_get(b, key))
+            dict_put(r, key, (void *)1);
     }
     return r;
 }
@@ -111,10 +168,28 @@ static List *add_hide_set(List *tokens, Dict *hideset) {
     return r;
 }
 
-static List *subst(Macro *macro, Dict *hideset) {
+static List *expand_all(List *tokens) {
+    List *r = make_list();
+    List *orig = altbuffer;
+    altbuffer = list_reverse(tokens);
+    Token *tok;
+    while ((tok = read_expand()) != NULL)
+        list_push(r, tok);
+    altbuffer = orig;
+    return r;
+}
+
+static List *subst(Macro *macro, List *args, Dict *hideset) {
     List *r = make_list();
     for (int i = 0; i < list_len(macro->body); i++) {
         Token *t0 = list_get(macro->body, i);
+        bool t0_param = (t0->type == TTYPE_MACRO_PARAM);
+
+        if (t0_param) {
+            List *arg = list_get(args, t0->position);
+            list_append(r, expand_all(arg));
+            continue;
+        }
         list_push(r, t0);
     }
     return add_hide_set(r, hideset);
@@ -138,12 +213,18 @@ static Token *read_expand(void) {
     switch (macro->type) {
     case MACRO_OBJ: {
         Dict *hideset = dict_append(tok->hideset, name);
-        List *tokens = subst(macro, hideset);
+        List *tokens = subst(macro, make_list(), hideset);
         unget_all(tokens);
         return read_expand();
     }
     case MACRO_FUNC: {
-        error("TBD: func macro %s", name);
+        List *args = read_args(macro);
+        Token *rparen = get_token();
+        assert(is_punct(rparen, ')'));
+        Dict *hideset = dict_append(dict_intersection(tok->hideset, rparen->hideset), name);
+        List *tokens = subst(macro, args, hideset);
+        unget_all(tokens);
+        return read_expand();
     }
     default:
         error("internal error");
@@ -202,7 +283,6 @@ static void read_obj_macro(char *name) {
         Token *tok = get_token();
         if (!tok || tok->type == TTYPE_NEWLINE)
             break;
-        printf("# pushing token %s to obj macro body\n", t2s(tok));
         list_push(body, tok);
     }
     dict_put(macros, name, make_obj_macro(body));
@@ -212,7 +292,6 @@ static void read_define(void) {
     Token *name = read_ident();
     Token *tok = get_token();
     if (tok && is_punct(tok, '(') && !tok->space) {
-        error("funclike macro found");
         read_funclike_macro(name->sval);
         return;
     }

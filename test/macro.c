@@ -32,6 +32,9 @@ int undef() {
     expect(10, a);
 #undef a
     expect(3, a);
+#define a 16
+    expect(16, a);
+#undef a
 }
 
 int cond_incl() {

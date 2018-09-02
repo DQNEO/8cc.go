@@ -186,6 +186,9 @@ static char *join_tokens(List *args) {
         case TTYPE_CHAR:
             string_appendf(s, "%s", quote_char(tok->c));
             break;
+        case TTYPE_STRING:
+            string_appendf(s, "\"%s\"", tok->sval);
+            break;
         default:
             error("internal error");
         }

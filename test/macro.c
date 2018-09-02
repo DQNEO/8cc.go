@@ -159,6 +159,7 @@ int funclike() {
 #define m5(x) #x
     expect_string("5", m5(5));
     expect_string("x", m5(x));
+    expect_string("x y", m5(x y));
     
 #define plus(x, y) x * y + plus(x, y)
     expect(11, plus(2, 3));

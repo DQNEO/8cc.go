@@ -141,6 +141,7 @@ static Token *read_string(void) {
             switch (c) {
             case EOF: error("Unterminated \\");
             case '\"': break;
+            case '\\': c = '\\'; break;
             case 'n': c = '\n'; break;
             default: error("Unknown quote: %c", c);
             }

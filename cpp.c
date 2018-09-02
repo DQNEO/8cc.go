@@ -173,6 +173,7 @@ static char *join_tokens(List *args) {
     for (Iter *i = list_iter(args); !iter_end(i);) {
         Token *tok = iter_next(i);
         switch (tok->type) {
+        case TTYPE_IDENT:
         case TTYPE_NUMBER:
             string_appendf(s, "%s", tok->sval);
             break;

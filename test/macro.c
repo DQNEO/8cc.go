@@ -181,10 +181,8 @@ int funclike() {
     expect(31, plus(30, 1));
     expect(29, minus(30, 1));
 
-    // This is not a function-like macro.
-    int x = 3;
-#define m7 (x) + x
-    expect(6, m7);
+#define m7 (0) + 1
+    expect(1, m7);
 }
 
 int main() {

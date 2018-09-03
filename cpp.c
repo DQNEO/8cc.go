@@ -21,6 +21,7 @@ typedef struct {
     MacroType type;
     int nargs;
     List *body;
+    bool is_varg;
 } Macro;
 
 static Token *read_token_int(bool return_at_eol);
@@ -38,14 +39,16 @@ static Macro *make_obj_macro(List *body) {
     Macro *r = malloc(sizeof(Macro));
     r->type = MACRO_OBJ;
     r->body = body;
+    r->is_varg = false;
     return r;
 }
 
-static Macro *make_func_macro(List *body, int nargs) {
+static Macro *make_func_macro(List *body, int nargs, bool is_varg) {
     Macro *r = malloc(sizeof(Macro));
     r->type = MACRO_FUNC;
     r->nargs = nargs;
     r->body = body;
+    r->is_varg = is_varg;
     return r;
 }
 
@@ -275,12 +278,12 @@ static Token *read_expand(void) {
     }
 }
 
-static void read_funclike_macro_args(Dict *param) {
+static bool read_funclike_macro_args(Dict *param) {
     int pos = 0;
     for (;;) {
         Token *tok = get_token();
         if (is_punct(tok, ')'))
-            return;
+            return false;
         if (pos) {
             if (!is_punct(tok, ','))
                 error("',' expected, but got '%s'", t2s(tok));
@@ -288,6 +291,11 @@ static void read_funclike_macro_args(Dict *param) {
         }
         if (!tok || tok->type == TTYPE_NEWLINE)
             error("missing ')' in macro parameter list");
+        if (is_ident(tok, "...")) {
+            dict_put(param, "__VA_ARGS__", make_macro_token(pos++));
+            expect(')');
+            return true;
+        }
         if (tok->type != TTYPE_IDENT)
             error("identifier expected, but got '%s'", t2s(tok));
         dict_put(param, tok->sval, make_macro_token(pos++));
@@ -315,9 +323,9 @@ static List *read_funclike_macro_body(Dict *param) {
 
 static void read_funclike_macro(char *name) {
     Dict *param = make_dict(NULL);
-    read_funclike_macro_args(param);
+    bool varg = read_funclike_macro_args(param);
     List *body = read_funclike_macro_body(param);
-    Macro *macro = make_func_macro(body, list_len(dict_keys(param)));
+    Macro *macro = make_func_macro(body, list_len(dict_keys(param)), varg);
     dict_put(macros, name, macro);
 }
 

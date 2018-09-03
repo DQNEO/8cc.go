@@ -86,7 +86,7 @@ static void expect_newline(void) {
         error("Newline expected, but got %s", t2s(tok));
 }
 
-static List *read_args_int() {
+static List *read_args_int(Macro *macro) {
     Token *tok = get_token();
     if (!tok || !is_punct(tok, '(')) {
         unget_token(tok);
@@ -115,7 +115,8 @@ static List *read_args_int() {
                 list_push(r, arg);
             return r;
         }
-        if (is_punct(tok, ',')) {
+        bool in_threedots = macro->is_varg && list_len(r) + 1 == macro->nargs;
+        if (is_punct(tok, ',') && !in_threedots) {
             list_push(r, arg);
             arg = make_list();
             continue;
@@ -125,9 +126,10 @@ static List *read_args_int() {
 }
 
 static List *read_args(Macro *macro) {
-    List *args = read_args_int();
+    List *args = read_args_int(macro);
     if (!args) return NULL;
-    if (list_len(args) != macro->nargs)
+    if ((macro->is_varg && list_len(args) < macro->nargs) ||
+        (!macro->is_varg && list_len(args) != macro->nargs))
         error("Macro argument number does not match");
     return args;
 }

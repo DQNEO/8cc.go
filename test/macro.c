@@ -169,7 +169,8 @@ int funclike() {
     expect_string("ZERO", m5(ZERO));
 
 #define m6(x, ...) x + __VA_ARGS__
-    //expect(20, m6(2, 16));
+    expect(20, m6(2, 18));
+    expect(25, plus(m6(2, 18, 5)));
 
 #define plus(x, y) x * y + plus(x, y)
     expect(11, plus(2, 3));

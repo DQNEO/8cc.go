@@ -315,7 +315,6 @@ static List *read_funclike_macro_body(Dict *param) {
                 list_push(r, subst);
                 continue;
             }
-
         }
         list_push(r, tok);
     }

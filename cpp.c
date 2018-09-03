@@ -229,8 +229,7 @@ static List *subst(Macro *macro, List *args, Dict *hideset) {
         bool t1_param = (!islast && t1->type == TTYPE_MACRO_PARAM);
 
         if (is_punct(t0, '#') && t1_param) {
-            List *arg = list_get(args, t1->position);
-            list_push(r, stringize(arg));
+            list_push(r, stringize(list_get(args, t1->position)));
             i++;
             continue;
         }

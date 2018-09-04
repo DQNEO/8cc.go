@@ -439,12 +439,13 @@ static List *read_intexpr_line(void) {
 }
 
 static bool read_constexpr(void) {
+    List *orig = get_input_buffer();
     set_input_buffer(read_intexpr_line());
     Ast *expr = read_expr();
     List *buf = get_input_buffer();
     if (list_len(buf) > 0)
         error("Stray token: %s", t2s(list_shift(buf)));
-    set_input_buffer(NULL);
+    set_input_buffer(orig);
     return eval_intexpr(expr);
 }
 

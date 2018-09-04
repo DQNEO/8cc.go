@@ -6,6 +6,14 @@ int expect(int a, int b) {
     }
 }
 
+int expect_string(char *a, char *b) {
+    if (strcmp(a, b)) {
+        printf("Failed\n");
+        printf("  \"%s\" expected, but got \"%s\"\n", a, b);
+        exit(1);
+    }
+}
+
 #define ZERO 0
 #define ONE 1
 #define TWO ONE + ONE
@@ -32,6 +40,9 @@ int undef() {
     expect(10, a);
 #undef a
     expect(3, a);
+#define a 16
+    expect(16, a);
+#undef a
 }
 
 int cond_incl() {
@@ -124,6 +135,66 @@ int defined_op() {
     expect(4, a);
 }
 
+int plus(int a, int b) {
+    return a + b;
+}
+
+int minus(int a, int b) {
+    return a - b;
+}
+
+int funclike() {
+#define m1(x) x
+    expect(5, m1(5));
+
+#define m2(x) x + x
+    expect(10, m2(5));
+
+#define m3(x, y) x + y
+    expect(15, m3(5, 10));
+
+#define m4(x, y) x + y + TWO
+    expect(17, m4(5, 10));
+
+#define m5(x) #x
+    expect_string("5", m5(5));
+    expect_string("x", m5(x));
+    expect_string("x y", m5(x y));
+    expect_string("x y", m5( x y ));
+    expect_string("x + y", m5( x + y ));
+    expect_string("x+y", m5( x+y ));
+    expect_string("'a'", m5('a'));
+    expect_string("'\\''", m5('\''));
+    expect_string("\"abc\"", m5("abc"));
+    expect_string("ZERO", m5(ZERO));
+
+#define m6(x, ...) x + __VA_ARGS__
+    expect(20, m6(2, 18));
+    expect(25, plus(m6(2, 18, 5)));
+
+#define plus(x, y) x * y + plus(x, y)
+    expect(11, plus(2, 3));
+#undef plus
+
+#define plus(x, y)  minus(x, y)
+#define minus(x, y) plus(x, y)
+    expect(31, plus(30, 1));
+    expect(29, minus(30, 1));
+
+    // This is not a function-like macro.
+#define m7 (0) + 1
+    expect(1, m7);
+
+#define m8(x, y) x ## y
+    expect(2, m8(TW, O));
+
+#define hash_hash # ## #
+#define mkstr(a) # a
+#define in_between(a) mkstr(a)
+#define join(c, d) in_between(c hash_hash d)
+    expect_string("x ## y", join(x, y));
+}
+
 int main() {
     printf("Testing macros ... ");
 
@@ -133,6 +204,7 @@ int main() {
     cond_incl();
     const_expr();
     defined_op();
+    funclike();
 
     printf("OK\n");
     return 0;

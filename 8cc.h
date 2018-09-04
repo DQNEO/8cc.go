@@ -183,6 +183,8 @@ extern void string_appendf(String *s, char *fmt, ...);
 extern void unget_cpp_token(Token *tok);
 extern Token *peek_cpp_token(void);
 extern Token *read_cpp_token(void);
+extern void set_input_buffer(List *tokens);
+extern List *get_input_buffer(void);
 extern void skip_cond_incl(void);
 
 extern void unget_token(Token *tok);
@@ -208,6 +210,5 @@ extern void emit_toplevel(Ast *v);
 
 extern List *strings;
 extern List *flonums;
-extern List *altbuffer;
 
 #endif /* EIGHTCC_H */

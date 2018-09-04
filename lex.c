@@ -3,7 +3,7 @@
 #include "8cc.h"
 
 static List *buffer = &EMPTY_LIST;
-List *altbuffer = NULL;
+static List *altbuffer = NULL;
 
 static Token *newline_token = &(Token){ .type = TTYPE_NEWLINE, .space = false };
 static Token *space_token = &(Token){ .type = TTYPE_SPACE, .space = false };
@@ -288,6 +288,14 @@ bool is_punct(Token *tok, int c) {
     return tok && (tok->type == TTYPE_PUNCT) && (tok->punct == c);
 }
 
+void set_input_buffer(List *tokens) {
+    altbuffer = tokens ? list_reverse(tokens) : NULL;
+}
+
+List *get_input_buffer(void) {
+    return altbuffer;
+}
+
 void unget_cpp_token(Token *tok) {
     if (!tok) return;
     list_push(altbuffer ? altbuffer : buffer, tok);
@@ -304,7 +312,6 @@ Token *read_cpp_token(void) {
         return list_pop(altbuffer);
     if (list_len(buffer) > 0)
         return list_pop(buffer);
-
     Token *tok = read_token_int();
     while (tok && tok->type == TTYPE_SPACE) {
         tok = read_token_int();

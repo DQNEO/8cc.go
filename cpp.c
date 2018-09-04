@@ -8,6 +8,8 @@ static List *buffer = &EMPTY_LIST;
 static List *altbuffer = NULL;
 static List *cond_incl_stack = &EMPTY_LIST;
 static bool bol = true;
+static Token *cpp_token_zero = &(Token){ .type = TTYPE_NUMBER, .sval = "0" };
+static Token *cpp_token_one = &(Token){ .type = TTYPE_NUMBER, .sval = "1" };
 
 typedef enum { IN_THEN, IN_ELSE } CondInclCtx;
 

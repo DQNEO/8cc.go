@@ -301,6 +301,11 @@ Token *peek_cpp_token(void) {
 }
 
 Token *read_cpp_token(void) {
+    if (altbuffer)
+        return list_pop(altbuffer);
+    if (list_len(buffer) > 0)
+        return list_pop(buffer);
+
     if (list_len(ungotten) > 0)
         return list_pop(ungotten);
     Token *tok = read_token_int();

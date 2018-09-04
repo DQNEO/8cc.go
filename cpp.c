@@ -177,9 +177,8 @@ static char *join_tokens(List *args) {
     String *s = make_string();
     for (Iter *i = list_iter(args); !iter_end(i);) {
         Token *tok = iter_next(i);
-        if (string_len(s) && tok->space) {
+        if (string_len(s) && tok->space)
             string_appendf(s, " ");
-        }
         switch (tok->type) {
         case TTYPE_IDENT:
         case TTYPE_NUMBER:

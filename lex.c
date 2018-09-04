@@ -2,6 +2,9 @@
 #include <ctype.h>
 #include "8cc.h"
 
+List *buffer = &EMPTY_LIST;
+List *altbuffer = NULL;
+
 static List *ungotten = &EMPTY_LIST;
 static Token *newline_token = &(Token){ .type = TTYPE_NEWLINE, .space = false };
 static Token *space_token = &(Token){ .type = TTYPE_SPACE, .space = false };

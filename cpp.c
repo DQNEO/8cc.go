@@ -4,8 +4,6 @@
 #include "8cc.h"
 
 static Dict *macros = &EMPTY_DICT;
-static List *buffer = &EMPTY_LIST;
-static List *altbuffer = NULL;
 static List *cond_incl_stack = &EMPTY_LIST;
 static bool bol = true;
 static Token *cpp_token_zero = &(Token){ .type = TTYPE_NUMBER, .sval = "0" };

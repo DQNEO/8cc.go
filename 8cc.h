@@ -208,7 +208,6 @@ extern void emit_toplevel(Ast *v);
 
 extern List *strings;
 extern List *flonums;
-extern List *buffer;
 extern List *altbuffer;
 
 #endif /* EIGHTCC_H */

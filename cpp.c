@@ -512,9 +512,7 @@ Token *peek_token(void) {
 }
 
 static Token *get_token(void) {
-    if (altbuffer)
-        return list_pop(altbuffer);
-    return (list_len(buffer) > 0) ? list_pop(buffer) : read_cpp_token();
+    return read_cpp_token();
 }
 
 static Token *read_token_int(bool return_at_eol) {

@@ -490,6 +490,26 @@ static void read_endif(void) {
     expect_newline();
 }
 
+static void read_cpp_header_name(char **name) {
+    Token *tok = read_cpp_token();
+    *name = tok->sval;
+}
+
+static FILE *open_header_file(char *name) {
+    FILE *fp = fopen(name, "r");
+    if (!fp)
+        error("Unable to open file %s", name);
+    return fp;
+}
+
+static void read_include(void) {
+    char *name;
+    read_cpp_header_name(&name);
+    expect_newline();
+    FILE *file = open_header_file(name);
+    push_input_file(file);
+}
+
 static void read_directive(void) {
     Token *tok = read_cpp_token();
     if (is_ident(tok, "define"))     read_define();
@@ -498,6 +518,7 @@ static void read_directive(void) {
     else if (is_ident(tok, "else"))  read_else();
     else if (is_ident(tok, "elif"))  read_elif();
     else if (is_ident(tok, "endif")) read_endif();
+    else if (is_ident(tok, "include")) read_include();
     else
         error("unsupported preprocessor directive: %s", t2s(tok));
 }

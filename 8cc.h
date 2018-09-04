@@ -187,6 +187,7 @@ extern Token *read_cpp_token(void);
 extern void set_input_buffer(List *tokens);
 extern List *get_input_buffer(void);
 extern void skip_cond_incl(void);
+extern void push_input_file(FILE *input);
 
 extern void unget_token(Token *tok);
 extern Token *peek_token(void);

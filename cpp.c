@@ -6,6 +6,7 @@
 static Dict *macros = &EMPTY_DICT;
 static List *cond_incl_stack = &EMPTY_LIST;
 static bool bol = true;
+static List *std_include_path;
 static Token *cpp_token_zero = &(Token){ .type = TTYPE_NUMBER, .sval = "0" };
 static Token *cpp_token_one = &(Token){ .type = TTYPE_NUMBER, .sval = "1" };
 
@@ -27,6 +28,13 @@ typedef struct {
 
 static Token *read_token_int(bool return_at_eol);
 static Token *read_expand(void);
+
+static __attribute__((constructor)) void init(void) {
+    std_include_path = make_list();
+    list_push(std_include_path, "/usr/local/include");
+    list_push(std_include_path, "/usr/include");
+    list_push(std_include_path, ".");
+}
 
 static CondIncl *make_cond_incl(CondInclCtx ctx, bool wastrue) {
     CondIncl *r = malloc(sizeof(CondIncl));
@@ -490,23 +498,41 @@ static void read_endif(void) {
     expect_newline();
 }
 
-static void read_cpp_header_name(char **name) {
-    Token *tok = read_cpp_token();
-    *name = tok->sval;
+static void read_cpp_header_name(char **name, bool *std) {
+    if (!get_input_buffer()) {
+        if (read_header_file_name(name, std))
+            return;
+    }
 }
 
-static FILE *open_header_file(char *name) {
-    FILE *fp = fopen(name, "r");
-    if (!fp)
-        error("Unable to open file %s", name);
-    return fp;
+static char *construct_path(char *path1, char *path2) {
+    if (path1[0] == '\0')
+        return path2;
+    String *s = make_string();
+    string_appendf(s, "%s/%s", path1, path2);
+    return get_cstring(s);
+}
+
+static FILE *open_header_file(char *name, List *paths) {
+    for (Iter *i = list_iter(paths); !iter_end(i);) {
+        char *directory = iter_next(i);
+        char *path = construct_path(directory, name);
+        FILE *file = fopen(path, "r");
+        if (!file)
+            continue;
+        return file;
+    }
+    error("Cannot find header file: %s", name);
 }
 
 static void read_include(void) {
     char *name;
-    read_cpp_header_name(&name);
+    bool std;
+    read_cpp_header_name(&name, &std);
     expect_newline();
-    FILE *file = open_header_file(name);
+
+    List *paths = std ? std_include_path : make_list1("");
+    FILE *file = open_header_file(name, paths);
     push_input_file(file);
 }
 

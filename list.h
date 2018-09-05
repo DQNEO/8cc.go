@@ -23,6 +23,7 @@ typedef struct Iter {
     ((List){ .len = 0, .head = NULL, .tail = NULL })
 
 extern List *make_list(void);
+extern List *make_list1(void *e);
 extern List *list_copy(List *list);
 extern void list_push(List *list, void *elem);
 extern void *list_pop(List *list);

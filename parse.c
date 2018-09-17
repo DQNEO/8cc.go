@@ -15,6 +15,7 @@ static Dict *globalenv = &EMPTY_DICT;
 static Dict *localenv = NULL;
 static Dict *struct_defs = &EMPTY_DICT;
 static Dict *union_defs = &EMPTY_DICT;
+static Dict *typedefs = &EMPTY_DICT;
 static List *localvars = NULL;
 static Ctype *current_func_rettype = NULL;
 
@@ -636,7 +637,7 @@ static Ctype *get_ctype(Token *tok) {
     if (!strcmp(s, "char"))   return ctype_char;
     if (!strcmp(s, "float"))  return ctype_float;
     if (!strcmp(s, "double")) return ctype_double;
-    return NULL;
+    return dict_get(typedefs, s);
 }
 
 static bool is_type_keyword(Token *tok) {
@@ -821,6 +822,14 @@ static Ast *read_decl(void) {
     return read_decl_init(var);
 }
 
+static void read_typedef(void) {
+    Token *name;
+    Ctype *ctype;
+    read_decl_int(&name, &ctype);
+    dict_put(typedefs, name->sval, ctype);
+    expect(';');
+}
+
 static Ast *read_if_stmt(void) {
     expect('(');
     Ast *cond = read_expr();
@@ -885,8 +894,13 @@ static Ast *read_stmt(void) {
 }
 
 static Ast *read_decl_or_stmt(void) {
-    Token *tok = peek_token();
+    Token *tok = read_token();
     if (!tok) return NULL;
+    if (is_ident(tok, "typedef")) {
+        read_typedef();
+        return read_decl_or_stmt();
+    }
+    unget_token(tok);
     return is_type_keyword(tok) ? read_decl() : read_stmt();
 }
 

@@ -210,7 +210,8 @@ static void skip_block_comment(void) {
                 state = asterisk_read;
         } else if (c == '/') {
             return;
-        }
+        } else
+            state = in_comment;
     }
 }
 

@@ -3,6 +3,8 @@
 #include "8cc.h"
 
 typedef struct {
+    char *name;
+    int line;
     FILE *fp;
 } File;
 
@@ -14,14 +16,16 @@ static File *file;
 static Token *newline_token = &(Token){ .type = TTYPE_NEWLINE, .space = false };
 static Token *space_token = &(Token){ .type = TTYPE_SPACE, .space = false };
 
-static File *make_file(FILE *fp) {
+static File *make_file(char *name, FILE *fp) {
     File *r = malloc(sizeof(File));
+    r->name = name;
+    r->line = 1;
     r->fp = fp;
     return r;
 }
 
 static __attribute__((constructor)) void init(void) {
-    file = make_file(stdin);
+    file = make_file("(stdin)", stdin);
 }
 
 static Token *make_ident(String *s) {
@@ -75,16 +79,25 @@ static Token *make_string_ident(char *s) {
     return make_ident(buf);
 }
 
-void push_input_file(FILE *input) {
+void push_input_file(char *filename, FILE *fp) {
     list_push(file_stack, file);
-    file = make_file(input);
+    file = make_file(filename, fp);
+}
+
+char *input_position(void) {
+    String *buf = make_string();
+    string_appendf(buf, "%s:%d", file->name, file->line);
+    return get_cstring(buf);
 }
 
 static int get(void) {
-    return getc(file->fp);
+    int c = getc(file->fp);
+    if (c == '\n') file->line++;
+    return c;
 }
 
 static void unget(int c) {
+    if (c == '\n') file->line--;
     ungetc(c, file->fp);
 }
 

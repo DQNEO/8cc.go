@@ -518,13 +518,12 @@ static void read_include(void) {
     bool std;
     read_cpp_header_name(&name, &std);
     expect_newline();
-
     List *paths = std ? std_include_path : make_list1("");
     for (Iter *i = list_iter(paths); !iter_end(i);) {
         char *path = construct_path(iter_next(i), name);
         FILE *fp = fopen(path, "r");
         if (fp) {
-            push_input_file(fp);
+            push_input_file(path, fp);
             return;
         }
     }

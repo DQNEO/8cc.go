@@ -2,16 +2,26 @@
 #include <ctype.h>
 #include "8cc.h"
 
+typedef struct {
+    FILE *fp;
+} File;
+
 static List *buffer = &EMPTY_LIST;
 static List *altbuffer = NULL;
 static List *file_stack = &EMPTY_LIST;
-static FILE *file;
+static File *file;
 
 static Token *newline_token = &(Token){ .type = TTYPE_NEWLINE, .space = false };
 static Token *space_token = &(Token){ .type = TTYPE_SPACE, .space = false };
 
+static File *make_file(FILE *fp) {
+    File *r = malloc(sizeof(File));
+    r->fp = fp;
+    return r;
+}
+
 static __attribute__((constructor)) void init(void) {
-    file = stdin;
+    file = make_file(stdin);
 }
 
 static Token *make_ident(String *s) {
@@ -67,15 +77,15 @@ static Token *make_string_ident(char *s) {
 
 void push_input_file(FILE *input) {
     list_push(file_stack, file);
-    file = input;
+    file = make_file(input);
 }
 
 static int get(void) {
-    return getc(file);
+    return getc(file->fp);
 }
 
 static void unget(int c) {
-    ungetc(c, file);
+    ungetc(c, file->fp);
 }
 
 static int get_nonspace(void) {
@@ -366,7 +376,7 @@ Token *read_cpp_token(void) {
         if (tok) tok->space = true;
     }
     if (!tok && list_len(file_stack) > 0) {
-        fclose(file);
+        fclose(file->fp);
         file = list_pop(file_stack);
         return newline_token;
     }

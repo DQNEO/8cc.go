@@ -78,7 +78,7 @@ static void unget(int c) {
     ungetc(c, file);
 }
 
-static int getc_nonspace(void) {
+static int get_nonspace(void) {
     int c;
     while ((c = get()) != EOF) {
         if (c == ' ' || c == '\t')
@@ -99,7 +99,7 @@ static void skip_line(void) {
 void skip_cond_incl(void) {
     int nest = 0;
     for (;;) {
-        int c = getc_nonspace();
+        int c = get_nonspace();
         if (c == EOF)
             return;
         if (c != '#') {

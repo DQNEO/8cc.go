@@ -517,10 +517,10 @@ static FILE *open_header_file(char *name, List *paths) {
     for (Iter *i = list_iter(paths); !iter_end(i);) {
         char *directory = iter_next(i);
         char *path = construct_path(directory, name);
-        FILE *file = fopen(path, "r");
-        if (!file)
+        FILE *fp = fopen(path, "r");
+        if (!fp)
             continue;
-        return file;
+        return fp;
     }
     error("Cannot find header file: %s", name);
 }

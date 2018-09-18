@@ -85,6 +85,36 @@ int const_expr() {
 #endif
     expect(4, a);
 
+#if 1 && 0
+#else
+    a = 100;
+#endif
+    expect(100, a);
+
+#if 1 && 1
+    a = 101;
+#else
+#endif
+    expect(101, a);
+
+#if 1 || 0
+    a = 102;
+#else
+#endif
+    expect(102, a);
+
+#if 0 || 0
+#else
+    a = 103;
+#endif
+    expect(103, a);
+
+#if 0
+#elif !0
+    a = 104;
+#endif
+    expect(104, a);
+
 #if 0 + 0
     a = 6;
 #else

@@ -522,8 +522,7 @@ static void read_include(void) {
     List *paths = std ? std_include_path : make_list1("");
     FILE *fp;
     for (Iter *i = list_iter(paths); !iter_end(i);) {
-        char *directory = iter_next(i);
-        char *path = construct_path(directory, name);
+        char *path = construct_path(iter_next(i), name);
         fp = fopen(path, "r");
         if (fp) {
             push_input_file(fp);

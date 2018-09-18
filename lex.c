@@ -28,11 +28,11 @@ static __attribute__((constructor)) void init(void) {
     file = make_file("(stdin)", stdin);
 }
 
-static Token *make_ident(String *s) {
+static Token *make_ident(char *p) {
     Token *r = malloc(sizeof(Token));
     r->type = TTYPE_IDENT;
     r->hideset = make_dict(NULL);
-    r->sval = get_cstring(s);
+    r->sval = p;
     r->space = false;
     return r;
 }
@@ -73,21 +73,13 @@ static Token *make_char(char c) {
     return r;
 }
 
-static Token *make_string_ident(char *s) {
-    String *buf = make_string();
-    string_appendf(buf, "%s", s);
-    return make_ident(buf);
-}
-
 void push_input_file(char *filename, FILE *fp) {
     list_push(file_stack, file);
     file = make_file(filename, fp);
 }
 
 char *input_position(void) {
-    String *buf = make_string();
-    string_appendf(buf, "%s:%d", file->name, file->line);
-    return get_cstring(buf);
+    return format("%s:%d", file->name, file->line);
 }
 
 static int get(void) {
@@ -209,7 +201,7 @@ static Token *read_ident(char c) {
             string_append(s, c2);
         } else {
             unget(c2);
-            return make_ident(s);
+            return make_ident(get_cstring(s));
         }
     }
 }
@@ -290,9 +282,7 @@ static Token *read_token_int(void) {
         c = get();
         if (c == '.') {
             c = get();
-            String *s = make_string();
-            string_appendf(s, "..%c", c);
-            return make_ident(s);
+            return make_ident(format("..%c", c));
         }
         unget(c);
         return make_punct('.');
@@ -303,7 +293,7 @@ static Token *read_token_int(void) {
     case '#': {
         c = get();
         if (c == '#')
-            return make_string_ident("##");
+            return make_ident("##");
         unget(c);
         return make_punct('#');
     }

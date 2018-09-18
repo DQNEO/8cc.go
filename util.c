@@ -37,12 +37,7 @@ char *quote_cstring(char *p) {
 }
 
 char *quote_char(char c) {
-    String *s = make_string();
-    if (c == '\\')
-        string_appendf(s, "'\\\\'");
-    else if (c == '\'')
-        string_appendf(s, "'\\''");
-    else
-        string_appendf(s, "'%c'", c);
-    return get_cstring(s);
+    if (c == '\\') return "'\\\\'";
+    if (c == '\'') return "'\\''";
+    return format("'%c'", c);
 }

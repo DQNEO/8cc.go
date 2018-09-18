@@ -508,9 +508,7 @@ static void read_cpp_header_name(char **name, bool *std) {
 static char *construct_path(char *path1, char *path2) {
     if (path1[0] == '\0')
         return path2;
-    String *s = make_string();
-    string_appendf(s, "%s/%s", path1, path2);
-    return get_cstring(s);
+    return format("%s/%s", path1, path2);
 }
 
 static void read_include(void) {

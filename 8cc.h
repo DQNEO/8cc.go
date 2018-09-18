@@ -14,6 +14,7 @@ typedef struct {
 } String;
 
 extern String *make_string(void);
+extern char *format(char *fmt, ...);
 extern char *get_cstring(String *s);
 extern int string_len(String *s);
 extern void string_append(String *s, char c);

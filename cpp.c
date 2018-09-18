@@ -554,11 +554,11 @@ static void read_directive(void) {
     if (is_ident(tok, "define"))       read_define();
     else if (is_ident(tok, "undef"))   read_undef();
     else if (is_ident(tok, "if"))      read_if();
+    else if (is_ident(tok, "ifdef"))   read_ifdef();
+    else if (is_ident(tok, "ifndef"))  read_ifndef();
     else if (is_ident(tok, "else"))    read_else();
     else if (is_ident(tok, "elif"))    read_elif();
     else if (is_ident(tok, "endif"))   read_endif();
-    else if (is_ident(tok, "ifdef"))   read_ifdef();
-    else if (is_ident(tok, "ifndef"))  read_ifndef();
     else if (is_ident(tok, "include")) read_include();
     else
         error("unsupported preprocessor directive: %s", t2s(tok));

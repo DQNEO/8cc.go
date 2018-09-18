@@ -826,6 +826,8 @@ static void read_typedef(void) {
     Token *name;
     Ctype *ctype;
     read_decl_int(&name, &ctype);
+    if (!name)
+        error("Typedef name missing");
     dict_put(typedefs, name->sval, ctype);
     expect(';');
 }

@@ -32,7 +32,7 @@ static Ast *read_compound_stmt(void);
 static Ast *read_decl_or_stmt(void);
 static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
-static Ctype *read_decl_int(Token **name);
+static void read_decl_int(Token **name, Ctype **ctype);
 static Ast *read_toplevel(void);
 
 static Ast *ast_uop(int type, Ctype *ctype, Ast *operand) {
@@ -683,7 +683,8 @@ static Dict *read_struct_union_fields(void) {
         if (!is_type_keyword(peek_token()))
             break;
         Token *name;
-        Ctype *fieldtype = read_decl_int(&name);
+        Ctype *fieldtype;
+        read_decl_int(&name, &fieldtype);
         dict_put(r, name->sval, make_struct_field_type(fieldtype, 0));
         expect(';');
     }
@@ -804,17 +805,18 @@ static Ast *read_decl_init(Ast *var) {
     return ast_decl(var, NULL);
 }
 
-static Ctype *read_decl_int(Token **name) {
-    Ctype *ctype = read_decl_spec();
+static void read_decl_int(Token **name, Ctype **ctype) {
+    Ctype *t = read_decl_spec();
     *name = read_token();
     if ((*name)->type != TTYPE_IDENT)
         error("identifier expected, but got %s", t2s(*name));
-    return read_array_dimensions(ctype);
+    *ctype = read_array_dimensions(t);
 }
 
 static Ast *read_decl(void) {
     Token *varname;
-    Ctype *ctype = read_decl_int(&varname);
+    Ctype *ctype;
+    read_decl_int(&varname, &ctype);
     Ast *var = ast_lvar(ctype, varname->sval);
     return read_decl_init(var);
 }

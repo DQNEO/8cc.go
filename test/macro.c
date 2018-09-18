@@ -32,9 +32,22 @@ int undef() {
 int cond_incl() {
     int a = 1;
 #if 0
-    a = 5;
+    a = 2;
 #endif
     expect(1, a);
+
+#if 0
+#elif 1
+    a = 2;
+#endif
+    expect(2, a);
+
+#if 1
+    a = 3;
+#elif 1
+    a = 4;
+#endif
+    expect(3, a);
 
 #if 1
     a = 5;

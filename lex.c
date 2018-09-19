@@ -82,15 +82,15 @@ char *input_position(void) {
     return format("%s:%d", file->name, file->line);
 }
 
+static void unget(int c) {
+    if (c == '\n') file->line--;
+    ungetc(c, file->fp);
+}
+
 static int get(void) {
     int c = getc(file->fp);
     if (c == '\n') file->line++;
     return c;
-}
-
-static void unget(int c) {
-    if (c == '\n') file->line--;
-    ungetc(c, file->fp);
 }
 
 static int get_nonspace(void) {

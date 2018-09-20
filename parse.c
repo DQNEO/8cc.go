@@ -308,7 +308,7 @@ static int priority(Token *tok) {
         return 3;
     case '+': case '-':
         return 4;
-    case '<': case '>':
+    case '<': case '>': case PUNCT_LE: case PUNCT_GE:
         return 6;
     case '&':
         return 8;

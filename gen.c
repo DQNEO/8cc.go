@@ -340,6 +340,8 @@ static void emit_binop(Ast *ast) {
     case '<': emit_comp("setl", ast); return;
     case '>': emit_comp("setg", ast); return;
     case PUNCT_EQ: emit_comp("sete", ast); return;
+    case PUNCT_GE: emit_comp("setge", ast); return;
+    case PUNCT_LE: emit_comp("setle", ast); return;
     }
     if (is_inttype(ast->ctype))
         emit_binop_int_arith(ast);

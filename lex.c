@@ -251,7 +251,7 @@ static void skip_block_comment(void) {
     }
 }
 
-static Token *read_rep(int expect, int t1, int t2) {
+static Token *read_rep(char expect, int t1, int t2) {
     int c = get();
     if (c == expect)
         return make_punct(t1);

@@ -332,21 +332,14 @@ static void emit_binop(Ast *ast) {
         emit_assign(ast->left);
         return;
     }
-    if (ast->type == PUNCT_EQ) {
-        emit_comp("sete", ast);
-        return;
-    }
     if (ast->ctype->type == CTYPE_PTR) {
         emit_pointer_arith(ast->type, ast->left, ast->right);
         return;
     }
     switch (ast->type) {
-    case '<':
-        emit_comp("setl", ast);
-        return;
-    case '>':
-        emit_comp("setg", ast);
-        return;
+    case '<': emit_comp("setl", ast); return;
+    case '>': emit_comp("setg", ast); return;
+    case PUNCT_EQ: emit_comp("sete", ast); return;
     }
     if (is_inttype(ast->ctype))
         emit_binop_int_arith(ast);

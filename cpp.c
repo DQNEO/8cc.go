@@ -36,6 +36,9 @@ static __attribute__((constructor)) void init(void) {
     list_push(std_include_path, "/usr/include/x86_64-linux-gnu");
     list_push(std_include_path, "/usr/include/linux");
     list_push(std_include_path, ".");
+
+    dict_put(macros, "__x86_64__", cpp_token_one);
+    dict_put(macros, "__8cc__", cpp_token_one);
 }
 
 static CondIncl *make_cond_incl(CondInclCtx ctx, bool wastrue) {

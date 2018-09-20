@@ -254,9 +254,9 @@ static void skip_block_comment(void) {
 static Token *read_rep(int expect, int t1, int t2) {
     int c = get();
     if (c == expect)
-        return make_punct(t2);
+        return make_punct(t1);
     unget(c);
-    return make_punct(t1);
+    return make_punct(t2);
 }
 
 static Token *read_token_int(void) {
@@ -317,10 +317,10 @@ static Token *read_token_int(void) {
         if (c == '>') return make_punct(PUNCT_ARROW);
         unget(c);
         return make_punct('-');
-    case '=': return read_rep('=', '=', PUNCT_EQ);
-    case '+': return read_rep('+', '+', PUNCT_INC);
-    case '&': return read_rep('&', '&', PUNCT_LOGAND);
-    case '|': return read_rep('|', '|', PUNCT_LOGOR);
+    case '=': return read_rep('=', PUNCT_EQ, '=');
+    case '+': return read_rep('+', PUNCT_INC, '+');
+    case '&': return read_rep('&', PUNCT_LOGAND, '&');
+    case '|': return read_rep('|', PUNCT_LOGOR, '|');
     case '"': return read_string();
     case '\'': return read_char();
     case EOF:

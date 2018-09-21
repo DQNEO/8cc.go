@@ -220,14 +220,6 @@ static Token *read_ident(char c) {
     }
 }
 
-static void skip_line_comment(void) {
-    for (;;) {
-        int c = get();
-        if (c == '\n' || c == EOF)
-            return;
-    }
-}
-
 static void skip_space(void) {
     for (;;) {
         int c = get();
@@ -282,7 +274,7 @@ static Token *read_token_int(void) {
     case '/': {
         c = get();
         if (c == '/') {
-            skip_line_comment();
+            skip_line();
             return read_token_int();
         }
         if (c == '*') {

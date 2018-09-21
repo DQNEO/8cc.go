@@ -115,16 +115,6 @@ static void skip_line(void) {
     }
 }
 
-static int get_nonspace(void) {
-    int c;
-    while ((c = get()) != EOF) {
-        if (c == ' ' || c == '\t')
-            continue;
-        return c;
-    }
-    return EOF;
-}
-
 static void skip_space(void) {
     for (;;) {
         int c = get();
@@ -138,7 +128,8 @@ static void skip_space(void) {
 void skip_cond_incl(void) {
     int nest = 0;
     for (;;) {
-        int c = get_nonspace();
+        skip_space();
+        int c = get();
         if (c == EOF)
             return;
         if (c != '#') {

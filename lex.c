@@ -107,6 +107,14 @@ static int get(void) {
     return c;
 }
 
+static void skip_line(void) {
+    for (;;) {
+        int c = get();
+        if (c == EOF || c == '\n')
+            return;
+    }
+}
+
 static int get_nonspace(void) {
     int c;
     while ((c = get()) != EOF) {
@@ -115,14 +123,6 @@ static int get_nonspace(void) {
         return c;
     }
     return EOF;
-}
-
-static void skip_line(void) {
-    for (;;) {
-        int c = get();
-        if (c == EOF || c == '\n')
-            return;
-    }
 }
 
 void skip_cond_incl(void) {

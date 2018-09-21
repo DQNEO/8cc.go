@@ -125,6 +125,16 @@ static int get_nonspace(void) {
     return EOF;
 }
 
+static void skip_space(void) {
+    for (;;) {
+        int c = get();
+        if (c == ' ' || c == '\t')
+            continue;
+        unget(c);
+        return;
+    }
+}
+
 void skip_cond_incl(void) {
     int nest = 0;
     for (;;) {
@@ -217,16 +227,6 @@ static Token *read_ident(char c) {
             unget(c2);
             return make_ident(get_cstring(s));
         }
-    }
-}
-
-static void skip_space(void) {
-    for (;;) {
-        int c = get();
-        if (c == ' ' || c == '\t')
-            continue;
-        unget(c);
-        return;
     }
 }
 

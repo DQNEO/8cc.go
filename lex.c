@@ -132,6 +132,8 @@ void skip_cond_incl(void) {
         int c = get();
         if (c == EOF)
             return;
+        if (c == '\n')
+            continue;
         if (c != '#') {
             skip_line();
             continue;

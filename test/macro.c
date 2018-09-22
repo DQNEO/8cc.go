@@ -69,6 +69,7 @@ int cond_incl() {
     expect(12, a);
 
 #if 0
+
 #if 1
 #endif
 #else

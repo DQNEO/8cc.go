@@ -116,6 +116,7 @@ static void skip_line(void) {
 static void skip_space(void) {
     for (;;) {
         int c = get();
+        if (c == EOF) return;
         if (c == ' ' || c == '\t')
             continue;
         if (c == '/') {

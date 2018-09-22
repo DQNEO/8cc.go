@@ -229,6 +229,8 @@ static void skip_block_comment(void) {
     enum { in_comment, asterisk_read } state = in_comment;
     for (;;) {
         int c = get();
+        if (c == EOF)
+            error("premature end of block comment");
         if (c == '*')
             state = asterisk_read;
         else if (state == asterisk_read && c == '/')

@@ -150,11 +150,10 @@ void skip_cond_incl(void) {
             unget_cpp_token(make_punct('#'));
             return;
         }
-        if (is_ident(tok, "if") || is_ident(tok, "ifdef") || is_ident(tok, "ifndef")) {
+        if (is_ident(tok, "if") || is_ident(tok, "ifdef") || is_ident(tok, "ifndef"))
             nest++;
-        } else if (nest && is_ident(tok, "endif")) {
+        else if (nest && is_ident(tok, "endif"))
             nest--;
-        }
         skip_line();
     }
 }

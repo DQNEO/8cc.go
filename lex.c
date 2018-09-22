@@ -120,12 +120,11 @@ static void skip_space(void) {
             continue;
         if (c == '/') {
             c = get();
-            if (c == '/') {
-                skip_line();
-                continue;
-            }
             if (c == '*') {
                 skip_block_comment();
+                continue;
+            } else if (c == '/') {
+                skip_line();
                 continue;
             }
             unget(c);

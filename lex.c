@@ -147,6 +147,7 @@ void skip_cond_incl(void) {
             continue;
         } else if (nest && is_ident(tok, "endif")) {
             nest--;
+            skip_line();
             continue;
         } else if (!nest && (is_ident(tok, "else") || is_ident(tok, "elif") || is_ident(tok, "endif"))) {
             unget_cpp_token(tok);

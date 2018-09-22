@@ -17,6 +17,8 @@ static int ungotten = -1;
 static Token *newline_token = &(Token){ .type = TTYPE_NEWLINE, .space = false };
 static Token *space_token = &(Token){ .type = TTYPE_SPACE, .space = false };
 
+static void skip_block_comment(void);
+
 static File *make_file(char *name, FILE *fp) {
     File *r = malloc(sizeof(File));
     r->name = name;
@@ -114,8 +116,22 @@ static void skip_line(void) {
 static void skip_space(void) {
     for (;;) {
         int c = get();
+        if (c == EOF) return;
         if (c == ' ' || c == '\t')
             continue;
+        if (c == '/') {
+            c = get();
+            if (c == '*') {
+                skip_block_comment();
+                continue;
+            } else if (c == '/') {
+                skip_line();
+                continue;
+            }
+            unget(c);
+            unget('/');
+            return;
+        }
         unget(c);
         return;
     }

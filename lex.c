@@ -29,48 +29,41 @@ static __attribute__((constructor)) void init(void) {
     file = make_file("(stdin)", stdin);
 }
 
-static Token *make_ident(char *p) {
+static Token *make_token(int type) {
     Token *r = malloc(sizeof(Token));
-    r->type = TTYPE_IDENT;
+    r->type = type;
     r->hideset = make_dict(NULL);
-    r->sval = p;
     r->space = false;
+    return r;
+}
+
+static Token *make_ident(char *p) {
+    Token *r = make_token(TTYPE_IDENT);
+    r->sval = p;
     return r;
 }
 
 static Token *make_strtok(String *s) {
-    Token *r = malloc(sizeof(Token));
-    r->type = TTYPE_STRING;
-    r->hideset = make_dict(NULL);
+    Token *r = make_token(TTYPE_STRING);
     r->sval = get_cstring(s);
-    r->space = false;
     return r;
 }
 
 static Token *make_punct(int punct) {
-    Token *r = malloc(sizeof(Token));
-    r->type = TTYPE_PUNCT;
-    r->hideset = make_dict(NULL);
+    Token *r = make_token(TTYPE_PUNCT);
     r->punct = punct;
-    r->space = false;
     return r;
 }
 
 static Token *make_number(char *s) {
-    Token *r = malloc(sizeof(Token));
-    r->type = TTYPE_NUMBER;
-    r->hideset = make_dict(NULL);
+    Token *r = make_token(TTYPE_NUMBER);
     r->sval = s;
-    r->space = false;
     return r;
 }
 
 static Token *make_char(char c) {
-    Token *r = malloc(sizeof(Token));
-    r->type = TTYPE_CHAR;
-    r->hideset = make_dict(NULL);
+    Token *r = make_token(TTYPE_CHAR);
     r->c = c;
-    r->space = false;
     return r;
 }
 

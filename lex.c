@@ -77,7 +77,8 @@ char *input_position(void) {
 }
 
 static void unget(int c) {
-    if (c == '\n') file->line--;
+    if (c == '\n')
+        file->line--;
     if (ungotten >= 0)
         ungetc(ungotten, file->fp);
     ungotten = c;

@@ -641,7 +641,6 @@ Ast *read_expr(void) {
 }
 
 static Ctype *get_ctype(Token *tok) {
-    if (!tok) return NULL;
     if (tok->type != TTYPE_IDENT)
         return NULL;
     char *s = tok->sval;
@@ -654,6 +653,8 @@ static Ctype *get_ctype(Token *tok) {
 }
 
 static bool is_type_keyword(Token *tok) {
+    if (!tok) return false;
+
     return get_ctype(tok) != NULL
         || is_ident(tok, "struct")
         || is_ident(tok, "union");
@@ -744,6 +745,7 @@ static Ctype *read_struct_def(void) {
 
 static Ctype *read_decl_spec(void) {
     Token *tok = read_token();
+    if (!tok) return NULL;
     Ctype *ctype = is_ident(tok, "struct") ? read_struct_def()
         : is_ident(tok, "union") ? read_union_def()
         : get_ctype(tok);

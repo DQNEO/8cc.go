@@ -180,9 +180,9 @@ typedef struct Ast {
     };
 } Ast;
 
+extern Ctype *ctype_char;
 extern Ctype *ctype_int;
 extern Ctype *ctype_long;
-extern Ctype *ctype_char;
 extern Ctype *ctype_float;
 extern Ctype *ctype_double;
 

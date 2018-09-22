@@ -19,9 +19,9 @@ static Dict *typedefs = &EMPTY_DICT;
 static List *localvars = NULL;
 static Ctype *current_func_rettype = NULL;
 
+Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, 1, NULL };
 Ctype *ctype_int = &(Ctype){ CTYPE_INT, 4, NULL };
 Ctype *ctype_long = &(Ctype){ CTYPE_LONG, 8, NULL };
-Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, 1, NULL };
 Ctype *ctype_float = &(Ctype){ CTYPE_FLOAT, 4, NULL };
 Ctype *ctype_double = &(Ctype){ CTYPE_DOUBLE, 8, NULL };
 
@@ -641,9 +641,9 @@ static Ctype *get_ctype(Token *tok) {
     if (tok->type != TTYPE_IDENT)
         return NULL;
     char *s = tok->sval;
+    if (!strcmp(s, "char"))   return ctype_char;
     if (!strcmp(s, "int"))    return ctype_int;
     if (!strcmp(s, "long"))   return ctype_long;
-    if (!strcmp(s, "char"))   return ctype_char;
     if (!strcmp(s, "float"))  return ctype_float;
     if (!strcmp(s, "double")) return ctype_double;
     return dict_get(typedefs, s);

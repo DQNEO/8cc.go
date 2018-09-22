@@ -67,6 +67,14 @@ int cond_incl() {
     a = 12;
 #endif
     expect(12, a);
+
+#if 0
+# if 1
+# endif
+#else
+    a = 150;
+#endif
+    expect(150, a);
 }
 
 int const_expr() {
@@ -84,6 +92,18 @@ int const_expr() {
     a = 5;
 #endif
     expect(4, a);
+
+#if 1 == 1
+    a = 90;
+#else
+#endif
+    expect(90, a);
+
+#if 1 == 2
+#else
+    a = 91;
+#endif
+    expect(91, a);
 
 #if 1 && 0
 #else
@@ -253,6 +273,11 @@ int funclike() {
     expect_string("x ## y", join(x, y));
 }
 
+int empty() {
+#define EMPTY
+    expect(1, 1 EMPTY);
+}
+
 int main() {
     printf("Testing macros ... ");
 
@@ -264,6 +289,7 @@ int main() {
     defined();
     ifdef();
     funclike();
+    empty();
 
     printf("OK\n");
     return 0;

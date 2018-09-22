@@ -288,11 +288,13 @@ int eval_intexpr(Ast *ast) {
     case '-': return eval_intexpr(ast->left) - eval_intexpr(ast->right);
     case '*': return eval_intexpr(ast->left) * eval_intexpr(ast->right);
     case '/': return eval_intexpr(ast->left) / eval_intexpr(ast->right);
+    case '<': return eval_intexpr(ast->left) < eval_intexpr(ast->right);
+    case '>': return eval_intexpr(ast->left) > eval_intexpr(ast->right);
     case '!': return !eval_intexpr(ast->operand);
-    case PUNCT_GE:
-        return eval_intexpr(ast->left) >= eval_intexpr(ast->right);
-    case PUNCT_LE:
-        return eval_intexpr(ast->left) <= eval_intexpr(ast->right);
+    case AST_TERNARY: return eval_intexpr(ast->cond) ? eval_intexpr(ast->then) : eval_intexpr(ast->els);
+    case PUNCT_EQ: return eval_intexpr(ast->left) == eval_intexpr(ast->right);
+    case PUNCT_GE: return eval_intexpr(ast->left) >= eval_intexpr(ast->right);
+    case PUNCT_LE: return eval_intexpr(ast->left) <= eval_intexpr(ast->right);
     case PUNCT_LOGAND:
         return eval_intexpr(ast->left) && eval_intexpr(ast->right);
     case PUNCT_LOGOR:

@@ -641,13 +641,16 @@ Ast *read_expr(void) {
 }
 
 static Ctype *get_ctype(Token *tok) {
+    Ctype *r = dict_get(typedefs, tok->sval);
+    if (r) return r;
+
     char *s = tok->sval;
     if (!strcmp(s, "char"))   return ctype_char;
     if (!strcmp(s, "int"))    return ctype_int;
     if (!strcmp(s, "long"))   return ctype_long;
     if (!strcmp(s, "float"))  return ctype_float;
     if (!strcmp(s, "double")) return ctype_double;
-    return dict_get(typedefs, s);
+    return NULL;
 }
 
 static bool is_type_keyword(Token *tok) {

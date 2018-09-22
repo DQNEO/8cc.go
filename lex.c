@@ -156,8 +156,6 @@ void skip_cond_incl(void) {
             unget_cpp_token(tok);
             unget_cpp_token(make_punct('#'));
             return;
-        } else {
-            skip_line();
         }
     }
 }

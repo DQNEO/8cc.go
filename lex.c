@@ -144,6 +144,7 @@ void skip_cond_incl(void) {
             continue;
         } else if (is_ident(tok, "if") || is_ident(tok, "ifdef") || is_ident(tok, "ifndef")) {
             nest++;
+            skip_line();
             continue;
         } else if (nest && is_ident(tok, "endif")) {
             nest--;

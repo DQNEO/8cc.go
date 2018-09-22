@@ -138,6 +138,7 @@ void skip_cond_incl(void) {
             skip_line();
             continue;
         }
+        skip_space();
         Token *tok = read_cpp_token();
         if (tok->type == TTYPE_NEWLINE)
             continue;

@@ -657,9 +657,12 @@ static bool is_type_keyword(Token *tok) {
     if (tok->type != TTYPE_IDENT)
         return false;
 
-    return get_ctype(tok) != NULL
-        || is_ident(tok, "struct")
-        || is_ident(tok, "union");
+    char *keyword[] = { "char", "int", "long", "float", "double",
+                        "struct", "union", "signed", "unsigned" };
+    for (int i = 0; i < sizeof(keyword) / sizeof(*keyword); i++)
+        if (!strcmp(keyword[i], tok->sval))
+            return true;
+    return dict_get(typedefs, tok->sval);
 }
 
 static Ast *read_decl_array_init_int(Ctype *ctype) {

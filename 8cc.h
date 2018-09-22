@@ -92,6 +92,8 @@ enum {
 typedef struct Ctype {
     int type;
     int size;
+    // signed or unsigned
+    bool sign;
     // pointer or array
     struct Ctype *ptr;
     // array length

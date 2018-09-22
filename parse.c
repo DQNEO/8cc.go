@@ -19,11 +19,15 @@ static Dict *typedefs = &EMPTY_DICT;
 static List *localvars = NULL;
 static Ctype *current_func_rettype = NULL;
 
-Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, 1, };
-Ctype *ctype_int = &(Ctype){ CTYPE_INT, 4, };
-Ctype *ctype_long = &(Ctype){ CTYPE_LONG, 8, };
-Ctype *ctype_float = &(Ctype){ CTYPE_FLOAT, 4, };
-Ctype *ctype_double = &(Ctype){ CTYPE_DOUBLE, 8, };
+Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, 1, true };
+Ctype *ctype_int = &(Ctype){ CTYPE_INT, 4, true };
+Ctype *ctype_long = &(Ctype){ CTYPE_LONG, 8, true };
+Ctype *ctype_float = &(Ctype){ CTYPE_FLOAT, 4, true };
+Ctype *ctype_double = &(Ctype){ CTYPE_DOUBLE, 8, true };
+
+static Ctype *ctype_uchar = &(Ctype){ CTYPE_CHAR, 1, false };
+static Ctype *ctype_uint = &(Ctype){ CTYPE_INT, 4, false };
+static Ctype *ctype_ulong = &(Ctype){ CTYPE_LONG, 8, false };
 
 static int labelseq = 0;
 

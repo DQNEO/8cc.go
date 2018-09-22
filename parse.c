@@ -654,7 +654,6 @@ static Ctype *get_ctype(Token *tok) {
 }
 
 static bool is_type_keyword(Token *tok) {
-    if (!tok) return false;
     if (tok->type != TTYPE_IDENT)
         return false;
 

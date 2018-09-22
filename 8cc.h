@@ -92,7 +92,8 @@ enum {
 typedef struct Ctype {
     int type;
     int size;
-    struct Ctype *ptr; // pointer or array
+    // pointer or array
+    struct Ctype *ptr;
     // array length
     int len;
     // struct

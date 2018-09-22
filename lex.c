@@ -144,15 +144,18 @@ void skip_cond_incl(void) {
         if (tok->type != TTYPE_IDENT) {
             skip_line();
             continue;
-        } else if (is_ident(tok, "if") || is_ident(tok, "ifdef") || is_ident(tok, "ifndef")) {
+        }
+        if (is_ident(tok, "if") || is_ident(tok, "ifdef") || is_ident(tok, "ifndef")) {
             nest++;
             skip_line();
             continue;
-        } else if (nest && is_ident(tok, "endif")) {
+        }
+        if (nest && is_ident(tok, "endif")) {
             nest--;
             skip_line();
             continue;
-        } else if (!nest && (is_ident(tok, "else") || is_ident(tok, "elif") || is_ident(tok, "endif"))) {
+        }
+        if (!nest && (is_ident(tok, "else") || is_ident(tok, "elif") || is_ident(tok, "endif"))) {
             unget_cpp_token(tok);
             unget_cpp_token(make_punct('#'));
             return;

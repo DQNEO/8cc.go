@@ -145,6 +145,11 @@ void skip_cond_incl(void) {
             skip_line();
             continue;
         }
+        if (!nest && (is_ident(tok, "else") || is_ident(tok, "elif") || is_ident(tok, "endif"))) {
+            unget_cpp_token(tok);
+            unget_cpp_token(make_punct('#'));
+            return;
+        }
         if (is_ident(tok, "if") || is_ident(tok, "ifdef") || is_ident(tok, "ifndef")) {
             nest++;
             skip_line();
@@ -154,11 +159,6 @@ void skip_cond_incl(void) {
             nest--;
             skip_line();
             continue;
-        }
-        if (!nest && (is_ident(tok, "else") || is_ident(tok, "elif") || is_ident(tok, "endif"))) {
-            unget_cpp_token(tok);
-            unget_cpp_token(make_punct('#'));
-            return;
         }
     }
 }

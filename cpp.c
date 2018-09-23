@@ -319,6 +319,8 @@ static void unget_all(List *tokens) {
 static Token *read_expand(void) {
     Token *tok = read_cpp_token();
     if (!tok) return NULL;
+    if (tok->type == TTYPE_NEWLINE)
+        return read_expand();
     if (tok->type != TTYPE_IDENT)
         return tok;
     char *name = tok->sval;

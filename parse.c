@@ -655,7 +655,6 @@ static Ctype *read_ctype(Token *tok) {
             return si == unsign ? ctype_uint : ctype_int;
         }
     }
-
     if (!strcmp(tok->sval, "char"))
         return si == unsign ? ctype_uchar : ctype_char;
     if (!strcmp(tok->sval, "int"))
@@ -674,7 +673,6 @@ static Ctype *read_ctype(Token *tok) {
 static bool is_type_keyword(Token *tok) {
     if (tok->type != TTYPE_IDENT)
         return false;
-
     char *keyword[] = { "char", "int", "long", "float", "double",
                         "struct", "union", "signed", "unsigned" };
     for (int i = 0; i < sizeof(keyword) / sizeof(*keyword); i++)

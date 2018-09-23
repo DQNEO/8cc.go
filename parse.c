@@ -772,8 +772,7 @@ static Ctype *read_decl_spec(void) {
     Ctype *ctype = is_ident(tok, "struct") ? read_struct_def()
         : is_ident(tok, "union") ? read_union_def()
         : read_ctype(tok);
-    if (!ctype)
-        error("Type expected, but got %s", t2s(tok));
+    assert(ctype);
     for (;;) {
         tok = read_token();
         if (!is_punct(tok, '*')) {

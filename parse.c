@@ -640,17 +640,35 @@ Ast *read_expr(void) {
     return read_expr_int(MAX_OP_PRIO);
 }
 
-static Ctype *get_ctype(Token *tok) {
+static Ctype *read_ctype(Token *tok) {
     Ctype *r = dict_get(typedefs, tok->sval);
     if (r) return r;
 
-    char *s = tok->sval;
-    if (!strcmp(s, "char"))   return ctype_char;
-    if (!strcmp(s, "int"))    return ctype_int;
-    if (!strcmp(s, "long"))   return ctype_long;
-    if (!strcmp(s, "float"))  return ctype_float;
-    if (!strcmp(s, "double")) return ctype_double;
-    return NULL;
+    enum { sign, unsign, unspec } si = unspec;
+    for (;;) {
+        if (!strcmp(tok->sval, "signed")) si = sign;
+        else if (!strcmp(tok->sval, "unsigned")) si = unsign;
+        else break;
+        tok = read_token();
+        if (tok->type != TTYPE_IDENT) {
+            unget_token(tok);
+            return si == unsign ? ctype_uint : ctype_int;
+        }
+    }
+
+    if (!strcmp(tok->sval, "char"))
+        return si == unsign ? ctype_uchar : ctype_char;
+    if (!strcmp(tok->sval, "int"))
+        return si == unsign ? ctype_uint : ctype_int;
+    if (!strcmp(tok->sval, "long"))
+        return si == unsign ? ctype_ulong : ctype_long;
+    if (!strcmp(tok->sval, "float"))  return ctype_float;
+    if (!strcmp(tok->sval, "double")) return ctype_double;
+    if (si != unspec) {
+        unget_token(tok);
+        return si == unsign ? ctype_uint : ctype_int;
+    }
+    error("Type expected, but got '%s'", t2s(tok));
 }
 
 static bool is_type_keyword(Token *tok) {
@@ -753,7 +771,7 @@ static Ctype *read_decl_spec(void) {
     if (!tok) return NULL;
     Ctype *ctype = is_ident(tok, "struct") ? read_struct_def()
         : is_ident(tok, "union") ? read_union_def()
-        : get_ctype(tok);
+        : read_ctype(tok);
     if (!ctype)
         error("Type expected, but got %s", t2s(tok));
     for (;;) {

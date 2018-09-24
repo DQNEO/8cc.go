@@ -798,14 +798,14 @@ static int compute_struct_size(Dict *fields) {
     return offset;
 }
 
-static Ctype *read_struct_union_def(void) {
+static Ctype *read_struct_union_def(Dict *env) {
     char *tag = read_struct_union_tag();
-    Ctype *ctype = dict_get(struct_defs, tag);
+    Ctype *ctype = dict_get(env, tag);
     if (ctype) return ctype;
     Dict *fields = read_struct_union_fields();
     Ctype *r = make_struct_type(fields, compute_struct_size(fields));
     if (tag)
-        dict_put(struct_defs, tag, r);
+        dict_put(env, tag, r);
     return r;
 }
 
@@ -821,7 +821,7 @@ static Ctype *read_union_def(void) {
 }
 
 static Ctype *read_struct_def(void) {
-    return read_struct_union_def();
+    return read_struct_union_def(struct_defs);
 }
 
 static Ctype *read_decl_spec(void) {

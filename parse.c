@@ -800,7 +800,7 @@ static int compute_struct_size(Dict *fields) {
 
 static Ctype *read_struct_union_def(Dict *env, int (*compute_size)(Dict *)) {
     char *tag = read_struct_union_tag();
-    Ctype *prev = dict_get(env, tag);
+    Ctype *prev = tag ? dict_get(env, tag) : NULL;
     if (prev) return prev;
     Dict *fields = read_struct_union_fields();
     Ctype *r = fields

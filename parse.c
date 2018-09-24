@@ -1051,31 +1051,33 @@ static Ast *read_func_decl_or_def(Ctype *rettype, char *fname) {
 }
 
 static Ast *read_toplevel(void) {
-    Token *tok = read_token();
-    if (!tok) return NULL;
-    if (is_ident(tok, "typedef")) {
-        read_typedef();
-        return read_toplevel();
+    for (;;) {
+        Token *tok = read_token();
+        if (!tok) return NULL;
+        if (is_ident(tok, "typedef")) {
+            read_typedef();
+            continue;
+        }
+        unget_token(tok);
+        Ctype *ctype = read_decl_spec();
+        Token *name = read_token();
+        if (name->type != TTYPE_IDENT)
+            error("Identifier expected, but got %s", t2s(name));
+        ctype = read_array_dimensions(ctype);
+        tok = peek_token();
+        if (is_punct(tok, '=') || ctype->type == CTYPE_ARRAY) {
+            Ast *var = ast_gvar(ctype, name->sval, false);
+            return read_decl_init(var);
+        }
+        if (is_punct(tok, '('))
+            return read_func_decl_or_def(ctype, name->sval);
+        if (is_punct(tok, ';')) {
+            read_token();
+            Ast *var = ast_gvar(ctype, name->sval, false);
+            return ast_decl(var, NULL);
+        }
+        error("Don't know how to handle %s", t2s(tok));
     }
-    unget_token(tok);
-    Ctype *ctype = read_decl_spec();
-    Token *name = read_token();
-    if (name->type != TTYPE_IDENT)
-        error("Identifier expected, but got %s", t2s(name));
-    ctype = read_array_dimensions(ctype);
-    tok = peek_token();
-    if (is_punct(tok, '=') || ctype->type == CTYPE_ARRAY) {
-        Ast *var = ast_gvar(ctype, name->sval, false);
-        return read_decl_init(var);
-    }
-    if (is_punct(tok, '('))
-        return read_func_decl_or_def(ctype, name->sval);
-    if (is_punct(tok, ';')) {
-        read_token();
-        Ast *var = ast_gvar(ctype, name->sval, false);
-        return ast_decl(var, NULL);
-    }
-    error("Don't know how to handle %s", t2s(tok));
 }
 
 List *read_toplevels(void) {

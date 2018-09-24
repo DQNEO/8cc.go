@@ -800,8 +800,8 @@ static int compute_struct_size(Dict *fields) {
 
 static Ctype *read_struct_union_def(Dict *env, int (*compute_size)(Dict *)) {
     char *tag = read_struct_union_tag();
-    Ctype *ctype = dict_get(env, tag);
-    if (ctype) return ctype;
+    Ctype *prev = dict_get(env, tag);
+    if (prev) return prev;
     Dict *fields = read_struct_union_fields();
     Ctype *r = fields
         ? make_struct_type(fields, compute_size(fields))

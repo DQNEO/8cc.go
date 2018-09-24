@@ -803,7 +803,9 @@ static Ctype *read_struct_union_def(Dict *env, int (*compute_size)(Dict *)) {
     Ctype *ctype = dict_get(env, tag);
     if (ctype) return ctype;
     Dict *fields = read_struct_union_fields();
-    Ctype *r = make_struct_type(fields, compute_size(fields));
+    Ctype *r = fields
+        ? make_struct_type(fields, compute_size(fields))
+        : make_struct_type(NULL, 0);
     if (tag)
         dict_put(env, tag, r);
     return r;

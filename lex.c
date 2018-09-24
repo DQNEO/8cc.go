@@ -2,6 +2,8 @@
 #include <ctype.h>
 #include "8cc.h"
 
+static bool at_bol = true;
+
 typedef struct {
     char *name;
     int line;
@@ -36,6 +38,7 @@ static Token *make_token(int type) {
     r->type = type;
     r->hideset = make_dict(NULL);
     r->space = false;
+    r->bol = false;
     r->file = file->name;
     r->line = file->line;
     return r;
@@ -98,10 +101,15 @@ static int get(void) {
             return get();
         }
         unget(c);
+        at_bol = false;
         return '\\';
     }
-    if (c == '\n')
+    if (c == '\n') {
         file->line++;
+        at_bol = true;
+    } else {
+        at_bol = false;
+    }
     return c;
 }
 
@@ -160,7 +168,9 @@ void skip_cond_incl(void) {
         }
         if (!nest && (is_ident(tok, "else") || is_ident(tok, "elif") || is_ident(tok, "endif"))) {
             unget_cpp_token(tok);
-            unget_cpp_token(make_punct('#'));
+            Token *sharp = make_punct('#');
+            sharp->bol = true;
+            unget_cpp_token(sharp);
             return;
         }
         if (is_ident(tok, "if") || is_ident(tok, "ifdef") || is_ident(tok, "ifndef"))
@@ -390,6 +400,7 @@ Token *read_cpp_token(void) {
         return list_pop(altbuffer);
     if (list_len(buffer) > 0)
         return list_pop(buffer);
+    bool bol = at_bol;
     Token *tok = read_token_int();
     while (tok && tok->type == TTYPE_SPACE) {
         tok = read_token_int();
@@ -398,7 +409,9 @@ Token *read_cpp_token(void) {
     if (!tok && list_len(file_stack) > 0) {
         fclose(file->fp);
         file = list_pop(file_stack);
+        at_bol = true;
         return newline_token;
     }
+    if (tok) tok->bol = bol;
     return tok;
 }

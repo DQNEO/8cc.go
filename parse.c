@@ -776,27 +776,16 @@ static Dict *read_struct_union_fields(void) {
     return r;
 }
 
-static Ctype *read_union_def(void) {
-    char *tag = read_struct_union_tag();
-    Ctype *ctype = dict_get(union_defs, tag);
-    if (ctype) return ctype;
-    Dict *fields = read_struct_union_fields();
+static int compute_union_size(Dict *fields) {
     int maxsize = 0;
     for (Iter *i = list_iter(dict_values(fields)); !iter_end(i);) {
         Ctype *fieldtype = iter_next(i);
         maxsize = (maxsize < fieldtype->size) ? fieldtype->size : maxsize;
     }
-    Ctype *r = make_struct_type(fields, maxsize);
-    if (tag)
-        dict_put(union_defs, tag, r);
-    return r;
+    return maxsize;
 }
 
-static Ctype *read_struct_def(void) {
-    char *tag = read_struct_union_tag();
-    Ctype *ctype = dict_get(struct_defs, tag);
-    if (ctype) return ctype;
-    Dict *fields = read_struct_union_fields();
+static int compute_struct_size(Dict *fields) {
     int offset = 0;
     for (Iter *i = list_iter(dict_values(fields)); !iter_end(i);) {
         Ctype *fieldtype = iter_next(i);
@@ -806,10 +795,33 @@ static Ctype *read_struct_def(void) {
         fieldtype->offset = offset;
         offset += fieldtype->size;
     }
-    Ctype *r = make_struct_type(fields, offset);
+    return offset;
+}
+
+static Ctype *read_struct_union_def(void) {
+    char *tag = read_struct_union_tag();
+    Ctype *ctype = dict_get(struct_defs, tag);
+    if (ctype) return ctype;
+    Dict *fields = read_struct_union_fields();
+    Ctype *r = make_struct_type(fields, compute_struct_size(fields));
     if (tag)
         dict_put(struct_defs, tag, r);
     return r;
+}
+
+static Ctype *read_union_def(void) {
+    char *tag = read_struct_union_tag();
+    Ctype *ctype = dict_get(union_defs, tag);
+    if (ctype) return ctype;
+    Dict *fields = read_struct_union_fields();
+    Ctype *r = make_struct_type(fields, compute_union_size(fields));
+    if (tag)
+        dict_put(union_defs, tag, r);
+    return r;
+}
+
+static Ctype *read_struct_def(void) {
+    return read_struct_union_def();
 }
 
 static Ctype *read_decl_spec(void) {

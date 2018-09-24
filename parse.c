@@ -645,6 +645,7 @@ Ast *read_expr(void) {
 }
 
 static Ctype *read_ctype(Token *tok) {
+    assert(tok && tok->type == TTYPE_IDENT);
     Ctype *r = dict_get(typedefs, tok->sval);
     if (r) return r;
 

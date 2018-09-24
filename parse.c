@@ -757,8 +757,12 @@ static char *read_struct_union_tag(void) {
 }
 
 static Dict *read_struct_union_fields(void) {
+    Token *tok = read_token();
+    if (!is_punct(tok, '{')) {
+        unget_token(tok);
+        return NULL;
+    }
     Dict *r = make_dict(NULL);
-    expect('{');
     for (;;) {
         if (!is_type_keyword(peek_token()))
             break;
@@ -1061,6 +1065,8 @@ static Ast *read_toplevel(void) {
         unget_token(tok);
         Ctype *ctype = read_decl_spec();
         Token *name = read_token();
+        if (is_punct(name, ';'))
+            continue;
         if (name->type != TTYPE_IDENT)
             error("Identifier expected, but got %s", t2s(name));
         ctype = read_array_dimensions(ctype);

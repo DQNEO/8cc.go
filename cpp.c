@@ -28,6 +28,15 @@ typedef struct {
 static Token *read_token_int(bool return_at_eol);
 static Token *read_expand(void);
 
+static void eval(char *buf) {
+    FILE *fp = fmemopen(buf, strlen(buf), "r");
+    set_input_file("(eval)", fp);
+    List *toplevels = read_toplevels();
+    for (Iter *i = list_iter(toplevels); !iter_end(i);)
+        emit_toplevel(iter_next(i));
+    set_input_file("(stdin)", stdin);
+}
+
 static __attribute__((constructor)) void init(void) {
     std_include_path = make_list();
     list_push(std_include_path, "/usr/local/include");
@@ -39,6 +48,7 @@ static __attribute__((constructor)) void init(void) {
 
     dict_put(macros, "__x86_64__", cpp_token_one);
     dict_put(macros, "__8cc__", cpp_token_one);
+    eval("typedef int __builtin_va_list[1];");
 }
 
 static CondIncl *make_cond_incl(CondInclCtx ctx, bool wastrue) {

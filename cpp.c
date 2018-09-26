@@ -46,8 +46,8 @@ static __attribute__((constructor)) void init(void) {
     list_push(std_include_path, "/usr/include");
     list_push(std_include_path, ".");
 
-    dict_put(macros, "__x86_64__", cpp_token_one);
-    dict_put(macros, "__8cc__", cpp_token_one);
+    dict_put(macros, "__x86_64__", cpp_token_one); // BUG!! should put *macro istead of *tokenw
+    dict_put(macros, "__8cc__", cpp_token_one); // BUG!! should put *macro istead of *tokenw
     eval("typedef int __builtin_va_list[1];");
 }
 

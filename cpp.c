@@ -566,6 +566,32 @@ static void read_include(void) {
     error("Cannot find header file: %s", name);
 }
 
+static char *macro_to_string(char *name, Macro *m) {
+    String *s = make_string();
+    if (m->type == MACRO_OBJ)
+        string_appendf(s, "%s ->", name, m->nargs);
+    else
+        string_appendf(s, "%s(%d) ->", name, m->nargs);
+    if (!m->body) return get_cstring(s);
+    for (Iter *i = list_iter(m->body); !iter_end(i);)
+        string_appendf(s, " %s", t2s(iter_next(i)));
+    return get_cstring(s);
+}
+
+static void read_print(void) {
+    Token *tok = read_cpp_token();
+    expect_newline();
+    fprintf(stderr, "#print %s: ", input_position());
+    if (tok->type == TTYPE_IDENT) {
+        Macro *m = dict_get(macros, tok->sval);
+        if (m) {
+            fprintf(stderr, "%s\n", macro_to_string(tok->sval, m));
+            return;
+        }
+    }
+    fprintf(stderr, "%s\n", t2s(tok));
+}
+
 static void read_directive(void) {
     Token *tok = read_cpp_token();
     if (is_ident(tok, "define"))       read_define();
@@ -577,6 +603,7 @@ static void read_directive(void) {
     else if (is_ident(tok, "elif"))    read_elif();
     else if (is_ident(tok, "endif"))   read_endif();
     else if (is_ident(tok, "include")) read_include();
+    else if (is_ident(tok, "print"))   read_print();
     else
         error("unsupported preprocessor directive: %s", t2s(tok));
 }

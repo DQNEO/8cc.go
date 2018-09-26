@@ -125,14 +125,14 @@ static List *read_args_int(Macro *macro) {
             error("unterminated macro argument list");
         if (tok->type == TTYPE_NEWLINE)
             continue;
-        if (depth) {
+        if (is_punct(tok, '(')) {
+            depth++;
+        } else if (depth) {
             if (is_punct(tok, ')'))
                 depth--;
             list_push(arg, tok);
             continue;
         }
-        if (is_punct(tok, '('))
-            depth++;
         if (is_punct(tok, ')')) {
             unget_token(tok);
             if (list_len(r) != 0 || list_len(arg) != 0)

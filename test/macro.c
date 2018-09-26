@@ -278,6 +278,10 @@ int funclike() {
 int empty() {
 #define EMPTY
     expect(1, 1 EMPTY);
+#define EMPTY2(x)
+    expect(2, 2 EMPTY2(foo));
+    expect(2, 2 EMPTY2(foo bar));
+    expect(2, 2 EMPTY2(((()))));
 }
 
 int main() {

@@ -102,7 +102,7 @@ static void unget(int c) {
 }
 
 static int get(void) {
-    int c = (ungotten < 0) ? getc(file->fp) : ungotten;
+    int c = (ungotten >= 0) ? ungotten : getc(file->fp);
     file->column++;
     ungotten = -1;
     if (c == '\\') {

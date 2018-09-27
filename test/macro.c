@@ -6,7 +6,8 @@ int expect(int a, int b) {
     }
 }
 
-#define foo bar
+#define ONE 1
+#define TWO ONE + ONE
 
 int main() {
     printf("Testing macros ... ");

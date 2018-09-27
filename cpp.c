@@ -1,15 +1,21 @@
 #include "8cc.h"
 
+static Dict *macros = &EMPTY_DICT;
 static List *buffer = &EMPTY_LIST;
 static bool bol = true;
 
-
 static void read_define(void) {
+    Token *name = read_cpp_token();
+    if (name->type != TTYPE_IDENT)
+        error("macro name must be an identifier, but got %s", token_to_string(name));
+    List *body = make_list();
     for (;;) {
         Token *tok = read_cpp_token();
-        if (tok->type == TTYPE_NEWLINE)
-            return;
+        if (!tok || tok->type == TTYPE_NEWLINE)
+            break;
+        list_push(body, tok);
     }
+    dict_put(macros, name->sval, body);
 }
 
 static void read_directive(void) {

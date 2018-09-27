@@ -36,10 +36,11 @@ int solve(int board[][N], int row) {
     }
 }
 
-int main() {
+int main(int argc, char **argv) {
     int board[N * N];
     int i;
     for (i = 0; i < N * N; i++)
         board[i] = 0;
     solve(board, 0);
+    return 0;
 }

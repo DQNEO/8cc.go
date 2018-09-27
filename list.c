@@ -37,6 +37,7 @@ void *list_pop(List *list) {
         list->tail->next = NULL;
     else
         list->head = NULL;
+    list->len--;
     return r;
 }
 

@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <string.h>
 #include "8cc.h"
 
@@ -60,8 +59,11 @@ static void test_list(void) {
     assert_int_equal(1, (long)iter_next(iter));
     assert_int_equal(0, (long)iter_next(iter));
 
+    assert_int_equal(2, list_len(rev));
     assert_int_equal(1, (long)list_pop(rev));
+    assert_int_equal(1, list_len(rev));
     assert_int_equal(2, (long)list_pop(rev));
+    assert_int_equal(0, list_len(rev));
     assert_int_equal(0, (long)list_pop(rev));
 }
 

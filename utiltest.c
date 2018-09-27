@@ -41,8 +41,11 @@ static void test_string(void) {
 
 static void test_list(void) {
     List *list = make_list();
+    assert_int_equal(0, list_len(list));
     list_push(list, (void *)1);
+    assert_int_equal(1, list_len(list));
     list_push(list, (void *)2);
+    assert_int_equal(2, list_len(list));
     Iter *iter = list_iter(list);
     assert_int_equal(1, (long)iter_next(iter));
     assert_int_equal(false, iter_end(iter));

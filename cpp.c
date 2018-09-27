@@ -10,8 +10,7 @@ static Token *expand(Token *tok) {
     List *body = dict_get(macros, tok->sval);
     if (!body)
         return tok;
-    for (Iter *i = list_iter(body); !iter_end(i);)
-        list_push(buffer, iter_next(i));
+    list_append(buffer, body);
     return read_token();
 }
 
@@ -64,5 +63,4 @@ Token *read_token(void) {
         bol = false;
         return expand(tok);
     }
-
 }

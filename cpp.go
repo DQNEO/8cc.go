@@ -3,18 +3,21 @@ package main
 var buffer = make([]*Token, 0)
 var bol bool = true
 
-func read_directive() {
+func read_define() {
 	for {
 		tok := read_cpp_token()
-		printf("# debug token:%s\n", tok)
-		if tok == nil {
-			return
-		}
 		if tok.typ == TTYPE_NEWLINE {
-			printf("# newline\n")
 			return
 		}
+	}
+}
 
+func read_directive() {
+	tok := read_cpp_token()
+	if is_ident(tok, "define") {
+		read_define()
+	} else {
+		errorf("unsupported preprocessor directive: %s", tok)
 	}
 }
 
@@ -46,6 +49,7 @@ func read_token() *Token {
 		}
 		if bol && is_punct(tok, '#')  {
 			read_directive()
+			bol = true
 			continue
 		}
 		bol = false

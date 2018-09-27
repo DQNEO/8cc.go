@@ -6,6 +6,9 @@ int main() {
     expect(0, g1);
     expect(2, g3);
 
+    enum { x } v;
+    expect(0, x);
+
     printf("OK\n");
     return 0;
 }

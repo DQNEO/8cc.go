@@ -718,7 +718,7 @@ static bool is_type_keyword(Token *tok) {
     if (tok->type != TTYPE_IDENT)
         return false;
     char *keyword[] = { "char", "short", "int", "long", "float", "double",
-                        "struct", "union", "signed", "unsigned" };
+                        "struct", "union", "signed", "unsigned", "enum", };
     for (int i = 0; i < sizeof(keyword) / sizeof(*keyword); i++)
         if (!strcmp(keyword[i], tok->sval))
             return true;

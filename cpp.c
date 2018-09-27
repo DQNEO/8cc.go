@@ -3,18 +3,21 @@
 static List *buffer = &EMPTY_LIST;
 static bool bol = true;
 
-static void read_directive(void) {
+
+static void read_define(void) {
     for (;;) {
         Token *tok = read_cpp_token();
-        printf("# debug token:%s\n",  token_to_string(tok));
-        if (!tok) {
+        if (tok->type == TTYPE_NEWLINE)
             return;
-        }
-        if (tok->type == TTYPE_NEWLINE) {
-            printf("# newline\n");
-            return;
-        }
     }
+}
+
+static void read_directive(void) {
+    Token *tok = read_cpp_token();
+    if (is_ident(tok, "define"))
+        read_define();
+    else
+        error("unsupported preprocessor directive: %s", token_to_string(tok));
 }
 
 void unget_token(Token *tok) {
@@ -38,6 +41,7 @@ Token *read_token(void) {
         }
         if (bol && is_punct(tok, '#')) {
             read_directive();
+            bol = true;
             continue;
         }
         bol = false;

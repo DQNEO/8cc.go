@@ -272,7 +272,7 @@ static void expect(char punct) {
         error("'%c' expected, but got %s", punct, token_to_string(tok));
 }
 
-static bool is_ident(Token *tok, char *s) {
+bool is_ident(Token *tok, char *s) {
     return tok->type == TTYPE_IDENT && !strcmp(tok->sval, s);
 }
 

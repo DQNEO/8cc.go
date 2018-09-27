@@ -1,15 +1,23 @@
 package main
 
+var macros = make(map[string][]*Token)
 var buffer = make([]*Token, 0)
 var bol bool = true
 
 func read_define() {
+	name := read_cpp_token()
+	if name.typ != TTYPE_IDENT {
+		errorf("macro name must be an identifier, but got %s", name)
+	}
+	body := make([]*Token, 0)
 	for {
 		tok := read_cpp_token()
-		if tok.typ == TTYPE_NEWLINE {
-			return
+		if tok != nil && tok.typ == TTYPE_NEWLINE {
+			break
 		}
+		body = append(body, tok)
 	}
+	macros[name.sval] = body
 }
 
 func read_directive() {

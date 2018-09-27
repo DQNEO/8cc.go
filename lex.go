@@ -235,7 +235,7 @@ func is_punct(tok *Token, c int) bool {
 	return tok != nil && (tok.typ == TTYPE_PUNCT && tok.punct == c)
 }
 
-func unget_token(tok *Token) {
+func unget_cpp_token(tok *Token) {
 	if tok == nil {
 		return
 	}
@@ -245,13 +245,13 @@ func unget_token(tok *Token) {
 	ungotten = tok
 }
 
-func peek_token() *Token {
+func peek_cpp_token() *Token {
 	tok := read_token()
 	unget_token(tok)
 	return tok
 }
 
-func read_token() *Token {
+func read_cpp_token() *Token {
 	if ungotten != nil {
 		tok := ungotten
 		ungotten = nil

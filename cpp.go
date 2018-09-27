@@ -4,6 +4,20 @@ var macros = make(map[string][]*Token)
 var buffer = make([]*Token, 0)
 var bol bool = true
 
+func expand(tok *Token) *Token {
+	if tok.typ != TTYPE_IDENT {
+		return tok
+	}
+	body, ok := macros[tok.sval]
+	if !ok {
+		return tok
+	}
+	for _, t := range body {
+		buffer = append(buffer, t)
+	}
+	return read_token()
+}
+
 func read_define() {
 	name := read_cpp_token()
 	if name.typ != TTYPE_IDENT {
@@ -61,6 +75,6 @@ func read_token() *Token {
 			continue
 		}
 		bol = false
-		return tok
+		return expand(tok)
 	}
 }

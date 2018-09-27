@@ -9,6 +9,9 @@ int main() {
     enum { x } v;
     expect(0, x);
 
+    enum { y };
+    expect(0, y);
+
     printf("OK\n");
     return 0;
 }

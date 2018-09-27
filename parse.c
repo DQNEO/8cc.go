@@ -922,7 +922,13 @@ static Ast *read_decl_init(Ast *var) {
 
 static void read_decl_int(Token **name, Ctype **ctype) {
     Ctype *t = read_decl_spec();
-    *name = read_token();
+    Token *tok = read_token();
+    if (is_punct(tok, ';')) {
+        unget_token(tok);
+        *name = NULL;
+        return;
+    }
+    *name = tok;
     if ((*name)->type != TTYPE_IDENT)
         error("identifier expected, but got %s", t2s(*name));
     *ctype = read_array_dimensions(t);
@@ -932,6 +938,10 @@ static Ast *read_decl(void) {
     Token *varname;
     Ctype *ctype;
     read_decl_int(&varname, &ctype);
+    if (!varname) {
+        expect(';');
+        return NULL;
+    }
     Ast *var = ast_lvar(ctype, varname->sval);
     return read_decl_init(var);
 }
@@ -1026,7 +1036,7 @@ static Ast *read_compound_stmt(void) {
     for (;;) {
         Ast *stmt = read_decl_or_stmt();
         if (stmt) list_push(list, stmt);
-        if (!stmt) break;
+        if (!stmt) continue;
         Token *tok = read_token();
         if (is_punct(tok, '}'))
             break;

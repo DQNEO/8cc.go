@@ -203,7 +203,7 @@ func read_token_int() *Token {
 		c == ')' || c == ',' || c == ';' || c == '.' ||
 		c == '[' || c == ']' || c == '{' || c == '}' ||
 		c == '<' || c == '>' || c == '!' ||
-		c == '?' || c == ':':
+		c == '?' || c == ':' || c == '#' :
 		return make_punct(int(c))
 	case c == '-':
 		c, _ = getc(stdin)

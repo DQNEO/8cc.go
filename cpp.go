@@ -4,6 +4,14 @@ var macros = make(map[string][]*Token)
 var buffer = make([]*Token, 0)
 var bol bool = true
 
+func list_append(a []*Token , b []*Token) []*Token {
+	r := a
+	for _, v := range b {
+		r = append(r, v)
+	}
+	return r
+}
+
 func expand(tok *Token) *Token {
 	if tok.typ != TTYPE_IDENT {
 		return tok
@@ -12,9 +20,7 @@ func expand(tok *Token) *Token {
 	if !ok {
 		return tok
 	}
-	for _, t := range body {
-		buffer = append(buffer, t)
-	}
+	buffer = list_append(buffer, body)
 	return read_token()
 }
 

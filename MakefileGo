@@ -12,7 +12,7 @@ clean:
 fmt:
 	gofmt -w *.go
 
-test: 8ccg $(TESTS) test.sh
+test: 8ccg $(TESTS) test.sh sample/nqueen
 	@echo
 	@for test in $(TESTS); do \
 	    ./$$test;             \
@@ -26,6 +26,6 @@ test/%.s: test/%.c 8ccg
 test/%.bin: test/%.s 8ccg
 	$(CC) $(CFLAGS) -o $@ $<
 
-nqueen: 8ccg sample/nqueen.c
+sample/nqueen: 8ccg sample/nqueen.c
 	./8ccg < sample/nqueen.c > sample/nqueen.s
 	$(CC) $(CFLAGS) -o sample/nqueen sample/nqueen.s

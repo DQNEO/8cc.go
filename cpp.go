@@ -2,7 +2,7 @@ package main
 
 var macros = make(map[string][]*Token)
 var buffer = make([]*Token, 0)
-var bol bool = true
+var bol = true
 
 func list_append(a []*Token, b []*Token) []*Token {
 	r := a

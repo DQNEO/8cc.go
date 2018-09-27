@@ -9,6 +9,7 @@ const (
 	TTYPE_NUMBER
 	TTYPE_CHAR
 	TTYPE_STRING
+	// Only in CPP
 	TTYPE_NEWLINE
 )
 

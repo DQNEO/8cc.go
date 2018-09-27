@@ -12,6 +12,9 @@ int main() {
     enum { y };
     expect(0, y);
 
+    enum tag { z };
+    expect(0, z);
+
     printf("OK\n");
     return 0;
 }

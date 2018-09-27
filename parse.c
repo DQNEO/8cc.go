@@ -821,8 +821,13 @@ static Ctype *read_union_def(void) {
 }
 
 static Ctype *read_enum_def(void) {
-    Token *tok;
-    expect('{');
+    Token *tok = read_token();
+    if (tok->type == TTYPE_IDENT)
+        tok = read_token();
+    if (!is_punct(tok, '{')) {
+        unget_token(tok);
+        return ctype_int;
+    }
     int val = 0;
     for (;;) {
         tok = read_token();

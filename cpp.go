@@ -32,7 +32,7 @@ func read_define() {
 	body := make([]*Token, 0)
 	for {
 		tok := read_cpp_token()
-		if tok != nil && tok.typ == TTYPE_NEWLINE {
+		if tok == nil || tok.typ == TTYPE_NEWLINE {
 			break
 		}
 		body = append(body, tok)

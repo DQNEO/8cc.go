@@ -6,7 +6,7 @@ type Dict struct {
 }
 
 type DictValue struct {
-	ast *Ast
+	ast   *Ast
 	ctype *Ctype
 }
 
@@ -59,13 +59,13 @@ func (dict *Dict) Get(key string) *DictValue {
 
 func (dict *Dict) PutAst(key string, val *Ast) {
 	dict.Put(key, &DictValue{
-		ast:val,
+		ast: val,
 	})
 }
 
 func (dict *Dict) PutCtype(key string, val *Ctype) {
 	dict.Put(key, &DictValue{
-		ctype:val,
+		ctype: val,
 	})
 }
 

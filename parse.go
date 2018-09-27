@@ -346,7 +346,7 @@ func function_type_check(fname string, params []*Ctype, args []*Ctype) {
 		errorf("Too few arguments: %s", fname)
 	}
 	for i, arg := range args {
-		if i < len(params)  {
+		if i < len(params) {
 			param := params[i]
 			result_type('=', param, arg)
 		} else {
@@ -381,7 +381,7 @@ func read_func_args(fname string) *Ast {
 			errorf("%s is not a function, but %s", fname, decl)
 		}
 		function_type_check(fname, decl.params, param_types(args))
- 		return ast_funcall(decl.rettype, fname, args, decl.params)
+		return ast_funcall(decl.rettype, fname, args, decl.params)
 	}
 	return ast_funcall(ctype_int, fname, args, nil)
 }
@@ -1104,7 +1104,7 @@ func read_func_decl_or_def(rettype *Ctype, fname string) *Ast {
 	}
 	typ := make_func_type(rettype, param_types(params))
 	globalenv.PutCtype(fname, typ)
-	return read_toplevel();
+	return read_toplevel()
 }
 
 func read_toplevel() *Ast {

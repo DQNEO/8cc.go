@@ -70,7 +70,7 @@ type Ctype struct {
 	offset int
 	// function
 	rettype *Ctype
-	params []*Ctype
+	params  []*Ctype
 }
 
 type Ast struct {
@@ -97,9 +97,9 @@ type Ast struct {
 	// Unary operator
 	operand *Ast
 	// Function call or function declaration
-	fname     string
+	fname string
 	// Function call
-	args      []*Ast
+	args       []*Ast
 	paramtypes []*Ctype
 	// Function declaration
 	params    []*Ast

@@ -38,7 +38,7 @@ func (ctype *Ctype) String() string {
 		params := ctype.params
 		for i, t := range params {
 			s += fmt.Sprintf("%s", t)
-			if i != len(params) - 1 {
+			if i != len(params)-1 {
 				s += ","
 			}
 		}

@@ -4,7 +4,7 @@ var macros = make(map[string][]*Token)
 var buffer = make([]*Token, 0)
 var bol bool = true
 
-func list_append(a []*Token , b []*Token) []*Token {
+func list_append(a []*Token, b []*Token) []*Token {
 	r := a
 	for _, v := range b {
 		r = append(r, v)
@@ -63,8 +63,8 @@ func read_token() *Token {
 	for {
 		var tok *Token
 		if len(buffer) > 0 {
-			tok = buffer[len(buffer) - 1]
-			buffer = buffer[:len(buffer) - 1]
+			tok = buffer[len(buffer)-1]
+			buffer = buffer[:len(buffer)-1]
 		} else {
 			tok = read_cpp_token()
 		}
@@ -75,7 +75,7 @@ func read_token() *Token {
 			bol = true
 			continue
 		}
-		if bol && is_punct(tok, '#')  {
+		if bol && is_punct(tok, '#') {
 			read_directive()
 			bol = true
 			continue

@@ -3,7 +3,7 @@ package main
 const BUFLEN = 256
 
 var ungotten *Token
-var newline_token = &Token{typ: TTYPE_NEWLINE,}
+var newline_token = &Token{typ: TTYPE_NEWLINE}
 
 func make_ident(s string) *Token {
 	r := &Token{}
@@ -203,7 +203,7 @@ func read_token_int() *Token {
 		c == ')' || c == ',' || c == ';' || c == '.' ||
 		c == '[' || c == ']' || c == '{' || c == '}' ||
 		c == '<' || c == '>' || c == '!' ||
-		c == '?' || c == ':' || c == '#' :
+		c == '?' || c == ':' || c == '#':
 		return make_punct(int(c))
 	case c == '-':
 		c, _ = getc(stdin)

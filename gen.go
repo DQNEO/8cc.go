@@ -321,7 +321,7 @@ func emit_load_convert(to *Ctype, from *Ctype) {
 func emit_save_convert(to *Ctype, from *Ctype) {
 	if is_inttype(from) && to.typ == CTYPE_FLOAT {
 		emit("cvtsi2ss %%eax, %%xmm0")
-	} else if (is_flotype(from) && to.typ == CTYPE_FLOAT) {
+	} else if is_flotype(from) && to.typ == CTYPE_FLOAT {
 		emit("cvtpd2ps %%xmm0, %%xmm0")
 	} else {
 		emit_load_convert(to, from)
@@ -387,7 +387,7 @@ func emit_load_deref(result_type *Ctype, operand_type *Ctype, off int) {
 
 }
 
-func get_arg_types(ast *Ast) []*Ctype{
+func get_arg_types(ast *Ast) []*Ctype {
 	var r []*Ctype
 	for i, v := range ast.args {
 		var ptype *Ctype

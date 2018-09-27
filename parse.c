@@ -812,12 +812,12 @@ static Ctype *read_struct_union_def(Dict *env, int (*compute_size)(Dict *)) {
     return r;
 }
 
-static Ctype *read_union_def(void) {
-    return read_struct_union_def(union_defs, compute_union_size);
-}
-
 static Ctype *read_struct_def(void) {
     return read_struct_union_def(struct_defs, compute_struct_size);
+}
+
+static Ctype *read_union_def(void) {
+    return read_struct_union_def(union_defs, compute_union_size);
 }
 
 static Ctype *read_decl_spec(void) {

@@ -63,6 +63,7 @@ func read_token() *Token {
 	for {
 		var tok *Token
 		if len(buffer) > 0 {
+			// list_pop
 			tok = buffer[len(buffer)-1]
 			buffer = buffer[:len(buffer)-1]
 		} else {

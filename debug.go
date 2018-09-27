@@ -228,6 +228,8 @@ func (tok *Token) String() string {
 		return tok.sval
 	case TTYPE_STRING:
 		return tok.sval
+	case TTYPE_NEWLINE:
+		return "(newline)"
 	}
 	errorf("internal error: unknown token type: %d", tok.typ)
 	return ""

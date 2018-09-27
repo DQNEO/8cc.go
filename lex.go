@@ -3,6 +3,7 @@ package main
 const BUFLEN = 256
 
 var ungotten *Token
+var newline_token = &Token{typ: TTYPE_NEWLINE,}
 
 func make_ident(s string) *Token {
 	r := &Token{}
@@ -47,7 +48,7 @@ func getc_nonspace() (byte, error) {
 		if err != nil {
 			break
 		}
-		if isspace(c) || c == byte('\n') || c == byte('\r') {
+		if c == byte(' ') || c == byte('\t') {
 			continue
 		}
 		return c, nil
@@ -180,6 +181,8 @@ func read_token_int() *Token {
 	}
 
 	switch {
+	case c == '\n':
+		return newline_token
 	case '0' <= c && c <= '9':
 		return read_number(c)
 	case ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_':

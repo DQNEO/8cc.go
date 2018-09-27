@@ -820,11 +820,34 @@ static Ctype *read_union_def(void) {
     return read_struct_union_def(union_defs, compute_union_size);
 }
 
+static Ctype *read_enum_def(void) {
+    Token *tok;
+    expect('{');
+    int val = 0;
+    for (;;) {
+        tok = read_token();
+        if (is_punct(tok, '}'))
+            break;
+        if (tok->type != TTYPE_IDENT)
+            error("Identifier expected, but got %s", t2s(tok));
+        Ast *constval = ast_inttype(ctype_int, val++);
+        dict_put(localenv ? localenv : globalenv, tok->sval, constval);
+        tok = read_token();
+        if (is_punct(tok, ','))
+            continue;
+        if (is_punct(tok, '}'))
+            break;
+        error("',' or '}' expected, but got %s", t2s(tok));
+    }
+    return ctype_int;
+}
+
 static Ctype *read_decl_spec(void) {
     Token *tok = read_token();
     if (!tok) return NULL;
     Ctype *ctype = is_ident(tok, "struct") ? read_struct_def()
         : is_ident(tok, "union") ? read_union_def()
+        : is_ident(tok, "enum") ? read_enum_def()
         : read_ctype(tok);
     assert(ctype);
     for (;;) {

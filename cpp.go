@@ -12,16 +12,20 @@ func list_append(a TokenList, b TokenList) TokenList{
 	return r
 }
 
-func expand(tok *Token) *Token {
+func expand(hideset *Dict, tok *Token) *Token {
 	if !tok.is_ident_type() {
+		return tok
+	}
+	if hideset.Get(tok.sval) != nil {
 		return tok
 	}
 	body, ok := macros[tok.sval]
 	if !ok {
 		return tok
 	}
+	hideset.Put(tok.sval, &DictValue{})
 	buffer = list_append(buffer, body)
-	return read_token()
+	return read_token_int2(hideset)
 }
 
 func read_define() {
@@ -59,7 +63,7 @@ func peek_token() *Token {
 	return tok
 }
 
-func read_token() *Token {
+func read_token_int2(hideset *Dict) *Token {
 	for {
 		var tok *Token
 		if len(buffer) > 0 {
@@ -82,6 +86,10 @@ func read_token() *Token {
 			continue
 		}
 		bol = false
-		return expand(tok)
+		return expand(hideset, tok)
 	}
+}
+
+func read_token() *Token {
+	return read_token_int2(NewDict())
 }

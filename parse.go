@@ -268,12 +268,12 @@ func ensure_lvalue(ast *Ast) {
 
 func expect(punct byte) {
 	tok := read_token()
-	if !is_punct(tok, int(punct)) {
+	if !tok.is_punct(int(punct)) {
 		errorf("'%c' expected but got %s", punct, tok)
 	}
 }
 
-func is_ident(tok *Token, s string) bool {
+func (tok *Token) is_ident(s string) bool {
 	return tok.typ == TTYPE_IDENT && tok.sval == s
 }
 
@@ -359,16 +359,16 @@ func read_func_args(fname string) *Ast {
 	var args []*Ast
 	for {
 		tok := read_token()
-		if is_punct(tok, ')') {
+		if tok.is_punct(')') {
 			break
 		}
 		unget_token(tok)
 		args = append(args, read_expr())
 		tok = read_token()
-		if is_punct(tok, ')') {
+		if tok.is_punct(')') {
 			break
 		}
-		if !is_punct(tok, ',') {
+		if !tok.is_punct(',') {
 			errorf("Unexpected token: '%s'", tok)
 		}
 	}
@@ -388,7 +388,7 @@ func read_func_args(fname string) *Ast {
 
 func read_ident_or_func(name string) *Ast {
 	ch := read_token()
-	if is_punct(ch, '(') {
+	if ch.is_punct('(') {
 		return read_func_args(name)
 	}
 	unget_token(ch)
@@ -581,17 +581,17 @@ func read_unary_expr() *Ast {
 		unget_token(tok)
 		return read_prim()
 	}
-	if is_punct(tok, '(') {
+	if tok.is_punct('(') {
 		r := read_expr()
 		expect(')')
 		return r
 	}
-	if is_punct(tok, '&') {
+	if tok.is_punct('&') {
 		operand := read_unary_expr()
 		ensure_lvalue(operand)
 		return ast_uop(AST_ADDR, make_ptr_type(operand.ctype), operand)
 	}
-	if is_punct(tok, '*') {
+	if tok.is_punct('*') {
 		operand := read_unary_expr()
 		ctype := convert_array(operand.ctype) // looks no need to call convert_array.
 		if ctype.typ != CTYPE_PTR {
@@ -599,7 +599,7 @@ func read_unary_expr() *Ast {
 		}
 		return ast_uop(AST_DEREF, operand.ctype.ptr, operand)
 	}
-	if is_punct(tok, '!') {
+	if tok.is_punct('!') {
 		operand := read_unary_expr()
 		return ast_uop(int('!'), ctype_int, operand)
 	}
@@ -643,15 +643,15 @@ func read_expr_int(prec int) *Ast {
 			return ast
 		}
 
-		if is_punct(tok, '?') {
+		if tok.is_punct('?') {
 			ast = read_cond_expr(ast)
 			continue
 		}
-		if is_punct(tok, '.') {
+		if tok.is_punct('.') {
 			ast = read_struct_field(ast)
 			continue
 		}
-		if is_punct(tok, PUNCT_ARROW) {
+		if tok.is_punct(PUNCT_ARROW) {
 			if ast.ctype.typ != CTYPE_PTR {
 				errorf("pointer type expected, but got %s %s",
 					ast.ctype, ast)
@@ -660,16 +660,16 @@ func read_expr_int(prec int) *Ast {
 			ast = read_struct_field(ast)
 			continue
 		}
-		if is_punct(tok, '[') {
+		if tok.is_punct('[') {
 			ast = read_subscript_expr(ast)
 			continue
 		}
-		if is_punct(tok, PUNCT_INC) || is_punct(tok, PUNCT_DEC) {
+		if tok.is_punct(PUNCT_INC) || tok.is_punct(PUNCT_DEC) {
 			ensure_lvalue(ast)
 			ast = ast_uop(tok.punct, ast.ctype, ast)
 			continue
 		}
-		if is_punct(tok, '=') {
+		if tok.is_punct('=') {
 			ensure_lvalue(ast)
 		}
 		var prec_incr int
@@ -720,7 +720,7 @@ func get_ctype(tok *Token) *Ctype {
 }
 
 func is_type_keyword(tok *Token) bool {
-	return get_ctype(tok) != nil || is_ident(tok, "struct") || is_ident(tok, "union")
+	return get_ctype(tok) != nil || tok.is_ident("struct") || tok.is_ident("union")
 }
 
 func read_decl_array_init_int(ctype *Ctype) *Ast {
@@ -729,13 +729,13 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 		return ast_string(tok.sval)
 	}
 
-	if !is_punct(tok, '{') {
+	if !tok.is_punct('{') {
 		errorf("Expected an initializer list, but got %s", tok)
 	}
 	var initlist []*Ast
 	for {
 		tok := read_token()
-		if is_punct(tok, '}') {
+		if tok.is_punct('}') {
 			break
 		}
 		unget_token(tok)
@@ -743,7 +743,7 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 		initlist = append(initlist, init)
 		result_type('=', init.ctype, ctype.ptr)
 		tok = read_token()
-		if !is_punct(tok, ',') {
+		if !tok.is_punct(',') {
 			unget_token(tok)
 		}
 	}
@@ -829,9 +829,9 @@ func read_struct_def() *Ctype {
 func read_decl_spec() *Ctype {
 	tok := read_token()
 	var ctype *Ctype
-	if is_ident(tok, "struct") {
+	if tok.is_ident("struct") {
 		ctype = read_struct_def()
-	} else if is_ident(tok, "union") {
+	} else if tok.is_ident("union") {
 		ctype = read_union_def()
 	} else {
 		ctype = get_ctype(tok)
@@ -842,7 +842,7 @@ func read_decl_spec() *Ctype {
 	}
 	for {
 		tok = read_token()
-		if !is_punct(tok, '*') {
+		if !tok.is_punct('*') {
 			unget_token(tok)
 			return ctype
 		}
@@ -891,12 +891,12 @@ func read_decl_init_val(v *Ast) *Ast {
 
 func read_array_dimensions_int(basetype *Ctype) *Ctype {
 	tok := read_token()
-	if !is_punct(tok, '[') {
+	if !tok.is_punct('[') {
 		unget_token(tok)
 		return nil
 	}
 	dim := -1
-	if !is_punct(peek_token(), ']') {
+	if !peek_token().is_punct(']') {
 		size := read_expr()
 		dim = eval_intexpr(size)
 	}
@@ -922,7 +922,7 @@ func read_array_dimensions(basetype *Ctype) *Ctype {
 
 func read_decl_init(variable *Ast) *Ast {
 	tok := read_token()
-	if is_punct(tok, '=') {
+	if tok.is_punct('=') {
 		return read_decl_init_val(variable)
 	}
 	if variable.ctype.len == -1 {
@@ -955,7 +955,7 @@ func read_if_stmt() *Ast {
 
 func read_opt_decl_or_stmt() *Ast {
 	tok := read_token()
-	if is_punct(tok, ';') {
+	if tok.is_punct(';') {
 		return nil
 	}
 	unget_token(tok)
@@ -964,7 +964,7 @@ func read_opt_decl_or_stmt() *Ast {
 
 func read_opt_expr() *Ast {
 	tok := read_token()
-	if is_punct(tok, ';') {
+	if tok.is_punct(';') {
 		return nil
 	}
 	unget_token(tok)
@@ -979,7 +979,7 @@ func read_for_stmt() *Ast {
 	init := read_opt_decl_or_stmt()
 	cond := read_opt_expr()
 	var step *Ast
-	if is_punct(peek_token(), ')') {
+	if peek_token().is_punct(')') {
 		step = nil
 	} else {
 		step = read_expr()
@@ -998,16 +998,16 @@ func read_return_stmt() *Ast {
 
 func read_stmt() *Ast {
 	tok := read_token()
-	if is_ident(tok, "if") {
+	if tok.is_ident("if") {
 		return read_if_stmt()
 	}
-	if is_ident(tok, "for") {
+	if tok.is_ident("for") {
 		return read_for_stmt()
 	}
-	if is_ident(tok, "return") {
+	if tok.is_ident("return") {
 		return read_return_stmt()
 	}
-	if is_punct(tok, '{') {
+	if tok.is_punct('{') {
 		return read_compound_stmt()
 	}
 	unget_token(tok)
@@ -1042,7 +1042,7 @@ func read_compound_stmt() *Ast {
 			break
 		}
 		tok := read_token()
-		if is_punct(tok, '}') {
+		if tok.is_punct('}') {
 			break
 		}
 		unget_token(tok)
@@ -1054,7 +1054,7 @@ func read_compound_stmt() *Ast {
 func read_params() []*Ast {
 	var params []*Ast
 	pt := read_token()
-	if is_punct(pt, ')') {
+	if pt.is_punct(')') {
 		return nil
 	}
 	unget_token(pt)
@@ -1070,10 +1070,10 @@ func read_params() []*Ast {
 		}
 		params = append(params, ast_lvar(ctype, pname.sval))
 		tok := read_token()
-		if is_punct(tok, ')') {
+		if tok.is_punct(')') {
 			return params
 		}
-		if !is_punct(tok, ',') {
+		if !tok.is_punct(',') {
 			errorf("Comma expected, but got %s", tok)
 		}
 	}
@@ -1099,7 +1099,7 @@ func read_func_decl_or_def(rettype *Ctype, fname string) *Ast {
 	localenv = globalenv.MakeDict()
 	params := read_params()
 	tok := read_token()
-	if is_punct(tok, '{') {
+	if tok.is_punct('{') {
 		return read_func_def(rettype, fname, params)
 	}
 	typ := make_func_type(rettype, param_types(params))
@@ -1119,14 +1119,14 @@ func read_toplevel() *Ast {
 	}
 	ctype = read_array_dimensions(ctype)
 	tok = peek_token()
-	if is_punct(tok, '=') || ctype.typ == CTYPE_ARRAY {
+	if tok.is_punct('=') || ctype.typ == CTYPE_ARRAY {
 		gvar := ast_gvar(ctype, name.sval, false)
 		return read_decl_init(gvar)
 	}
-	if is_punct(tok, '(') {
+	if tok.is_punct('(') {
 		return read_func_decl_or_def(ctype, name.sval)
 	}
-	if is_punct(tok, ';') {
+	if tok.is_punct(';') {
 		read_token()
 		gvar := ast_gvar(ctype, name.sval, false)
 		return ast_decl(gvar, nil)

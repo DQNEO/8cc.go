@@ -216,7 +216,7 @@ func (tok *Token) String() string {
 	case TTYPE_IDENT:
 		return tok.sval
 	case TTYPE_PUNCT:
-		if is_punct(tok, PUNCT_EQ) {
+		if tok.is_punct(PUNCT_EQ) {
 			return "=="
 		} else {
 

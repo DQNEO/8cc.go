@@ -42,7 +42,7 @@ func read_define() {
 
 func read_directive() {
 	tok := read_cpp_token()
-	if is_ident(tok, "define") {
+	if tok.is_ident("define") {
 		read_define()
 	} else {
 		errorf("unsupported preprocessor directive: %s", tok)
@@ -76,7 +76,7 @@ func read_token() *Token {
 			bol = true
 			continue
 		}
-		if bol && is_punct(tok, '#') {
+		if bol && tok.is_punct('#') {
 			read_directive()
 			bol = true
 			continue

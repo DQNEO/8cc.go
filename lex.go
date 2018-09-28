@@ -234,7 +234,7 @@ func read_token_int() *Token {
 	return nil
 }
 
-func is_punct(tok *Token, c int) bool {
+func (tok *Token) is_punct(c int) bool {
 	return tok != nil && (tok.typ == TTYPE_PUNCT && tok.punct == c)
 }
 

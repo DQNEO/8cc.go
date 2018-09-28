@@ -36,6 +36,19 @@ func expand(hideset *Dict, tok *Token) *Token {
 	return read_token_int2(hideset)
 }
 
+func expect_newine() {
+	tok := read_cpp_token()
+	if tok == nil || !tok.is_newline() {
+		errorf("Newline expected, but got %s", tok)
+	}
+}
+
+func read_undef() {
+	name := read_ident2()
+	expect_newine()
+	delete(macros, name.sval)
+}
+
 func read_define() {
 	name := read_ident2()
 	body := make(TokenList, 0)
@@ -53,6 +66,8 @@ func read_directive() {
 	tok := read_cpp_token()
 	if tok.is_ident("define") {
 		read_define()
+	} else if tok.is_ident("undef") {
+		read_undef()
 	} else {
 		errorf("unsupported preprocessor directive: %s", tok)
 	}

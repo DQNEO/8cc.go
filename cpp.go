@@ -36,7 +36,7 @@ func read_define() {
 	body := make(TokenList, 0)
 	for {
 		tok := read_cpp_token()
-		if tok == nil || tok.typ == TTYPE_NEWLINE {
+		if tok == nil || tok.is_newline() {
 			break
 		}
 		body = append(body, tok)
@@ -76,7 +76,7 @@ func read_token_int2(hideset *Dict) *Token {
 		if tok == nil {
 			return nil
 		}
-		if tok != nil && tok.typ == TTYPE_NEWLINE {
+		if tok != nil && tok.is_newline() {
 			bol = true
 			continue
 		}

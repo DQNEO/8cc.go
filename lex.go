@@ -267,3 +267,7 @@ func read_cpp_token() *Token {
 func (tok *Token) is_ident_type() bool {
 	return tok.typ == TTYPE_IDENT
 }
+
+func (tok *Token) is_newline() bool {
+	return tok.typ == TTYPE_NEWLINE
+}

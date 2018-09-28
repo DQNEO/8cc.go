@@ -62,12 +62,35 @@ func read_define() {
 	macros[name.sval] = body
 }
 
+func read_if() {
+
+}
+func read_else() {
+	expect_newine()
+}
+
+func read_elif() {
+	expect_newine()
+}
+
+func read_endif() {
+	expect_newine()
+}
+
 func read_directive() {
 	tok := read_cpp_token()
 	if tok.is_ident("define") {
 		read_define()
 	} else if tok.is_ident("undef") {
 		read_undef()
+	} else if tok.is_ident("if") {
+		read_if()
+	} else if tok.is_ident("else") {
+		read_else()
+	} else if tok.is_ident("elif") {
+		read_elif()
+	} else if tok.is_ident("endif") {
+		read_endif()
 	} else {
 		errorf("unsupported preprocessor directive: %s", tok)
 	}

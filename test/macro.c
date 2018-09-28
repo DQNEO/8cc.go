@@ -32,12 +32,23 @@ int undef() {
     expect(3, a);
 }
 
+int cond_incl() {
+    int a = 1;
+#if
+    a = 1;
+#else
+    a = 1;
+#endif
+    expect(1, a);
+}
+
 int main() {
     printf("Testing macros ... ");
 
     simple();
     loop();
     undef();
+    cond_incl();
 
     printf("OK\n");
     return 0;

@@ -1,10 +1,10 @@
 package main
 
-var macros = make(map[string][]*Token)
-var buffer = make([]*Token, 0)
+var macros = make(map[string]TokenList)
+var buffer = make(TokenList, 0)
 var bol = true
 
-func list_append(a []*Token, b []*Token) []*Token {
+func list_append(a TokenList, b TokenList) TokenList{
 	r := a
 	for _, tok := range b {
 		r = append(r, tok)
@@ -29,7 +29,7 @@ func read_define() {
 	if !name.is_ident_type() {
 		errorf("macro name must be an identifier, but got %s", name)
 	}
-	body := make([]*Token, 0)
+	body := make(TokenList, 0)
 	for {
 		tok := read_cpp_token()
 		if tok == nil || tok.typ == TTYPE_NEWLINE {

@@ -12,6 +12,14 @@ func list_append(a TokenList, b TokenList) TokenList{
 	return r
 }
 
+func read_ident2() *Token {
+	r := read_cpp_token()
+	if !r.is_ident_type() {
+		errorf("identifier expected, but got %s", r)
+	}
+	return r
+}
+
 func expand(hideset *Dict, tok *Token) *Token {
 	if !tok.is_ident_type() {
 		return tok
@@ -29,10 +37,7 @@ func expand(hideset *Dict, tok *Token) *Token {
 }
 
 func read_define() {
-	name := read_cpp_token()
-	if !name.is_ident_type() {
-		errorf("macro name must be an identifier, but got %s", name)
-	}
+	name := read_ident2()
 	body := make(TokenList, 0)
 	for {
 		tok := read_cpp_token()

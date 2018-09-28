@@ -274,7 +274,7 @@ func expect(punct byte) {
 }
 
 func (tok *Token) is_ident(s string) bool {
-	return tok.typ == TTYPE_IDENT && tok.sval == s
+	return tok.is_ident_type() && tok.sval == s
 }
 
 func is_right_assoc(tok *Token) bool {
@@ -619,7 +619,7 @@ func read_struct_field(struc *Ast) *Ast {
 		errorf("struct expected, but got %s", struc)
 	}
 	name := read_token()
-	if name.typ != TTYPE_IDENT {
+	if !name.is_ident_type() {
 		errorf("field name expected, but got %s", name)
 	}
 	field := struc.ctype.fields.GetCtype(name.sval)
@@ -696,7 +696,7 @@ func get_ctype(tok *Token) *Ctype {
 	if tok == nil {
 		return nil
 	}
-	if tok.typ != TTYPE_IDENT {
+	if !tok.is_ident_type() {
 		return nil
 	}
 
@@ -753,7 +753,7 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 
 func read_struct_union_tag() string {
 	tok := read_token()
-	if tok.typ == TTYPE_IDENT {
+	if tok.is_ident_type() {
 		return tok.sval
 	} else {
 		unget_token(tok)
@@ -855,7 +855,7 @@ func read_decl_spec() *Ctype {
 func read_decl_int() (*Ctype, *Token) {
 	ctype := read_decl_spec()
 	name := read_token()
-	if name.typ != TTYPE_IDENT {
+	if !name.is_ident_type() {
 		errorf("Identifier expected, but got %s", name)
 	}
 	ctype = read_array_dimensions(ctype)
@@ -945,7 +945,7 @@ func read_if_stmt() *Ast {
 	expect(')')
 	then := read_stmt()
 	tok := read_token()
-	if tok == nil || tok.typ != TTYPE_IDENT || tok.sval != "else" {
+	if tok == nil || !tok.is_ident_type() || tok.sval != "else" {
 		unget_token(tok)
 		return ast_if(cond, then, nil)
 	}
@@ -1061,7 +1061,7 @@ func read_params() []*Ast {
 	for {
 		ctype := read_decl_spec()
 		pname := read_token()
-		if pname.typ != TTYPE_IDENT {
+		if !pname.is_ident_type(){
 			errorf("Identifier expected, but got %s", pname)
 		}
 		ctype = read_array_dimensions(ctype)
@@ -1114,7 +1114,7 @@ func read_toplevel() *Ast {
 	}
 	ctype := read_decl_spec()
 	name := read_token()
-	if name.typ != TTYPE_IDENT {
+	if !name.is_ident_type() {
 		errorf("Identifier name expected, but got %s", name)
 	}
 	ctype = read_array_dimensions(ctype)

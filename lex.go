@@ -263,3 +263,7 @@ func read_cpp_token() *Token {
 
 	return read_token_int()
 }
+
+func (tok *Token) is_ident_type() bool {
+	return tok.typ == TTYPE_IDENT
+}

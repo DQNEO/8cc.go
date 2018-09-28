@@ -13,7 +13,7 @@ func list_append(a []*Token, b []*Token) []*Token {
 }
 
 func expand(tok *Token) *Token {
-	if tok.typ != TTYPE_IDENT {
+	if !tok.is_ident_type() {
 		return tok
 	}
 	body, ok := macros[tok.sval]
@@ -26,7 +26,7 @@ func expand(tok *Token) *Token {
 
 func read_define() {
 	name := read_cpp_token()
-	if name.typ != TTYPE_IDENT {
+	if !name.is_ident_type() {
 		errorf("macro name must be an identifier, but got %s", name)
 	}
 	body := make([]*Token, 0)

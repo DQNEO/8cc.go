@@ -69,6 +69,9 @@ func read_line() TokenList {
 func read_constexpr() bool {
 	altbuffer = list_reverse(read_line())
 	expr := read_expr()
+	if len(altbuffer) > 0 {
+		  errorf("Stray token: %v", altbuffer);
+	}
 	altbuffer = nil
 	return eval_intexpr(expr) != 0
 }

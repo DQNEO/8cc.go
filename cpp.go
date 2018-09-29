@@ -34,7 +34,7 @@ func expand(hideset *Dict, tok *Token) *Token {
 	}
 	hideset.Put(tok.sval, &DictValue{})
 	buffer = list_append(buffer, body)
-	return read_token_int2(hideset)
+	return read_token_int2(hideset, false)
 }
 
 func expect_newine() {
@@ -63,8 +63,29 @@ func read_define() {
 	macros[name.sval] = body
 }
 
+func read_line() TokenList {
+	var r TokenList
+	for {
+		tok := read_token_int2(NewDict(), true)
+		if tok == nil {
+			return r
+		}
+		r = append(r, tok)
+	}
+}
+
+func list_reverse(a TokenList) TokenList {
+	for i := len(a)/2-1; i >= 0; i-- {
+		opp := len(a)-1-i
+		a[i], a[opp] = a[opp], a[i]
+	}
+	return a
+}
+
 func read_constexpr() bool {
+	altbuffer = list_reverse(read_line())
 	expr := read_expr()
+	altbuffer = nil
 	return eval_intexpr(expr) != 0
 }
 
@@ -122,6 +143,9 @@ func peek_token() *Token {
 
 func get_token() *Token {
 	if altbuffer != nil {
+		if (len(altbuffer) == 0) {
+			return nil
+		}
 		tok := altbuffer[len(altbuffer)-1]
 		altbuffer = altbuffer[:len(altbuffer)-1]
 		return tok
@@ -139,7 +163,7 @@ func get_token() *Token {
 	return tok
 }
 
-func read_token_int2(hideset *Dict) *Token {
+func read_token_int2(hideset *Dict, return_at_eol bool) *Token {
 	for {
 		tok := get_token()
 		if tok == nil {
@@ -147,6 +171,9 @@ func read_token_int2(hideset *Dict) *Token {
 		}
 		if tok != nil && tok.is_newline() {
 			bol = true
+			if return_at_eol {
+				return nil
+			}
 			continue
 		}
 		if bol && tok.is_punct('#') {
@@ -160,5 +187,5 @@ func read_token_int2(hideset *Dict) *Token {
 }
 
 func read_token() *Token {
-	return read_token_int2(NewDict())
+	return read_token_int2(NewDict(), false)
 }

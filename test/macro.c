@@ -35,11 +35,15 @@ int undef() {
 int cond_incl() {
     int a = 1;
 #if 0
-    a = 1;
-#else
-    a = 1;
+    a = 5;
 #endif
     expect(1, a);
+
+#if 1
+    a = 5;
+#endif
+    expect(5, a);
+
 }
 
 int main() {

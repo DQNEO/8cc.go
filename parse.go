@@ -633,6 +633,9 @@ func read_expr_int(prec int) *Ast {
 	}
 	for {
 		tok := read_token()
+		if tok == nil {
+			return ast
+		}
 		if tok.typ != TTYPE_PUNCT {
 			unget_token(tok)
 			return ast

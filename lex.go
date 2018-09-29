@@ -56,8 +56,36 @@ func getc_nonspace() (byte, error) {
 	return 0, err
 }
 
+func skip_line() {
+	for {
+		c, err := getc(stdin)
+		if err != nil || c == '\n' {
+			return
+		}
+	}
+}
+
 func skip_cond_incl() {
-	return
+	for {
+		c,_ := getc_nonspace()
+		if c != '#' {
+			skip_line()
+			continue
+		}
+		tok := read_cpp_token()
+		if tok.is_newline() {
+			continue
+		}
+		if !tok.is_ident_type() {
+			skip_line()
+		} else if tok.is_ident("endif") {
+			unget_cpp_token(tok)
+			unget_cpp_token(make_punct('#'))
+			return
+		} else {
+			skip_line()
+		}
+	}
 }
 
 func read_number(c byte) *Token {

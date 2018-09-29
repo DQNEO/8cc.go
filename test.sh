@@ -1,13 +1,12 @@
 #!/bin/bash
 
 function compile {
-    echo "$1" > /dev/stderr
     echo "$1" | ./8cc > tmp.s || echo "Failed to compile $1"
     if [ $? -ne 0 ]; then
         echo "Failed to compile $1"
         exit
     fi
-    gcc -no-pie -o tmp.out tmp.s
+    gcc -o tmp.out tmp.s -no-pie
     if [ $? -ne 0 ]; then
         echo "GCC failed: $1"
         exit
@@ -24,7 +23,7 @@ function assertequal {
 function testastf {
     result="$(echo "$2" | ./8cc -a)"
     if [ $? -ne 0 ]; then
-        echo "Failed to compile $2"
+        echo "Failed to compile $1"
         exit
     fi
     assertequal "$result" "$1"

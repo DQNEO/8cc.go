@@ -26,7 +26,6 @@ Ctype *ctype_double = &(Ctype){ CTYPE_DOUBLE, 8, NULL };
 
 static int labelseq = 0;
 
-static Ast *read_expr(void);
 static Ctype* make_ptr_type(Ctype *ctype);
 static Ctype* make_array_type(Ctype *ctype, int size);
 static Ast *read_compound_stmt(void);
@@ -280,7 +279,7 @@ static bool is_right_assoc(Token *tok) {
     return tok->punct == '=';
 }
 
-static int eval_intexpr(Ast *ast) {
+int eval_intexpr(Ast *ast) {
     switch (ast->type) {
     case AST_LITERAL:
         if (is_inttype(ast->ctype))
@@ -576,6 +575,8 @@ static Ast *read_expr_int(int prec) {
     if (!ast) return NULL;
     for (;;) {
         Token *tok = read_token();
+        if (!tok)
+            return ast;
         if (tok->type != TTYPE_PUNCT) {
             unget_token(tok);
             return ast;
@@ -605,7 +606,6 @@ static Ast *read_expr_int(int prec) {
             ast = read_subscript_expr(ast);
             continue;
         }
-        // this is BUG!! ++ should be in read_unary_expr() , I think.
         if (is_punct(tok, PUNCT_INC) || is_punct(tok, PUNCT_DEC)) {
             ensure_lvalue(ast);
             ast = ast_uop(tok->punct, ast->ctype, ast);
@@ -620,7 +620,7 @@ static Ast *read_expr_int(int prec) {
     }
 }
 
-static Ast *read_expr(void) {
+Ast *read_expr(void) {
     return read_expr_int(MAX_OP_PRIO);
 }
 
@@ -945,10 +945,9 @@ static Ast *read_func_decl_or_def(Ctype *rettype, char *fname) {
     Token *tok = read_token();
     if (is_punct(tok, '{'))
         return read_func_def(rettype, fname, params);
-    // must expect(';'); here
     Ctype *type = make_func_type(rettype, param_types(params));
     dict_put(globalenv, fname, type);
-    return read_toplevel(); // is this right?
+    return read_toplevel();
 }
 
 static Ast *read_toplevel(void) {

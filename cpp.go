@@ -5,14 +5,6 @@ var buffer = make(TokenList, 0)
 var altbuffer TokenList = nil
 var bol = true
 
-func list_append(a TokenList, b TokenList) TokenList{
-	r := a
-	for _, tok := range b {
-		r = append(r, tok)
-	}
-	return r
-}
-
 func read_ident2() *Token {
 	r := read_cpp_token()
 	if !r.is_ident_type() {
@@ -74,14 +66,6 @@ func read_line() TokenList {
 	}
 }
 
-func list_reverse(a TokenList) TokenList {
-	for i := len(a)/2-1; i >= 0; i-- {
-		opp := len(a)-1-i
-		a[i], a[opp] = a[opp], a[i]
-	}
-	return a
-}
-
 func read_constexpr() bool {
 	altbuffer = list_reverse(read_line())
 	expr := read_expr()
@@ -139,15 +123,6 @@ func peek_token() *Token {
 	tok := read_token()
 	unget_token(tok)
 	return tok
-}
-
-func list_pop(list TokenList) (TokenList, *Token) {
-	if (len(list) == 0) {
-		return list, nil
-	}
-	tok := list[len(list)-1]
-	list = list[:len(list)-1]
-	return list, tok
 }
 
 func get_token() *Token {

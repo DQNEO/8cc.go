@@ -62,9 +62,24 @@ func read_define() {
 	macros[name.sval] = body
 }
 
-func read_if() {
-
+func skip_cond_incl() {
+	return
 }
+
+func read_constexpr() bool {
+	val := read_token()
+	cond := val.sval == "0"
+	return cond
+}
+
+func read_if() {
+	cond := read_constexpr()
+	expect_newine()
+	if !cond {
+		skip_cond_incl()
+	}
+}
+
 func read_else() {
 	expect_newine()
 }

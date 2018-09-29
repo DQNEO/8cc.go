@@ -34,7 +34,7 @@ int undef() {
 
 int cond_incl() {
     int a = 1;
-#if
+#if 0
     a = 1;
 #else
     a = 1;

@@ -62,19 +62,13 @@ func read_define() {
 	macros[name.sval] = body
 }
 
-func skip_cond_incl() {
-	return
-}
-
 func read_constexpr() bool {
-	val := read_token()
-	cond := val.sval == "0"
-	return cond
+	expr := read_expr()
+	return eval_intexpr(expr) != 0
 }
 
 func read_if() {
 	cond := read_constexpr()
-	expect_newine()
 	if !cond {
 		skip_cond_incl()
 	}
@@ -121,16 +115,22 @@ func peek_token() *Token {
 	return tok
 }
 
+func get_token() *Token {
+	var tok *Token
+	if len(buffer) > 0 {
+		// list_pop
+		tok = buffer[len(buffer)-1]
+		buffer = buffer[:len(buffer)-1]
+	} else {
+		tok = read_cpp_token()
+	}
+
+	return tok
+}
+
 func read_token_int2(hideset *Dict) *Token {
 	for {
-		var tok *Token
-		if len(buffer) > 0 {
-			// list_pop
-			tok = buffer[len(buffer)-1]
-			buffer = buffer[:len(buffer)-1]
-		} else {
-			tok = read_cpp_token()
-		}
+		tok := get_token()
 		if tok == nil {
 			return nil
 		}

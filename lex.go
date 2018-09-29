@@ -2,7 +2,7 @@ package main
 
 const BUFLEN = 256
 
-var ungotten *Token
+var ungotten = TokenList{}
 var newline_token = &Token{typ: TTYPE_NEWLINE}
 
 func make_ident(s string) *Token {
@@ -54,6 +54,10 @@ func getc_nonspace() (byte, error) {
 		return c, nil
 	}
 	return 0, err
+}
+
+func skip_cond_incl() {
+	return
 }
 
 func read_number(c byte) *Token {
@@ -239,25 +243,19 @@ func (tok *Token) is_punct(c int) bool {
 }
 
 func unget_cpp_token(tok *Token) {
-	if tok == nil {
-		return
-	}
-	if ungotten != nil {
-		errorf("Push back buffer is already full")
-	}
-	ungotten = tok
+	ungotten = append(ungotten, tok)
 }
 
 func peek_cpp_token() *Token {
 	tok := read_token()
-	unget_token(tok)
+	unget_cpp_token(tok)
 	return tok
 }
 
 func read_cpp_token() *Token {
-	if ungotten != nil {
-		tok := ungotten
-		ungotten = nil
+	if len(ungotten) > 0 {
+		tok := ungotten[len(ungotten)-1]
+		ungotten = ungotten[:len(ungotten)-1]
 		return tok
 	}
 

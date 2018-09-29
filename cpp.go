@@ -4,6 +4,7 @@ var macros = make(map[string]TokenList)
 var buffer = make(TokenList, 0)
 var altbuffer TokenList = nil
 var bol = true
+var wastrue bool = true
 
 func read_ident2() *Token {
 	r := read_cpp_token()
@@ -78,6 +79,7 @@ func read_constexpr() bool {
 
 func read_if() {
 	cond := read_constexpr()
+	wastrue = cond
 	if !cond {
 		skip_cond_incl()
 	}
@@ -85,6 +87,9 @@ func read_if() {
 
 func read_else() {
 	expect_newine()
+	if wastrue {
+		skip_cond_incl()
+	}
 }
 
 func read_elif() {

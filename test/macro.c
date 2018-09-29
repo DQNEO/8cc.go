@@ -44,6 +44,19 @@ int cond_incl() {
 #endif
     expect(5, a);
 
+#if 1
+    a = 10;
+#else
+    a = 12;
+#endif
+    expect(10, a);
+
+#if 0
+    a = 11;
+#else
+    a = 12;
+#endif
+    expect(12, a);
 }
 
 int main() {

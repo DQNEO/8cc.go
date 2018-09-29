@@ -70,7 +70,7 @@ void skip_cond_incl(void) {
             continue;
         if (tok->type != TTYPE_IDENT) {
             skip_line();
-        } else if (is_ident(tok, "endif")) {
+        } else if (is_ident(tok, "endif") || is_ident(tok, "else")) {
             unget_cpp_token(tok);
             unget_cpp_token(make_punct('#'));
             return;

@@ -4,6 +4,7 @@ static Dict *macros = &EMPTY_DICT;
 static List *buffer = &EMPTY_LIST;
 static List *altbuffer = NULL;
 static bool bol = true;
+static bool wastrue = false;
 
 static Token *read_token_int(Dict *hideset, bool return_at_eol);
 
@@ -63,18 +64,23 @@ static List *read_line(void) {
 static bool read_constexpr(void) {
     altbuffer = list_reverse(read_line());
     Ast *expr = read_expr();
+    if (list_len(altbuffer) > 0)
+        error("Stray token: %s", token_to_string(list_pop(altbuffer)));
     altbuffer = NULL;
     return eval_intexpr(expr);
 }
 
 static void read_if(void) {
     bool cond = read_constexpr();
+    wastrue = cond;
     if (!cond)
         skip_cond_incl();
 }
 
 static void read_else(void) {
     expect_newline();
+    if (wastrue)
+        skip_cond_incl();
 }
 
 static void read_elif(void) {

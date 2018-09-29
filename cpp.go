@@ -2,6 +2,7 @@ package main
 
 var macros = make(map[string]TokenList)
 var buffer = make(TokenList, 0)
+var altbuffer TokenList = nil
 var bol = true
 
 func list_append(a TokenList, b TokenList) TokenList{
@@ -106,7 +107,11 @@ func read_directive() {
 }
 
 func unget_token(tok *Token) {
-	buffer = append(buffer, tok)
+	if altbuffer != nil {
+		altbuffer = append(altbuffer, tok)
+	} else {
+		buffer = append(buffer, tok)
+	}
 }
 
 func peek_token() *Token {
@@ -116,6 +121,12 @@ func peek_token() *Token {
 }
 
 func get_token() *Token {
+	if altbuffer != nil {
+		tok := altbuffer[len(altbuffer)-1]
+		altbuffer = altbuffer[:len(altbuffer)-1]
+		return tok
+	}
+
 	var tok *Token
 	if len(buffer) > 0 {
 		// list_pop

@@ -141,21 +141,24 @@ func peek_token() *Token {
 	return tok
 }
 
+func list_pop(list TokenList) (TokenList, *Token) {
+	if (len(list) == 0) {
+		return list, nil
+	}
+	tok := list[len(list)-1]
+	list = list[:len(list)-1]
+	return list, tok
+}
+
 func get_token() *Token {
+	var tok *Token
 	if altbuffer != nil {
-		if (len(altbuffer) == 0) {
-			return nil
-		}
-		tok := altbuffer[len(altbuffer)-1]
-		altbuffer = altbuffer[:len(altbuffer)-1]
+		altbuffer, tok = list_pop(altbuffer)
 		return tok
 	}
 
-	var tok *Token
 	if len(buffer) > 0 {
-		// list_pop
-		tok = buffer[len(buffer)-1]
-		buffer = buffer[:len(buffer)-1]
+		buffer, tok = list_pop(buffer)
 	} else {
 		tok = read_cpp_token()
 	}

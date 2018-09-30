@@ -20,9 +20,9 @@ func list_append(a TokenList, b TokenList) TokenList{
 }
 
 func list_reverse(a TokenList) TokenList {
-	for i := len(a)/2-1; i >= 0; i-- {
-		opp := len(a)-1-i
-		a[i], a[opp] = a[opp], a[i]
+	b := make(TokenList, len(a))
+	for i := 0; i < len(a); i++ {
+		b[len(b) - 1 - i] = a[i]
 	}
-	return a
+	return b
 }

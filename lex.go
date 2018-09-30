@@ -78,7 +78,7 @@ func skip_cond_incl() {
 		}
 		if !tok.is_ident_type() {
 			skip_line()
-		} else if tok.is_ident("endif") || tok.is_ident("else") {
+		} else if tok.is_ident("else") || tok.is_ident("elif")  || tok.is_ident("endif") {
 			unget_cpp_token(tok)
 			unget_cpp_token(make_punct('#'))
 			return

@@ -93,7 +93,15 @@ func read_else() {
 }
 
 func read_elif() {
-	expect_newine()
+	if wastrue {
+		skip_cond_incl()
+		return
+	}
+	cond := read_constexpr()
+	wastrue = cond
+	if !cond {
+		skip_cond_incl()
+	}
 }
 
 func read_endif() {

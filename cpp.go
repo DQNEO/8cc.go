@@ -80,7 +80,11 @@ func read_intexpr_line() TokenList {
 		if tok == nil {
 			return r
 		}
-		r = append(r, tok)
+		if tok.is_ident_type() {
+			r = append(r, cpp_token_one)
+		} else {
+			r = append(r, tok)
+		}
 	}
 }
 

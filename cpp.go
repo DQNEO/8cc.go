@@ -3,13 +3,12 @@ package main
 var macros = make(map[string]TokenList)
 var buffer = make(TokenList, 0)
 var altbuffer TokenList = nil
+var cond_incl_stack = make([]*CondIncl,0)
 var bol = true
-var wastrue bool = true
 
 type CondIncl struct {
 	wastrue bool
 }
-var ci *CondIncl
 
 func make_cond_incl(wastrue bool) *CondIncl {
 	r := &CondIncl{
@@ -91,13 +90,14 @@ func read_constexpr() bool {
 
 func read_if() {
 	cond := read_constexpr()
-	ci = make_cond_incl(cond)
+	cond_incl_stack = append(cond_incl_stack, make_cond_incl(cond))
 	if !cond {
 		skip_cond_incl()
 	}
 }
 
 func read_else() {
+	ci := cond_incl_stack[len(cond_incl_stack) -1]
 	expect_newine()
 	if ci.wastrue {
 		skip_cond_incl()
@@ -105,6 +105,7 @@ func read_else() {
 }
 
 func read_elif() {
+	ci := cond_incl_stack[len(cond_incl_stack) -1]
 	if ci.wastrue {
 		skip_cond_incl()
 		return
@@ -118,6 +119,7 @@ func read_elif() {
 }
 
 func read_endif() {
+	cond_incl_stack = cond_incl_stack[:len(cond_incl_stack) -1]
 	expect_newine()
 }
 

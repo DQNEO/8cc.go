@@ -57,10 +57,16 @@ func make_func_macro(body TokenList, nargs int) *Macro {
 func make_macro_token(position int) *Token {
 	r := &Token{
 		typ: TTYPE_MACRO_PARAM,
+		hideset:NewDict(),
 		position: position,
 		space : false,
 	}
 	return r
+}
+
+func copy_token(tok *Token) *Token {
+	r := *tok
+	return &r
 }
 
 func expect2(punct int) {
@@ -84,7 +90,7 @@ func unget_all(tokens TokenList) {
 	}
 }
 
-func read_expand(hideset *Dict) *Token {
+func read_expand() *Token {
 	tok := get_token()
 	if tok == nil {
 		return nil
@@ -94,16 +100,16 @@ func read_expand(hideset *Dict) *Token {
 	}
 	name := tok.sval
 	macro,ok := macros[name]
-	if !ok || hideset.Get(name) != nil {
+	if !ok || tok.hideset.Get(name) != nil {
 		return tok
 	}
 
 	switch macro.typ {
 	case MACRO_OBJ:
-		hideset.Put(name, &DictValue{})
-		tokens := macro.body
+		hideset := dict_append(tok.hideset, name)
+		tokens := subst(macro, hideset)
 		unget_all(tokens)
-		return read_expand(hideset)
+		return read_expand()
 	case MACRO_FUNC:
 		errorf("TBD")
 	default:
@@ -163,11 +169,47 @@ func read_funclike_macro(name string) {
 	macros[name] = macro
 }
 
-func expect_newine() {
+func expect_newine() { // newline
 	tok := get_token()
 	if tok == nil || !tok.is_newline() {
 		errorf("Newline expected, but got %s", tok)
 	}
+}
+
+func dict_union(a *Dict, b *Dict) *Dict {
+	r := NewDict()
+	for _, key := range a.Keys() {
+		r.Put(key, a.Get(key))
+	}
+	for _, key := range b.Keys() {
+		r.Put(key, b.Get(key))
+	}
+	return r
+}
+
+func dict_append(dict *Dict, s string) *Dict {
+	r := dict.MakeDict()
+	r.Put(s, &DictValue{})
+	return r
+}
+
+func add_hide_set(tokens TokenList, hideset *Dict) TokenList {
+	r := make(TokenList, 0)
+	for _, tok := range tokens {
+		t := copy_token(tok)
+		t.hideset = dict_union(t.hideset, hideset)
+		r = append(r, t)
+	}
+	return r
+}
+
+func subst(macro *Macro, hideset *Dict) TokenList {
+	r := make(TokenList, 0)
+	for i := 0; i < len(macro.body) ; i++ {
+		t0 := macro.body[i]
+		r = append(r, t0)
+	}
+	return add_hide_set(r, hideset)
 }
 
 func read_undef() {
@@ -362,7 +404,7 @@ func read_token_int2(return_at_eol bool) *Token {
 		}
 		bol = false
 		unget_token(tok)
-		return read_expand(NewDict())
+		return read_expand()
 	}
 }
 

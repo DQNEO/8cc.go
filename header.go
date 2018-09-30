@@ -18,6 +18,7 @@ const (
 type Token struct {
 	typ int
 	space bool
+	hideset *Dict
 	// intends union
 	sval  string
 	punct int

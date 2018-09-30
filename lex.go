@@ -12,6 +12,7 @@ var space_token = &Token{typ: TTYPE_SPACE}
 func make_ident(s string) *Token {
 	r := &Token{}
 	r.typ = TTYPE_IDENT
+	r.hideset = NewDict()
 	r.sval = s
 	return r
 }
@@ -19,6 +20,7 @@ func make_ident(s string) *Token {
 func make_strtok(s string) *Token {
 	r := &Token{}
 	r.typ = TTYPE_STRING
+	r.hideset = NewDict()
 	r.sval = s
 	return r
 }
@@ -26,6 +28,7 @@ func make_strtok(s string) *Token {
 func make_punct(punct int) *Token {
 	r := &Token{}
 	r.typ = TTYPE_PUNCT
+	r.hideset = NewDict()
 	r.punct = punct
 	return r
 }
@@ -33,6 +36,7 @@ func make_punct(punct int) *Token {
 func make_number(s string) *Token {
 	r := &Token{}
 	r.typ = TTYPE_NUMBER
+	r.hideset = NewDict()
 	r.sval = s
 	return r
 }
@@ -40,6 +44,7 @@ func make_number(s string) *Token {
 func make_char(c byte) *Token {
 	r := &Token{}
 	r.typ = TTYPE_CHAR
+	r.hideset = NewDict()
 	r.c = c
 	return r
 }

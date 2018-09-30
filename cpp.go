@@ -50,7 +50,7 @@ func expand(hideset *Dict, tok *Token) *Token {
 		return tok
 	}
 	hideset.Put(tok.sval, &DictValue{})
-	buffer = list_append(buffer, body)
+	buffer = list_append(buffer, list_reverse(body))
 	return read_token_int2(hideset, false)
 }
 
@@ -67,8 +67,7 @@ func read_undef() {
 	delete(macros, name.sval)
 }
 
-func read_define() {
-	name := read_ident2()
+func read_obj_macro(name string) {
 	body := make(TokenList, 0)
 	for {
 		tok := get_token()
@@ -77,7 +76,12 @@ func read_define() {
 		}
 		body = append(body, tok)
 	}
-	macros[name.sval] = body
+	macros[name] = body
+}
+
+func read_define() {
+	name := read_ident2()
+	read_obj_macro(name.sval)
 }
 
 func read_defined_operator() *Token {

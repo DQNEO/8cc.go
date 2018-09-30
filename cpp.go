@@ -6,6 +6,18 @@ var altbuffer TokenList = nil
 var bol = true
 var wastrue bool = true
 
+type CondIncl struct {
+	wastrue bool
+}
+var ci *CondIncl
+
+func make_cond_incl(wastrue bool) *CondIncl {
+	r := &CondIncl{
+		wastrue: wastrue,
+	}
+	return r
+}
+
 func read_ident2() *Token {
 	r := read_cpp_token()
 	if !r.is_ident_type() {
@@ -79,7 +91,7 @@ func read_constexpr() bool {
 
 func read_if() {
 	cond := read_constexpr()
-	wastrue = cond
+	ci = make_cond_incl(cond)
 	if !cond {
 		skip_cond_incl()
 	}
@@ -87,18 +99,18 @@ func read_if() {
 
 func read_else() {
 	expect_newine()
-	if wastrue {
+	if ci.wastrue {
 		skip_cond_incl()
 	}
 }
 
 func read_elif() {
-	if wastrue {
+	if ci.wastrue {
 		skip_cond_incl()
 		return
 	} else{
 		cond := read_constexpr()
-		wastrue = cond
+		ci.wastrue = cond
 		if !cond {
 			skip_cond_incl()
 		}

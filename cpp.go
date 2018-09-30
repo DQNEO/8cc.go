@@ -103,7 +103,7 @@ func read_expand(hideset *Dict) *Token {
 		hideset.Put(name, &DictValue{})
 		tokens := macro.body
 		unget_all(tokens)
-		return read_token_int2(hideset, false)
+		return read_expand(hideset)
 	case MACRO_FUNC:
 		errorf("TBD")
 	default:
@@ -219,7 +219,7 @@ func read_defined_operator() *Token {
 func read_intexpr_line() TokenList {
 	var r TokenList
 	for {
-		tok := read_token_int2(NewDict(), true)
+		tok := read_token_int2(true)
 		if tok == nil {
 			return r
 		}
@@ -342,7 +342,7 @@ func get_token() *Token {
 	return tok
 }
 
-func read_token_int2(hideset *Dict, return_at_eol bool) *Token {
+func read_token_int2(return_at_eol bool) *Token {
 	for {
 		tok := get_token()
 		if tok == nil {
@@ -362,10 +362,10 @@ func read_token_int2(hideset *Dict, return_at_eol bool) *Token {
 		}
 		bol = false
 		unget_token(tok)
-		return read_expand(hideset)
+		return read_expand(NewDict())
 	}
 }
 
 func read_token() *Token {
-	return read_token_int2(NewDict(), false)
+	return read_token_int2(false)
 }

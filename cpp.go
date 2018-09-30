@@ -6,12 +6,18 @@ var altbuffer TokenList = nil
 var cond_incl_stack = make([]*CondIncl,0)
 var bol = true
 
+type CondInclCtx int
+const IN_THEN CondInclCtx = 0
+const IN_ELSE CondInclCtx = 1
+
 type CondIncl struct {
+	ctx CondInclCtx
 	wastrue bool
 }
 
-func make_cond_incl(wastrue bool) *CondIncl {
+func make_cond_incl(ctx CondInclCtx, wastrue bool) *CondIncl {
 	r := &CondIncl{
+		ctx : ctx,
 		wastrue: wastrue,
 	}
 	return r
@@ -90,14 +96,20 @@ func read_constexpr() bool {
 
 func read_if() {
 	cond := read_constexpr()
-	cond_incl_stack = append(cond_incl_stack, make_cond_incl(cond))
+	cond_incl_stack = append(cond_incl_stack, make_cond_incl(IN_THEN, cond))
 	if !cond {
 		skip_cond_incl()
 	}
 }
 
 func read_else() {
+	if len(cond_incl_stack) == 0 {
+		errorf("stray #else")
+	}
 	ci := cond_incl_stack[len(cond_incl_stack) -1]
+	if ci.ctx == IN_ELSE {
+		errorf("#else appears in #else")
+	}
 	expect_newine()
 	if ci.wastrue {
 		skip_cond_incl()
@@ -105,7 +117,13 @@ func read_else() {
 }
 
 func read_elif() {
+	if len(cond_incl_stack) == 0 {
+		errorf("stray #elif")
+	}
 	ci := cond_incl_stack[len(cond_incl_stack) -1]
+	if ci.ctx == IN_ELSE {
+		errorf("#elif after #else")
+	}
 	if ci.wastrue {
 		skip_cond_incl()
 		return
@@ -119,6 +137,9 @@ func read_elif() {
 }
 
 func read_endif() {
+	if len(cond_incl_stack) == 0 {
+		errorf("stray #endif")
+	}
 	cond_incl_stack = cond_incl_stack[:len(cond_incl_stack) -1]
 	expect_newine()
 }

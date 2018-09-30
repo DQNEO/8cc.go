@@ -24,14 +24,14 @@ func make_cond_incl(ctx CondInclCtx, wastrue bool) *CondIncl {
 }
 
 func expect2(punct int) {
-	tok := read_cpp_token()
+	tok := get_token()
 	if tok == nil || !tok.is_punct(punct) {
 		errorf("%c expected, but got %s", punct, tok)
 	}
 }
 
 func read_ident2() *Token {
-	r := read_cpp_token()
+	r := get_token()
 	if !r.is_ident_type() {
 		errorf("identifier expected, but got %s", r)
 	}
@@ -55,7 +55,7 @@ func expand(hideset *Dict, tok *Token) *Token {
 }
 
 func expect_newine() {
-	tok := read_cpp_token()
+	tok := get_token()
 	if tok == nil || !tok.is_newline() {
 		errorf("Newline expected, but got %s", tok)
 	}
@@ -71,7 +71,7 @@ func read_define() {
 	name := read_ident2()
 	body := make(TokenList, 0)
 	for {
-		tok := read_cpp_token()
+		tok := get_token()
 		if tok == nil || tok.is_newline() {
 			break
 		}
@@ -81,9 +81,9 @@ func read_define() {
 }
 
 func read_defined_operator() *Token {
-	tok := read_cpp_token()
+	tok := get_token()
 	if tok.is_punct('(') {
-		tok = read_cpp_token()
+		tok = get_token()
 		expect2(')')
 	}
 	if !tok.is_ident_type() {
@@ -174,7 +174,7 @@ func read_endif() {
 }
 
 func read_directive() {
-	tok := read_cpp_token()
+	tok := get_token()
 	if tok.is_ident("define") {
 		read_define()
 	} else if tok.is_ident("undef") {

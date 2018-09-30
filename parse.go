@@ -1064,7 +1064,7 @@ func read_params() []*Ast {
 	for {
 		ctype := read_decl_spec()
 		pname := read_token()
-		if !pname.is_ident_type(){
+		if !pname.is_ident_type() {
 			errorf("Identifier expected, but got %s", pname)
 		}
 		ctype = read_array_dimensions(ctype)

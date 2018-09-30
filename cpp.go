@@ -3,35 +3,37 @@ package main
 var macros = make(map[string]*Macro)
 var buffer = make(TokenList, 0)
 var altbuffer TokenList = nil
-var cond_incl_stack = make([]*CondIncl,0)
+var cond_incl_stack = make([]*CondIncl, 0)
 var bol = true
 
 type CondInclCtx int
+
 const (
 	IN_THEN CondInclCtx = 0
 	IN_ELSE CondInclCtx = 1
 )
 
 type CondIncl struct {
-	ctx CondInclCtx
+	ctx     CondInclCtx
 	wastrue bool
 }
 
 type MacroType int
+
 const (
-	MACRO_OBJ MacroType = 0
+	MACRO_OBJ  MacroType = 0
 	MACRO_FUNC MacroType = 1
 )
 
 type Macro struct {
-	typ MacroType
+	typ   MacroType
 	nargs int
-	body TokenList
+	body  TokenList
 }
 
 func make_cond_incl(ctx CondInclCtx, wastrue bool) *CondIncl {
 	r := &CondIncl{
-		ctx : ctx,
+		ctx:     ctx,
 		wastrue: wastrue,
 	}
 	return r
@@ -39,27 +41,27 @@ func make_cond_incl(ctx CondInclCtx, wastrue bool) *CondIncl {
 
 func make_obj_marco(body TokenList) *Macro {
 	r := &Macro{
-		typ : MACRO_OBJ,
-		body : body,
+		typ:  MACRO_OBJ,
+		body: body,
 	}
 	return r
 }
 
 func make_func_macro(body TokenList, nargs int) *Macro {
 	r := &Macro{
-		typ : MACRO_FUNC,
-		nargs : nargs,
-		body : body,
+		typ:   MACRO_FUNC,
+		nargs: nargs,
+		body:  body,
 	}
 	return r
 }
 
 func make_macro_token(position int) *Token {
 	r := &Token{
-		typ: TTYPE_MACRO_PARAM,
-		hideset:NewDict(),
+		typ:      TTYPE_MACRO_PARAM,
+		hideset:  NewDict(),
 		position: position,
-		space : false,
+		space:    false,
 	}
 	return r
 }
@@ -99,7 +101,7 @@ func read_expand() *Token {
 		return tok
 	}
 	name := tok.sval
-	macro,ok := macros[name]
+	macro, ok := macros[name]
 	if !ok || tok.hideset.Get(name) != nil {
 		return tok
 	}
@@ -134,7 +136,7 @@ func read_funclike_macro_args(param *Dict) {
 		if tok == nil || tok.typ == TTYPE_NEWLINE {
 			errorf("missing ')' in macro parameter list")
 		}
-		if ! tok.is_ident_type() {
+		if !tok.is_ident_type() {
 			errorf("identifier expected, but got '%s'", tok)
 		}
 		param.PutToken(tok.sval, make_macro_token(pos))
@@ -205,7 +207,7 @@ func add_hide_set(tokens TokenList, hideset *Dict) TokenList {
 
 func subst(macro *Macro, hideset *Dict) TokenList {
 	r := make(TokenList, 0)
-	for i := 0; i < len(macro.body) ; i++ {
+	for i := 0; i < len(macro.body); i++ {
 		t0 := macro.body[i]
 		r = append(r, t0)
 	}
@@ -279,7 +281,7 @@ func read_constexpr() bool {
 	altbuffer = list_reverse(read_intexpr_line())
 	expr := read_expr()
 	if len(altbuffer) > 0 {
-		  errorf("Stray token: %v", altbuffer);
+		errorf("Stray token: %v", altbuffer)
 	}
 	altbuffer = nil
 	return eval_intexpr(expr) != 0
@@ -297,7 +299,7 @@ func read_else() {
 	if len(cond_incl_stack) == 0 {
 		errorf("stray #else")
 	}
-	ci := cond_incl_stack[len(cond_incl_stack) -1]
+	ci := cond_incl_stack[len(cond_incl_stack)-1]
 	if ci.ctx == IN_ELSE {
 		errorf("#else appears in #else")
 	}
@@ -311,14 +313,14 @@ func read_elif() {
 	if len(cond_incl_stack) == 0 {
 		errorf("stray #elif")
 	}
-	ci := cond_incl_stack[len(cond_incl_stack) -1]
+	ci := cond_incl_stack[len(cond_incl_stack)-1]
 	if ci.ctx == IN_ELSE {
 		errorf("#elif after #else")
 	}
 	if ci.wastrue {
 		skip_cond_incl()
 		return
-	} else{
+	} else {
 		cond := read_constexpr()
 		ci.wastrue = cond
 		if !cond {
@@ -331,7 +333,7 @@ func read_endif() {
 	if len(cond_incl_stack) == 0 {
 		errorf("stray #endif")
 	}
-	cond_incl_stack = cond_incl_stack[:len(cond_incl_stack) -1]
+	cond_incl_stack = cond_incl_stack[:len(cond_incl_stack)-1]
 	expect_newine()
 }
 

@@ -2,8 +2,8 @@ package main
 
 const BUFLEN = 256
 
-var cpp_token_zero = &Token{typ: TTYPE_NUMBER, sval : "0"}
-var cpp_token_one = &Token{typ: TTYPE_NUMBER, sval : "1"}
+var cpp_token_zero = &Token{typ: TTYPE_NUMBER, sval: "0"}
+var cpp_token_one = &Token{typ: TTYPE_NUMBER, sval: "1"}
 
 var ungotten = TokenList{}
 var newline_token = &Token{typ: TTYPE_NEWLINE}
@@ -77,7 +77,7 @@ func skip_line() {
 func skip_cond_incl() {
 	nest := 0
 	for {
-		c,_ := getc_nonspace()
+		c, _ := getc_nonspace()
 		if c != '#' {
 			skip_line()
 			continue
@@ -92,7 +92,7 @@ func skip_cond_incl() {
 			nest++
 		} else if nest > 0 && tok.is_ident("endif") {
 			nest--
-		} else if nest <= 0 && tok.is_ident("else") || tok.is_ident("elif")  || tok.is_ident("endif") {
+		} else if nest <= 0 && tok.is_ident("else") || tok.is_ident("elif") || tok.is_ident("endif") {
 			unget_cpp_token(tok)
 			unget_cpp_token(make_punct('#'))
 			return
@@ -238,7 +238,7 @@ func read_token_int() *Token {
 	}
 
 	switch {
-	case c == ' ' || c == '\t' :
+	case c == ' ' || c == '\t':
 		skip_space()
 		return space_token
 	case c == '\n':
@@ -316,7 +316,7 @@ func read_cpp_token() *Token {
 	}
 
 	tok := read_token_int()
-	for ;tok!= nil && tok.typ == TTYPE_SPACE; {
+	for tok != nil && tok.typ == TTYPE_SPACE {
 		tok = read_token_int()
 		if tok != nil {
 			tok.space = true

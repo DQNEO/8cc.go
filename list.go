@@ -11,7 +11,7 @@ func list_pop(list TokenList) (TokenList, *Token) {
 	return list, tok
 }
 
-func list_append(a TokenList, b TokenList) TokenList{
+func list_append(a TokenList, b TokenList) TokenList {
 	r := a
 	for _, tok := range b {
 		r = append(r, tok)
@@ -22,7 +22,7 @@ func list_append(a TokenList, b TokenList) TokenList{
 func list_reverse(a TokenList) TokenList {
 	b := make(TokenList, len(a))
 	for i := 0; i < len(a); i++ {
-		b[len(b) - 1 - i] = a[i]
+		b[len(b)-1-i] = a[i]
 	}
 	return b
 }

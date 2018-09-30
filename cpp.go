@@ -73,7 +73,7 @@ func read_define() {
 	macros[name.sval] = body
 }
 
-func read_line() TokenList {
+func read_intexpr_line() TokenList {
 	var r TokenList
 	for {
 		tok := read_token_int2(NewDict(), true)
@@ -85,7 +85,7 @@ func read_line() TokenList {
 }
 
 func read_constexpr() bool {
-	altbuffer = list_reverse(read_line())
+	altbuffer = list_reverse(read_intexpr_line())
 	expr := read_expr()
 	if len(altbuffer) > 0 {
 		  errorf("Stray token: %v", altbuffer);

@@ -16,15 +16,10 @@ type DictEntry struct {
 	val *DictValue
 }
 
-func NewDict() *Dict {
-	return &Dict{}
-}
-
-func (dict *Dict) MakeDict() *Dict {
-	r := &Dict{
-		parent: dict,
+func MakeDict(parent *Dict) *Dict {
+	return &Dict{
+		parent: parent,
 	}
-	return r
 }
 
 func (dict *Dict) Parent() *Dict {

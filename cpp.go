@@ -59,9 +59,9 @@ func make_func_macro(body TokenList, nargs int) *Macro {
 func make_macro_token(position int) *Token {
 	r := &Token{
 		typ:      TTYPE_MACRO_PARAM,
-		hideset:  NewDict(),
+		hideset:  MakeDict(nil),
 		position: position,
-		space:    false,
+		space :   false,
 	}
 	return r
 }
@@ -164,7 +164,7 @@ func read_funclike_macro_body(param *Dict) TokenList {
 }
 
 func read_funclike_macro(name string) {
-	param := NewDict()
+	param := MakeDict(nil)
 	read_funclike_macro_args(param)
 	body := read_funclike_macro_body(param)
 	macro := make_func_macro(body, len(param.Keys()))
@@ -179,7 +179,7 @@ func expect_newine() { // newline
 }
 
 func dict_union(a *Dict, b *Dict) *Dict {
-	r := NewDict()
+	r := MakeDict(nil)
 	for _, key := range a.Keys() {
 		r.Put(key, a.Get(key))
 	}
@@ -190,7 +190,7 @@ func dict_union(a *Dict, b *Dict) *Dict {
 }
 
 func dict_append(dict *Dict, s string) *Dict {
-	r := dict.MakeDict()
+	r := MakeDict(dict)
 	r.Put(s, &DictValue{})
 	return r
 }

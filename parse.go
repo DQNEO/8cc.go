@@ -765,7 +765,7 @@ func read_struct_union_tag() string {
 }
 
 func read_struct_union_fields() *Dict {
-	r := NewDict()
+	r := MakeDict(nil)
 	expect('{')
 	for {
 		if !is_type_keyword(peek_token()) {
@@ -978,7 +978,7 @@ func read_opt_expr() *Ast {
 
 func read_for_stmt() *Ast {
 	expect('(')
-	localenv = localenv.MakeDict()
+	localenv = MakeDict(localenv)
 	init := read_opt_decl_or_stmt()
 	cond := read_opt_expr()
 	var step *Ast
@@ -1033,7 +1033,7 @@ func read_decl_or_stmt() *Ast {
 }
 
 func read_compound_stmt() *Ast {
-	localenv = localenv.MakeDict()
+	localenv = MakeDict(localenv)
 	var list []*Ast
 
 	for {
@@ -1084,7 +1084,7 @@ func read_params() []*Ast {
 }
 
 func read_func_def(rettype *Ctype, fname string, params []*Ast) *Ast {
-	localenv = localenv.MakeDict()
+	localenv = MakeDict(localenv)
 	localvars = make([]*Ast, 0)
 	current_func_rettype = rettype
 	body := read_compound_stmt()
@@ -1099,7 +1099,7 @@ func read_func_def(rettype *Ctype, fname string, params []*Ast) *Ast {
 
 func read_func_decl_or_def(rettype *Ctype, fname string) *Ast {
 	expect('(')
-	localenv = globalenv.MakeDict()
+	localenv = MakeDict(globalenv)
 	params := read_params()
 	tok := read_token()
 	if tok.is_punct('{') {

@@ -23,6 +23,13 @@ func make_cond_incl(ctx CondInclCtx, wastrue bool) *CondIncl {
 	return r
 }
 
+func expect2(punct int) {
+	tok := read_cpp_token()
+	if tok == nil || !tok.is_punct(punct) {
+		errorf("%c expected, but got %s", punct, tok)
+	}
+}
+
 func read_ident2() *Token {
 	r := read_cpp_token()
 	if !r.is_ident_type() {
@@ -71,13 +78,6 @@ func read_define() {
 		body = append(body, tok)
 	}
 	macros[name.sval] = body
-}
-
-func expect2(punct int) {
-	tok := read_cpp_token()
-	if tok == nil || !tok.is_punct(punct) {
-		errorf("%c expected, but got %s", punct, tok)
-	}
 }
 
 func read_defined_operator() *Token {

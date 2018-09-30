@@ -171,7 +171,7 @@ func read_funclike_macro(name string) {
 	macros[name] = macro
 }
 
-func expect_newine() { // newline
+func expect_newline() {
 	tok := get_token()
 	if tok == nil || !tok.is_newline() {
 		errorf("Newline expected, but got %s", tok)
@@ -216,7 +216,7 @@ func subst(macro *Macro, hideset *Dict) TokenList {
 
 func read_undef() {
 	name := read_ident2()
-	expect_newine()
+	expect_newline()
 	delete(macros, name.sval)
 }
 
@@ -303,7 +303,7 @@ func read_else() {
 	if ci.ctx == IN_ELSE {
 		errorf("#else appears in #else")
 	}
-	expect_newine()
+	expect_newline()
 	if ci.wastrue {
 		skip_cond_incl()
 	}
@@ -334,7 +334,7 @@ func read_endif() {
 		errorf("stray #endif")
 	}
 	cond_incl_stack = cond_incl_stack[:len(cond_incl_stack)-1]
-	expect_newine()
+	expect_newline()
 }
 
 func read_directive() {

@@ -8,6 +8,7 @@ type Dict struct {
 type DictValue struct {
 	ast   *Ast
 	ctype *Ctype
+	tok   *Token
 }
 
 type DictEntry struct {
@@ -46,6 +47,14 @@ func (dict *Dict) GetCtype(key string) *Ctype {
 	return val.ctype
 }
 
+func (dict *Dict) GetToken(key string) *Token {
+	val := dict.Get(key)
+	if val == nil {
+		return nil
+	}
+	return val.tok
+}
+
 func (dict *Dict) Get(key string) *DictValue {
 	for d := dict; d != nil; d = d.parent {
 		for _, e := range d.list {
@@ -66,6 +75,12 @@ func (dict *Dict) PutAst(key string, val *Ast) {
 func (dict *Dict) PutCtype(key string, val *Ctype) {
 	dict.Put(key, &DictValue{
 		ctype: val,
+	})
+}
+
+func (dict *Dict) PutToken(key string, val *Token) {
+	dict.Put(key, &DictValue{
+		tok: val,
 	})
 }
 

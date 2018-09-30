@@ -7,6 +7,7 @@ var cpp_token_one = &Token{typ: TTYPE_NUMBER, sval : "1"}
 
 var ungotten = TokenList{}
 var newline_token = &Token{typ: TTYPE_NEWLINE}
+var space_token = &Token{typ: TTYPE_SPACE}
 
 func make_ident(s string) *Token {
 	r := &Token{}
@@ -186,6 +187,17 @@ func skip_line_comment() {
 	}
 }
 
+func skip_space() {
+	for {
+		c, _ := getc(stdin)
+		if c == ' ' || c == '\t' {
+			continue
+		}
+		ungetc(c, stdin)
+		return
+	}
+}
+
 func skip_block_comment() {
 	const (
 		in_comment    = 1
@@ -214,13 +226,16 @@ func read_rep(expect int, t1 int, t2 int) *Token {
 }
 
 func read_token_int() *Token {
-	c, err := getc_nonspace()
+	c, err := getc(stdin)
 	if err != nil {
 		// EOF
 		return nil
 	}
 
 	switch {
+	case c == ' ' || c == '\t' :
+		skip_space()
+		return space_token
 	case c == '\n':
 		return newline_token
 	case '0' <= c && c <= '9':
@@ -295,7 +310,14 @@ func read_cpp_token() *Token {
 		return tok
 	}
 
-	return read_token_int()
+	tok := read_token_int()
+	for ;tok!= nil && tok.typ == TTYPE_SPACE; {
+		tok = read_token_int()
+		if tok != nil {
+			tok.space = true
+		}
+	}
+	return tok
 }
 
 func (tok *Token) is_ident_type() bool {

@@ -1,24 +1,64 @@
 package main
 
-var macros = make(map[string]TokenList)
+var macros = make(map[string]*Macro)
 var buffer = make(TokenList, 0)
 var altbuffer TokenList = nil
 var cond_incl_stack = make([]*CondIncl,0)
 var bol = true
 
 type CondInclCtx int
-const IN_THEN CondInclCtx = 0
-const IN_ELSE CondInclCtx = 1
+const (
+	IN_THEN CondInclCtx = 0
+	IN_ELSE CondInclCtx = 1
+)
 
 type CondIncl struct {
 	ctx CondInclCtx
 	wastrue bool
 }
 
+type MacroType int
+const (
+	MACRO_OBJ MacroType = 0
+	MACRO_FUNC MacroType = 1
+)
+
+type Macro struct {
+	typ MacroType
+	nargs int
+	body TokenList
+}
+
 func make_cond_incl(ctx CondInclCtx, wastrue bool) *CondIncl {
 	r := &CondIncl{
 		ctx : ctx,
 		wastrue: wastrue,
+	}
+	return r
+}
+
+func make_obj_marco(body TokenList) *Macro {
+	r := &Macro{
+		typ : MACRO_OBJ,
+		body : body,
+	}
+	return r
+}
+
+func make_func_macro(body TokenList, nargs int) *Macro {
+	r := &Macro{
+		typ : MACRO_FUNC,
+		nargs : nargs,
+		body : body,
+	}
+	return r
+}
+
+func make_macro_token(position int) *Token {
+	r := &Token{
+		typ: TTYPE_MACRO_PARAM,
+		position: position,
+		space : false,
 	}
 	return r
 }
@@ -38,20 +78,89 @@ func read_ident2() *Token {
 	return r
 }
 
-func expand(hideset *Dict, tok *Token) *Token {
+func unget_all(tokens TokenList) {
+	for _, tok := range list_reverse(tokens) {
+		unget_token(tok)
+	}
+}
+
+func read_expand(hideset *Dict) *Token {
+	tok := get_token()
+	if tok == nil {
+		return nil
+	}
 	if !tok.is_ident_type() {
 		return tok
 	}
-	if hideset.Get(tok.sval) != nil {
+	name := tok.sval
+	macro,ok := macros[name]
+	if !ok || hideset.Get(name) != nil {
 		return tok
 	}
-	body, ok := macros[tok.sval]
-	if !ok {
-		return tok
+
+	switch macro.typ {
+	case MACRO_OBJ:
+		hideset.Put(name, &DictValue{})
+		tokens := macro.body
+		unget_all(tokens)
+		return read_token_int2(hideset, false)
+	case MACRO_FUNC:
+		errorf("TBD")
+	default:
+		errorf("internal error")
 	}
-	hideset.Put(tok.sval, &DictValue{})
-	buffer = list_append(buffer, list_reverse(body))
-	return read_token_int2(hideset, false)
+	return nil
+}
+
+func read_funclike_macro_args(param *Dict) {
+	pos := 0
+	for {
+		tok := get_token()
+		if tok.is_punct(')') {
+			return
+		}
+		if pos > 0 {
+			if !tok.is_punct(',') {
+				errorf("',' expected, but got '%s'", tok)
+			}
+			tok = get_token()
+		}
+		if tok == nil || tok.typ == TTYPE_NEWLINE {
+			errorf("missing ')' in macro parameter list")
+		}
+		if ! tok.is_ident_type() {
+			errorf("identifier expected, but got '%s'", tok)
+		}
+		param.PutToken(tok.sval, make_macro_token(pos))
+		pos++
+	}
+}
+
+func read_funclike_macro_body(param *Dict) TokenList {
+	r := make(TokenList, 0)
+	for {
+		tok := get_token()
+		if tok == nil || tok.is_newline() {
+			return r
+		}
+		if tok.is_ident_type() {
+			subst := param.GetToken(tok.sval)
+			if subst != nil {
+				r = append(r, subst)
+				continue
+			}
+		}
+		r = append(r, tok)
+	}
+	return r
+}
+
+func read_funclike_macro(name string) {
+	param := NewDict()
+	read_funclike_macro_args(param)
+	body := read_funclike_macro_body(param)
+	macro := make_func_macro(body, len(param.Keys()))
+	macros[name] = macro
 }
 
 func expect_newine() {
@@ -76,11 +185,18 @@ func read_obj_macro(name string) {
 		}
 		body = append(body, tok)
 	}
-	macros[name] = body
+	macros[name] = make_obj_marco(body)
 }
 
 func read_define() {
 	name := read_ident2()
+	tok := get_token()
+	if tok != nil && tok.is_punct('(') && !tok.space {
+		errorf("funclie macro found")
+		read_funclike_macro(name.sval)
+		return
+	}
+	unget_token(tok)
 	read_obj_macro(name.sval)
 }
 
@@ -245,7 +361,8 @@ func read_token_int2(hideset *Dict, return_at_eol bool) *Token {
 			continue
 		}
 		bol = false
-		return expand(hideset, tok)
+		unget_token(tok)
+		return read_expand(hideset)
 	}
 }
 

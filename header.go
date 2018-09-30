@@ -11,15 +11,18 @@ const (
 	TTYPE_STRING
 	// Only in CPP
 	TTYPE_NEWLINE
+	TTYPE_SPACE
+	TTYPE_MACRO_PARAM
 )
 
 type Token struct {
 	typ int
-
+	space bool
 	// intends union
 	sval  string
 	punct int
 	c     byte
+	position int
 }
 
 const (

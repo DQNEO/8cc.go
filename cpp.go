@@ -96,11 +96,12 @@ func read_elif() {
 	if wastrue {
 		skip_cond_incl()
 		return
-	}
-	cond := read_constexpr()
-	wastrue = cond
-	if !cond {
-		skip_cond_incl()
+	} else{
+		cond := read_constexpr()
+		wastrue = cond
+		if !cond {
+			skip_cond_incl()
+		}
 	}
 }
 

@@ -59,6 +59,7 @@ static void skip_line(void) {
 }
 
 void skip_cond_incl(void) {
+    int nest = 0;
     for (;;) {
         int c = getc_nonspace();
         if (c != '#') {
@@ -70,7 +71,11 @@ void skip_cond_incl(void) {
             continue;
         if (tok->type != TTYPE_IDENT) {
             skip_line();
-        } else if (is_ident(tok, "endif") || is_ident(tok, "else")) {
+        } else if (is_ident(tok, "if") || is_ident(tok, "ifdef") || is_ident(tok, "ifndef")) {
+            nest++;
+        } else if (nest && is_ident(tok, "endif")) {
+            nest--;
+        } else if (!nest && (is_ident(tok, "else") || is_ident(tok, "elif") || is_ident(tok, "endif"))) {
             unget_cpp_token(tok);
             unget_cpp_token(make_punct('#'));
             return;

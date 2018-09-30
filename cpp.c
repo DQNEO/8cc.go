@@ -1,12 +1,27 @@
+#include <stdlib.h>
 #include "8cc.h"
 
 static Dict *macros = &EMPTY_DICT;
 static List *buffer = &EMPTY_LIST;
 static List *altbuffer = NULL;
+static List *cond_incl_stack = &EMPTY_LIST;
 static bool bol = true;
-static bool wastrue = false;
+
+enum CondInclCtx { IN_THEN, IN_ELSE };
+
+typedef struct {
+    enum CondInclCtx ctx;
+    bool wastrue;
+} CondIncl;
 
 static Token *read_token_int(Dict *hideset, bool return_at_eol);
+
+static CondIncl *make_cond_incl(enum CondInclCtx ctx, bool wastrue) {
+    CondIncl *r = malloc(sizeof(CondIncl));
+    r->ctx = ctx;
+    r->wastrue = wastrue;
+    return r;
+}
 
 static Token *read_ident(void) {
     Token *r = read_cpp_token();
@@ -65,29 +80,49 @@ static bool read_constexpr(void) {
     altbuffer = list_reverse(read_line());
     Ast *expr = read_expr();
     if (list_len(altbuffer) > 0)
-        error("Stray token: %s", token_to_string(list_pop(altbuffer)));
+        error("Stray token: %s", token_to_string(list_shift(altbuffer)));
     altbuffer = NULL;
     return eval_intexpr(expr);
 }
 
 static void read_if(void) {
     bool cond = read_constexpr();
-    wastrue = cond;
+    list_push(cond_incl_stack, make_cond_incl(IN_THEN, cond));
     if (!cond)
         skip_cond_incl();
 }
 
 static void read_else(void) {
+    if (list_len(cond_incl_stack) == 0)
+        error("stray #else");
+    CondIncl *ci = list_tail(cond_incl_stack);
+    if (ci->ctx == IN_ELSE)
+        error("#else appears in #else");
     expect_newline();
-    if (wastrue)
+    if (ci->wastrue)
         skip_cond_incl();
 }
 
 static void read_elif(void) {
-    expect_newline();
+    if (list_len(cond_incl_stack) == 0)
+        error("stray #elif");
+    CondIncl *ci = list_tail(cond_incl_stack);
+    if (ci->ctx == IN_ELSE)
+        error("#elif after #else");
+    if (ci->wastrue)
+        skip_cond_incl();
+    else {
+        bool cond = read_constexpr();
+        ci->wastrue = cond;
+        if (!cond)
+            skip_cond_incl();
+    }
 }
 
 static void read_endif(void) {
+    if (list_len(cond_incl_stack) == 0)
+        error("stray #endif");
+    list_pop(cond_incl_stack);
     expect_newline();
 }
 

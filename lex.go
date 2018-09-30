@@ -2,6 +2,7 @@ package main
 
 const BUFLEN = 256
 
+var cpp_token_zero = &Token{typ: TTYPE_NUMBER, sval : "0"}
 var cpp_token_one = &Token{typ: TTYPE_NUMBER, sval : "1"}
 
 var ungotten = TokenList{}

@@ -73,6 +73,29 @@ func read_define() {
 	macros[name.sval] = body
 }
 
+func expect2(punct int) {
+	tok := read_cpp_token()
+	if tok == nil || !tok.is_punct(punct) {
+		errorf("%c expected, but got %s", punct, tok)
+	}
+}
+
+func read_defined_operator() *Token {
+	tok := read_cpp_token()
+	if tok.is_punct('(') {
+		tok = read_cpp_token()
+		expect2(')')
+	}
+	if !tok.is_ident_type() {
+		errorf("Identifier expected, but got %s", tok)
+	}
+	if _, ok := macros[tok.sval]; ok {
+		return cpp_token_one
+	} else {
+		return cpp_token_zero
+	}
+}
+
 func read_intexpr_line() TokenList {
 	var r TokenList
 	for {
@@ -80,7 +103,9 @@ func read_intexpr_line() TokenList {
 		if tok == nil {
 			return r
 		}
-		if tok.is_ident_type() {
+		if tok.is_ident("defined") {
+			r = append(r, read_defined_operator())
+		} else if tok.is_ident_type() {
 			r = append(r, cpp_token_one)
 		} else {
 			r = append(r, tok)

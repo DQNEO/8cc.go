@@ -127,6 +127,13 @@ int defined_op() {
     expect(4, a);
 }
 
+int funclike() {
+    // This is not a function-like macro.
+    int x = 3;
+#define m7 (x) + x
+    expect(6, m7);
+}
+
 int main() {
     printf("Testing macros ... ");
 
@@ -136,6 +143,7 @@ int main() {
     cond_incl();
     const_expr();
     defined_op();
+    funclike();
 
     printf("OK\n");
     return 0;

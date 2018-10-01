@@ -274,6 +274,26 @@ func add_hide_set(tokens TokenList, hideset *Dict) TokenList {
 	return r
 }
 
+func join_tokens(args TokenList) string {
+	s := ""
+	for _, tok := range args {
+		switch tok.typ {
+		case TTYPE_NUMBER:
+			s += tok.sval
+		default:
+			errorf("internal error")
+		}
+	}
+	return s
+}
+
+func stringize(args TokenList) *Token {
+	r := &Token {
+		typ : TTYPE_STRING,
+		sval : join_tokens(args),
+	}
+	return r
+}
 func expand_all(tokens TokenList) TokenList {
 	r := make_list()
 	orig := altbuffer
@@ -287,10 +307,24 @@ func expand_all(tokens TokenList) TokenList {
 }
 
 func subst(macro *Macro, args []TokenList, hideset *Dict) TokenList {
-	r := make(TokenList, 0)
+	r := make_list()
 	for i := 0; i < len(macro.body); i++ {
+		islast := i == (len(macro.body) -1)
 		t0 := macro.body[i]
+		var t1 *Token
+		if islast {
+			t1 = nil
+		} else {
+			t1 = macro.body[i+1]
+		}
 		t0_param := (t0.typ == TTYPE_MACRO_PARAM)
+		t1_param := (!islast && t1.typ == TTYPE_MACRO_PARAM)
+		if t0.is_punct('#') && t1_param {
+			arg := args[t1.position]
+			r = append(r, stringize(arg))
+			i++
+			continue
+		}
 		if t0_param {
 			arg := args[t0.position]
 			r = list_append(r, expand_all(arg))

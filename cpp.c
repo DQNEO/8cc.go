@@ -180,6 +180,12 @@ static char *join_tokens(List *args) {
         case TTYPE_NUMBER:
             string_appendf(s, "%s", tok->sval);
             break;
+        case TTYPE_PUNCT:
+            string_appendf(s, "%c", tok->c);
+            break;
+        case TTYPE_CHAR:
+            string_appendf(s, "%s", quote_char(tok->c));
+            break;
         default:
             error("internal error");
         }

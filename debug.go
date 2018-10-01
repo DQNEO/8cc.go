@@ -238,3 +238,11 @@ func (tok *Token) String() string {
 	errorf("internal error: unknown token type: %d", tok.typ)
 	return ""
 }
+
+func (tokens TokenList) String() string {
+	r := ""
+	for _, token := range tokens {
+		r = r +  token.String() + " "
+	}
+	return r
+}

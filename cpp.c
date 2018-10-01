@@ -168,6 +168,29 @@ static List *add_hide_set(List *tokens, Dict *hideset) {
     return r;
 }
 
+static char *join_tokens(List *args) {
+    String *s = make_string();
+    for (Iter *i = list_iter(args); !iter_end(i);) {
+        Token *tok = iter_next(i);
+        switch (tok->type) {
+        case TTYPE_IDENT:
+        case TTYPE_NUMBER:
+            string_appendf(s, "%s", tok->sval);
+            break;
+        default:
+            error("internal error");
+        }
+    }
+    return get_cstring(s);
+}
+
+static Token *stringize(List *args) {
+    Token *r = malloc(sizeof(Token));
+    r->type = TTYPE_STRING;
+    r->sval = join_tokens(args);
+    return r;
+}
+
 static List *expand_all(List *tokens) {
     List *r = make_list();
     List *orig = altbuffer;
@@ -182,9 +205,18 @@ static List *expand_all(List *tokens) {
 static List *subst(Macro *macro, List *args, Dict *hideset) {
     List *r = make_list();
     for (int i = 0; i < list_len(macro->body); i++) {
+        bool islast = (i == list_len(macro->body) - 1);
         Token *t0 = list_get(macro->body, i);
+        Token *t1 = islast ? NULL : list_get(macro->body, i + 1);
         bool t0_param = (t0->type == TTYPE_MACRO_PARAM);
+        bool t1_param = (!islast && t1->type == TTYPE_MACRO_PARAM);
 
+        if (is_punct(t0, '#') && t1_param) {
+            List *arg = list_get(args, t1->position);
+            list_push(r, stringize(arg));
+            i++;
+            continue;
+        }
         if (t0_param) {
             List *arg = list_get(args, t0->position);
             list_append(r, expand_all(arg));

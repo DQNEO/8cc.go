@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 const BUFLEN = 256
 
 var cpp_token_zero = &Token{typ: TTYPE_NUMBER, sval: "0"}
@@ -263,8 +265,18 @@ func read_token_int() *Token {
 		}
 		ungetc(c, stdin)
 		return make_punct('/')
+	case c == '.' :
+		c,_ = getc(stdin)
+		if c == '.' {
+			c,_ = getc(stdin)
+			s := fmt.Sprintf("..%c", c)
+			return make_ident(s)
+		}
+		ungetc(c, stdin)
+		return make_punct('.')
+
 	case c == '*' || c == '(' ||
-		c == ')' || c == ',' || c == ';' || c == '.' ||
+		c == ')' || c == ',' || c == ';' ||
 		c == '[' || c == ']' || c == '{' || c == '}' ||
 		c == '<' || c == '>' || c == '!' ||
 		c == '?' || c == ':' || c == '#':

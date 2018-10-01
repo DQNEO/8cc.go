@@ -167,7 +167,10 @@ int funclike() {
     expect_string("'\\''", m5('\''));
     expect_string("\"abc\"", m5("abc"));
     expect_string("ZERO", m5(ZERO));
-    
+
+#define m6(x, ...) x + __VA_ARGS__
+    //expect(20, m6(2, 16));
+
 #define plus(x, y) x * y + plus(x, y)
     expect(11, plus(2, 3));
 #undef plus

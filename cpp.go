@@ -31,6 +31,7 @@ type Macro struct {
 	typ   MacroType
 	nargs int
 	body  TokenList
+	is_varg bool
 }
 
 func make_cond_incl(ctx CondInclCtx, wastrue bool) *CondIncl {
@@ -45,15 +46,17 @@ func make_obj_marco(body TokenList) *Macro {
 	r := &Macro{
 		typ:  MACRO_OBJ,
 		body: body,
+		is_varg: false,
 	}
 	return r
 }
 
-func make_func_macro(body TokenList, nargs int) *Macro {
+func make_func_macro(body TokenList, nargs int, is_varg bool) *Macro {
 	r := &Macro{
 		typ:   MACRO_FUNC,
 		nargs: nargs,
 		body:  body,
+		is_varg: is_varg,
 	}
 	return r
 }
@@ -128,12 +131,12 @@ func read_expand() *Token {
 	return nil
 }
 
-func read_funclike_macro_args(param *Dict) {
+func read_funclike_macro_args(param *Dict) bool {
 	pos := 0
 	for {
 		tok := get_token()
 		if tok.is_punct(')') {
-			return
+			return false
 		}
 		if pos > 0 {
 			if !tok.is_punct(',') {
@@ -143,6 +146,12 @@ func read_funclike_macro_args(param *Dict) {
 		}
 		if tok == nil || tok.typ == TTYPE_NEWLINE {
 			errorf("missing ')' in macro parameter list")
+		}
+		if tok.is_ident("...") {
+			pos++
+			param.PutToken("__VA_ARGS__", make_macro_token(pos))
+			expect(')')
+			return true
 		}
 		if !tok.is_ident_type() {
 			errorf("identifier expected, but got '%s'", tok)
@@ -173,9 +182,9 @@ func read_funclike_macro_body(param *Dict) TokenList {
 
 func read_funclike_macro(name string) {
 	param := MakeDict(nil)
-	read_funclike_macro_args(param)
+	varg := read_funclike_macro_args(param)
 	body := read_funclike_macro_body(param)
-	macro := make_func_macro(body, len(param.Keys()))
+	macro := make_func_macro(body, len(param.Keys()), varg)
 	macros[name] = macro
 }
 
@@ -289,6 +298,8 @@ func join_tokens(args TokenList) string {
 			s += fmt.Sprintf("%c", tok.punct)
 		case TTYPE_CHAR:
 			s += quote_char(tok.c)
+		case TTYPE_STRING:
+			s += fmt.Sprintf("\"%s\"", tok.sval)
 		default:
 			errorf("internal error")
 		}

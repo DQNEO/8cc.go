@@ -195,7 +195,7 @@ func expect_newline() {
 	}
 }
 
-func read_args_int() []TokenList {
+func read_args_int(macro *Macro) []TokenList {
 	tok := get_token()
 	if tok == nil || !tok.is_punct('(') {
 		unget_token(tok)
@@ -229,7 +229,8 @@ func read_args_int() []TokenList {
 			}
 			return r
 		}
-		if tok.is_punct(',') {
+		in_threedots := macro.is_varg && (len(r) +1 == macro.nargs)
+		if tok.is_punct(',') && !in_threedots {
 			r = append(r, arg)
 			arg = make_list()
 			continue
@@ -239,11 +240,12 @@ func read_args_int() []TokenList {
 }
 
 func read_args(macro *Macro) []TokenList {
-	args := read_args_int()
+	args := read_args_int(macro)
 	if args == nil {
 		return nil
 	}
-	if len(args) != macro.nargs {
+	if (macro.is_varg && len(args) < macro.nargs) ||
+		(!macro.is_varg && len(args) != macro.nargs) {
 		errorf("Macro argument number does not match")
 	}
 	return args

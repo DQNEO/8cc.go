@@ -237,7 +237,18 @@ static Token *read_token_int(void) {
         ungetc(c, stdin);
         return make_punct('/');
     }
-    case '*': case '(': case ')': case ',': case ';': case '.': case '[':
+    case '.': {
+        c = getc(stdin);
+        if (c == '.') {
+            c = getc(stdin);
+            String *s = make_string();
+            string_appendf(s, "..%c", c);
+            return make_ident(s);
+        }
+        ungetc(c, stdin);
+        return make_punct('.');
+    }
+    case '*': case '(': case ')': case ',': case ';': case '[':
     case ']': case '{': case '}': case '<': case '>': case '!': case '?':
     case ':': case '#':
         return make_punct(c);

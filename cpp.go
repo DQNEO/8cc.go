@@ -287,6 +287,8 @@ func join_tokens(args TokenList) string {
 			s += tok.sval
 		case TTYPE_PUNCT:
 			s += fmt.Sprintf("%c", tok.punct)
+		case TTYPE_CHAR:
+			s += quote_char(tok.c)
 		default:
 			errorf("internal error")
 		}

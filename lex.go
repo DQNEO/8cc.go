@@ -155,6 +155,10 @@ func read_string() *Token {
 			}
 			switch c {
 			case '"':
+				break
+			case '\\':
+				c = '\\'
+				break
 			case 'n':
 				c = '\n'
 			default:

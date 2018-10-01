@@ -37,3 +37,15 @@ func quote_cstring(sval string) string {
 	}
 	return s
 }
+
+func quote_char(c byte) string {
+	s := ""
+	if c == '\\' {
+		s = "'\\\\"
+	} else if c == '\'' {
+		s = "'\\''"
+	} else {
+		s = fmt.Sprintf("'%c'", c)
+	}
+	return s
+}

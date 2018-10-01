@@ -342,8 +342,7 @@ func subst(macro *Macro, args []TokenList, hideset *Dict) TokenList {
 		t0_param := (t0.typ == TTYPE_MACRO_PARAM)
 		t1_param := (!islast && t1.typ == TTYPE_MACRO_PARAM)
 		if t0.is_punct('#') && t1_param {
-			arg := args[t1.position]
-			r = append(r, stringize(arg))
+			r = append(r, stringize(args[t1.position]))
 			i++
 			continue
 		}

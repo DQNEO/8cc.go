@@ -148,8 +148,8 @@ func read_funclike_macro_args(param *Dict) bool {
 			errorf("missing ')' in macro parameter list")
 		}
 		if tok.is_ident("...") {
-			pos++
 			param.PutToken("__VA_ARGS__", make_macro_token(pos))
+			pos++
 			expect(')')
 			return true
 		}

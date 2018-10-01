@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 var macros = make(map[string]*Macro)
 var buffer = make(TokenList, 0)
 var altbuffer TokenList = nil
@@ -283,6 +285,8 @@ func join_tokens(args TokenList) string {
 		switch tok.typ {
 		case TTYPE_IDENT, TTYPE_NUMBER:
 			s += tok.sval
+		case TTYPE_PUNCT:
+			s += fmt.Sprintf("%c", tok.punct)
 		default:
 			errorf("internal error")
 		}

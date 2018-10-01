@@ -278,7 +278,7 @@ func join_tokens(args TokenList) string {
 	s := ""
 	for _, tok := range args {
 		switch tok.typ {
-		case TTYPE_NUMBER:
+		case TTYPE_IDENT, TTYPE_NUMBER:
 			s += tok.sval
 		default:
 			errorf("internal error")

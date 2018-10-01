@@ -6,6 +6,14 @@ int expect(int a, int b) {
     }
 }
 
+int expect_string(char *a, char *b) {
+    if (strcmp(a, b)) {
+        printf("Failed\n");
+        printf("  \"%s\" expected, but got \"%s\"\n", a, b);
+        exit(1);
+    }
+}
+
 #define ZERO 0
 #define ONE 1
 #define TWO ONE + ONE
@@ -148,6 +156,10 @@ int funclike() {
 #define m4(x, y) x + y + TWO
     expect(17, m4(5, 10));
 
+#define m5(x) #x
+    expect_string("5", m5(5));
+    expect_string("x", m5(x));
+    
 #define plus(x, y) x * y + plus(x, y)
     expect(11, plus(2, 3));
 #undef plus

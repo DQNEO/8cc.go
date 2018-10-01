@@ -127,7 +127,36 @@ int defined_op() {
     expect(4, a);
 }
 
+int plus(int a, int b) {
+    return a + b;
+}
+
+int minus(int a, int b) {
+    return a - b;
+}
+
 int funclike() {
+#define m1(x) x
+    expect(5, m1(5));
+
+#define m2(x) x + x
+    expect(10, m2(5));
+
+#define m3(x, y) x + y
+    expect(15, m3(5, 10));
+
+#define m4(x, y) x + y + TWO
+    expect(17, m4(5, 10));
+
+#define plus(x, y) x * y + plus(x, y)
+    expect(11, plus(2, 3));
+#undef plus
+
+#define plus(x, y)  minus(x, y)
+#define minus(x, y) plus(x, y)
+    expect(31, plus(30, 1));
+    expect(29, minus(30, 1));
+
     // This is not a function-like macro.
     int x = 3;
 #define m7 (x) + x

@@ -2,6 +2,10 @@ package main
 
 type TokenList []*Token
 
+func make_list() TokenList {
+	return make(TokenList, 0)
+}
+
 func list_pop(list TokenList) (TokenList, *Token) {
 	if len(list) == 0 {
 		return list, nil

@@ -109,11 +109,17 @@ func read_expand() *Token {
 	switch macro.typ {
 	case MACRO_OBJ:
 		hideset := dict_append(tok.hideset, name)
-		tokens := subst(macro, hideset)
+		tokens := subst(macro, make([]TokenList , 0), hideset)
 		unget_all(tokens)
 		return read_expand()
 	case MACRO_FUNC:
-		errorf("TBD")
+		args := read_args(macro)
+		rparen := get_token()
+		assert(rparen.is_punct(')'))
+		hideset := dict_append(dict_intersection(tok.hideset, rparen.hideset), name)
+		tokens := subst(macro, args, hideset)
+		unget_all(tokens)
+		return read_expand()
 	default:
 		errorf("internal error")
 	}
@@ -178,6 +184,60 @@ func expect_newline() {
 	}
 }
 
+func read_args_int() []TokenList {
+	tok := get_token()
+	if tok == nil || !tok.is_punct('(') {
+		unget_token(tok)
+		return nil
+	}
+	r := make([]TokenList, 0)
+	arg := make_list()
+	depth := 0
+	for {
+		tok = get_token()
+		if tok == nil {
+			errorf("unterminated macro argument list")
+		}
+		if tok.is_newline() {
+			continue
+		}
+		if depth > 0 {
+			if tok.is_punct(')') {
+				depth--
+			}
+			arg = append(arg, tok)
+			continue
+		}
+		if tok.is_punct('(') {
+			depth++
+		}
+		if tok.is_punct(')') {
+			unget_token(tok)
+			if len(r) != 0 || len(arg) != 0 {
+				r = append(r, arg)
+			}
+			return r
+		}
+		if tok.is_punct(',') {
+			r = append(r, arg)
+			arg = make_list()
+			continue
+		}
+		arg = append(arg, tok)
+	}
+}
+
+func read_args(macro *Macro) []TokenList {
+	args := read_args_int()
+	if args == nil {
+		return nil
+	}
+	if len(args) != macro.nargs {
+		errorf("Macro argument number does not match")
+	}
+	return args
+}
+
 func dict_union(a *Dict, b *Dict) *Dict {
 	r := MakeDict(nil)
 	for _, key := range a.Keys() {
@@ -189,6 +249,15 @@ func dict_union(a *Dict, b *Dict) *Dict {
 	return r
 }
 
+func dict_intersection(a *Dict , b *Dict) *Dict {
+	r := MakeDict(nil)
+	for _, key := range a.Keys() {
+		if b.Get(key) != nil {
+			r.Put(key, &DictValue{})
+		}
+	}
+	return r
+}
 func dict_append(dict *Dict, s string) *Dict {
 	r := MakeDict(dict)
 	r.Put(s, &DictValue{})
@@ -205,10 +274,28 @@ func add_hide_set(tokens TokenList, hideset *Dict) TokenList {
 	return r
 }
 
-func subst(macro *Macro, hideset *Dict) TokenList {
+func expand_all(tokens TokenList) TokenList {
+	r := make_list()
+	orig := altbuffer
+	altbuffer = list_reverse(tokens)
+	tok := read_expand()
+	for ; tok != nil ; tok = read_expand() {
+		r = append(r, tok)
+	}
+	altbuffer  = orig
+	return r
+}
+
+func subst(macro *Macro, args []TokenList, hideset *Dict) TokenList {
 	r := make(TokenList, 0)
 	for i := 0; i < len(macro.body); i++ {
 		t0 := macro.body[i]
+		t0_param := (t0.typ == TTYPE_MACRO_PARAM)
+		if t0_param {
+			arg := args[t0.position]
+			r = list_append(r, expand_all(arg))
+			continue
+		}
 		r = append(r, t0)
 	}
 	return add_hide_set(r, hideset)
@@ -236,7 +323,6 @@ func read_define() {
 	name := read_ident2()
 	tok := get_token()
 	if tok != nil && tok.is_punct('(') && !tok.space {
-		errorf("funclie macro found")
 		read_funclike_macro(name.sval)
 		return
 	}

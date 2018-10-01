@@ -277,6 +277,9 @@ func add_hide_set(tokens TokenList, hideset *Dict) TokenList {
 func join_tokens(args TokenList) string {
 	s := ""
 	for _, tok := range args {
+		if len(s) > 0 && tok.space {
+			s += " "
+		}
 		switch tok.typ {
 		case TTYPE_IDENT, TTYPE_NUMBER:
 			s += tok.sval

@@ -79,7 +79,10 @@ func skip_line() {
 func skip_cond_incl() {
 	nest := 0
 	for {
-		c, _ := getc_nonspace()
+		c, err := getc_nonspace()
+		if err != nil {
+			return
+		}
 		if c != '#' {
 			skip_line()
 			continue

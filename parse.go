@@ -577,6 +577,9 @@ func result_type(op byte, a *Ctype, b *Ctype) *Ctype {
 
 func read_unary_expr() *Ast {
 	tok := read_token()
+	if tok == nil {
+		errorf("premature end of input")
+	}
 	if tok.typ != TTYPE_PUNCT {
 		unget_token(tok)
 		return read_prim()
@@ -859,7 +862,7 @@ func read_decl_int() (*Ctype, *Token) {
 	ctype := read_decl_spec()
 	name := read_token()
 	if !name.is_ident_type() {
-		errorf("Identifier expected, but got %s", name)
+		errorf("identifier expected, but got %s", name)
 	}
 	ctype = read_array_dimensions(ctype)
 	return ctype, name

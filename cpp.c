@@ -239,12 +239,12 @@ static Token *stringize(List *args) {
 
 static List *expand_all(List *tokens) {
     List *r = make_list();
-    List *orig = altbuffer;
-    altbuffer = list_reverse(tokens);
+    List *orig = get_input_buffer();
+    set_input_buffer(tokens);
     Token *tok;
     while ((tok = read_expand()) != NULL)
         list_push(r, tok);
-    altbuffer = orig;
+    set_input_buffer(orig);
     return r;
 }
 
@@ -439,11 +439,13 @@ static List *read_intexpr_line(void) {
 }
 
 static bool read_constexpr(void) {
-    altbuffer = list_reverse(read_intexpr_line());
+    List *orig = get_input_buffer();
+    set_input_buffer(read_intexpr_line());
     Ast *expr = read_expr();
-    if (list_len(altbuffer) > 0)
-        error("Stray token: %s", t2s(list_shift(altbuffer)));
-    altbuffer = NULL;
+    List *buf = get_input_buffer();
+    if (list_len(buf) > 0)
+        error("Stray token: %s", t2s(list_shift(buf)));
+    set_input_buffer(orig);
     return eval_intexpr(expr);
 }
 

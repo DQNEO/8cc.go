@@ -4,9 +4,6 @@ import "fmt"
 
 const BUFLEN = 256
 
-var cpp_token_zero = &Token{typ: TTYPE_NUMBER, sval: "0"}
-var cpp_token_one = &Token{typ: TTYPE_NUMBER, sval: "1"}
-
 var ungotten = TokenList{}
 var newline_token = &Token{typ: TTYPE_NEWLINE}
 var space_token = &Token{typ: TTYPE_SPACE}

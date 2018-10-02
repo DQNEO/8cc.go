@@ -28,7 +28,7 @@ func newStdin() *stream {
 	return s
 }
 
-func getc(stdin *stream) (byte, error) {
+func (stdin *stream) getc() (byte, error) {
 	b := stdin.buf[stdin.i]
 	if b == byte(0) {
 		return b, fmt.Errorf("EOL")
@@ -37,9 +37,17 @@ func getc(stdin *stream) (byte, error) {
 	return b, nil
 }
 
-func ungetc(c byte, stdin *stream) {
+func getc(stdin *stream) (byte, error) {
+	return stdin.getc()
+}
+
+func (stdin *stream) ungetc(c byte) {
 	stdin.i--
 	return
+}
+
+func ungetc(c byte, stdin *stream) {
+	stdin.ungetc(c)
 }
 
 func isspace(c byte) bool {

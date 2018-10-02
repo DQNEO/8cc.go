@@ -569,10 +569,6 @@ func construct_path(path1 string, path2 string) string {
 	return fmt.Sprintf("%s/%s", path1, path2)
 }
 
-func open_header_file(name string, paths []string) {
-
-}
-
 func read_include() {
 	name,std := read_cpp_header_name()
 	expect_newline()
@@ -583,10 +579,9 @@ func read_include() {
 		paths = []string{""}
 	}
 
-	var fp *os.File
 	for _, directory := range paths {
 		path := construct_path(directory, name)
-		fp, _ = os.Open(path)
+		fp, _ := os.Open(path)
 		if fp != nil {
 			push_input_file(fp)
 			return

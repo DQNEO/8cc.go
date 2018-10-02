@@ -512,12 +512,12 @@ static void read_include(void) {
 
 static void read_directive(void) {
     Token *tok = read_cpp_token();
-    if (is_ident(tok, "define"))     read_define();
-    else if (is_ident(tok, "undef")) read_undef();
-    else if (is_ident(tok, "if"))    read_if();
-    else if (is_ident(tok, "else"))  read_else();
-    else if (is_ident(tok, "elif"))  read_elif();
-    else if (is_ident(tok, "endif")) read_endif();
+    if (is_ident(tok, "define"))       read_define();
+    else if (is_ident(tok, "undef"))   read_undef();
+    else if (is_ident(tok, "if"))      read_if();
+    else if (is_ident(tok, "else"))    read_else();
+    else if (is_ident(tok, "elif"))    read_elif();
+    else if (is_ident(tok, "endif"))   read_endif();
     else if (is_ident(tok, "include")) read_include();
     else
         error("unsupported preprocessor directive: %s", t2s(tok));

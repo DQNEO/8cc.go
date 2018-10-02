@@ -559,11 +559,7 @@ func read_directive() {
 }
 
 func unget_token(tok *Token) {
-	if altbuffer != nil {
-		altbuffer = append(altbuffer, tok)
-	} else {
-		buffer = append(buffer, tok)
-	}
+	unget_cpp_token(tok)
 }
 
 func peek_token() *Token {

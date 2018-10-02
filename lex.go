@@ -331,6 +331,10 @@ func unget_cpp_token(tok *Token) {
 	if tok == nil {
 		return
 	}
+	if altbuffer != nil {
+		altbuffer = append(altbuffer, tok)
+		return
+	}
 	buffer = append(buffer, tok)
 }
 

@@ -7,17 +7,26 @@ import (
 
 const BUFLEN = 256
 
+type File struct {
+	fp *stream
+}
+
 var buffer = make(TokenList, 0)
 var altbuffer TokenList = nil
-var file_stack []*stream
-var file *stream
-
+var file_stack []*File
+var file *File
 
 var newline_token = &Token{typ: TTYPE_NEWLINE}
 var space_token = &Token{typ: TTYPE_SPACE}
 
+func make_file(s *stream) *File {
+	return &File{
+		fp : s,
+	}
+}
+
 func initLex() {
-	file = stdin
+	file = make_file(stdin)
 }
 
 func make_ident(s string) *Token {
@@ -66,15 +75,15 @@ func make_string_ident(s string) *Token {
 
 func push_input_file(input *os.File) {
 	file_stack = append(file_stack, file)
-	file = newStream(input)
+	file = make_file(newStream(input))
 }
 
 func get() (byte,error) {
-	return getc(file)
+	return getc(file.fp)
 }
 
 func unget(c byte) {
-	ungetc(c, file)
+	ungetc(c, file.fp)
 }
 
 func get_nonspace() (byte, error) {
@@ -432,7 +441,7 @@ func read_cpp_token() *Token {
 	}
 
 	if tok == nil && len(file_stack) > 0 {
-		file.close()
+		file.fp.close()
 		file = file_stack[len(file_stack) -1]
 		file_stack = file_stack[:len(file_stack) -1]
 		return newline_token

@@ -480,13 +480,14 @@ func read_intexpr_line() TokenList {
 }
 
 func read_constexpr() bool {
+	orig := get_input_buffer()
 	set_input_buffer(read_intexpr_line())
 	expr := read_expr()
 	buf := get_input_buffer()
 	if len(buf) > 0 {
 		errorf("Stray token: %v", buf)
 	}
-	set_input_buffer(nil)
+	set_input_buffer(orig)
 	return eval_intexpr(expr) != 0
 }
 

@@ -77,14 +77,14 @@ func copy_token(tok *Token) *Token {
 }
 
 func expect2(punct int) {
-	tok := get_token()
+	tok := read_cpp_token()
 	if tok == nil || !tok.is_punct(punct) {
 		errorf("%c expected, but got %s", punct, tok)
 	}
 }
 
 func read_ident2() *Token {
-	r := get_token()
+	r := read_cpp_token()
 	if !r.is_ident_type() {
 		errorf("identifier expected, but got %s", r)
 	}
@@ -98,7 +98,7 @@ func unget_all(tokens TokenList) {
 }
 
 func read_expand() *Token {
-	tok := get_token()
+	tok := read_cpp_token()
 	if tok == nil {
 		return nil
 	}
@@ -119,7 +119,7 @@ func read_expand() *Token {
 		return read_expand()
 	case MACRO_FUNC:
 		args := read_args(macro)
-		rparen := get_token()
+		rparen := read_cpp_token()
 		assert(rparen.is_punct(')'))
 		hideset := dict_append(dict_intersection(tok.hideset, rparen.hideset), name)
 		tokens := subst(macro, args, hideset)
@@ -134,7 +134,7 @@ func read_expand() *Token {
 func read_funclike_macro_args(param *Dict) bool {
 	pos := 0
 	for {
-		tok := get_token()
+		tok := read_cpp_token()
 		if tok.is_punct(')') {
 			return false
 		}
@@ -142,7 +142,7 @@ func read_funclike_macro_args(param *Dict) bool {
 			if !tok.is_punct(',') {
 				errorf("',' expected, but got '%s'", tok)
 			}
-			tok = get_token()
+			tok = read_cpp_token()
 		}
 		if tok == nil || tok.typ == TTYPE_NEWLINE {
 			errorf("missing ')' in macro parameter list")
@@ -164,7 +164,7 @@ func read_funclike_macro_args(param *Dict) bool {
 func read_funclike_macro_body(param *Dict) TokenList {
 	r := make(TokenList, 0)
 	for {
-		tok := get_token()
+		tok := read_cpp_token()
 		if tok == nil || tok.is_newline() {
 			return r
 		}
@@ -189,14 +189,14 @@ func read_funclike_macro(name string) {
 }
 
 func expect_newline() {
-	tok := get_token()
+	tok := read_cpp_token()
 	if tok == nil || !tok.is_newline() {
 		errorf("Newline expected, but got %s", tok)
 	}
 }
 
 func read_args_int(macro *Macro) []TokenList {
-	tok := get_token()
+	tok := read_cpp_token()
 	if tok == nil || !tok.is_punct('(') {
 		unget_token(tok)
 		return nil
@@ -205,7 +205,7 @@ func read_args_int(macro *Macro) []TokenList {
 	arg := make_list()
 	depth := 0
 	for {
-		tok = get_token()
+		tok = read_cpp_token()
 		if tok == nil {
 			errorf("unterminated macro argument list")
 		}
@@ -426,7 +426,7 @@ func read_undef() {
 func read_obj_macro(name string) {
 	body := make(TokenList, 0)
 	for {
-		tok := get_token()
+		tok := read_cpp_token()
 		if tok == nil || tok.is_newline() {
 			break
 		}
@@ -437,7 +437,7 @@ func read_obj_macro(name string) {
 
 func read_define() {
 	name := read_ident2()
-	tok := get_token()
+	tok := read_cpp_token()
 	if tok != nil && tok.is_punct('(') && !tok.space {
 		read_funclike_macro(name.sval)
 		return
@@ -447,9 +447,9 @@ func read_define() {
 }
 
 func read_defined_operator() *Token {
-	tok := get_token()
+	tok := read_cpp_token()
 	if tok.is_punct('(') {
-		tok = get_token()
+		tok = read_cpp_token()
 		expect2(')')
 	}
 	if !tok.is_ident_type() {
@@ -540,7 +540,7 @@ func read_endif() {
 }
 
 func read_directive() {
-	tok := get_token()
+	tok := read_cpp_token()
 	if tok.is_ident("define") {
 		read_define()
 	} else if tok.is_ident("undef") {
@@ -572,13 +572,9 @@ func peek_token() *Token {
 	return tok
 }
 
-func get_token() *Token {
-	return read_cpp_token()
-}
-
 func read_token_int2(return_at_eol bool) *Token {
 	for {
-		tok := get_token()
+		tok := read_cpp_token()
 		if tok == nil {
 			return nil
 		}

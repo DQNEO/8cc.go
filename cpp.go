@@ -572,11 +572,11 @@ func construct_path(path1 string, path2 string) string {
 func open_header_file(name string, paths []string) *os.File {
 	for _, directory := range paths {
 		path := construct_path(directory, name)
-		file, _ := os.Open(path)
-		if file == nil {
+		fp, _ := os.Open(path)
+		if fp == nil {
 			continue
 		}
-		return file
+		return fp
 	}
 	errorf("Cannot file header file: %s", name)
 	return nil
@@ -591,8 +591,8 @@ func read_include() {
 	} else {
 		paths = []string{""}
 	}
-	file := open_header_file(name, paths)
-	push_input_file(file)
+	fp := open_header_file(name, paths)
+	push_input_file(fp)
 }
 
 func read_directive() {

@@ -77,7 +77,7 @@ func unget(c byte) {
 	ungetc(c, file)
 }
 
-func getc_nonspace() (byte, error) {
+func get_nonspace() (byte, error) {
 	var c byte
 	var err error
 	for {
@@ -105,7 +105,7 @@ func skip_line() {
 func skip_cond_incl() {
 	nest := 0
 	for {
-		c, err := getc_nonspace()
+		c, err := get_nonspace()
 		if err != nil {
 			return
 		}

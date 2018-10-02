@@ -10,25 +10,25 @@ import (
 
 const UINT_MAX = 4294967295
 
-type pseudoStdin struct {
+type stream struct {
 	buf []byte
 	i   int
 }
 
-var file *pseudoStdin
+var file *stream
 
 func initStdin() {
 	file = newStdin()
 }
 
-func newStdin() *pseudoStdin {
-	s := &pseudoStdin{}
+func newStdin() *stream {
+	s := &stream{}
 	s.buf = make([]byte, 1024*1024)
 	os.Stdin.Read(s.buf)
 	return s
 }
 
-func getc(stdin *pseudoStdin) (byte, error) {
+func getc(stdin *stream) (byte, error) {
 	b := stdin.buf[stdin.i]
 	if b == byte(0) {
 		return b, fmt.Errorf("EOL")
@@ -37,7 +37,7 @@ func getc(stdin *pseudoStdin) (byte, error) {
 	return b, nil
 }
 
-func ungetc(c byte, stdin *pseudoStdin) {
+func ungetc(c byte, stdin *stream) {
 	stdin.i--
 	return
 }

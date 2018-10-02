@@ -266,12 +266,12 @@ func skip_block_comment() {
 	state := in_comment
 	for {
 		c, _ := get()
-		if state == in_comment {
-			if c == '*' {
-				state = asterisk_read
-			}
-		} else if c == '/' {
+		if c == '*' {
+			state = asterisk_read
+		} else if state == asterisk_read && c == '/' {
 			return
+		} else {
+			state = in_comment
 		}
 	}
 }

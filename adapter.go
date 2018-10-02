@@ -28,26 +28,26 @@ func newStdin() *stream {
 	return s
 }
 
-func (stdin *stream) getc() (byte, error) {
-	b := stdin.buf[stdin.i]
+func (s *stream) getc() (byte, error) {
+	b := s.buf[s.i]
 	if b == byte(0) {
 		return b, fmt.Errorf("EOL")
 	}
-	stdin.i++
+	s.i++
 	return b, nil
 }
 
-func getc(stdin *stream) (byte, error) {
-	return stdin.getc()
+func getc(s *stream) (byte, error) {
+	return s.getc()
 }
 
-func (stdin *stream) ungetc(c byte) {
-	stdin.i--
+func (s *stream) ungetc(c byte) {
+	s.i--
 	return
 }
 
-func ungetc(c byte, stdin *stream) {
-	stdin.ungetc(c)
+func ungetc(c byte, s *stream) {
+	s.ungetc(c)
 }
 
 func isspace(c byte) bool {

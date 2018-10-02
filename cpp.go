@@ -8,6 +8,7 @@ import (
 var macros = make(map[string]*Macro)
 var cond_incl_stack = make([]*CondIncl, 0)
 var bol = true
+var std_include_path []string
 var cpp_token_zero = &Token{typ: TTYPE_NUMBER, sval: "0"}
 var cpp_token_one = &Token{typ: TTYPE_NUMBER, sval: "1"}
 
@@ -35,6 +36,14 @@ type Macro struct {
 	nargs   int
 	body    TokenList
 	is_varg bool
+}
+
+func initCpp() {
+	std_include_path = []string{
+		"/usr/local/include",
+		"/usr/include",
+		".",
+	}
 }
 
 func make_cond_incl(ctx CondInclCtx, wastrue bool) *CondIncl {
@@ -544,23 +553,45 @@ func read_endif() {
 	expect_newline()
 }
 
-func read_cpp_header_name() string {
-	tok := read_cpp_token()
-	return tok.sval
+func read_cpp_header_name() (string, bool) {
+	if get_input_buffer() == nil {
+		if name, std, found := read_header_file_name(); found {
+			return name, std
+		}
+	}
+	return "", false
 }
 
-func open_header_file(name string) *os.File {
-	fp, err := os.Open(name)
-	if err != nil {
-		errorf("Unable to open file %s", name)
+func construct_path(path1 string, path2 string) string {
+	if path1 == "" {
+		return path2
 	}
-	return fp
+	return fmt.Sprintf("%s/%s", path1, path2)
+}
+
+func open_header_file(name string, paths []string) *os.File {
+	for _, directory := range paths {
+		path := construct_path(directory, name)
+		file, _ := os.Open(path)
+		if file == nil {
+			continue
+		}
+		return file
+	}
+	errorf("Cannot file header file: %s", name)
+	return nil
 }
 
 func read_include() {
-	name := read_cpp_header_name()
+	name,std := read_cpp_header_name()
 	expect_newline()
-	file := open_header_file(name)
+	var paths []string
+	if std {
+		paths = std_include_path
+	} else {
+		paths = []string{""}
+	}
+	file := open_header_file(name, paths)
 	push_input_file(file)
 }
 

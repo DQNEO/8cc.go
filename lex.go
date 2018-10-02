@@ -338,6 +338,39 @@ func read_token_int() *Token {
 	return nil
 }
 
+func read_header_file_name() (string , bool, bool) {
+	var std bool
+	skip_space()
+	var close byte
+	c, _ := getc(file)
+	if c == '"' {
+		std = false
+		close = '"'
+	} else if c == '<' {
+		std = true
+		close = '>'
+	} else {
+		ungetc(c, file)
+		return "", std, false
+	}
+	s := ""
+	for {
+		c, err := getc(file)
+		if err != nil || c == '\n' {
+			errorf("premature end of header name")
+		}
+		if c == close {
+			break
+		}
+		s += fmt.Sprintf("%c", c)
+	}
+	if s == "" {
+		errorf("header name shoudl not be empty")
+	}
+
+	name := s
+	return name, std, true
+}
 func (tok *Token) is_punct(c int) bool {
 	return tok != nil && (tok.typ == TTYPE_PUNCT && tok.punct == c)
 }

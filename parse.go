@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -69,9 +68,8 @@ func ast_double(val float64) *Ast {
 }
 
 func make_label() string {
-	seq := labelseq
+	s := format(".L%d", labelseq)
 	labelseq++
-	s := fmt.Sprintf(".L%d", seq)
 	return s
 }
 

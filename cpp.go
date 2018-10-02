@@ -566,7 +566,7 @@ func construct_path(path1 string, path2 string) string {
 	if path1 == "" {
 		return path2
 	}
-	return fmt.Sprintf("%s/%s", path1, path2)
+	return format("%s/%s", path1, path2)
 }
 
 func read_include() {

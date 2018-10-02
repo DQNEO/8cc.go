@@ -1,9 +1,5 @@
 package main
 
-import (
-	"fmt"
-)
-
 func (ctype *Ctype) String() string {
 	if ctype == nil {
 		return "(nil)"
@@ -22,22 +18,22 @@ func (ctype *Ctype) String() string {
 	case CTYPE_DOUBLE:
 		return "double"
 	case CTYPE_PTR:
-		return fmt.Sprintf("*%s", ctype.ptr)
+		return format("*%s", ctype.ptr)
 	case CTYPE_ARRAY:
-		return fmt.Sprintf("[%d]%s", ctype.len, ctype.ptr)
+		return format("[%d]%s", ctype.len, ctype.ptr)
 	case CTYPE_STRUCT:
 		s := "(struct"
 		for _, v := range ctype.fields.Values() {
 			field := v
-			s += fmt.Sprintf(" (%s)", field.ctype)
+			s += format(" (%s)", field.ctype)
 		}
 		s += ")"
 		return s
 	case CTYPE_FUNC:
-		s := fmt.Sprintf("%s(", ctype.rettype)
+		s := format("%s(", ctype.rettype)
 		params := ctype.params
 		for i, t := range params {
-			s += fmt.Sprintf("%s", t)
+			s += format("%s", t)
 			if i != len(params)-1 {
 				s += ","
 			}
@@ -54,11 +50,11 @@ func (ctype *Ctype) String() string {
 type Block []*Ast
 
 func uop_to_string(op string, ast *Ast) string {
-	return fmt.Sprintf("(%s %s)", op, ast.operand)
+	return format("(%s %s)", op, ast.operand)
 }
 
 func binop_to_string(op string, ast *Ast) string {
-	return fmt.Sprintf("(%s %s %s)", op, ast.left, ast.right)
+	return format("(%s %s %s)", op, ast.left, ast.right)
 }
 
 func (ast *Ast) String() string {
@@ -74,26 +70,26 @@ func (ast *Ast) String() string {
 			} else if ast.ival == '\\' {
 				return "'\\\\'"
 			} else {
-				return fmt.Sprintf("'%c'", ast.ival)
+				return format("'%c'", ast.ival)
 			}
 		case CTYPE_INT:
-			return fmt.Sprintf("%d", ast.ival)
+			return format("%d", ast.ival)
 		case CTYPE_LONG:
-			return fmt.Sprintf("%dL", ast.ival)
+			return format("%dL", ast.ival)
 		case CTYPE_FLOAT, CTYPE_DOUBLE:
-			return fmt.Sprintf("%f", ast.fval)
+			return format("%f", ast.fval)
 		default:
 			errorf("internal error")
 			return ""
 		}
 	case AST_STRING:
-		return fmt.Sprintf("\"%s\"", quote_cstring(ast.val))
+		return format("\"%s\"", quote_cstring(ast.val))
 	case AST_LVAR:
-		return fmt.Sprintf("%s", ast.varname)
+		return format("%s", ast.varname)
 	case AST_GVAR:
-		return fmt.Sprintf("%s", ast.varname)
+		return format("%s", ast.varname)
 	case AST_FUNCALL:
-		s := fmt.Sprintf("(%s)%s(", ast.ctype, ast.fname)
+		s := format("(%s)%s(", ast.ctype, ast.fname)
 		for i, v := range ast.args {
 			s += v.String()
 			if i < len(ast.args)-1 {
@@ -103,11 +99,11 @@ func (ast *Ast) String() string {
 		s += ")"
 		return s
 	case AST_FUNC:
-		s := fmt.Sprintf("(%s)%s(",
+		s := format("(%s)%s(",
 			ast.ctype,
 			ast.fname)
 		for i, p := range ast.params {
-			s += fmt.Sprintf("%s %s", p.ctype, p)
+			s += format("%s %s", p.ctype, p)
 			if i < (len(ast.params) - 1) {
 				s += ","
 			}
@@ -122,11 +118,11 @@ func (ast *Ast) String() string {
 		} else {
 			vname = ast.declvar.varname
 		}
-		s := fmt.Sprintf("(decl %s %s",
+		s := format("(decl %s %s",
 			ast.declvar.ctype,
 			vname)
 		if ast.declinit != nil {
-			s += fmt.Sprintf(" %s", ast.declinit)
+			s += format(" %s", ast.declinit)
 		}
 		s += ")"
 		return s
@@ -141,28 +137,28 @@ func (ast *Ast) String() string {
 		s += "}"
 		return s
 	case AST_IF:
-		s := fmt.Sprintf("(if %s %s",
+		s := format("(if %s %s",
 			ast.cond,
 			ast.then)
 		if ast.els != nil {
-			s += fmt.Sprintf(" %s", ast.els)
+			s += format(" %s", ast.els)
 		}
 		s += ")"
 		return s
 	case AST_TERNARY:
-		return fmt.Sprintf("(? %s %s %s)",
+		return format("(? %s %s %s)",
 			ast.cond,
 			ast.then,
 			ast.els)
 	case AST_FOR:
-		s := fmt.Sprintf("(for %s %s %s %s)",
+		s := format("(for %s %s %s %s)",
 			ast.init,
 			ast.cond,
 			ast.step,
 			ast.body)
 		return s
 	case AST_RETURN:
-		return fmt.Sprintf("(return %s)", ast.retval)
+		return format("(return %s)", ast.retval)
 	case AST_COMPOUND_STMT:
 		s := "{"
 		for _, v := range ast.stmts {
@@ -201,9 +197,9 @@ func (ast *Ast) String() string {
 		if ast.typ == PUNCT_EQ {
 			s += "(== "
 		} else {
-			s += fmt.Sprintf("(%c ", ast.typ)
+			s += format("(%c ", ast.typ)
 		}
-		s += fmt.Sprintf("%s %s)", left, right)
+		s += format("%s %s)", left, right)
 		return s
 	}
 }
@@ -218,16 +214,14 @@ func (tok *Token) String() string {
 	case TTYPE_PUNCT:
 		if tok.is_punct(PUNCT_EQ) {
 			return "=="
-		} else {
-
-			return string([]byte{byte(tok.punct)})
 		}
+		return format("%c", tok.punct)
 	case TTYPE_CHAR:
-		return string([]byte{tok.c})
+		return format("%c", tok.c)
 	case TTYPE_NUMBER:
 		return tok.sval
 	case TTYPE_STRING:
-		return tok.sval
+		return format("\"%s\"", tok.sval)
 	case TTYPE_NEWLINE:
 		return "(newline)"
 	case TTYPE_SPACE:

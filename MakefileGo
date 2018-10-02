@@ -1,4 +1,4 @@
-GO_OBJS=main.go header.go lex.go adapter.go util.go gen.go parse.go list.go dict.go cpp.go debug.go
+GO_OBJS=main.go header.go lex.go adapter.go util.go gen.go parse.go string.go list.go dict.go cpp.go debug.go
 TESTS := $(patsubst %.c,%.bin,$(wildcard test/*.c))
 CFLAGS=-Wall -std=gnu99 -g -I. -no-pie
 

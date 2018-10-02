@@ -33,11 +33,11 @@ func initLex() {
 	file = make_file("(stdin)", stdin)
 }
 
-func make_ident(s string) *Token {
+func make_ident(p string) *Token {
 	r := &Token{}
 	r.typ = TTYPE_IDENT
 	r.hideset = MakeDict(nil)
-	r.sval = s
+	r.sval = p
 	return r
 }
 
@@ -73,17 +73,13 @@ func make_char(c byte) *Token {
 	return r
 }
 
-func make_string_ident(s string) *Token {
-	return make_ident(s)
-}
-
 func push_input_file(filename string, input *os.File) {
 	file_stack = append(file_stack, file)
 	file = make_file(filename, newStream(input))
 }
 
 func input_position() string {
-	return fmt.Sprintf("%s:%d", file.name, file.line)
+	return format("%s:%d", file.name, file.line)
 }
 
 func get() (byte,error) {
@@ -322,8 +318,7 @@ func read_token_int() *Token {
 		c, _ = get()
 		if c == '.' {
 			c, _ = get()
-			s := fmt.Sprintf("..%c", c)
-			return make_ident(s)
+			return make_ident(format("..%c", c))
 		}
 		unget(c)
 		return make_punct('.')
@@ -337,7 +332,7 @@ func read_token_int() *Token {
 	case c == '#':
 		c, _ = get()
 		if c == '#' {
-			return make_string_ident("##")
+			return make_ident("##")
 		}
 		unget(c)
 		return make_punct('#')

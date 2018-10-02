@@ -339,13 +339,22 @@ func peek_cpp_token() *Token {
 }
 
 func read_cpp_token() *Token {
+	var tok *Token
+	if altbuffer != nil {
+		altbuffer, tok = list_pop(altbuffer)
+		return tok
+	}
+	if len(buffer) > 0 {
+		buffer, tok = list_pop(buffer)
+		return tok
+	}
 	if len(ungotten) > 0 {
 		tok := ungotten[len(ungotten)-1]
 		ungotten = ungotten[:len(ungotten)-1]
 		return tok
 	}
 
-	tok := read_token_int()
+	tok = read_token_int()
 	for tok != nil && tok.typ == TTYPE_SPACE {
 		tok = read_token_int()
 		if tok != nil {

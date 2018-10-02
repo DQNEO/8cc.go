@@ -573,19 +573,7 @@ func peek_token() *Token {
 }
 
 func get_token() *Token {
-	var tok *Token
-	if altbuffer != nil {
-		altbuffer, tok = list_pop(altbuffer)
-		return tok
-	}
-
-	if len(buffer) > 0 {
-		buffer, tok = list_pop(buffer)
-	} else {
-		tok = read_cpp_token()
-	}
-
-	return tok
+	return read_cpp_token()
 }
 
 func read_token_int2(return_at_eol bool) *Token {

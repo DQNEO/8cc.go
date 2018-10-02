@@ -17,6 +17,7 @@ var globalenv = &Dict{}
 var localenv *Dict
 var struct_defs Dict
 var union_defs Dict
+var typedefs Dict
 var localvars []*Ast
 var current_func_rettype *Ctype
 var labelseq = 0
@@ -722,7 +723,7 @@ func get_ctype(tok *Token) *Ctype {
 		return ctype_double
 	}
 
-	return nil
+	return typedefs.GetCtype(tok.sval)
 }
 
 func is_type_keyword(tok *Token) bool {
@@ -945,6 +946,15 @@ func read_decl() *Ast {
 	return read_decl_init(variable)
 }
 
+func read_typedef() {
+	name, ctype := read_decl_int()
+	if name == nil {
+		errorf("Typedef name missing")
+	}
+	typedefs.PutCtype(name.sval, ctype)
+	expect(';')
+}
+
 func read_if_stmt() *Ast {
 	expect('(')
 	cond := read_expr()
@@ -1023,11 +1033,15 @@ func read_stmt() *Ast {
 }
 
 func read_decl_or_stmt() *Ast {
-	tok := peek_token()
+	tok := read_token()
 	if tok == nil {
 		return nil
 	}
-
+	if tok.is_ident("typedef") {
+		read_typedef()
+		return read_decl_or_stmt()
+	}
+	unget_token(tok)
 	if is_type_keyword(tok) {
 		return read_decl()
 	} else {

@@ -501,7 +501,7 @@ static void read_directive(void) {
 }
 
 void unget_token(Token *tok) {
-    list_push(altbuffer ? altbuffer : buffer, tok);
+    unget_cpp_token(tok);
 }
 
 Token *peek_token(void) {

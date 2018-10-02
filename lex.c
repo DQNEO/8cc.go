@@ -2,7 +2,7 @@
 #include <ctype.h>
 #include "8cc.h"
 
-List *buffer = &EMPTY_LIST;
+static List *buffer = &EMPTY_LIST;
 List *altbuffer = NULL;
 
 static Token *newline_token = &(Token){ .type = TTYPE_NEWLINE, .space = false };
@@ -290,7 +290,7 @@ bool is_punct(Token *tok, int c) {
 
 void unget_cpp_token(Token *tok) {
     if (!tok) return;
-    list_push(buffer, tok);
+    list_push(altbuffer ? altbuffer : buffer, tok);
 }
 
 Token *peek_cpp_token(void) {

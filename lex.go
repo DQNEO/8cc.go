@@ -58,7 +58,7 @@ func getc_nonspace() (byte, error) {
 	var c byte
 	var err error
 	for {
-		c, err = getc(stdin)
+		c, err = getc(file)
 		if err != nil {
 			break
 		}
@@ -72,7 +72,7 @@ func getc_nonspace() (byte, error) {
 
 func skip_line() {
 	for {
-		c, err := getc(stdin)
+		c, err := getc(file)
 		if err != nil || c == '\n' {
 			return
 		}
@@ -114,9 +114,9 @@ func read_number(c byte) *Token {
 	var b []byte
 	b = append(b, c)
 	for {
-		c, _ := getc(stdin)
+		c, _ := getc(file)
 		if !isdigit(c) && !isalpha(c) && c != '.' {
-			ungetc(c, stdin)
+			ungetc(c, file)
 			return make_number(string(b))
 		}
 		b = append(b, c)
@@ -124,18 +124,18 @@ func read_number(c byte) *Token {
 }
 
 func read_char() *Token {
-	c, err := getc(stdin)
+	c, err := getc(file)
 	if err != nil {
 		errorf("Unterminated char")
 	}
 	if c == '\\' {
-		c, err = getc(stdin)
+		c, err = getc(file)
 		if err != nil {
 			errorf("Unterminated char")
 		}
 	}
 
-	c2, err := getc(stdin)
+	c2, err := getc(file)
 	if err != nil {
 		errorf("Unterminated char")
 	}
@@ -149,7 +149,7 @@ func read_char() *Token {
 func read_string() *Token {
 	buf := make([]byte, 0, BUFLEN)
 	for {
-		c, err := getc(stdin)
+		c, err := getc(file)
 		if err != nil {
 			errorf("Unterminated string")
 		}
@@ -157,7 +157,7 @@ func read_string() *Token {
 			break
 		}
 		if c == '\\' {
-			c, err = getc(stdin)
+			c, err = getc(file)
 			if err != nil {
 				errorf("Unterminated \\")
 			}
@@ -185,11 +185,11 @@ func read_ident(c byte) *Token {
 	buf := make([]byte, 0, BUFLEN)
 	buf = append(buf, c)
 	for {
-		c2, _ := getc(stdin)
+		c2, _ := getc(file)
 		if isalnum(c2) || c2 == '_' {
 			buf = append(buf, c2)
 		} else {
-			ungetc(c2, stdin)
+			ungetc(c2, file)
 			return make_ident(string(buf))
 		}
 	}
@@ -197,7 +197,7 @@ func read_ident(c byte) *Token {
 
 func skip_line_comment() {
 	for {
-		c, err := getc(stdin)
+		c, err := getc(file)
 		if c == '\n' || err != nil {
 			return
 		}
@@ -206,11 +206,11 @@ func skip_line_comment() {
 
 func skip_space() {
 	for {
-		c, _ := getc(stdin)
+		c, _ := getc(file)
 		if c == ' ' || c == '\t' {
 			continue
 		}
-		ungetc(c, stdin)
+		ungetc(c, file)
 		return
 	}
 }
@@ -222,7 +222,7 @@ func skip_block_comment() {
 	)
 	state := in_comment
 	for {
-		c, _ := getc(stdin)
+		c, _ := getc(file)
 		if state == in_comment {
 			if c == '*' {
 				state = asterisk_read
@@ -234,16 +234,16 @@ func skip_block_comment() {
 }
 
 func read_rep(expect int, t1 int, t2 int) *Token {
-	c, _ := getc(stdin)
+	c, _ := getc(file)
 	if c == byte(expect) {
 		return make_punct(t2)
 	}
-	ungetc(c, stdin)
+	ungetc(c, file)
 	return make_punct(t1)
 }
 
 func read_token_int() *Token {
-	c, err := getc(stdin)
+	c, err := getc(file)
 	if err != nil {
 		// EOF
 		return nil
@@ -260,7 +260,7 @@ func read_token_int() *Token {
 	case ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_':
 		return read_ident(c)
 	case c == '/':
-		c, _ = getc(stdin)
+		c, _ = getc(file)
 		if c == '/' {
 			skip_line_comment()
 			return read_token_int()
@@ -269,16 +269,16 @@ func read_token_int() *Token {
 			skip_block_comment()
 			return read_token_int()
 		}
-		ungetc(c, stdin)
+		ungetc(c, file)
 		return make_punct('/')
 	case c == '.':
-		c, _ = getc(stdin)
+		c, _ = getc(file)
 		if c == '.' {
-			c, _ = getc(stdin)
+			c, _ = getc(file)
 			s := fmt.Sprintf("..%c", c)
 			return make_ident(s)
 		}
-		ungetc(c, stdin)
+		ungetc(c, file)
 		return make_punct('.')
 
 	case c == '*' || c == '(' ||
@@ -288,21 +288,21 @@ func read_token_int() *Token {
 		c == '?' || c == ':':
 		return make_punct(int(c))
 	case c == '#':
-		c, _ = getc(stdin)
+		c, _ = getc(file)
 		if c == '#' {
 			return make_string_ident("##")
 		}
-		ungetc(c, stdin)
+		ungetc(c, file)
 		return make_punct('#')
 	case c == '-':
-		c, _ = getc(stdin)
+		c, _ = getc(file)
 		if c == '-' {
 			return make_punct(PUNCT_DEC)
 		}
 		if c == '>' {
 			return make_punct(PUNCT_ARROW)
 		}
-		ungetc(c, stdin)
+		ungetc(c, file)
 		return make_punct('-')
 	case c == '=':
 		return read_rep(int('='), int('='), PUNCT_EQ)

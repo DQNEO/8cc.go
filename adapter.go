@@ -15,10 +15,10 @@ type pseudoStdin struct {
 	i   int
 }
 
-var stdin *pseudoStdin
+var file *pseudoStdin
 
 func initStdin() {
-	stdin = newStdin()
+	file = newStdin()
 }
 
 func newStdin() *pseudoStdin {

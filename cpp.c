@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 #include "8cc.h"
@@ -173,13 +174,42 @@ static List *add_hide_set(List *tokens, Dict *hideset) {
     return r;
 }
 
+static void paste(String *s, Token *tok) {
+    switch (tok->type) {
+    case TTYPE_IDENT:
+    case TTYPE_NUMBER:
+        string_appendf(s, "%s", tok->sval);
+        return;
+    case TTYPE_PUNCT:
+        string_appendf(s, "%c", tok->c);
+        return;
+    default:
+        error("can't paste: %s", t2s(tok));
+    }
+}
+
+static Token *glue_tokens(Token *t0, Token *t1) {
+    String *s = make_string();
+    paste(s, t0);
+    paste(s, t1);
+    Token *r = copy_token(t0);
+    r->type = isdigit(get_cstring(s)[0]) ? TTYPE_NUMBER : TTYPE_IDENT;
+    r->sval = get_cstring(s);
+    return r;
+}
+
+static void glue_push(List *tokens, Token *tok) {
+    assert(list_len(tokens) > 0);
+    Token *last = list_pop(tokens);
+    list_push(tokens, glue_tokens(last, tok));
+}
+
 static char *join_tokens(List *args) {
     String *s = make_string();
     for (Iter *i = list_iter(args); !iter_end(i);) {
         Token *tok = iter_next(i);
-        if (string_len(s) && tok->space) {
+        if (string_len(s) && tok->space)
             string_appendf(s, " ");
-        }
         switch (tok->type) {
         case TTYPE_IDENT:
         case TTYPE_NUMBER:
@@ -229,9 +259,34 @@ static List *subst(Macro *macro, List *args, Dict *hideset) {
         bool t1_param = (!islast && t1->type == TTYPE_MACRO_PARAM);
 
         if (is_punct(t0, '#') && t1_param) {
-            List *arg = list_get(args, t1->position);
-            list_push(r, stringize(arg));
+            list_push(r, stringize(list_get(args, t1->position)));
             i++;
+            continue;
+        }
+        if (is_ident(t0, "##") && t1_param) {
+            List *arg = list_get(args, t1->position);
+            if (list_len(arg) > 0) {
+                glue_push(r, list_head(arg));
+                List *tmp = list_copy(arg);
+                list_shift(tmp);
+                list_append(r, expand_all(tmp));
+            }
+            i++;
+            continue;
+        }
+        if (is_ident(t0, "##") && !islast) {
+            hideset = t1->hideset;
+            glue_push(r, t1);
+            i++;
+            continue;
+        }
+        if (t0_param && !islast && is_ident(t1, "##")) {
+            hideset = t1->hideset;
+            List *arg = list_get(args, t0->position);
+            if (list_len(arg) == 0)
+                i++;
+            else
+                list_append(r, arg);
             continue;
         }
         if (t0_param) {
@@ -316,7 +371,6 @@ static List *read_funclike_macro_body(Dict *param) {
                 list_push(r, subst);
                 continue;
             }
-
         }
         list_push(r, tok);
     }

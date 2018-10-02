@@ -54,6 +54,12 @@ static Token *make_char(char c) {
     return r;
 }
 
+static Token *make_string_ident(char *s) {
+    String *buf = make_string();
+    string_appendf(buf, "%s", s);
+    return make_ident(buf);
+}
+
 static int getc_nonspace(void) {
     int c;
     while ((c = getc(stdin)) != EOF) {
@@ -76,6 +82,8 @@ void skip_cond_incl(void) {
     int nest = 0;
     for (;;) {
         int c = getc_nonspace();
+        if (c == EOF)
+            return;
         if (c != '#') {
             skip_line();
             continue;
@@ -248,10 +256,16 @@ static Token *read_token_int(void) {
         ungetc(c, stdin);
         return make_punct('.');
     }
-    case '*': case '(': case ')': case ',': case ';': case '[':
-    case ']': case '{': case '}': case '<': case '>': case '!': case '?':
-    case ':': case '#':
+    case '*': case '(': case ')': case ',': case ';': case '[': case ']':
+    case '{': case '}': case '<': case '>': case '!': case '?': case ':':
         return make_punct(c);
+    case '#': {
+        c = getc(stdin);
+        if (c == '#')
+            return make_string_ident("##");
+        ungetc(c, stdin);
+        return make_punct('#');
+    }
     case '-':
         c = getc(stdin);
         if (c == '-') return make_punct(PUNCT_DEC);

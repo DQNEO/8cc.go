@@ -174,9 +174,6 @@ extern Ctype *ctype_char;
 extern Ctype *ctype_float;
 extern Ctype *ctype_double;
 
-extern Token *cpp_token_zero;
-extern Token *cpp_token_one;
-
 extern String *make_string(void);
 extern char *get_cstring(String *s);
 extern int string_len(String *s);
@@ -211,5 +208,7 @@ extern void emit_toplevel(Ast *v);
 
 extern List *strings;
 extern List *flonums;
+extern List *buffer;
+extern List *altbuffer;
 
 #endif /* EIGHTCC_H */

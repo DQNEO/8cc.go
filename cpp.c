@@ -4,10 +4,10 @@
 #include "8cc.h"
 
 static Dict *macros = &EMPTY_DICT;
-static List *buffer = &EMPTY_LIST;
-static List *altbuffer = NULL;
 static List *cond_incl_stack = &EMPTY_LIST;
 static bool bol = true;
+static Token *cpp_token_zero = &(Token){ .type = TTYPE_NUMBER, .sval = "0" };
+static Token *cpp_token_one = &(Token){ .type = TTYPE_NUMBER, .sval = "1" };
 
 typedef enum { IN_THEN, IN_ELSE } CondInclCtx;
 
@@ -512,9 +512,7 @@ Token *peek_token(void) {
 }
 
 static Token *get_token(void) {
-    if (altbuffer)
-        return list_pop(altbuffer);
-    return (list_len(buffer) > 0) ? list_pop(buffer) : read_cpp_token();
+    return read_cpp_token();
 }
 
 static Token *read_token_int(bool return_at_eol) {

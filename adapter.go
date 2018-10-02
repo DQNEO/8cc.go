@@ -18,13 +18,13 @@ type stream struct {
 var file *stream
 
 func initStdin() {
-	file = newStdin()
+	file = newStream(os.Stdin)
 }
 
-func newStdin() *stream {
+func newStream(fp *os.File) *stream {
 	s := &stream{}
 	s.buf = make([]byte, 1024*1024)
-	os.Stdin.Read(s.buf)
+	fp.Read(s.buf)
 	return s
 }
 

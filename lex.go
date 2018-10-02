@@ -327,6 +327,18 @@ func (tok *Token) is_punct(c int) bool {
 	return tok != nil && (tok.typ == TTYPE_PUNCT && tok.punct == c)
 }
 
+func set_input_buffer(tokens TokenList) {
+	if tokens == nil {
+		altbuffer = nil
+	} else {
+		altbuffer = list_reverse(tokens)
+	}
+}
+
+func get_input_buffer() TokenList {
+	return altbuffer
+}
+
 func unget_cpp_token(tok *Token) {
 	if tok == nil {
 		return

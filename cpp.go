@@ -351,13 +351,13 @@ func stringize(args TokenList) *Token {
 }
 func expand_all(tokens TokenList) TokenList {
 	r := make_list()
-	orig := altbuffer
-	altbuffer = list_reverse(tokens)
+	orig := get_input_buffer()
+	set_input_buffer(tokens)
 	tok := read_expand()
 	for ; tok != nil ; tok = read_expand() {
 		r = append(r, tok)
 	}
-	altbuffer  = orig
+	set_input_buffer(orig)
 	return r
 }
 
@@ -480,12 +480,13 @@ func read_intexpr_line() TokenList {
 }
 
 func read_constexpr() bool {
-	altbuffer = list_reverse(read_intexpr_line())
+	set_input_buffer(read_intexpr_line())
 	expr := read_expr()
-	if len(altbuffer) > 0 {
-		errorf("Stray token: %v", altbuffer)
+	buf := get_input_buffer()
+	if len(buf) > 0 {
+		errorf("Stray token: %v", buf)
 	}
-	altbuffer = nil
+	set_input_buffer(nil)
 	return eval_intexpr(expr) != 0
 }
 

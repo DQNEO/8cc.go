@@ -4,6 +4,9 @@ import "fmt"
 
 const BUFLEN = 256
 
+var buffer = make(TokenList, 0)
+var altbuffer TokenList = nil
+
 var ungotten = TokenList{}
 var newline_token = &Token{typ: TTYPE_NEWLINE}
 var space_token = &Token{typ: TTYPE_SPACE}

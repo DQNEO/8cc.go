@@ -3,8 +3,6 @@ package main
 import "fmt"
 
 var macros = make(map[string]*Macro)
-var buffer = make(TokenList, 0)
-var altbuffer TokenList = nil
 var cond_incl_stack = make([]*CondIncl, 0)
 var bol = true
 var cpp_token_zero = &Token{typ: TTYPE_NUMBER, sval: "0"}

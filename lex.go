@@ -51,6 +51,10 @@ func make_char(c byte) *Token {
 	return r
 }
 
+func make_string_ident(s string) *Token {
+	return make_ident(s)
+}
+
 func getc_nonspace() (byte, error) {
 	var c byte
 	var err error
@@ -282,8 +286,15 @@ func read_token_int() *Token {
 		c == ')' || c == ',' || c == ';' ||
 		c == '[' || c == ']' || c == '{' || c == '}' ||
 		c == '<' || c == '>' || c == '!' ||
-		c == '?' || c == ':' || c == '#':
+		c == '?' || c == ':':
 		return make_punct(int(c))
+	case c == '#':
+		c,_ = getc(stdin)
+		if c == '#' {
+			return make_string_ident("##")
+		}
+		ungetc(c, stdin)
+		return make_punct('#')
 	case c == '-':
 		c, _ = getc(stdin)
 		if c == '-' {

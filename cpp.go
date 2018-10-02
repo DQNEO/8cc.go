@@ -287,6 +287,39 @@ func add_hide_set(tokens TokenList, hideset *Dict) TokenList {
 	return r
 }
 
+func paste(s string, tok *Token) string {
+	switch tok.typ {
+	case TTYPE_IDENT, TTYPE_NUMBER:
+		return s + tok.sval
+	case TTYPE_PUNCT:
+		return s + fmt.Sprintf("%c", tok.punct)
+	default:
+		errorf("can't paste: %s", tok)
+	}
+	return ""
+}
+
+func glue_tokens(t0 *Token, t1 *Token) *Token {
+	s := ""
+	s = paste(s, t0)
+	s = paste(s, t1)
+	r := copy_token(t0)
+	if isdigit(s[0]) {
+		r.typ = TTYPE_NUMBER
+	} else {
+		r.typ = TTYPE_IDENT
+	}
+	r.sval = s
+	return r
+}
+
+func glue_push(tokens TokenList, tok *Token) TokenList {
+	assert(len(tokens) > 0);
+	last := tokens[len(tokens)-1]
+	tokens = tokens[:len(tokens)-1]
+	return append(tokens, glue_tokens(last, tok));
+}
+
 func join_tokens(args TokenList) string {
 	s := ""
 	for _, tok := range args {
@@ -346,6 +379,34 @@ func subst(macro *Macro, args []TokenList, hideset *Dict) TokenList {
 			i++
 			continue
 		}
+		if t0.is_ident("##") && t1_param {
+			arg := args[t1.position]
+			if len(arg) > 0 {
+				r = glue_push(r, arg[0])
+				var tmp TokenList
+				tmp = arg[1:]
+				r = list_append(r, expand_all(tmp))
+			}
+			i++
+			continue
+		}
+		if t0.is_ident("##") && !islast {
+			hideset = t1.hideset
+			r = glue_push(r, t1)
+			i++
+			continue
+		}
+		if t0_param && !islast && t1.is_ident("##") {
+			hideset = t1.hideset
+			arg := args[t0.position]
+			if len(arg) == 0 {
+				i++
+			} else {
+				r = list_append(r, arg)
+			}
+			continue
+		}
+
 		if t0_param {
 			arg := args[t0.position]
 			r = list_append(r, expand_all(arg))

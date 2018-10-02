@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 var macros = make(map[string]*Macro)
 var cond_incl_stack = make([]*CondIncl, 0)
@@ -541,6 +544,26 @@ func read_endif() {
 	expect_newline()
 }
 
+func read_cpp_header_name() string {
+	tok := read_cpp_token()
+	return tok.sval
+}
+
+func open_header_file(name string) *os.File {
+	fp, err := os.Open(name)
+	if err != nil {
+		errorf("Unable to open file %s", name)
+	}
+	return fp
+}
+
+func read_include() {
+	name := read_cpp_header_name()
+	expect_newline()
+	file := open_header_file(name)
+	push_input_file(file)
+}
+
 func read_directive() {
 	tok := read_cpp_token()
 	if tok.is_ident("define") {
@@ -555,6 +578,8 @@ func read_directive() {
 		read_elif()
 	} else if tok.is_ident("endif") {
 		read_endif()
+	} else if tok.is_ident("include") {
+		read_include()
 	} else {
 		errorf("unsupported preprocessor directive: %s", tok)
 	}

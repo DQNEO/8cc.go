@@ -13,18 +13,20 @@ const UINT_MAX = 4294967295
 type stream struct {
 	buf []byte
 	i   int
+	fp *os.File
 }
 
-var file *stream
+var stdin *stream
 
 func initStdin() {
-	file = newStream(os.Stdin)
+	stdin = newStream(os.Stdin)
 }
 
 func newStream(fp *os.File) *stream {
 	s := &stream{}
-	s.buf = make([]byte, 1024*1024)
+	s.buf = make([]byte, 1024*1024) // @TODO. use real file size
 	fp.Read(s.buf)
+	s.fp = fp
 	return s
 }
 
@@ -37,13 +39,17 @@ func (s *stream) getc() (byte, error) {
 	return b, nil
 }
 
-func getc(s *stream) (byte, error) {
-	return s.getc()
-}
-
 func (s *stream) ungetc(c byte) {
 	s.i--
 	return
+}
+
+func (s *stream) close() {
+	s.fp.Close()
+}
+
+func getc(s *stream) (byte, error) {
+	return s.getc()
 }
 
 func ungetc(c byte, s *stream) {

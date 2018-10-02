@@ -6,6 +6,7 @@ import (
 
 func main() {
 	initStdin()
+	initLex()
 	wantast := len(os.Args) > 1 && os.Args[1] == "-a"
 	toplevels := read_toplevels()
 

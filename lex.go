@@ -1,14 +1,24 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 const BUFLEN = 256
 
 var buffer = make(TokenList, 0)
 var altbuffer TokenList = nil
+var file_stack []*stream
+var file *stream
+
 
 var newline_token = &Token{typ: TTYPE_NEWLINE}
 var space_token = &Token{typ: TTYPE_SPACE}
+
+func initLex() {
+	file = stdin
+}
 
 func make_ident(s string) *Token {
 	r := &Token{}
@@ -52,6 +62,11 @@ func make_char(c byte) *Token {
 
 func make_string_ident(s string) *Token {
 	return make_ident(s)
+}
+
+func push_input_file(input *os.File) {
+	file_stack = append(file_stack, file)
+	file = newStream(input)
 }
 
 func getc_nonspace() (byte, error) {
@@ -373,6 +388,13 @@ func read_cpp_token() *Token {
 		if tok != nil {
 			tok.space = true
 		}
+	}
+
+	if tok == nil && len(file_stack) > 0 {
+		file.close()
+		file = file_stack[len(file_stack) -1]
+		file_stack = file_stack[:len(file_stack) -1]
+		return newline_token
 	}
 	return tok
 }

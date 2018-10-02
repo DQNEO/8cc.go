@@ -295,6 +295,35 @@ static Token *read_token_int(void) {
     }
 }
 
+bool read_header_file_name(char **name, bool *std) {
+    skip_space();
+    char close;
+    int c = getc(file);
+    if (c == '"') {
+        *std = false;
+        close = '"';
+    } else if (c == '<') {
+        *std = true;
+        close = '>';
+    } else {
+        ungetc(c, file);
+        return false;
+    }
+    String *s = make_string();
+    for (;;) {
+        c = getc(file);
+        if (c == EOF || c == '\n')
+            error("premature end of header name");
+        if (c == close)
+            break;
+        string_append(s, c);
+    }
+    if (get_cstring(s)[0] == '\0')
+        error("header name should not be empty");
+    *name = get_cstring(s);
+    return true;
+}
+
 bool is_punct(Token *tok, int c) {
     return tok && (tok->type == TTYPE_PUNCT) && (tok->punct == c);
 }
@@ -328,7 +357,6 @@ Token *read_cpp_token(void) {
         tok = read_token_int();
         if (tok) tok->space = true;
     }
-
     if (!tok && list_len(file_stack) > 0) {
         fclose(file);
         file = list_pop(file_stack);

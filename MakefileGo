@@ -24,7 +24,7 @@ test/%.s: test/%.c 8ccg
 	./8ccg < $< > $@
 
 test/%.bin: test/%.s 8ccg
-	$(CC) $(CFLAGS) -o $@ $<
+	@$(CC) $(CFLAGS) -o $@ $<
 
 sample/nqueen: 8ccg sample/nqueen.c
 	./8ccg < sample/nqueen.c > sample/nqueen.s

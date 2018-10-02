@@ -7,7 +7,6 @@ const BUFLEN = 256
 var buffer = make(TokenList, 0)
 var altbuffer TokenList = nil
 
-var ungotten = TokenList{}
 var newline_token = &Token{typ: TTYPE_NEWLINE}
 var space_token = &Token{typ: TTYPE_SPACE}
 
@@ -329,7 +328,10 @@ func (tok *Token) is_punct(c int) bool {
 }
 
 func unget_cpp_token(tok *Token) {
-	ungotten = append(ungotten, tok)
+	if tok == nil {
+		return
+	}
+	buffer = append(buffer, tok)
 }
 
 func peek_cpp_token() *Token {
@@ -346,11 +348,6 @@ func read_cpp_token() *Token {
 	}
 	if len(buffer) > 0 {
 		buffer, tok = list_pop(buffer)
-		return tok
-	}
-	if len(ungotten) > 0 {
-		tok := ungotten[len(ungotten)-1]
-		ungotten = ungotten[:len(ungotten)-1]
 		return tok
 	}
 

@@ -5,7 +5,6 @@
 List *buffer = &EMPTY_LIST;
 List *altbuffer = NULL;
 
-static List *ungotten = &EMPTY_LIST;
 static Token *newline_token = &(Token){ .type = TTYPE_NEWLINE, .space = false };
 static Token *space_token = &(Token){ .type = TTYPE_SPACE, .space = false };
 
@@ -291,7 +290,7 @@ bool is_punct(Token *tok, int c) {
 
 void unget_cpp_token(Token *tok) {
     if (!tok) return;
-    list_push(ungotten, tok);
+    list_push(buffer, tok);
 }
 
 Token *peek_cpp_token(void) {
@@ -306,8 +305,6 @@ Token *read_cpp_token(void) {
     if (list_len(buffer) > 0)
         return list_pop(buffer);
 
-    if (list_len(ungotten) > 0)
-        return list_pop(ungotten);
     Token *tok = read_token_int();
     while (tok && tok->type == TTYPE_SPACE) {
         tok = read_token_int();

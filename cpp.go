@@ -583,7 +583,7 @@ func read_include() {
 		path := construct_path(directory, name)
 		fp, _ := os.Open(path)
 		if fp != nil {
-			push_input_file(fp)
+			push_input_file(path, fp)
 			return
 		}
 	}

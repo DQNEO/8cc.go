@@ -8,6 +8,8 @@ import (
 const BUFLEN = 256
 
 type File struct {
+	name string
+	line int
 	fp *stream
 }
 
@@ -19,14 +21,16 @@ var file *File
 var newline_token = &Token{typ: TTYPE_NEWLINE}
 var space_token = &Token{typ: TTYPE_SPACE}
 
-func make_file(s *stream) *File {
+func make_file(name string, s *stream) *File {
 	return &File{
+		name: name,
+		line: 1,
 		fp : s,
 	}
 }
 
 func initLex() {
-	file = make_file(stdin)
+	file = make_file("(stdin)", stdin)
 }
 
 func make_ident(s string) *Token {
@@ -73,16 +77,27 @@ func make_string_ident(s string) *Token {
 	return make_ident(s)
 }
 
-func push_input_file(input *os.File) {
+func push_input_file(filename string, input *os.File) {
 	file_stack = append(file_stack, file)
-	file = make_file(newStream(input))
+	file = make_file(filename, newStream(input))
+}
+
+func input_position() string {
+	return fmt.Sprintf("%s:%d", file.name, file.line)
 }
 
 func get() (byte,error) {
-	return getc(file.fp)
+	c, err := getc(file.fp)
+	if c == '\n' {
+		file.line++
+	}
+	return c, err
 }
 
 func unget(c byte) {
+	if c == '\n' {
+		file.line--
+	}
 	ungetc(c, file.fp)
 }
 

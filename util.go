@@ -6,6 +6,7 @@ import (
 )
 
 func errorf(format string, args ...interface{}) {
+	fmt.Fprintf(os.Stderr, "%s ", input_position())
 	panic(fmt.Sprintf(format, args...))
 	os.Exit(1)
 }

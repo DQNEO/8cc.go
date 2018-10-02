@@ -271,10 +271,10 @@ func read_token_int() *Token {
 		}
 		ungetc(c, stdin)
 		return make_punct('/')
-	case c == '.' :
-		c,_ = getc(stdin)
+	case c == '.':
+		c, _ = getc(stdin)
 		if c == '.' {
-			c,_ = getc(stdin)
+			c, _ = getc(stdin)
 			s := fmt.Sprintf("..%c", c)
 			return make_ident(s)
 		}
@@ -288,7 +288,7 @@ func read_token_int() *Token {
 		c == '?' || c == ':':
 		return make_punct(int(c))
 	case c == '#':
-		c,_ = getc(stdin)
+		c, _ = getc(stdin)
 		if c == '#' {
 			return make_string_ident("##")
 		}

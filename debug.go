@@ -242,7 +242,7 @@ func (tok *Token) String() string {
 func (tokens TokenList) String() string {
 	r := ""
 	for _, token := range tokens {
-		r = r +  token.String() + " "
+		r = r + token.String() + " "
 	}
 	return r
 }

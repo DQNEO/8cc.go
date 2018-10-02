@@ -28,9 +28,9 @@ const (
 )
 
 type Macro struct {
-	typ   MacroType
-	nargs int
-	body  TokenList
+	typ     MacroType
+	nargs   int
+	body    TokenList
 	is_varg bool
 }
 
@@ -44,8 +44,8 @@ func make_cond_incl(ctx CondInclCtx, wastrue bool) *CondIncl {
 
 func make_obj_marco(body TokenList) *Macro {
 	r := &Macro{
-		typ:  MACRO_OBJ,
-		body: body,
+		typ:     MACRO_OBJ,
+		body:    body,
 		is_varg: false,
 	}
 	return r
@@ -53,9 +53,9 @@ func make_obj_marco(body TokenList) *Macro {
 
 func make_func_macro(body TokenList, nargs int, is_varg bool) *Macro {
 	r := &Macro{
-		typ:   MACRO_FUNC,
-		nargs: nargs,
-		body:  body,
+		typ:     MACRO_FUNC,
+		nargs:   nargs,
+		body:    body,
 		is_varg: is_varg,
 	}
 	return r
@@ -66,7 +66,7 @@ func make_macro_token(position int) *Token {
 		typ:      TTYPE_MACRO_PARAM,
 		hideset:  MakeDict(nil),
 		position: position,
-		space :   false,
+		space:    false,
 	}
 	return r
 }
@@ -114,7 +114,7 @@ func read_expand() *Token {
 	switch macro.typ {
 	case MACRO_OBJ:
 		hideset := dict_append(tok.hideset, name)
-		tokens := subst(macro, make([]TokenList , 0), hideset)
+		tokens := subst(macro, make([]TokenList, 0), hideset)
 		unget_all(tokens)
 		return read_expand()
 	case MACRO_FUNC:
@@ -229,7 +229,7 @@ func read_args_int(macro *Macro) []TokenList {
 			}
 			return r
 		}
-		in_threedots := macro.is_varg && (len(r) +1 == macro.nargs)
+		in_threedots := macro.is_varg && (len(r)+1 == macro.nargs)
 		if tok.is_punct(',') && !in_threedots {
 			r = append(r, arg)
 			arg = make_list()
@@ -262,7 +262,7 @@ func dict_union(a *Dict, b *Dict) *Dict {
 	return r
 }
 
-func dict_intersection(a *Dict , b *Dict) *Dict {
+func dict_intersection(a *Dict, b *Dict) *Dict {
 	r := MakeDict(nil)
 	for _, key := range a.Keys() {
 		if b.Get(key) != nil {
@@ -314,10 +314,10 @@ func glue_tokens(t0 *Token, t1 *Token) *Token {
 }
 
 func glue_push(tokens TokenList, tok *Token) TokenList {
-	assert(len(tokens) > 0);
+	assert(len(tokens) > 0)
 	last := tokens[len(tokens)-1]
 	tokens = tokens[:len(tokens)-1]
-	return append(tokens, glue_tokens(last, tok));
+	return append(tokens, glue_tokens(last, tok))
 }
 
 func join_tokens(args TokenList) string {
@@ -343,9 +343,9 @@ func join_tokens(args TokenList) string {
 }
 
 func stringize(args TokenList) *Token {
-	r := &Token {
-		typ : TTYPE_STRING,
-		sval : join_tokens(args),
+	r := &Token{
+		typ:  TTYPE_STRING,
+		sval: join_tokens(args),
 	}
 	return r
 }
@@ -354,7 +354,7 @@ func expand_all(tokens TokenList) TokenList {
 	orig := get_input_buffer()
 	set_input_buffer(tokens)
 	tok := read_expand()
-	for ; tok != nil ; tok = read_expand() {
+	for ; tok != nil; tok = read_expand() {
 		r = append(r, tok)
 	}
 	set_input_buffer(orig)
@@ -364,7 +364,7 @@ func expand_all(tokens TokenList) TokenList {
 func subst(macro *Macro, args []TokenList, hideset *Dict) TokenList {
 	r := make_list()
 	for i := 0; i < len(macro.body); i++ {
-		islast := i == (len(macro.body) -1)
+		islast := i == (len(macro.body) - 1)
 		t0 := macro.body[i]
 		var t1 *Token
 		if islast {

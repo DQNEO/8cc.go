@@ -517,10 +517,10 @@ static FILE *open_header_file(char *name, List *paths) {
     for (Iter *i = list_iter(paths); !iter_end(i);) {
         char *directory = iter_next(i);
         char *path = construct_path(directory, name);
-        FILE *file = fopen(path, "r");
-        if (!file)
+        FILE *fp = fopen(path, "r");
+        if (!fp)
             continue;
-        return file;
+        return fp;
     }
     error("Cannot find header file: %s", name);
 }
@@ -532,8 +532,8 @@ static void read_include(void) {
     expect_newline();
 
     List *paths = std ? std_include_path : make_list1("");
-    FILE *file = open_header_file(name, paths);
-    push_input_file(file);
+    FILE *fp = open_header_file(name, paths);
+    push_input_file(fp);
 }
 
 static void read_directive(void) {

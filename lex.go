@@ -69,11 +69,19 @@ func push_input_file(input *os.File) {
 	file = newStream(input)
 }
 
+func get() (byte,error) {
+	return getc(file)
+}
+
+func unget(c byte) {
+	ungetc(c, file)
+}
+
 func getc_nonspace() (byte, error) {
 	var c byte
 	var err error
 	for {
-		c, err = getc(file)
+		c, err = get()
 		if err != nil {
 			break
 		}
@@ -87,7 +95,7 @@ func getc_nonspace() (byte, error) {
 
 func skip_line() {
 	for {
-		c, err := getc(file)
+		c, err := get()
 		if err != nil || c == '\n' {
 			return
 		}
@@ -129,9 +137,9 @@ func read_number(c byte) *Token {
 	var b []byte
 	b = append(b, c)
 	for {
-		c, _ := getc(file)
+		c, _ := get()
 		if !isdigit(c) && !isalpha(c) && c != '.' {
-			ungetc(c, file)
+			unget(c)
 			return make_number(string(b))
 		}
 		b = append(b, c)
@@ -139,18 +147,18 @@ func read_number(c byte) *Token {
 }
 
 func read_char() *Token {
-	c, err := getc(file)
+	c, err := get()
 	if err != nil {
 		errorf("Unterminated char")
 	}
 	if c == '\\' {
-		c, err = getc(file)
+		c, err = get()
 		if err != nil {
 			errorf("Unterminated char")
 		}
 	}
 
-	c2, err := getc(file)
+	c2, err := get()
 	if err != nil {
 		errorf("Unterminated char")
 	}
@@ -164,7 +172,7 @@ func read_char() *Token {
 func read_string() *Token {
 	buf := make([]byte, 0, BUFLEN)
 	for {
-		c, err := getc(file)
+		c, err := get()
 		if err != nil {
 			errorf("Unterminated string")
 		}
@@ -172,7 +180,7 @@ func read_string() *Token {
 			break
 		}
 		if c == '\\' {
-			c, err = getc(file)
+			c, err = get()
 			if err != nil {
 				errorf("Unterminated \\")
 			}
@@ -200,11 +208,11 @@ func read_ident(c byte) *Token {
 	buf := make([]byte, 0, BUFLEN)
 	buf = append(buf, c)
 	for {
-		c2, _ := getc(file)
+		c2, _ := get()
 		if isalnum(c2) || c2 == '_' {
 			buf = append(buf, c2)
 		} else {
-			ungetc(c2, file)
+			unget(c2)
 			return make_ident(string(buf))
 		}
 	}
@@ -212,7 +220,7 @@ func read_ident(c byte) *Token {
 
 func skip_line_comment() {
 	for {
-		c, err := getc(file)
+		c, err := get()
 		if c == '\n' || err != nil {
 			return
 		}
@@ -221,11 +229,11 @@ func skip_line_comment() {
 
 func skip_space() {
 	for {
-		c, _ := getc(file)
+		c, _ := get()
 		if c == ' ' || c == '\t' {
 			continue
 		}
-		ungetc(c, file)
+		unget(c)
 		return
 	}
 }
@@ -237,7 +245,7 @@ func skip_block_comment() {
 	)
 	state := in_comment
 	for {
-		c, _ := getc(file)
+		c, _ := get()
 		if state == in_comment {
 			if c == '*' {
 				state = asterisk_read
@@ -249,16 +257,16 @@ func skip_block_comment() {
 }
 
 func read_rep(expect int, t1 int, t2 int) *Token {
-	c, _ := getc(file)
+	c, _ := get()
 	if c == byte(expect) {
 		return make_punct(t2)
 	}
-	ungetc(c, file)
+	unget(c)
 	return make_punct(t1)
 }
 
 func read_token_int() *Token {
-	c, err := getc(file)
+	c, err := get()
 	if err != nil {
 		// EOF
 		return nil
@@ -275,7 +283,7 @@ func read_token_int() *Token {
 	case ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_':
 		return read_ident(c)
 	case c == '/':
-		c, _ = getc(file)
+		c, _ = get()
 		if c == '/' {
 			skip_line_comment()
 			return read_token_int()
@@ -284,16 +292,16 @@ func read_token_int() *Token {
 			skip_block_comment()
 			return read_token_int()
 		}
-		ungetc(c, file)
+		unget(c)
 		return make_punct('/')
 	case c == '.':
-		c, _ = getc(file)
+		c, _ = get()
 		if c == '.' {
-			c, _ = getc(file)
+			c, _ = get()
 			s := fmt.Sprintf("..%c", c)
 			return make_ident(s)
 		}
-		ungetc(c, file)
+		unget(c)
 		return make_punct('.')
 
 	case c == '*' || c == '(' ||
@@ -303,21 +311,21 @@ func read_token_int() *Token {
 		c == '?' || c == ':':
 		return make_punct(int(c))
 	case c == '#':
-		c, _ = getc(file)
+		c, _ = get()
 		if c == '#' {
 			return make_string_ident("##")
 		}
-		ungetc(c, file)
+		unget(c)
 		return make_punct('#')
 	case c == '-':
-		c, _ = getc(file)
+		c, _ = get()
 		if c == '-' {
 			return make_punct(PUNCT_DEC)
 		}
 		if c == '>' {
 			return make_punct(PUNCT_ARROW)
 		}
-		ungetc(c, file)
+		unget(c)
 		return make_punct('-')
 	case c == '=':
 		return read_rep(int('='), int('='), PUNCT_EQ)
@@ -342,7 +350,7 @@ func read_header_file_name() (string , bool, bool) {
 	var std bool
 	skip_space()
 	var close byte
-	c, _ := getc(file)
+	c, _ := get()
 	if c == '"' {
 		std = false
 		close = '"'
@@ -350,12 +358,12 @@ func read_header_file_name() (string , bool, bool) {
 		std = true
 		close = '>'
 	} else {
-		ungetc(c, file)
+		unget(c)
 		return "", std, false
 	}
 	s := ""
 	for {
-		c, err := getc(file)
+		c, err := get()
 		if err != nil || c == '\n' {
 			errorf("premature end of header name")
 		}

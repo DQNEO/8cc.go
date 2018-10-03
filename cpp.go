@@ -626,16 +626,16 @@ func read_directive() {
 		read_undef()
 	} else if tok.is_ident("if") {
 		read_if()
+	} else if tok.is_ident("ifdef") {
+		read_ifdef()
+	} else if tok.is_ident("ifndef") {
+		read_ifndef()
 	} else if tok.is_ident("else") {
 		read_else()
 	} else if tok.is_ident("elif") {
 		read_elif()
 	} else if tok.is_ident("endif") {
 		read_endif()
-	} else if tok.is_ident("ifdef") {
-		read_ifdef()
-	} else if tok.is_ident("ifndef") {
-		read_ifndef()
 	} else if tok.is_ident("include") {
 		read_include()
 	} else {

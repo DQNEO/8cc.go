@@ -82,19 +82,19 @@ func input_position() string {
 	return format("%s:%d", file.name, file.line)
 }
 
+func unget(c byte) {
+	if c == '\n' {
+		file.line--
+	}
+	ungetc(c, file.fp)
+}
+
 func get() (byte,error) {
 	c, err := getc(file.fp)
 	if c == '\n' {
 		file.line++
 	}
 	return c, err
-}
-
-func unget(c byte) {
-	if c == '\n' {
-		file.line--
-	}
-	ungetc(c, file.fp)
 }
 
 func get_nonspace() (byte, error) {

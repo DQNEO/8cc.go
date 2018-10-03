@@ -34,6 +34,8 @@ static Token *make_token(int type) {
     r->type = type;
     r->hideset = make_dict(NULL);
     r->space = false;
+    r->file = file->name;
+    r->line = file->line;
     return r;
 }
 
@@ -77,7 +79,8 @@ char *input_position(void) {
 }
 
 static void unget(int c) {
-    if (c == '\n') file->line--;
+    if (c == '\n')
+        file->line--;
     if (ungotten >= 0)
         ungetc(ungotten, file->fp);
     ungotten = c;

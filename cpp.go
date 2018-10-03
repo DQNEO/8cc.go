@@ -503,12 +503,40 @@ func read_constexpr() bool {
 	return eval_intexpr(expr) != 0
 }
 
-func read_if() {
-	cond := read_constexpr()
+
+func read_if_generic(cond bool) {
 	cond_incl_stack = append(cond_incl_stack, make_cond_incl(IN_THEN, cond))
 	if !cond {
 		skip_cond_incl()
 	}
+}
+
+func read_if() {
+	read_if_generic(read_constexpr())
+}
+
+func read_ifdef_generic(is_ifdef bool) {
+	tok := read_cpp_token()
+	if tok == nil || ! tok.is_ident_type() {
+		errorf("identifier expected, but got %s", tok)
+	}
+	_, cond := macros[tok.sval]
+	expect_newline()
+	var cond2 bool
+	if is_ifdef {
+		cond2 = cond
+	} else {
+		cond2 = !cond
+	}
+	read_if_generic(cond2)
+}
+
+func read_ifdef() {
+	read_ifdef_generic(true)
+}
+
+func read_ifndef() {
+	read_ifdef_generic(false)
 }
 
 func read_else() {
@@ -604,6 +632,10 @@ func read_directive() {
 		read_elif()
 	} else if tok.is_ident("endif") {
 		read_endif()
+	} else if tok.is_ident("ifdef") {
+		read_ifdef()
+	} else if tok.is_ident("ifndef") {
+		read_ifndef()
 	} else if tok.is_ident("include") {
 		read_include()
 	} else {

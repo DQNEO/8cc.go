@@ -34,42 +34,40 @@ func initLex() {
 	file = make_file("(stdin)", stdin)
 }
 
-func make_ident(p string) *Token {
+func make_token(typ int) *Token {
 	r := &Token{}
-	r.typ = TTYPE_IDENT
+	r.typ = typ
 	r.hideset = MakeDict(nil)
+	r.space = false
+	return r
+}
+
+func make_ident(p string) *Token {
+	r := make_token(TTYPE_IDENT)
 	r.sval = p
 	return r
 }
 
 func make_strtok(s string) *Token {
-	r := &Token{}
-	r.typ = TTYPE_STRING
-	r.hideset = MakeDict(nil)
+	r := make_token(TTYPE_STRING)
 	r.sval = s
 	return r
 }
 
 func make_punct(punct int) *Token {
-	r := &Token{}
-	r.typ = TTYPE_PUNCT
-	r.hideset = MakeDict(nil)
+	r := make_token(TTYPE_PUNCT)
 	r.punct = punct
 	return r
 }
 
 func make_number(s string) *Token {
-	r := &Token{}
-	r.typ = TTYPE_NUMBER
-	r.hideset = MakeDict(nil)
+	r := make_token(TTYPE_NUMBER)
 	r.sval = s
 	return r
 }
 
 func make_char(c byte) *Token {
-	r := &Token{}
-	r.typ = TTYPE_CHAR
-	r.hideset = MakeDict(nil)
+	r := make_token(TTYPE_CHAR)
 	r.c = c
 	return r
 }

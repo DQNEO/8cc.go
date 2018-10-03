@@ -295,8 +295,18 @@ func eval_intexpr(ast *Ast) int {
 		return eval_intexpr(ast.left) * eval_intexpr(ast.right)
 	case '/':
 		return eval_intexpr(ast.left) / eval_intexpr(ast.right)
+	case '<':
+		return bool2int(eval_intexpr(ast.left) < eval_intexpr(ast.right))
+	case '>':
+		return bool2int(eval_intexpr(ast.left) > eval_intexpr(ast.right))
 	case '!':
 		return bool2int(!int2bool(eval_intexpr(ast.operand)))
+	case AST_TERNARY:
+		if int2bool(eval_intexpr(ast.cond)) {
+			return eval_intexpr(ast.then)
+		} else {
+			return eval_intexpr(ast.els)
+		}
 	case PUNCT_EQ:
 		return bool2int(eval_intexpr(ast.left) == eval_intexpr(ast.right))
 	case PUNCT_GE:

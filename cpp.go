@@ -504,7 +504,6 @@ func read_constexpr() bool {
 	return eval_intexpr(expr) != 0
 }
 
-
 func read_if_generic(cond bool) {
 	cond_incl_stack = append(cond_incl_stack, make_cond_incl(IN_THEN, cond))
 	if !cond {

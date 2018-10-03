@@ -295,6 +295,12 @@ func eval_intexpr(ast *Ast) int {
 		return eval_intexpr(ast.left) * eval_intexpr(ast.right)
 	case '/':
 		return eval_intexpr(ast.left) / eval_intexpr(ast.right)
+	case '!':
+		bool2int(!int2bool(eval_intexpr(ast.operand)))
+	case PUNCT_LOGAND:
+		return eval_intexpr(ast.left) * eval_intexpr(ast.right)
+	case PUNCT_LOGOR:
+		return bool2int(int2bool(eval_intexpr(ast.left)) || int2bool(eval_intexpr(ast.right)))
 	default:
 		errorf("Integer expression expected, but got %s", ast)
 	}

@@ -75,3 +75,15 @@ func isalnum(c byte) bool {
 func printf(format string, args ...interface{}) {
 	fmt.Printf(format, args...)
 }
+
+func int2bool(x int) bool {
+	return x != 0
+}
+
+func bool2int(x bool) int {
+	if x {
+		return 1
+	} else {
+		return 0
+	}
+}

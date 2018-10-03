@@ -170,7 +170,7 @@ func skip_cond_incl() {
 			skip_line()
 			continue
 		}
-		if nest == 0 && tok.is_ident("else") || tok.is_ident("elif") || tok.is_ident("endif") {
+		if nest == 0 && (tok.is_ident("else") || tok.is_ident("elif") || tok.is_ident("endif")) {
 			unget_cpp_token(tok)
 			unget_cpp_token(make_punct('#'))
 			return

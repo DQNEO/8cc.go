@@ -43,9 +43,9 @@ static Token *make_ident(char *p) {
     return r;
 }
 
-static Token *make_strtok(String *s) {
+static Token *make_strtok(char *s) {
     Token *r = make_token(TTYPE_STRING);
-    r->sval = get_cstring(s);
+    r->sval = s;
     return r;
 }
 
@@ -201,7 +201,7 @@ static Token *read_string(void) {
         }
         string_append(s, c);
     }
-    return make_strtok(s);
+    return make_strtok(get_cstring(s));
 }
 
 static Token *read_ident(char c) {

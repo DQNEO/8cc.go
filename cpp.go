@@ -41,10 +41,14 @@ type Macro struct {
 func initCpp() {
 	std_include_path = []string{
 		"/usr/local/include",
-		"/usr/include",
 		"/usr/include/x86_64-linux-gnu",
+		"/usr/include/linux",
+		"/usr/include",
 		".",
 	}
+
+	macros["__x86_64__"] = nil // cpp_token_one
+	macros["__8cc__"] = nil // cpp_token_one
 }
 
 func make_cond_incl(ctx CondInclCtx, wastrue bool) *CondIncl {

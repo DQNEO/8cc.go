@@ -296,7 +296,9 @@ func eval_intexpr(ast *Ast) int {
 	case '/':
 		return eval_intexpr(ast.left) / eval_intexpr(ast.right)
 	case '!':
-		bool2int(!int2bool(eval_intexpr(ast.operand)))
+		return bool2int(!int2bool(eval_intexpr(ast.operand)))
+	case PUNCT_EQ:
+		return bool2int(eval_intexpr(ast.left) == eval_intexpr(ast.right))
 	case PUNCT_GE:
 		return bool2int(eval_intexpr(ast.left) >= eval_intexpr(ast.right))
 	case PUNCT_LE:

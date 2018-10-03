@@ -18,6 +18,8 @@ const (
 type Token struct {
 	typ     int
 	space   bool
+	file string
+	line int
 	hideset *Dict
 	// intends union
 	sval     string

@@ -39,6 +39,8 @@ func make_token(typ int) *Token {
 	r.typ = typ
 	r.hideset = MakeDict(nil)
 	r.space = false
+	r.file = file.name
+	r.line = file.line
 	return r
 }
 

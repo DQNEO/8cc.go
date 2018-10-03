@@ -42,6 +42,7 @@ func initCpp() {
 	std_include_path = []string{
 		"/usr/local/include",
 		"/usr/include",
+		"/usr/include/x86_64-linux-gnu",
 		".",
 	}
 }

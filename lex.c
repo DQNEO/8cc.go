@@ -138,20 +138,11 @@ void skip_cond_incl(void) {
             skip_line();
             continue;
         }
+        skip_space();
         Token *tok = read_cpp_token();
         if (tok->type == TTYPE_NEWLINE)
             continue;
         if (tok->type != TTYPE_IDENT) {
-            skip_line();
-            continue;
-        }
-        if (is_ident(tok, "if") || is_ident(tok, "ifdef") || is_ident(tok, "ifndef")) {
-            nest++;
-            skip_line();
-            continue;
-        }
-        if (nest && is_ident(tok, "endif")) {
-            nest--;
             skip_line();
             continue;
         }
@@ -160,6 +151,11 @@ void skip_cond_incl(void) {
             unget_cpp_token(make_punct('#'));
             return;
         }
+        if (is_ident(tok, "if") || is_ident(tok, "ifdef") || is_ident(tok, "ifndef"))
+            nest++;
+        else if (nest && is_ident(tok, "endif"))
+            nest--;
+        skip_line();
     }
 }
 
@@ -233,6 +229,8 @@ static void skip_block_comment(void) {
     enum { in_comment, asterisk_read } state = in_comment;
     for (;;) {
         int c = get();
+        if (c == EOF)
+            error("premature end of block comment");
         if (c == '*')
             state = asterisk_read;
         else if (state == asterisk_read && c == '/')

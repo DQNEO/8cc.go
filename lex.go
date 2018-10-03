@@ -117,6 +117,15 @@ func get() (byte,error) {
 	return c, err
 }
 
+func skip_line() {
+	for {
+		c, err := get()
+		if err != nil || c == '\n' {
+			return
+		}
+	}
+}
+
 func get_nonspace() (byte, error) {
 	var c byte
 	var err error
@@ -131,15 +140,6 @@ func get_nonspace() (byte, error) {
 		return c, nil
 	}
 	return 0, err
-}
-
-func skip_line() {
-	for {
-		c, err := get()
-		if err != nil || c == '\n' {
-			return
-		}
-	}
 }
 
 func skip_cond_incl() {

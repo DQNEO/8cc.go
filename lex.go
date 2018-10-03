@@ -160,6 +160,11 @@ func skip_cond_incl() {
 			skip_line()
 			continue
 		}
+		if nest == 0 && (tok.is_ident("else") || tok.is_ident("elif") || tok.is_ident("endif")) {
+			unget_cpp_token(tok)
+			unget_cpp_token(make_punct('#'))
+			return
+		}
 		if tok.is_ident("if") || tok.is_ident("ifdef") || tok.is_ident("ifndef") {
 			nest++
 			skip_line()
@@ -169,11 +174,6 @@ func skip_cond_incl() {
 			nest--
 			skip_line()
 			continue
-		}
-		if nest == 0 && (tok.is_ident("else") || tok.is_ident("elif") || tok.is_ident("endif")) {
-			unget_cpp_token(tok)
-			unget_cpp_token(make_punct('#'))
-			return
 		}
 	}
 }

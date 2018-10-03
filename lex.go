@@ -152,6 +152,7 @@ func skip_cond_incl() {
 			skip_line()
 			continue
 		}
+		skip_space()
 		tok := read_cpp_token()
 		if tok.is_newline() {
 			continue
@@ -266,7 +267,10 @@ func skip_block_comment() {
 	)
 	state := in_comment
 	for {
-		c, _ := get()
+		c, err := get()
+		if err != nil {
+			errorf("premature end of block comment")
+		}
 		if c == '*' {
 			state = asterisk_read
 		} else if state == asterisk_read && c == '/' {

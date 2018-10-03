@@ -317,7 +317,7 @@ func priority(tok *Token) int {
 		return 3
 	case '+', '-':
 		return 4
-	case '<', '>':
+	case '<', '>', PUNCT_LE, PUNCT_GE:
 		return 6
 	case '&':
 		return 8

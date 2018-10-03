@@ -167,14 +167,10 @@ func skip_cond_incl() {
 		}
 		if tok.is_ident("if") || tok.is_ident("ifdef") || tok.is_ident("ifndef") {
 			nest++
-			skip_line()
-			continue
-		}
-		if nest > 0 && tok.is_ident("endif") {
+		} else if nest > 0 && tok.is_ident("endif") {
 			nest--
-			skip_line()
-			continue
 		}
+		skip_line()
 	}
 }
 

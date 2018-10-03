@@ -349,6 +349,12 @@ func emit_binop(ast *Ast) {
 	case PUNCT_EQ :
 		emit_comp("sete", ast)
 		return
+	case PUNCT_GE:
+		emit_comp("setge", ast)
+		return
+	case PUNCT_LE:
+		emit_comp("setle", ast)
+		return
 	}
 
 	if is_inttype(ast.ctype) {

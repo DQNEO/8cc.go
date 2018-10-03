@@ -176,6 +176,10 @@ func (ast *Ast) String() string {
 		return uop_to_string("addr", ast)
 	case AST_DEREF:
 		return uop_to_string("deref", ast)
+	case PUNCT_GE:
+		return binop_to_string( ">=", ast)
+	case PUNCT_LE:
+		return binop_to_string("<=", ast)
 	case PUNCT_INC:
 		return uop_to_string("++", ast)
 	case PUNCT_DEC:

@@ -296,13 +296,13 @@ func skip_block_comment() {
 	}
 }
 
-func read_rep(expect int, t1 int, t2 int) *Token {
+func read_rep(expect byte, t1 int, t2 int) *Token {
 	c, _ := get()
-	if c == byte(expect) {
-		return make_punct(t2)
+	if c == expect {
+		return make_punct(t1)
 	}
 	unget(c)
-	return make_punct(t1)
+	return make_punct(t2)
 }
 
 func read_token_int() *Token {
@@ -367,13 +367,13 @@ func read_token_int() *Token {
 		unget(c)
 		return make_punct('-')
 	case c == '=':
-		return read_rep(int('='), int('='), PUNCT_EQ)
+		return read_rep('=', PUNCT_EQ, int('='))
 	case c == '+':
-		return read_rep(int('+'), int('+'), PUNCT_INC)
+		return read_rep('+', PUNCT_INC, int('+'))
 	case c == '&':
-		return read_rep(int('&'), int('&'), PUNCT_LOGAND)
+		return read_rep('&', PUNCT_LOGAND, int('&'))
 	case c == '|':
-		return read_rep(int('|'), int('|'), PUNCT_LOGOR)
+		return read_rep('|', PUNCT_LOGOR, int('|'))
 	case c == '"':
 		return read_string()
 	case c == '\'':

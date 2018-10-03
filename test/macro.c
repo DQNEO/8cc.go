@@ -85,6 +85,18 @@ int const_expr() {
 #endif
     expect(4, a);
 
+#if 1 == 1
+    a = 90;
+#else
+#endif
+    expect(90, a);
+
+#if 1 == 2
+#else
+    a = 91;
+#endif
+    expect(91, a);
+
 #if 1 && 0
 #else
     a = 100;

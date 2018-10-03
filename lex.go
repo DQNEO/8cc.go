@@ -258,15 +258,6 @@ func read_ident(c byte) *Token {
 	}
 }
 
-func skip_line_comment() {
-	for {
-		c, err := get()
-		if c == '\n' || err != nil {
-			return
-		}
-	}
-}
-
 func skip_space() {
 	for {
 		c, _ := get()
@@ -325,7 +316,7 @@ func read_token_int() *Token {
 	case c == '/':
 		c, _ = get()
 		if c == '/' {
-			skip_line_comment()
+			skip_line()
 			return read_token_int()
 		}
 		if c == '*' {

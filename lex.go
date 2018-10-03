@@ -142,6 +142,17 @@ func get_nonspace() (byte, error) {
 	return 0, err
 }
 
+func skip_space() {
+	for {
+		c, _ := get()
+		if c == ' ' || c == '\t' {
+			continue
+		}
+		unget(c)
+		return
+	}
+}
+
 func skip_cond_incl() {
 	nest := 0
 	for {
@@ -255,17 +266,6 @@ func read_ident(c byte) *Token {
 			unget(c2)
 			return make_ident(string(buf))
 		}
-	}
-}
-
-func skip_space() {
-	for {
-		c, _ := get()
-		if c == ' ' || c == '\t' {
-			continue
-		}
-		unget(c)
-		return
 	}
 }
 

@@ -335,10 +335,6 @@ func emit_binop(ast *Ast) {
 		emit_assign(ast.left)
 		return
 	}
-	if ast.typ == PUNCT_EQ {
-		emit_comp("sete", ast)
-		return
-	}
 	if ast.ctype.typ == CTYPE_PTR {
 		emit_pointer_arith(byte(ast.typ), ast.left, ast.right)
 		return
@@ -349,6 +345,9 @@ func emit_binop(ast *Ast) {
 		return
 	case '>':
 		emit_comp("setg", ast)
+		return
+	case PUNCT_EQ :
+		emit_comp("sete", ast)
 		return
 	}
 

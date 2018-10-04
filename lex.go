@@ -132,6 +132,20 @@ func skip_space() {
 		if c == ' ' || c == '\t' {
 			continue
 		}
+		if c == '/' {
+			c ,_ = get()
+			if c == '/' {
+				skip_line()
+				continue
+			}
+			if c == '*' {
+				skip_block_comment()
+				continue
+			}
+			unget(c)
+			unget('/')
+			return
+		}
 		unget(c)
 		return
 	}

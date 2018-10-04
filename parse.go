@@ -1148,10 +1148,15 @@ func read_func_decl_or_def(rettype *Ctype, fname string) *Ast {
 }
 
 func read_toplevel() *Ast {
-	tok := peek_token()
+	tok := read_token()
 	if tok == nil {
 		return nil
 	}
+	if tok.is_ident("typedef") {
+		read_typedef()
+		return read_toplevel()
+	}
+	unget_token(tok)
 	ctype := read_decl_spec()
 	name := read_token()
 	if !name.is_ident_type() {

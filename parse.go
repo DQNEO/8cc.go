@@ -724,6 +724,11 @@ func read_expr() *Ast {
 }
 
 func get_ctype(tok *Token) *Ctype {
+	r := typedefs.GetCtype(tok.sval)
+	if r != nil {
+		return r
+	}
+
 	if tok.sval == "char" {
 		return ctype_char
 	}
@@ -740,13 +745,10 @@ func get_ctype(tok *Token) *Ctype {
 		return ctype_double
 	}
 
-	return typedefs.GetCtype(tok.sval)
+	return nil
 }
 
 func is_type_keyword(tok *Token) bool {
-	if tok == nil {
-		return false
-	}
 	if !tok.is_ident_type() {
 		return false
 	}

@@ -727,6 +727,7 @@ func read_expr() *Ast {
 }
 
 func read_ctype(tok *Token) *Ctype {
+	assert(tok != nil && tok.is_ident_type())
 	r := typedefs.GetCtype(tok.sval)
 	if r != nil {
 		return r

@@ -71,7 +71,8 @@ const (
 type Ctype struct {
 	typ  int
 	size int
-	ptr  *Ctype // pointer or array
+	// pointer or array
+	ptr  *Ctype
 	// array length
 	len int
 	// struct

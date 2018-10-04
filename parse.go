@@ -925,9 +925,7 @@ func read_decl_spec() *Ctype {
 		ctype = read_ctype(tok)
 	}
 
-	if ctype == nil {
-		errorf("Type expected, but got %s", tok)
-	}
+	assert(ctype != nil)
 	for {
 		tok = read_token()
 		if !tok.is_punct('*') {

@@ -128,18 +128,20 @@ func skip_line() {
 
 func skip_space() {
 	for {
-		c, _ := get()
+		c, err := get()
+		if err != nil {
+			return
+		}
 		if c == ' ' || c == '\t' {
 			continue
 		}
 		if c == '/' {
 			c ,_ = get()
-			if c == '/' {
-				skip_line()
-				continue
-			}
 			if c == '*' {
 				skip_block_comment()
+				continue
+			} else if c == '/' {
+				skip_line()
 				continue
 			}
 			unget(c)

@@ -21,9 +21,9 @@ var localvars []*Ast
 var current_func_rettype *Ctype
 var labelseq = 0
 
+var ctype_char = &Ctype{typ: CTYPE_CHAR, size: 1}
 var ctype_int = &Ctype{typ: CTYPE_INT, size: 4}
 var ctype_long = &Ctype{typ: CTYPE_LONG, size: 8}
-var ctype_char = &Ctype{typ: CTYPE_CHAR, size: 1}
 var ctype_float = &Ctype{typ: CTYPE_FLOAT, size: 4}
 var ctype_double = &Ctype{typ: CTYPE_DOUBLE, size: 8}
 
@@ -727,14 +727,14 @@ func get_ctype(tok *Token) *Ctype {
 		return nil
 	}
 
+	if tok.sval == "char" {
+		return ctype_char
+	}
 	if tok.sval == "int" {
 		return ctype_int
 	}
 	if tok.sval == "long" {
 		return ctype_long
-	}
-	if tok.sval == "char" {
-		return ctype_char
 	}
 	if tok.sval == "float" {
 		return ctype_float

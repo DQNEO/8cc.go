@@ -119,6 +119,9 @@ func read_expand() *Token {
 	if tok == nil {
 		return nil
 	}
+	if tok.is_newline() {
+		return read_expand()
+	}
 	if !tok.is_ident_type() {
 		return tok
 	}

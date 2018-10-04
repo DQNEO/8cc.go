@@ -724,10 +724,6 @@ func read_expr() *Ast {
 }
 
 func get_ctype(tok *Token) *Ctype {
-	if !tok.is_ident_type() {
-		return nil
-	}
-
 	if tok.sval == "char" {
 		return ctype_char
 	}
@@ -751,6 +747,10 @@ func is_type_keyword(tok *Token) bool {
 	if tok == nil {
 		return false
 	}
+	if !tok.is_ident_type() {
+		return false
+	}
+
 	return get_ctype(tok) != nil || tok.is_ident("struct") || tok.is_ident("union")
 }
 

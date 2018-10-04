@@ -20,12 +20,14 @@ static List *localvars = NULL;
 static Ctype *current_func_rettype = NULL;
 
 Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, 1, true };
+Ctype *ctype_short = &(Ctype){ CTYPE_SHORT, 2, true };
 Ctype *ctype_int = &(Ctype){ CTYPE_INT, 4, true };
 Ctype *ctype_long = &(Ctype){ CTYPE_LONG, 8, true };
 Ctype *ctype_float = &(Ctype){ CTYPE_FLOAT, 4, true };
 Ctype *ctype_double = &(Ctype){ CTYPE_DOUBLE, 8, true };
 
 static Ctype *ctype_uchar = &(Ctype){ CTYPE_CHAR, 1, false };
+static Ctype *ctype_ushort = &(Ctype){ CTYPE_SHORT, 2, false };
 static Ctype *ctype_uint = &(Ctype){ CTYPE_INT, 4, false };
 static Ctype *ctype_ulong = &(Ctype){ CTYPE_LONG, 8, false };
 
@@ -474,9 +476,10 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
     case CTYPE_VOID:
         goto err;
     case CTYPE_CHAR:
+    case CTYPE_SHORT:
     case CTYPE_INT:
         switch (b->type) {
-        case CTYPE_CHAR: case CTYPE_INT:
+        case CTYPE_CHAR: case CTYPE_SHORT: case CTYPE_INT:
             return ctype_int;
         case CTYPE_LONG:
             return ctype_long;
@@ -655,9 +658,10 @@ static Ctype *read_ctype(Token *tok) {
             return si == unsign ? ctype_uint : ctype_int;
         }
     }
-
     if (!strcmp(tok->sval, "char"))
         return si == unsign ? ctype_uchar : ctype_char;
+    if (!strcmp(tok->sval, "short"))
+        return si == unsign ? ctype_ushort : ctype_short;
     if (!strcmp(tok->sval, "int"))
         return si == unsign ? ctype_uint : ctype_int;
     if (!strcmp(tok->sval, "long"))
@@ -674,8 +678,7 @@ static Ctype *read_ctype(Token *tok) {
 static bool is_type_keyword(Token *tok) {
     if (tok->type != TTYPE_IDENT)
         return false;
-
-    char *keyword[] = { "char", "int", "long", "float", "double",
+    char *keyword[] = { "char", "short", "int", "long", "float", "double",
                         "struct", "union", "signed", "unsigned" };
     for (int i = 0; i < sizeof(keyword) / sizeof(*keyword); i++)
         if (!strcmp(keyword[i], tok->sval))

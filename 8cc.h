@@ -79,6 +79,7 @@ enum {
 enum {
     CTYPE_VOID,
     CTYPE_CHAR,
+    CTYPE_SHORT,
     CTYPE_INT,
     CTYPE_LONG,
     CTYPE_FLOAT,
@@ -110,7 +111,7 @@ typedef struct Ast {
     int type;
     Ctype *ctype;
     union {
-        // Char, int, or long
+        // Char, short ,int, or long
         long ival;
         // Float or double
         struct {
@@ -184,6 +185,7 @@ typedef struct Ast {
 } Ast;
 
 extern Ctype *ctype_char;
+extern Ctype *ctype_short;
 extern Ctype *ctype_int;
 extern Ctype *ctype_long;
 extern Ctype *ctype_float;

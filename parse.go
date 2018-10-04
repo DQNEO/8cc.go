@@ -753,7 +753,15 @@ func is_type_keyword(tok *Token) bool {
 		return false
 	}
 
-	return get_ctype(tok) != nil || tok.is_ident("struct") || tok.is_ident("union")
+	keyword := []string{"char", "int", "long", "float", "double",
+	"struct", "union", "signed", "unsigned"}
+	for _, k := range keyword {
+		if k == tok.sval {
+			return true
+		}
+	}
+
+	return typedefs.GetCtype(tok.sval) != nil
 }
 
 func read_decl_array_init_int(ctype *Ctype) *Ast {

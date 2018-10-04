@@ -21,11 +21,15 @@ var localvars []*Ast
 var current_func_rettype *Ctype
 var labelseq = 0
 
-var ctype_char = &Ctype{typ: CTYPE_CHAR, size: 1}
-var ctype_int = &Ctype{typ: CTYPE_INT, size: 4}
-var ctype_long = &Ctype{typ: CTYPE_LONG, size: 8}
-var ctype_float = &Ctype{typ: CTYPE_FLOAT, size: 4}
-var ctype_double = &Ctype{typ: CTYPE_DOUBLE, size: 8}
+var ctype_char = &Ctype{typ: CTYPE_CHAR, size: 1, sign: true,}
+var ctype_int = &Ctype{typ: CTYPE_INT, size: 4, sign: true,}
+var ctype_long = &Ctype{typ: CTYPE_LONG, size: 8, sign: true,}
+var ctype_float = &Ctype{typ: CTYPE_FLOAT, size: 4, sign: true,}
+var ctype_double = &Ctype{typ: CTYPE_DOUBLE, size: 8, sign: true,}
+
+var ctype_uchar = &Ctype{typ: CTYPE_CHAR, size: 1, sign: false,}
+var ctype_uint = &Ctype{typ: CTYPE_INT, size: 4, sign: false,}
+var ctype_ulong = &Ctype{typ: CTYPE_LONG, size: 8, sign: false,}
 
 func ast_uop(typ int, ctype *Ctype, operand *Ast) *Ast {
 	r := &Ast{}

@@ -71,6 +71,8 @@ const (
 type Ctype struct {
 	typ  int
 	size int
+	// signed or unsgigned
+	sign bool
 	// pointer or array
 	ptr  *Ctype
 	// array length

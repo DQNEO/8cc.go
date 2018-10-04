@@ -21,6 +21,7 @@ var localvars []*Ast
 var current_func_rettype *Ctype
 var labelseq = 0
 
+var ctype_void = &Ctype{typ: CTYPE_VOID, size: 0, sign: true,}
 var ctype_char = &Ctype{typ: CTYPE_CHAR, size: 1, sign: true,}
 var ctype_short = &Ctype{typ: CTYPE_SHORT, size: 2, sign: true}
 var ctype_int = &Ctype{typ: CTYPE_INT, size: 4, sign: true,}
@@ -731,75 +732,140 @@ func read_ctype(tok *Token) *Ctype {
 		return r
 	}
 
+	const unspec = 0
+
+	type sign int
 	const (
-		sign  = iota
-		unsign
-		unspec
+		ssign  = sign(iota + 1)
+		sunsign
 	)
-	si := unspec
+	var si sign
+
+	type ttype int
+	const (
+		tchar = ttype(iota + 1)
+		tshort
+		tint
+		tlong
+		tllong
+	)
+	var ti ttype
 	for {
-		if tok.sval == "signed" {
-			si = sign
-		} else if tok.sval == "unsigned" {
-			si = unsign
+		s := tok.sval
+		if s == "signed" {
+			if si != unspec {
+				dupspec(tok)
+			}
+			si = ssign
+		} else if s == "unsigned" {
+			if si != unspec {
+				dupspec(tok)
+			}
+			si = sunsign
+		} else if s == "char" {
+			if ti != unspec {
+				duptype(tok)
+			}
+			ti = tchar
+		} else if s == "short" {
+			if ti != unspec {
+				duptype(tok)
+			}
+			ti = tshort
+		} else if s == "int" {
+			if ti == unspec {
+				ti = tint
+			} else if ti == tchar {
+				duptype(tok)
+			}
+		} else if s == "long" {
+			if ti == unspec {
+				ti = tlong
+			} else if ti == tlong {
+				ti = tllong
+			} else {
+				duptype(tok)
+			}
+		} else if s == "float" {
+			if si != unspec {
+				invspec(tok)
+			}
+			if ti != unspec {
+				duptype(tok)
+			}
+			return ctype_float
+		} else if s == "double" {
+			if si != unspec {
+				invspec(tok)
+			}
+			if ti != unspec {
+				duptype(tok)
+			}
+			return ctype_double
+		} else if s == "void" {
+			if si != unspec {
+				invspec(tok)
+			}
+			if ti != unspec {
+				duptype(tok)
+			}
+			return ctype_void
 		} else {
+			unget_token(tok)
 			break
 		}
 		tok = read_token()
 		if !tok.is_ident_type() {
 			unget_token(tok)
-			if si == unsign {
-				return ctype_uint
-			} else {
-				return ctype_int
-			}
+			break
 		}
 	}
-	if tok.sval == "char" {
-		if si == unsign {
+
+	if ti == unspec && si == unspec {
+		errorf("Type expected, but got '%s'", tok)
+	}
+	switch ti {
+	case tchar:
+		if si == sunsign {
 			return ctype_uchar
 		} else {
 			return ctype_char
 		}
-	}
-	if tok.sval == "short" {
-		if si == unsign {
+	case tshort:
+		if si == sunsign {
 			return ctype_ushort
 		} else {
 			return ctype_short
 		}
-	}
-	if tok.sval == "int" {
-		if si == unsign {
+	case tint:
+		if si == sunsign {
 			return ctype_uint
 		} else {
 			return ctype_int
 		}
-	}
-	if tok.sval == "long" {
-		if si == unsign {
+	case tlong, tllong:
+		if si == sunsign {
 			return ctype_ulong
 		} else {
 			return ctype_long
 		}
 	}
-	if tok.sval == "float" {
-		return ctype_float
-	}
-	if tok.sval == "double" {
-		return ctype_double
-	}
-	if si != unspec {
-		unget_token(tok)
-		if si == unsign {
-			return ctype_uint
-		} else {
-			return ctype_int
-		}
-	}
-	errorf("Type expected, but got '%s'", tok)
+	errorf("internal error")
 	return nil
 }
+
+func dupspec(tok *Token) {
+	errorf("duplicate specifier: %s", tok)
+}
+
+func duptype(tok *Token) {
+	errorf("duplicate type specifier: %s", tok)
+}
+
+func invspec(tok *Token){
+	errorf("cannot combine signed/unsigned with %s", tok)
+}
+
 
 func is_type_keyword(tok *Token) bool {
 	if !tok.is_ident_type() {

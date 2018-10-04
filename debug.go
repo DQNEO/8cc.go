@@ -9,6 +9,8 @@ func (ctype *Ctype) String() string {
 		return "void"
 	case CTYPE_CHAR:
 		return "char"
+	case CTYPE_SHORT:
+		return "short"
 	case CTYPE_INT:
 		return "int"
 	case CTYPE_LONG:

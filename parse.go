@@ -22,12 +22,14 @@ var current_func_rettype *Ctype
 var labelseq = 0
 
 var ctype_char = &Ctype{typ: CTYPE_CHAR, size: 1, sign: true,}
+var ctype_short = &Ctype{typ: CTYPE_SHORT, size: 2, sign: true}
 var ctype_int = &Ctype{typ: CTYPE_INT, size: 4, sign: true,}
 var ctype_long = &Ctype{typ: CTYPE_LONG, size: 8, sign: true,}
 var ctype_float = &Ctype{typ: CTYPE_FLOAT, size: 4, sign: true,}
 var ctype_double = &Ctype{typ: CTYPE_DOUBLE, size: 8, sign: true,}
 
 var ctype_uchar = &Ctype{typ: CTYPE_CHAR, size: 1, sign: false,}
+var ctype_ushort = &Ctype{typ: CTYPE_SHORT, size: 2, sign: false}
 var ctype_uint = &Ctype{typ: CTYPE_INT, size: 4, sign: false,}
 var ctype_ulong = &Ctype{typ: CTYPE_LONG, size: 8, sign: false,}
 
@@ -533,9 +535,9 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 	switch a.typ {
 	case CTYPE_VOID:
 		return nil, default_err
-	case CTYPE_CHAR, CTYPE_INT:
+	case CTYPE_CHAR, CTYPE_SHORT, CTYPE_INT:
 		switch b.typ {
-		case CTYPE_CHAR, CTYPE_INT:
+		case CTYPE_CHAR, CTYPE_SHORT, CTYPE_INT:
 			return ctype_int, nil
 		case CTYPE_LONG:
 			return ctype_long, nil
@@ -760,6 +762,13 @@ func read_ctype(tok *Token) *Ctype {
 			return ctype_char
 		}
 	}
+	if tok.sval == "short" {
+		if si == unsign {
+			return ctype_ushort
+		} else {
+			return ctype_short
+		}
+	}
 	if tok.sval == "int" {
 		if si == unsign {
 			return ctype_uint
@@ -797,7 +806,7 @@ func is_type_keyword(tok *Token) bool {
 		return false
 	}
 
-	keyword := []string{"char", "int", "long", "float", "double",
+	keyword := []string{"char", "short", "int", "long", "float", "double",
 	"struct", "union", "signed", "unsigned"}
 	for _, k := range keyword {
 		if k == tok.sval {

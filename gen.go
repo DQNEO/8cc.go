@@ -38,6 +38,12 @@ func get_int_reg(ctype *Ctype, r byte) string {
 		} else {
 			return "cl"
 		}
+	case 2:
+		if r == 'a' {
+			return "ax"
+		} else {
+			return "cx"
+		}
 	case 4:
 		if r == 'a' {
 			return "eax"
@@ -90,7 +96,7 @@ func emit_gload(ctype *Ctype, label string, off int) {
 		return
 	}
 	reg := get_int_reg(ctype, 'a')
-	if ctype.size == 1 {
+	if ctype.size < 4 {
 		emit("mov $0, %%eax")
 	}
 	if off != 0 {
@@ -123,7 +129,7 @@ func emit_lload(ctype *Ctype, off int) {
 		emit("movsd %d(%%rbp), %%xmm0", off)
 	} else {
 		reg := get_int_reg(ctype, 'a')
-		if ctype.size == 1 {
+		if ctype.size < 4 {
 			emit("mov $0, %%eax")
 		}
 		emit("mov %d(%%rbp), %%%s", off, reg)
@@ -379,7 +385,7 @@ func emit_load_deref(result_type *Ctype, operand_type *Ctype, off int) {
 		operand_type.ptr.typ == CTYPE_ARRAY {
 		return
 	}
-	if result_type.size == 1 {
+	if result_type.size < 4 {
 		emit("mov $0, %%ecx")
 	}
 	reg := get_int_reg(result_type, 'c')

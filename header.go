@@ -18,6 +18,7 @@ const (
 type Token struct {
 	typ     int
 	space   bool
+	bol bool
 	file string
 	line int
 	hideset *Dict

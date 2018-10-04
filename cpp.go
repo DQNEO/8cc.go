@@ -7,7 +7,6 @@ import (
 
 var macros = make(map[string]*Macro)
 var cond_incl_stack = make([]*CondIncl, 0)
-var bol = true
 var std_include_path []string
 var cpp_token_zero = &Token{typ: TTYPE_NUMBER, sval: "0"}
 var cpp_token_one = &Token{typ: TTYPE_NUMBER, sval: "1"}
@@ -84,6 +83,7 @@ func make_macro_token(position int) *Token {
 		hideset:  MakeDict(nil),
 		position: position,
 		space:    false,
+		bol: false,
 	}
 	return r
 }
@@ -667,20 +667,22 @@ func read_token_int2(return_at_eol bool) *Token {
 			return nil
 		}
 		if tok != nil && tok.is_newline() {
-			bol = true
 			if return_at_eol {
 				return nil
 			}
 			continue
 		}
-		if bol && tok.is_punct('#') {
+		if tok.bol && tok.is_punct('#') {
 			read_directive()
-			bol = true
 			continue
 		}
-		bol = false
 		unget_token(tok)
-		return read_expand()
+		r := read_expand()
+		if r != nil && r.bol && r.is_punct('#') && r.hideset.Empty() {
+			read_directive()
+			continue
+		}
+		return r
 	}
 }
 

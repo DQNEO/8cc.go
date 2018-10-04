@@ -7,6 +7,8 @@ import (
 
 const BUFLEN = 256
 
+var at_bol = true
+
 type File struct {
 	name string
 	line int
@@ -39,6 +41,7 @@ func make_token(typ int) *Token {
 	r.typ = typ
 	r.hideset = MakeDict(nil)
 	r.space = false
+	r.bol = false
 	r.file = file.name
 	r.line = file.line
 	return r
@@ -109,10 +112,14 @@ func get() (byte,error) {
 			return get()
 		}
 		unget(c)
+		at_bol = false
 		return '\\', nil
 	}
 	if c == '\n' {
 		file.line++
+		at_bol = true
+	} else {
+		at_bol = false
 	}
 	return c, err
 }
@@ -179,7 +186,9 @@ func skip_cond_incl() {
 		}
 		if nest == 0 && (tok.is_ident("else") || tok.is_ident("elif") || tok.is_ident("endif")) {
 			unget_cpp_token(tok)
-			unget_cpp_token(make_punct('#'))
+			sharp := make_punct('#')
+			sharp.bol = true
+			unget_cpp_token(sharp)
 			return
 		}
 		if tok.is_ident("if") || tok.is_ident("ifdef") || tok.is_ident("ifndef") {
@@ -461,7 +470,7 @@ func read_cpp_token() *Token {
 		buffer, tok = list_pop(buffer)
 		return tok
 	}
-
+	bol := at_bol
 	tok = read_token_int()
 	for tok != nil && tok.typ == TTYPE_SPACE {
 		tok = read_token_int()
@@ -473,8 +482,12 @@ func read_cpp_token() *Token {
 	if tok == nil && len(file_stack) > 0 {
 		file.fp.close()
 		file = file_stack[len(file_stack) -1]
+		at_bol = true
 		file_stack = file_stack[:len(file_stack) -1]
 		return newline_token
+	}
+	if tok != nil {
+		tok.bol = bol
 	}
 	return tok
 }

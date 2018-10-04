@@ -87,6 +87,10 @@ func (dict *Dict) Put(key string, val *DictValue) {
 	dict.list = append(dict.list, e)
 }
 
+func (dict *Dict) Empty() bool {
+	return len(dict.list) == 0
+}
+
 func (dict *Dict) Keys() []string {
 	var r []string
 	for d := dict; d != nil; d = d.parent {

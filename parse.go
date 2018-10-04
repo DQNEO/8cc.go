@@ -723,20 +723,56 @@ func read_expr() *Ast {
 	return read_expr_int(MAX_OP_PRIO)
 }
 
-func get_ctype(tok *Token) *Ctype {
+func read_ctype(tok *Token) *Ctype {
 	r := typedefs.GetCtype(tok.sval)
 	if r != nil {
 		return r
 	}
 
+	const (
+		sign  = iota
+		unsign
+		unspec
+	)
+	si := unspec
+	for {
+		if tok.sval == "signed" {
+			si = sign
+		} else if tok.sval == "unsigned" {
+			si = unsign
+		} else {
+			break
+		}
+		tok = read_token()
+		if !tok.is_ident_type() {
+			unget_token(tok)
+			if si == unsign {
+				return ctype_uint
+			} else {
+				return ctype_int
+			}
+		}
+	}
 	if tok.sval == "char" {
-		return ctype_char
+		if si == unsign {
+			return ctype_uchar
+		} else {
+			return ctype_char
+		}
 	}
 	if tok.sval == "int" {
-		return ctype_int
+		if si == unsign {
+			return ctype_uint
+		} else {
+			return ctype_int
+		}
 	}
 	if tok.sval == "long" {
-		return ctype_long
+		if si == unsign {
+			return ctype_ulong
+		} else {
+			return ctype_long
+		}
 	}
 	if tok.sval == "float" {
 		return ctype_float
@@ -744,7 +780,15 @@ func get_ctype(tok *Token) *Ctype {
 	if tok.sval == "double" {
 		return ctype_double
 	}
-
+	if si != unspec {
+		unget_token(tok)
+		if si == unsign {
+			return ctype_uint
+		} else {
+			return ctype_int
+		}
+	}
+	errorf("Type expected, but got '%s'", tok)
 	return nil
 }
 
@@ -878,7 +922,7 @@ func read_decl_spec() *Ctype {
 	} else if tok.is_ident("union") {
 		ctype = read_union_def()
 	} else {
-		ctype = get_ctype(tok)
+		ctype = read_ctype(tok)
 	}
 
 	if ctype == nil {

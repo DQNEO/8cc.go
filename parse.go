@@ -724,9 +724,6 @@ func read_expr() *Ast {
 }
 
 func get_ctype(tok *Token) *Ctype {
-	if tok == nil {
-		return nil
-	}
 	if !tok.is_ident_type() {
 		return nil
 	}
@@ -751,6 +748,9 @@ func get_ctype(tok *Token) *Ctype {
 }
 
 func is_type_keyword(tok *Token) bool {
+	if tok == nil {
+		return false
+	}
 	return get_ctype(tok) != nil || tok.is_ident("struct") || tok.is_ident("union")
 }
 
@@ -859,6 +859,9 @@ func read_struct_def() *Ctype {
 
 func read_decl_spec() *Ctype {
 	tok := read_token()
+	if tok == nil {
+		return nil
+	}
 	var ctype *Ctype
 	if tok.is_ident("struct") {
 		ctype = read_struct_def()

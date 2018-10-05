@@ -971,9 +971,9 @@ func compute_struct_size(fields *Dict) int {
 	return offset
 }
 
-func read_struct_union_def() *Ctype {
+func read_struct_union_def(env *Dict) *Ctype {
 	tag := read_struct_union_tag()
-	ctype := struct_defs.GetCtype(tag)
+	ctype := env.GetCtype(tag)
 	if ctype != nil {
 		return ctype
 	}
@@ -981,7 +981,7 @@ func read_struct_union_def() *Ctype {
 	offset := compute_struct_size(fields)
 	r := make_struct_type(fields, offset)
 	if tag != "" {
-		struct_defs.PutCtype(tag, r)
+		env.PutCtype(tag, r)
 	}
 	return r
 }
@@ -1001,7 +1001,7 @@ func read_union_def() *Ctype {
 }
 
 func read_struct_def() *Ctype {
-	return read_struct_union_def()
+	return read_struct_union_def(&struct_defs)
 }
 
 func read_decl_spec() *Ctype {

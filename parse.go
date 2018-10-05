@@ -941,13 +941,7 @@ func read_struct_union_fields() *Dict {
 	return r
 }
 
-func read_union_def() *Ctype {
-	tag := read_struct_union_tag()
-	ctype := union_defs.GetCtype(tag)
-	if ctype != nil {
-		return ctype
-	}
-	fields := read_struct_union_fields()
+func compute_union_size(fields *Dict) int {
 	maxsize := 0
 	for _, v := range fields.Values() {
 		fieldtype := v.ctype
@@ -955,20 +949,10 @@ func read_union_def() *Ctype {
 			maxsize = fieldtype.size
 		}
 	}
-	r := make_struct_type(fields, maxsize)
-	if tag != "" {
-		union_defs.PutCtype(tag, r)
-	}
-	return r
+	return maxsize
 }
 
-func read_struct_def() *Ctype {
-	tag := read_struct_union_tag()
-	ctype := struct_defs.GetCtype(tag)
-	if ctype != nil {
-		return ctype
-	}
-	fields := read_struct_union_fields()
+func compute_struct_size(fields *Dict) int {
 	offset := 0
 	for _, v := range fields.Values() {
 		fieldtype := v.ctype
@@ -984,11 +968,40 @@ func read_struct_def() *Ctype {
 		fieldtype.offset = offset
 		offset += fieldtype.size
 	}
+	return offset
+}
+
+func read_struct_union_def() *Ctype {
+	tag := read_struct_union_tag()
+	ctype := struct_defs.GetCtype(tag)
+	if ctype != nil {
+		return ctype
+	}
+	fields := read_struct_union_fields()
+	offset := compute_struct_size(fields)
 	r := make_struct_type(fields, offset)
 	if tag != "" {
 		struct_defs.PutCtype(tag, r)
 	}
 	return r
+}
+
+func read_union_def() *Ctype {
+	tag := read_struct_union_tag()
+	ctype := union_defs.GetCtype(tag)
+	if ctype != nil {
+		return ctype
+	}
+	fields := read_struct_union_fields()
+	r := make_struct_type(fields, compute_union_size(fields))
+	if tag != "" {
+		union_defs.PutCtype(tag, r)
+	}
+	return r
+}
+
+func read_struct_def() *Ctype {
+	return read_struct_union_def()
 }
 
 func read_decl_spec() *Ctype {

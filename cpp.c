@@ -605,5 +605,10 @@ static Token *read_token_int(bool return_at_eol) {
 }
 
 Token *read_token(void) {
-    return read_token_int(false);
+    Token *r = read_token_int(false);
+    if (!r) return NULL;
+    assert(r->type != TTYPE_NEWLINE);
+    assert(r->type != TTYPE_SPACE);
+    assert(r->type != TTYPE_MACRO_PARAM);
+    return r;
 }

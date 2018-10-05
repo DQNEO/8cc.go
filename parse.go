@@ -973,7 +973,12 @@ func compute_struct_size(fields *Dict) int {
 
 func read_struct_union_def(env *Dict, compute_size func(*Dict)int) *Ctype {
 	tag := read_struct_union_tag()
-	prev := env.GetCtype(tag)
+	var prev *Ctype
+	if tag != "" {
+		prev = env.GetCtype(tag)
+	} else {
+		prev = nil
+	}
 	if prev != nil {
 		return prev
 	}

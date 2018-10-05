@@ -687,5 +687,12 @@ func read_token_int2(return_at_eol bool) *Token {
 }
 
 func read_token() *Token {
-	return read_token_int2(false)
+	r := read_token_int2(false)
+	if r == nil {
+		return nil
+	}
+	assert(!r.is_newline())
+	assert(r.typ != TTYPE_SPACE)
+	assert(r.typ != TTYPE_MACRO_PARAM)
+	return r
 }

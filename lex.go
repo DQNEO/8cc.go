@@ -460,7 +460,7 @@ func peek_cpp_token() *Token {
 	return tok
 }
 
-func read_cpp_token() *Token {
+func read_cpp_token_int() *Token {
 	var tok *Token
 	if altbuffer != nil {
 		altbuffer, tok = list_pop(altbuffer)
@@ -492,6 +492,9 @@ func read_cpp_token() *Token {
 	return tok
 }
 
+func read_cpp_token() *Token {
+	return read_cpp_token_int()
+}
 func (tok *Token) is_ident_type() bool {
 	return tok.typ == TTYPE_IDENT
 }

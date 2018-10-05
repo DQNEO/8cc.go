@@ -1283,36 +1283,38 @@ func read_func_decl_or_def(rettype *Ctype, fname string) *Ast {
 }
 
 func read_toplevel() *Ast {
-	tok := read_token()
-	if tok == nil {
+	for {
+		tok := read_token()
+		if tok == nil {
+			return nil
+		}
+		if tok.is_ident("typedef") {
+			read_typedef()
+			continue
+		}
+		unget_token(tok)
+		ctype := read_decl_spec()
+		name := read_token()
+		if !name.is_ident_type() {
+			errorf("Identifier name expected, but got %s", name)
+		}
+		ctype = read_array_dimensions(ctype)
+		tok = peek_token()
+		if tok.is_punct('=') || ctype.typ == CTYPE_ARRAY {
+			gvar := ast_gvar(ctype, name.sval, false)
+			return read_decl_init(gvar)
+		}
+		if tok.is_punct('(') {
+			return read_func_decl_or_def(ctype, name.sval)
+		}
+		if tok.is_punct(';') {
+			read_token()
+			gvar := ast_gvar(ctype, name.sval, false)
+			return ast_decl(gvar, nil)
+		}
+		errorf("Don't know how to handle %s", tok)
 		return nil
 	}
-	if tok.is_ident("typedef") {
-		read_typedef()
-		return read_toplevel()
-	}
-	unget_token(tok)
-	ctype := read_decl_spec()
-	name := read_token()
-	if !name.is_ident_type() {
-		errorf("Identifier name expected, but got %s", name)
-	}
-	ctype = read_array_dimensions(ctype)
-	tok = peek_token()
-	if tok.is_punct('=') || ctype.typ == CTYPE_ARRAY {
-		gvar := ast_gvar(ctype, name.sval, false)
-		return read_decl_init(gvar)
-	}
-	if tok.is_punct('(') {
-		return read_func_decl_or_def(ctype, name.sval)
-	}
-	if tok.is_punct(';') {
-		read_token()
-		gvar := ast_gvar(ctype, name.sval, false)
-		return ast_decl(gvar, nil)
-	}
-	errorf("Don't know how to handle %s", tok)
-	return nil
 }
 
 func read_toplevels() []*Ast {

@@ -923,8 +923,12 @@ func read_struct_union_tag() string {
 }
 
 func read_struct_union_fields() *Dict {
+	tok := read_token()
+	if !tok.is_punct('{') {
+		unget_token(tok)
+		return nil
+	}
 	r := MakeDict(nil)
-	expect('{')
 	for {
 		if !is_type_keyword(peek_token()) {
 			break
@@ -1295,6 +1299,9 @@ func read_toplevel() *Ast {
 		unget_token(tok)
 		ctype := read_decl_spec()
 		name := read_token()
+		if name.is_punct(';') {
+			continue
+		}
 		if !name.is_ident_type() {
 			errorf("Identifier name expected, but got %s", name)
 		}

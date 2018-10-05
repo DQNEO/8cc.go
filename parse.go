@@ -973,9 +973,9 @@ func compute_struct_size(fields *Dict) int {
 
 func read_struct_union_def(env *Dict, compute_size func(*Dict)int) *Ctype {
 	tag := read_struct_union_tag()
-	ctype := env.GetCtype(tag)
-	if ctype != nil {
-		return ctype
+	prev := env.GetCtype(tag)
+	if prev != nil {
+		return prev
 	}
 	fields := read_struct_union_fields()
 	var r *Ctype

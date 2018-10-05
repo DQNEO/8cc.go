@@ -978,7 +978,12 @@ func read_struct_union_def(env *Dict, compute_size func(*Dict)int) *Ctype {
 		return ctype
 	}
 	fields := read_struct_union_fields()
-	r := make_struct_type(fields, compute_size(fields))
+	var r *Ctype
+	if fields != nil {
+		r = make_struct_type(fields, compute_size(fields))
+	} else {
+		r = make_struct_type(nil, 0)
+	}
 	if tag != "" {
 		env.PutCtype(tag, r)
 	}

@@ -642,6 +642,35 @@ func read_include() {
 	errorf("Cannot file header file: %s", name)
 }
 
+func macro_to_string(name string , m *Macro) string {
+	var s string
+	if m.typ == MACRO_OBJ {
+		s = format("%s ->", name)
+	} else {
+		s = format("%s(%d) ->", name, m.nargs)
+	}
+	if m.body == nil {
+		return s
+	}
+	for _, tok := range m.body {
+		s += format(" %s" ,tok)
+	}
+	return s
+}
+
+func read_print() {
+	tok := read_cpp_token()
+	expect_newline()
+	fmt.Fprintf(os.Stderr, "#print %s: ", input_position())
+	if tok.is_ident_type() {
+		m, ok := macros[tok.sval]
+		if ok {
+			fmt.Fprintf(os.Stderr, "%s\n", macro_to_string(tok.sval, m))
+			return
+		}
+	}
+	fmt.Fprintf(os.Stderr, "%s\n", tok)
+}
 func read_directive() {
 	tok := read_cpp_token()
 	if tok.is_ident("define") {
@@ -662,6 +691,8 @@ func read_directive() {
 		read_endif()
 	} else if tok.is_ident("include") {
 		read_include()
+	} else if tok.is_ident("print") {
+		read_print()
 	} else {
 		errorf("unsupported preprocessor directive: %s", tok)
 	}

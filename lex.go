@@ -80,6 +80,12 @@ func make_char(c byte) *Token {
 func push_input_file(filename string, input *os.File) {
 	file_stack = append(file_stack, file)
 	file = make_file(filename, newStream(input))
+	at_bol = true
+}
+
+func set_input_file(filename string, fp *stream) {
+	file = make_file(filename, fp)
+	at_bol = true
 }
 
 func input_position() string {

@@ -37,6 +37,21 @@ type Macro struct {
 	is_varg bool
 }
 
+func eval(buf string){
+	bytes := append([]byte(buf), byte(0)) // add EOF
+	fp := &stream{
+		buf:  bytes,
+		i:0,
+	}
+	set_input_file("(eval)", fp)
+	toplevels := read_toplevels()
+	for _, ast := range toplevels {
+		printf("# ast=%s\n", ast)
+		emit_toplevel(ast)
+	}
+	set_input_file("(stdin)", stdin)
+}
+
 func initCpp() {
 	std_include_path = []string{
 		"/usr/local/include",
@@ -48,6 +63,7 @@ func initCpp() {
 
 	macros["__x86_64__"] = nil // cpp_token_one
 	macros["__8cc__"] = nil // cpp_token_one
+	eval("typedef int __builtin_va_list[1];")
 }
 
 func make_cond_incl(ctx CondInclCtx, wastrue bool) *CondIncl {

@@ -20,7 +20,7 @@ var buffer = make(TokenList, 0)
 var altbuffer TokenList = nil
 var file_stack []*File
 var file *File
-var ungotten byte = 0
+var ungotten byte = 0 // this maybe fragile
 
 var newline_token = &Token{typ: TTYPE_NEWLINE}
 var space_token = &Token{typ: TTYPE_SPACE}
@@ -109,10 +109,10 @@ func unget(c byte) {
 func get() (byte,error) {
 	var c byte
 	var err error
-	if ungotten == 0 {
-		c, err = getc(file.fp)
-	} else {
+	if ungotten != 0 {
 		c = ungotten
+	} else {
+		c, err = getc(file.fp)
 	}
 	file.column++
 	ungotten = 0

@@ -249,15 +249,14 @@ func read_args_int(macro *Macro) []TokenList {
 		if tok.is_newline() {
 			continue
 		}
-		if depth > 0 {
+		if tok.is_punct('(') {
+			depth++
+		} else if depth > 0 {
 			if tok.is_punct(')') {
 				depth--
 			}
 			arg = append(arg, tok)
 			continue
-		}
-		if tok.is_punct('(') {
-			depth++
 		}
 		if tok.is_punct(')') {
 			unget_token(tok)

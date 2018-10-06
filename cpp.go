@@ -62,8 +62,8 @@ func initCpp() {
 		".",
 	}
 
-	macros["__x86_64__"] = nil // cpp_token_one
-	macros["__8cc__"] = nil // cpp_token_one
+	macros["__x86_64__"] = &Macro{}
+	macros["__8cc__"] = &Macro{}
 	eval("typedef int __builtin_va_list[1];")
 }
 

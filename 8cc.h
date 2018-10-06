@@ -200,6 +200,7 @@ extern List *get_input_buffer(void);
 extern void skip_cond_incl(void);
 extern bool read_header_file_name(char **name, bool *std);
 extern void push_input_file(char *filename, FILE *input);
+extern void set_input_file(char *filename, FILE *input);
 extern char *input_position(void);
 
 extern void unget_token(Token *tok);

@@ -74,9 +74,16 @@ static Token *make_char(char c) {
     return r;
 }
 
+
 void push_input_file(char *filename, FILE *fp) {
     list_push(file_stack, file);
     file = make_file(filename, fp);
+    at_bol = true;
+}
+
+void set_input_file(char *filename, FILE *fp) {
+    file = make_file(filename, fp);
+    at_bol = true;
 }
 
 char *input_position(void) {

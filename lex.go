@@ -12,6 +12,7 @@ var at_bol = true
 type File struct {
 	name string
 	line int
+	column int
 	fp *stream
 }
 
@@ -28,6 +29,7 @@ func make_file(name string, s *stream) *File {
 	return &File{
 		name: name,
 		line: 1,
+		column:1,
 		fp : s,
 	}
 }
@@ -44,6 +46,7 @@ func make_token(typ int) *Token {
 	r.bol = false
 	r.file = file.name
 	r.line = file.line
+	r.column = file.column
 	return r
 }
 
@@ -89,7 +92,7 @@ func set_input_file(filename string, fp *stream) {
 }
 
 func input_position() string {
-	return format("%s:%d", file.name, file.line)
+	return format("%s:%d:%d", file.name, file.line, file.column)
 }
 
 func unget(c byte) {
@@ -100,6 +103,7 @@ func unget(c byte) {
 		ungetc(ungotten, file.fp)
 	}
 	ungetc(c, file.fp)
+	file.column--
 }
 
 func get() (byte,error) {
@@ -110,11 +114,14 @@ func get() (byte,error) {
 	} else {
 		c = ungotten
 	}
+	file.column++
 	ungotten = 0
 	if c == '\\' {
 		c, err = getc(file.fp)
+		file.column++
 		if c == '\n' {
 			file.line++
+			file.column = 1
 			return get()
 		}
 		unget(c)
@@ -123,6 +130,7 @@ func get() (byte,error) {
 	}
 	if c == '\n' {
 		file.line++
+		file.column = 1
 		at_bol = true
 	} else {
 		at_bol = false

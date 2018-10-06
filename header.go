@@ -21,6 +21,7 @@ type Token struct {
 	bol bool
 	file string
 	line int
+	column int
 	hideset *Dict
 	// intends union
 	sval     string

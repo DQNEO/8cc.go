@@ -38,6 +38,7 @@ typedef struct {
     bool bol;
     char *file;
     int line;
+    int column;
     Dict *hideset;
     union {
         char *sval;

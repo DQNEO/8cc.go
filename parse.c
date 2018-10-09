@@ -398,45 +398,46 @@ static Ast *read_ident_or_func(char *name) {
     return v;
 }
 
-static bool is_long_token(char *p) {
-    for (; *p; p++) {
-        if (!isdigit(*p))
-            return (*p == 'L' || *p == 'l') && p[1] == '\0';
+static Ast *read_number(char *s) {
+    assert(s[0]);
+    char *p = s;
+    int base = 10;
+    if (*p == '0') {
+        p++;
+        if (*p == 'x' || *p == 'X') {
+            base = 16;
+            p++;
+        } else if (isdigit(*p)) {
+            base = 8;
+        }
     }
-    return false;
-}
-
-static bool is_int_token(char *p) {
-    for (; *p; p++)
-        if (!isdigit(*p))
-            return false;
-    return true;
-}
-
-static bool is_float_token(char *p) {
-    for (; *p; p++)
-        if (!isdigit(*p))
-            break;
-    if (*p++ != '.')
-        return false;
-    for (; *p; p++)
-        if (!isdigit(*p))
-            return false;
-    return true;
-}
-
-static Ast *read_number(char *p) {
-    if (is_long_token(p))
-        return ast_inttype(ctype_long, atol(p));
-    if (is_int_token(p)) {
-        long val = atol(p);
+    char *start = p;
+    while (isdigit(*p))
+        p++;
+    if (*p == '.') {
+        if (base != 10)
+            error("malformed number: %s", s);
+        p++;
+        while (isdigit(*p))
+            p++;
+        if (*p != '\0')
+            error("malformed number: %s", s);
+        char *end = p - 1;
+        assert(start != end);
+        return ast_double(atof(start));
+    }
+    if (!strcasecmp(p, "l")) {
+        return ast_inttype(ctype_long, strtol(start, NULL, base));
+    } else if (!strcasecmp(p, "ul") || !strcasecmp(p, "lu")) {
+        return ast_inttype(ctype_ulong, strtoul(start, NULL, base));
+    } else {
+        if (*p != '\0')
+            error("malformed number: %s", s);
+        long val = strtol(start, NULL, base);
         if (val & ~(long)UINT_MAX)
             return ast_inttype(ctype_long, val);
         return ast_inttype(ctype_int, val);
     }
-    if (is_float_token(p))
-        return ast_double(atof(p));
-    error("Malformed number: %s", p);
 }
 
 static Ast *read_prim(void) {

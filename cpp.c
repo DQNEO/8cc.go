@@ -27,6 +27,7 @@ typedef struct {
 
 static Token *read_token_int(bool return_at_eol);
 static Token *read_expand(void);
+static Macro *make_obj_macro(List *body);
 
 static void eval(char *buf) {
     FILE *fp = fmemopen(buf, strlen(buf), "r");
@@ -46,8 +47,9 @@ static __attribute__((constructor)) void init(void) {
     list_push(std_include_path, "/usr/include");
     list_push(std_include_path, ".");
 
-    dict_put(macros, "__x86_64__", cpp_token_one); // BUG!! should put *macro istead of *tokenw
-    dict_put(macros, "__8cc__", cpp_token_one); // BUG!! should put *macro istead of *tokenw
+    Macro *dummy_macro = make_obj_macro(NULL);
+    dict_put(macros, "__x86_64__", dummy_macro);
+    dict_put(macros, "__8cc__", dummy_macro);
     eval("typedef int __builtin_va_list[1];");
 }
 

@@ -874,7 +874,7 @@ func is_type_keyword(tok *Token) bool {
 	}
 
 	keyword := []string{"char", "short", "int", "long", "float", "double",
-	"struct", "union", "signed", "unsigned"}
+	"struct", "union", "signed", "unsigned", "enum"}
 	for _, k := range keyword {
 		if k == tok.sval {
 			return true
@@ -1003,6 +1003,37 @@ func read_union_def() *Ctype {
 	return read_struct_union_def(&union_defs, compute_union_size)
 }
 
+func read_enum_def() *Ctype {
+	var tok *Token
+	expect('{')
+	val := 0
+	for {
+		tok = read_token()
+		if tok.is_punct('}') {
+			break
+		}
+		if !tok.is_ident_type() {
+			errorf("Identifier expected, but got %s", tok)
+		}
+		constval := ast_inttype(ctype_int, val)
+		val++
+		if localenv != nil {
+			localenv.PutAst(tok.sval, constval)
+		} else {
+			globalenv.PutAst(tok.sval, constval)
+		}
+		tok = read_token()
+		if tok.is_punct(',') {
+			continue
+		}
+		if tok.is_punct('}') {
+			break
+		}
+		errorf("',' or '} expected, but got %s", tok)
+	}
+	return ctype_int
+}
+
 func read_decl_spec() *Ctype {
 	tok := read_token()
 	if tok == nil {
@@ -1013,6 +1044,8 @@ func read_decl_spec() *Ctype {
 		ctype = read_struct_def()
 	} else if tok.is_ident("union") {
 		ctype = read_union_def()
+	} else if tok.is_ident("enum") {
+		ctype = read_enum_def()
 	} else {
 		ctype = read_ctype(tok)
 	}

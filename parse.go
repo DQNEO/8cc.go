@@ -1004,8 +1004,14 @@ func read_union_def() *Ctype {
 }
 
 func read_enum_def() *Ctype {
-	var tok *Token
-	expect('{')
+	tok := read_token()
+	if tok.is_ident_type() {
+		tok = read_token()
+	}
+	if !tok.is_punct('{') {
+		unget_token(tok)
+		return ctype_int
+	}
 	val := 0
 	for {
 		tok = read_token()
@@ -1065,12 +1071,16 @@ func read_decl_spec() *Ctype {
 
 func read_decl_int() (*Token, *Ctype) {
 	ctype := read_decl_spec()
-	name := read_token()
-	if !name.is_ident_type() {
-		errorf("identifier expected, but got %s", name)
+	tok := read_token()
+	if tok.is_punct(';') {
+		unget_token(tok)
+		return nil, ctype
+	}
+	if !tok.is_ident_type() {
+		errorf("identifier expected, but got %s", tok)
 	}
 	ctype = read_array_dimensions(ctype)
-	return name, ctype
+	return tok, ctype
 }
 
 func read_decl_init_val(v *Ast) *Ast {
@@ -1146,6 +1156,10 @@ func read_decl_init(variable *Ast) *Ast {
 
 func read_decl() *Ast {
 	varname, ctype := read_decl_int()
+	if varname == nil {
+		expect(';')
+		return nil
+	}
 	variable := ast_lvar(ctype, varname.sval)
 	return read_decl_init(variable)
 }
@@ -1263,7 +1277,7 @@ func read_compound_stmt() *Ast {
 			list = append(list, stmt)
 		}
 		if stmt == nil {
-			break
+			continue
 		}
 		tok := read_token()
 		if tok.is_punct('}') {

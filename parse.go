@@ -995,12 +995,12 @@ func read_struct_union_def(env *Dict, compute_size func(*Dict)int) *Ctype {
 	return r
 }
 
-func read_union_def() *Ctype {
-	return read_struct_union_def(&union_defs, compute_union_size)
-}
-
 func read_struct_def() *Ctype {
 	return read_struct_union_def(&struct_defs, compute_struct_size)
+}
+
+func read_union_def() *Ctype {
+	return read_struct_union_def(&union_defs, compute_union_size)
 }
 
 func read_decl_spec() *Ctype {

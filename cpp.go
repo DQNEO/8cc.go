@@ -638,7 +638,7 @@ func read_include() {
 			return
 		}
 	}
-	errorf("Cannot file header file: %s", name)
+	errorf("Cannot find header file: %s", name)
 }
 
 func macro_to_string(name string , m *Macro) string {

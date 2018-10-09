@@ -425,6 +425,20 @@ static bool is_float_token(char *p) {
     return true;
 }
 
+static Ast *read_number(char *p) {
+    if (is_long_token(p))
+        return ast_inttype(ctype_long, atol(p));
+    if (is_int_token(p)) {
+        long val = atol(p);
+        if (val & ~(long)UINT_MAX)
+            return ast_inttype(ctype_long, val);
+        return ast_inttype(ctype_int, val);
+    }
+    if (is_float_token(p))
+        return ast_double(atof(p));
+    error("Malformed number: %s", p);
+}
+
 static Ast *read_prim(void) {
     Token *tok = read_token();
     if (!tok) return NULL;
@@ -432,17 +446,7 @@ static Ast *read_prim(void) {
     case TTYPE_IDENT:
         return read_ident_or_func(tok->sval);
     case TTYPE_NUMBER:
-        if (is_long_token(tok->sval))
-            return ast_inttype(ctype_long, atol(tok->sval));
-        if (is_int_token(tok->sval)) {
-            long val = atol(tok->sval);
-            if (val & ~(long)UINT_MAX)
-                return ast_inttype(ctype_long, val);
-            return ast_inttype(ctype_int, val);
-        }
-        if (is_float_token(tok->sval))
-            return ast_double(atof(tok->sval));
-        error("Malformed number: %s", t2s(tok));
+        return read_number(tok->sval);
     case TTYPE_CHAR:
         return ast_inttype(ctype_char, tok->c);
     case TTYPE_STRING: {

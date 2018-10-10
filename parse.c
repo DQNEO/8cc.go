@@ -101,12 +101,12 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
     return r;
 }
 
-static Ast *ast_gvar(Ctype *ctype, char *name, bool filelocal) {
+static Ast *ast_gvar(Ctype *ctype, char *name) {
     Ast *r = malloc(sizeof(Ast));
     r->type = AST_GVAR;
     r->ctype = ctype;
     r->varname = name;
-    r->glabel = filelocal ? make_label() : name;
+    r->glabel = name;
     dict_put(globalenv, name, r);
     return r;
 }
@@ -1153,14 +1153,14 @@ static Ast *read_toplevel(void) {
         ctype = read_array_dimensions(ctype);
         tok = peek_token();
         if (is_punct(tok, '=') || ctype->type == CTYPE_ARRAY) {
-            Ast *var = ast_gvar(ctype, name->sval, false);
+            Ast *var = ast_gvar(ctype, name->sval);
             return read_decl_init(var);
         }
         if (is_punct(tok, '('))
             return read_func_decl_or_def(ctype, name->sval);
         if (is_punct(tok, ';')) {
             read_token();
-            Ast *var = ast_gvar(ctype, name->sval, false);
+            Ast *var = ast_gvar(ctype, name->sval);
             return ast_decl(var, NULL);
         }
         error("Don't know how to handle %s", t2s(tok));

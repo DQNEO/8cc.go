@@ -42,6 +42,8 @@ static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
 static void read_decl_int(Token **name, Ctype **ctype);
 static Ast *read_toplevel(void);
+static bool is_type_keyword(Token *tok);
+static Ast *read_unary_expr(void);
 
 static Ast *ast_uop(int type, Ctype *ctype, Ast *operand) {
     Ast *r = malloc(sizeof(Ast));
@@ -545,10 +547,33 @@ Ctype *result_type(char op, Ctype *a, Ctype *b) {
           op, ctype_to_string(a), ctype_to_string(b));
 }
 
+static Ast *get_sizeof_size(bool allow_typename) {
+    Token *tok = read_token();
+    if (allow_typename && is_type_keyword(tok)) {
+        unget_token(tok);
+        Token *dummy;
+        Ctype *ctype = NULL;
+        read_decl_int(&dummy, &ctype);
+        assert(ctype);
+        return ast_inttype(ctype_long, ctype->size);
+    }
+    if (is_punct(tok, '(')) {
+        Ast *r = get_sizeof_size(true);
+        expect(')');
+        return r;
+    }
+    unget_token(tok);
+    Ast *expr = read_unary_expr();
+    if (expr->ctype->size == 0)
+        error("invalid operand for sizeof(): %s", a2s(expr));
+    return ast_inttype(ctype_long, expr->ctype->size);
+}
+
 static Ast *read_unary_expr(void) {
     Token *tok = read_token();
-
     if (!tok) error("premature end of input");
+    if (is_ident(tok, "sizeof"))
+        return get_sizeof_size(false);
     if (tok->type != TTYPE_PUNCT) {
         unget_token(tok);
         return read_prim();
@@ -940,9 +965,12 @@ static void read_decl_int(Token **name, Ctype **ctype) {
         *name = NULL;
         return;
     }
-    *name = tok;
-    if ((*name)->type != TTYPE_IDENT)
-        error("identifier expected, but got %s", t2s(*name));
+    if (tok->type != TTYPE_IDENT) {
+        unget_token(tok);
+        *name = NULL;
+    } else {
+        *name = tok;
+    }
     *ctype = read_array_dimensions(t);
 }
 

@@ -230,8 +230,9 @@ int funclike() {
 #define m2(x) x + x
     expect(10, m2(5));
 
-#define m3(x, y) x + y
-    expect(15, m3(5, 10));
+#define m3(x, y) x * y
+    expect(50, m3(5, 10));
+    expect(11, m3(2 + 2, 3 + 3));
 
 #define m4(x, y) x + y + TWO
     expect(17, m4(5, 10));

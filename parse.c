@@ -256,8 +256,8 @@ static Ctype* make_func_type(Ctype *rettype, List *paramtypes) {
 }
 
 bool is_inttype(Ctype *ctype) {
-    return ctype->type == CTYPE_CHAR || ctype->type == CTYPE_INT ||
-        ctype->type == CTYPE_LONG;
+    return ctype->type == CTYPE_CHAR || ctype->type == CTYPE_SHORT ||
+        ctype->type == CTYPE_INT || ctype->type == CTYPE_LONG;
 }
 
 bool is_flotype(Ctype *ctype) {

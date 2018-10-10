@@ -304,6 +304,7 @@ int eval_intexpr(Ast *ast) {
     case OP_EQ: return eval_intexpr(ast->left) == eval_intexpr(ast->right);
     case OP_GE: return eval_intexpr(ast->left) >= eval_intexpr(ast->right);
     case OP_LE: return eval_intexpr(ast->left) <= eval_intexpr(ast->right);
+    case OP_NE: return eval_intexpr(ast->left) != eval_intexpr(ast->right);
     case OP_LOGAND:
         return eval_intexpr(ast->left) && eval_intexpr(ast->right);
     case OP_LOGOR:
@@ -323,7 +324,7 @@ static int priority(Token *tok) {
         return 3;
     case '+': case '-':
         return 4;
-    case '<': case '>': case OP_LE: case OP_GE:
+    case '<': case '>': case OP_LE: case OP_GE: case OP_NE:
         return 6;
     case '&':
         return 8;

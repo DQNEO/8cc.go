@@ -243,6 +243,7 @@ int funclike() {
     expect_string("x y", m5(x y));
     expect_string("x y", m5( x y ));
     expect_string("x + y", m5( x + y ));
+    expect_string("x + y", m5(/**/x/**/+/**//**/ /**/y/**/));
     expect_string("x+y", m5( x+y ));
     expect_string("'a'", m5('a'));
     expect_string("'\\''", m5('\''));

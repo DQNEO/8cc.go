@@ -1012,13 +1012,10 @@ static void read_typedef(void) {
 }
 
 static void read_extern(void) {
-    Token *name;
+    char *name;
     Ctype *ctype;
-    read_decl_int(&name, &ctype);
-    if (!name)
-        error("Extern name missing");
-    ast_gvar(ctype, name->sval);
-    expect(';');
+    read_extern_typedef(&name, &ctype);
+    ast_gvar(ctype, name);
 }
 
 static Ast *read_if_stmt(void) {

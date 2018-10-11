@@ -995,6 +995,7 @@ static void read_extern_typedef(char **rname, Ctype **rctype) {
     if (!name)
         error("name missing");
     Token *tok = read_token();
+
     if (is_punct(tok, '('))
         read_func_params(&ctype, NULL, ctype);
     else

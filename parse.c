@@ -17,7 +17,7 @@ static Dict *struct_defs = &EMPTY_DICT;
 static Dict *union_defs = &EMPTY_DICT;
 static Dict *typedefs = &EMPTY_DICT;
 static List *localvars = NULL;
-static Ctype *current_func_rettype = NULL;
+static Ctype *current_func_type = NULL;
 
 Ctype *ctype_void = &(Ctype){ CTYPE_VOID, 0, true };
 Ctype *ctype_char = &(Ctype){ CTYPE_CHAR, 1, true };
@@ -1055,7 +1055,7 @@ static Ast *read_for_stmt(void) {
 static Ast *read_return_stmt(void) {
     Ast *retval = read_expr();
     expect(';');
-    return ast_return(current_func_rettype, retval);
+    return ast_return(current_func_type->rettype, retval);
 }
 
 static Ast *read_stmt(void) {
@@ -1122,14 +1122,14 @@ static void read_func_params(List *paramvars) {
 }
 
 static Ast *read_func_def(Ctype *rettype, char *fname, List *params) {
+    Ctype *type = make_func_type(rettype, param_types(params));
     localenv = make_dict(localenv);
     localvars = make_list();
-    current_func_rettype = rettype;
+    current_func_type = type;
     Ast *body = read_compound_stmt();
-    Ctype *type = make_func_type(rettype, param_types(params));
     Ast *r = ast_func(type, fname, params, body, localvars);
     dict_put(globalenv, fname, type);
-    current_func_rettype = NULL;
+    current_func_type = NULL;
     localenv = NULL;
     localvars = NULL;
     return r;

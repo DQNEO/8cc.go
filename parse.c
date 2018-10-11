@@ -1097,7 +1097,7 @@ static Ast *read_compound_stmt(void) {
     return ast_compound_stmt(list);
 }
 
-static void read_func_params(List *params) {
+static void read_func_params(List *paramvars) {
     Token *tok = read_token();
     if (is_punct(tok, ')'))
         return;
@@ -1110,7 +1110,7 @@ static void read_func_params(List *params) {
         ctype = read_array_dimensions(ctype);
         if (ctype->type == CTYPE_ARRAY)
             ctype = make_ptr_type(ctype->ptr);
-        list_push(params, ast_lvar(ctype, pname->sval));
+        list_push(paramvars, ast_lvar(ctype, pname->sval));
         Token *tok = read_token();
         if (is_punct(tok, ')'))
             return;

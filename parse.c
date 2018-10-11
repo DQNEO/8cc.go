@@ -1144,7 +1144,7 @@ static void read_func_params(Ctype **rtype, List *paramvars, Ctype *rettype) {
         if (ctype->type == CTYPE_ARRAY)
             ctype = make_ptr_type(ctype->ptr);
         list_push(paramtypes, ctype);
-        if (paramvars)
+        if (!typeonly)
             list_push(paramvars, ast_lvar(ctype, pname->sval));
         Token *tok = read_token();
         if (is_punct(tok, ')')) {

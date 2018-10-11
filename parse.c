@@ -248,11 +248,12 @@ static Ctype* make_struct_type(Dict *fields, int size) {
     return r;
 }
 
-static Ctype* make_func_type(Ctype *rettype, List *paramtypes) {
+static Ctype* make_func_type(Ctype *rettype, List *paramtypes, bool has_varargs) {
     Ctype *r = malloc(sizeof(Ctype));
     r->type = CTYPE_FUNC;
     r->rettype = rettype;
     r->params = paramtypes;
+    r->hasva = has_varargs;
     return r;
 }
 
@@ -1115,7 +1116,7 @@ static void read_func_params(Ctype **rtype, List *paramvars, Ctype *rettype) {
     List *paramtypes = make_list();
     Token *tok = read_token();
     if (is_punct(tok, ')')) {
-        *rtype = make_func_type(rettype, paramtypes);
+        *rtype = make_func_type(rettype, paramtypes, false);
         return;
     }
     unget_token(tok);
@@ -1125,7 +1126,7 @@ static void read_func_params(Ctype **rtype, List *paramvars, Ctype *rettype) {
             if (list_len(paramtypes) == 0)
                 error("at least one parameter is required");
             expect(')');
-            *rtype = make_func_type(rettype, paramtypes);
+            *rtype = make_func_type(rettype, paramtypes, true);
             return;
         } else
             unget_token(tok);
@@ -1145,7 +1146,7 @@ static void read_func_params(Ctype **rtype, List *paramvars, Ctype *rettype) {
             list_push(paramvars, ast_lvar(ctype, pname->sval));
         Token *tok = read_token();
         if (is_punct(tok, ')')) {
-            *rtype = make_func_type(rettype, paramtypes);
+            *rtype = make_func_type(rettype, paramtypes, false);
             return;
         }
         if (!is_punct(tok, ','))

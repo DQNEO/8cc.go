@@ -1099,8 +1099,9 @@ static Ast *read_compound_stmt(void) {
 
 static void read_func_params(List *paramvars) {
     Token *tok = read_token();
-    if (is_punct(tok, ')'))
+    if (is_punct(tok, ')')) {
         return;
+    }
     unget_token(tok);
     for (;;) {
         Ctype *ctype = read_decl_spec();
@@ -1112,8 +1113,9 @@ static void read_func_params(List *paramvars) {
             ctype = make_ptr_type(ctype->ptr);
         list_push(paramvars, ast_lvar(ctype, pname->sval));
         Token *tok = read_token();
-        if (is_punct(tok, ')'))
+        if (is_punct(tok, ')')) {
             return;
+        }
         if (!is_punct(tok, ','))
             error("Comma expected, but got %s", t2s(tok));
     }

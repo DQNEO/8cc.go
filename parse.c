@@ -992,7 +992,7 @@ static void read_typedef(void) {
     Ctype *ctype;
     read_decl_int(&name, &ctype);
     if (!name)
-        error("Typedef name missing");
+        error("name missing");
     dict_put(typedefs, name->sval, ctype);
     expect(';');
 }

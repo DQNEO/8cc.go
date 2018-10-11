@@ -1097,9 +1097,11 @@ static Ast *read_compound_stmt(void) {
     return ast_compound_stmt(list);
 }
 
-static void read_func_params(List *paramvars) {
+static void read_func_params(Ctype **rtype, List *paramvars, Ctype *rettype) {
+    List *paramtypes = make_list();
     Token *tok = read_token();
     if (is_punct(tok, ')')) {
+        *rtype = make_func_type(rettype, paramtypes);
         return;
     }
     unget_token(tok);
@@ -1111,9 +1113,11 @@ static void read_func_params(List *paramvars) {
         ctype = read_array_dimensions(ctype);
         if (ctype->type == CTYPE_ARRAY)
             ctype = make_ptr_type(ctype->ptr);
+        list_push(paramtypes, ctype);
         list_push(paramvars, ast_lvar(ctype, pname->sval));
         Token *tok = read_token();
         if (is_punct(tok, ')')) {
+            *rtype = make_func_type(rettype, paramtypes);
             return;
         }
         if (!is_punct(tok, ','))
@@ -1137,10 +1141,11 @@ static Ast *read_func_def(Ctype *functype, char *fname, List *params) {
 static Ast *read_func_decl_or_def(Ctype *rettype, char *fname) {
     expect('(');
     localenv = make_dict(globalenv);
+
+    Ctype *functype;
     List *params = make_list();
-    read_func_params(params);
+    read_func_params(&functype, params, rettype);
     Token *tok = read_token();
-    Ctype *functype = make_func_type(rettype, param_types(params));
     if (is_punct(tok, '{'))
         return read_func_def(functype, fname, params);
     dict_put(globalenv, fname, functype);

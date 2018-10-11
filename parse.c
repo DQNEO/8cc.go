@@ -380,13 +380,14 @@ static Ast *read_func_args(char *fname) {
     }
     if (MAX_ARGS < list_len(args))
         error("Too many arguments: %s", fname);
-    Ctype *decl = dict_get(localenv, fname);
-    if (decl) {
-        if (decl->type != CTYPE_FUNC)
-            error("%s is not a function, but %s", fname, ctype_to_string(decl));
-        assert(decl->params);
-        function_type_check(fname, decl->params, param_types(args));
-        return ast_funcall(decl->rettype, fname, args, decl->params);
+    Ast *func = dict_get(localenv, fname);
+    if (func) {
+        Ctype *t = func->ctype;
+        if (t->type != CTYPE_FUNC)
+            error("%s is not a function, but %s", fname, ctype_to_string(t));
+        assert(t->params);
+        function_type_check(fname, t->params, param_types(args));
+        return ast_funcall(t->rettype, fname, args, t->params);
     }
     return ast_funcall(ctype_int, fname, args, make_list());
 }
@@ -1110,6 +1111,7 @@ static Ast *read_compound_stmt(void) {
 }
 
 static void read_func_params(Ctype **rtype, List *paramvars, Ctype *rettype) {
+    bool typeonly = !paramvars;
     List *paramtypes = make_list();
     Token *tok = read_token();
     if (is_punct(tok, ')')) {
@@ -1120,8 +1122,12 @@ static void read_func_params(Ctype **rtype, List *paramvars, Ctype *rettype) {
     for (;;) {
         Ctype *ctype = read_decl_spec();
         Token *pname = read_token();
-        if (pname->type != TTYPE_IDENT)
-            error("Identifier expected, but got %s", t2s(pname));
+        if (pname->type != TTYPE_IDENT) {
+            if (!typeonly)
+                error("Identifier expected, but got %s", t2s(pname));
+            unget_token(pname);
+            pname = NULL;
+        }
         ctype = read_array_dimensions(ctype);
         if (ctype->type == CTYPE_ARRAY)
             ctype = make_ptr_type(ctype->ptr);
@@ -1144,7 +1150,7 @@ static Ast *read_func_def(Ctype *functype, char *fname, List *params) {
     current_func_type = functype;
     Ast *body = read_compound_stmt();
     Ast *r = ast_func(functype, fname, params, body, localvars);
-    dict_put(globalenv, fname, functype);
+    dict_put(globalenv, fname, r);
     current_func_type = NULL;
     localenv = NULL;
     localvars = NULL;
@@ -1161,7 +1167,7 @@ static Ast *read_func_decl_or_def(Ctype *rettype, char *fname) {
     Token *tok = read_token();
     if (is_punct(tok, '{'))
         return read_func_def(functype, fname, params);
-    dict_put(globalenv, fname, functype);
+    dict_put(globalenv, fname, ast_gvar(functype, fname));
     return read_toplevel();
 }
 

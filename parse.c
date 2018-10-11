@@ -295,22 +295,24 @@ int eval_intexpr(Ast *ast) {
         if (is_inttype(ast->ctype))
             return ast->ival;
         error("Integer expression expected, but got %s", a2s(ast));
-    case '+': return eval_intexpr(ast->left) + eval_intexpr(ast->right);
-    case '-': return eval_intexpr(ast->left) - eval_intexpr(ast->right);
-    case '*': return eval_intexpr(ast->left) * eval_intexpr(ast->right);
-    case '/': return eval_intexpr(ast->left) / eval_intexpr(ast->right);
-    case '<': return eval_intexpr(ast->left) < eval_intexpr(ast->right);
-    case '>': return eval_intexpr(ast->left) > eval_intexpr(ast->right);
     case '!': return !eval_intexpr(ast->operand);
     case AST_TERNARY: return eval_intexpr(ast->cond) ? eval_intexpr(ast->then) : eval_intexpr(ast->els);
-    case OP_EQ: return eval_intexpr(ast->left) == eval_intexpr(ast->right);
-    case OP_GE: return eval_intexpr(ast->left) >= eval_intexpr(ast->right);
-    case OP_LE: return eval_intexpr(ast->left) <= eval_intexpr(ast->right);
-    case OP_NE: return eval_intexpr(ast->left) != eval_intexpr(ast->right);
-    case OP_LOGAND:
-        return eval_intexpr(ast->left) && eval_intexpr(ast->right);
-    case OP_LOGOR:
-        return eval_intexpr(ast->left) || eval_intexpr(ast->right);
+#define L (eval_intexpr(ast->left))
+#define R (eval_intexpr(ast->right))
+    case '+': return L + R;
+    case '-': return L - R;
+    case '*': return L * R;
+    case '/': return L / R;
+    case '<': return L < R;
+    case '>': return L > R;
+    case OP_EQ: return L == R;
+    case OP_GE: return L >= R;
+    case OP_LE: return L <= R;
+    case OP_NE: return L != R;
+    case OP_LOGAND: return L && R;
+    case OP_LOGOR:  return L || R;
+#undef L
+#undef R
     default:
         error("Integer expression expected, but got %s", a2s(ast));
     }

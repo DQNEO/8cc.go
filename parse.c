@@ -1097,11 +1097,10 @@ static Ast *read_compound_stmt(void) {
     return ast_compound_stmt(list);
 }
 
-static List *read_func_params(void) {
-    List *params = make_list();
+static void read_func_params(List *params) {
     Token *tok = read_token();
     if (is_punct(tok, ')'))
-        return params;
+        return;
     unget_token(tok);
     for (;;) {
         Ctype *ctype = read_decl_spec();
@@ -1114,7 +1113,7 @@ static List *read_func_params(void) {
         list_push(params, ast_lvar(ctype, pname->sval));
         Token *tok = read_token();
         if (is_punct(tok, ')'))
-            return params;
+            return;
         if (!is_punct(tok, ','))
             error("Comma expected, but got %s", t2s(tok));
     }
@@ -1137,7 +1136,8 @@ static Ast *read_func_def(Ctype *rettype, char *fname, List *params) {
 static Ast *read_func_decl_or_def(Ctype *rettype, char *fname) {
     expect('(');
     localenv = make_dict(globalenv);
-    List *params = read_func_params();
+    List *params = make_list();
+    read_func_params(params);
     Token *tok = read_token();
     if (is_punct(tok, '{'))
         return read_func_def(rettype, fname, params);

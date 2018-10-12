@@ -766,7 +766,7 @@ static bool is_type_keyword(Token *tok) {
 static void read_decl_init_elem(List *initlist, Ctype *ctype) {
     Ast *init = read_expr();
     list_push(initlist, init);
-    result_type('=', init->ctype, ctype->ptr);
+    result_type('=', init->ctype, ctype);
     Token *tok = read_token();
     if (!is_punct(tok, ','))
         unget_token(tok);
@@ -784,7 +784,7 @@ static Ast *read_decl_array_init_int(List *initlist, Ctype *ctype) {
         if (is_punct(tok, '}'))
             break;
         unget_token(tok);
-        read_decl_init_elem(initlist, ctype);
+        read_decl_init_elem(initlist, ctype->ptr);
     }
     return ast_init_list(initlist);
 }

@@ -763,14 +763,13 @@ static bool is_type_keyword(Token *tok) {
     return dict_get(typedefs, tok->sval);
 }
 
-static Ast *read_decl_array_init_int(Ctype *ctype) {
+static Ast *read_decl_array_init_int(List *initlist, Ctype *ctype) {
     Token *tok = read_token();
     if (ctype->ptr->type == CTYPE_CHAR && tok->type == TTYPE_STRING)
         return ast_string(tok->sval);
     if (!is_punct(tok, '{'))
         error("Expected an initializer list for %s, but got %s",
               ctype_to_string(ctype), t2s(tok));
-    List *initlist = make_list();
     for (;;) {
         Token *tok = read_token();
         if (is_punct(tok, '}'))
@@ -916,7 +915,8 @@ static Ctype *read_decl_spec(void) {
 
 static Ast *read_decl_init_val(Ast *var) {
     if (var->ctype->type == CTYPE_ARRAY) {
-        Ast *init = read_decl_array_init_int(var->ctype);
+        List *initlist = make_list();
+        Ast *init = read_decl_array_init_int(initlist, var->ctype);
         int len = (init->type == AST_STRING)
             ? strlen(init->sval) + 1
             : list_len(init->initlist);

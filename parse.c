@@ -151,7 +151,7 @@ static Ast *ast_decl(Ast *var, Ast *init) {
     return r;
 }
 
-static Ast *ast_array_init(List *initlist) {
+static Ast *ast_init_list(List *initlist) {
     Ast *r = malloc(sizeof(Ast));
     r->type = AST_INIT_LIST;
     r->ctype = NULL;
@@ -783,7 +783,7 @@ static Ast *read_decl_array_init_int(Ctype *ctype) {
         if (!is_punct(tok, ','))
             unget_token(tok);
     }
-    return ast_array_init(initlist);
+    return ast_init_list(initlist);
 }
 
 static char *read_struct_union_tag(void) {

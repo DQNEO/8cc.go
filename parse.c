@@ -151,11 +151,11 @@ static Ast *ast_decl(Ast *var, Ast *init) {
     return r;
 }
 
-static Ast *ast_array_init(List *arrayinit) {
+static Ast *ast_array_init(List *initlist) {
     Ast *r = malloc(sizeof(Ast));
     r->type = AST_INIT_LIST;
     r->ctype = NULL;
-    r->arrayinit = arrayinit;
+    r->initlist = initlist;
     return r;
 }
 
@@ -919,7 +919,7 @@ static Ast *read_decl_init_val(Ast *var) {
         Ast *init = read_decl_array_init_int(var->ctype);
         int len = (init->type == AST_STRING)
             ? strlen(init->sval) + 1
-            : list_len(init->arrayinit);
+            : list_len(init->initlist);
         if (var->ctype->len == -1) {
             var->ctype->len = len;
             var->ctype->size = len * var->ctype->ptr->size;

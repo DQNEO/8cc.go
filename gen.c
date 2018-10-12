@@ -473,7 +473,7 @@ static void emit_expr(Ast *ast) {
             return;
         if (ast->declinit->type == AST_INIT_LIST) {
             int off = 0;
-            for (Iter *iter = list_iter(ast->declinit->arrayinit); !iter_end(iter);) {
+            for (Iter *iter = list_iter(ast->declinit->initlist); !iter_end(iter);) {
                 emit_expr(iter_next(iter));
                 emit_lsave(ast->declvar->ctype->ptr, ast->declvar->loff + off);
                 off += ast->declvar->ctype->ptr->size;
@@ -633,7 +633,7 @@ static void emit_data(Ast *v) {
     emit_label(".global %s", v->declvar->varname);
     emit_label("%s:", v->declvar->varname);
     if (v->declinit->type == AST_INIT_LIST) {
-        for (Iter *iter = list_iter(v->declinit->arrayinit); !iter_end(iter);) {
+        for (Iter *iter = list_iter(v->declinit->initlist); !iter_end(iter);) {
             emit_data_int(iter_next(iter));
         }
         return;

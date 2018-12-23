@@ -956,14 +956,14 @@ func compute_struct_size(fields *Dict) int {
 	offset := 0
 	for _, v := range fields.Values() {
 		fieldtype := v.ctype
-		var size int
+		var align int
 		if fieldtype.size < MAX_ALIGN {
-			size = fieldtype.size
+			align = fieldtype.size
 		} else {
-			size = MAX_ALIGN
+			align = MAX_ALIGN
 		}
-		if offset%size != 0 {
-			offset += size - offset%size
+		if offset%align != 0 {
+			offset += align - offset%align
 		}
 		fieldtype.offset = offset
 		offset += fieldtype.size

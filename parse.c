@@ -917,19 +917,19 @@ static Ctype *read_decl_spec(void) {
     }
 }
 
-static Ast *read_decl_init_val(Ast *var) {
-    if (var->ctype->type == CTYPE_ARRAY) {
+static Ast *read_decl_init_val(Ctype *ctype) {
+    if (ctype->type == CTYPE_ARRAY) {
         List *initlist = make_list();
-        Ast *init = read_decl_array_init_int(initlist, var->ctype);
+        Ast *init = read_decl_array_init_int(initlist, ctype);
         int len = (init->type == AST_STRING)
             ? strlen(init->sval) + 1
             : list_len(init->initlist);
-        if (var->ctype->len == -1) {
-            var->ctype->len = len;
-            var->ctype->size = len * var->ctype->ptr->size;
-        } else if (var->ctype->len != len) {
+        if (ctype->len == -1) {
+            ctype->len = len;
+            ctype->size = len * ctype->ptr->size;
+        } else if (ctype->len != len) {
             error("Invalid array initializer: expected %d items but got %d",
-                  var->ctype->len, len);
+                  ctype->len, len);
         }
         expect(';');
         return init;
@@ -968,7 +968,7 @@ static Ctype *read_array_dimensions(Ctype *basetype) {
 static Ast *read_decl_init(Ast *var) {
     Token *tok = read_token();
     if (is_punct(tok, '=')) {
-        Ast *init = read_decl_init_val(var);
+        Ast *init = read_decl_init_val(var->ctype);
         if (var->type == AST_GVAR && is_inttype(var->ctype))
             init = ast_inttype(ctype_int, eval_intexpr(init));
         return ast_decl(var, init);

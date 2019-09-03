@@ -158,8 +158,10 @@ typedef struct Ast {
             struct Ast *declvar;
             struct Ast *declinit;
         };
-        // Array initializer
-        struct List *initlist;
+        // array or struct initializer
+        struct {
+            struct List *initlist;
+        };
         // If statement or ternary operator
         struct {
             struct Ast *cond;

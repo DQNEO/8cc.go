@@ -932,13 +932,13 @@ static Ast *read_decl_init_val(Ast *var) {
                   var->ctype->len, len);
         }
         expect(';');
-        return ast_decl(var, init);
+        return init;
     }
     Ast *init = read_expr();
     expect(';');
     if (var->type == AST_GVAR)
         init = ast_inttype(ctype_int, eval_intexpr(init));
-    return ast_decl(var, init);
+    return init;
 }
 
 static Ctype *read_array_dimensions_int(Ctype *basetype) {
@@ -969,8 +969,11 @@ static Ctype *read_array_dimensions(Ctype *basetype) {
 
 static Ast *read_decl_init(Ast *var) {
     Token *tok = read_token();
-    if (is_punct(tok, '='))
-        return read_decl_init_val(var);
+    if (is_punct(tok, '=')) {
+        Ast *init = read_decl_init_val(var);
+        return ast_decl(var, init);
+    }
+
     if (var->ctype->len == -1)
         error("Missing array initializer");
     unget_token(tok);

@@ -474,7 +474,8 @@ static void emit_expr(Ast *ast) {
         if (ast->declinit->type == AST_INIT_LIST) {
             int off = 0;
             for (Iter *iter = list_iter(ast->declinit->initlist); !iter_end(iter);) {
-                emit_expr(iter_next(iter));
+                Ast *elem = iter_next(iter);
+                emit_expr(elem);
                 emit_lsave(ast->declvar->ctype->ptr, ast->declvar->loff + off);
                 off += ast->declvar->ctype->ptr->size;
             }

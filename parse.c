@@ -936,8 +936,6 @@ static Ast *read_decl_init_val(Ast *var) {
     }
     Ast *init = read_expr();
     expect(';');
-    if (var->type == AST_GVAR)
-        init = ast_inttype(ctype_int, eval_intexpr(init));
     return init;
 }
 
@@ -971,6 +969,8 @@ static Ast *read_decl_init(Ast *var) {
     Token *tok = read_token();
     if (is_punct(tok, '=')) {
         Ast *init = read_decl_init_val(var);
+        if (var->type == AST_GVAR && is_inttype(var->ctype))
+            init = ast_inttype(ctype_int, eval_intexpr(init));
         return ast_decl(var, init);
     }
 

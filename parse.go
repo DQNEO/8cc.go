@@ -473,6 +473,26 @@ func atol(sval string) int {
 	return i
 }
 
+func read_number_ast(sval string) *Ast {
+	if is_long_token(sval) {
+		ival := atol(sval)
+		return ast_inttype(ctype_long, ival)
+	}
+	if is_int_token(sval) {
+		val, _ := strconv.Atoi(sval)
+		if val >= UINT_MAX {
+			return ast_inttype(ctype_long, val)
+		}
+		return ast_inttype(ctype_int, val)
+	}
+	if is_float_token(sval) {
+		fval, _ := strconv.ParseFloat(sval, 64)
+		return ast_double(float64(fval))
+	}
+	errorf("Malformed number: %s", sval)
+	return nil
+}
+
 func read_prim() *Ast {
 	tok := read_token()
 	if tok == nil {
@@ -482,22 +502,7 @@ func read_prim() *Ast {
 	case TTYPE_IDENT:
 		return read_ident_or_func(tok.sval)
 	case TTYPE_NUMBER:
-		if is_long_token(tok.sval) {
-			ival := atol(tok.sval)
-			return ast_inttype(ctype_long, ival)
-		}
-		if is_int_token(tok.sval) {
-			val, _ := strconv.Atoi(tok.sval)
-			if val >= UINT_MAX {
-				return ast_inttype(ctype_long, val)
-			}
-			return ast_inttype(ctype_int, val)
-		}
-		if is_float_token(tok.sval) {
-			fval, _ := strconv.ParseFloat(tok.sval, 64)
-			return ast_double(float64(fval))
-		}
-		errorf("Malformed number: %s", tok)
+		return read_number_ast(tok.sval)
 	case TTYPE_CHAR:
 		return ast_inttype(ctype_char, int(tok.c))
 	case TTYPE_STRING:

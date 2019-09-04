@@ -775,6 +775,7 @@ static void read_decl_init_elem(List *initlist, Ctype *ctype) {
 
 static Ast *read_decl_array_init_int(List *initlist, Ctype *ctype) {
     Token *tok = read_token();
+    assert(ctype->type == CTYPE_ARRAY);
     if (ctype->ptr->type == CTYPE_CHAR && tok->type == TTYPE_STRING) {
         return ast_string(tok->sval);
     }

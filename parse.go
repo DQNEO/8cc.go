@@ -873,8 +873,10 @@ func is_type_keyword(tok *Token) bool {
 		return false
 	}
 
-	keyword := []string{"char", "short", "int", "long", "float", "double",
-	"struct", "union", "signed", "unsigned", "enum"}
+	keyword := []string{
+		"char", "short", "int", "long", "float", "double", "struct",
+		"union", "signed", "unsigned", "enum",
+	}
 	for _, k := range keyword {
 		if k == tok.sval {
 			return true

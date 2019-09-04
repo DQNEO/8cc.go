@@ -50,7 +50,6 @@ typedef struct {
     };
 } Token;
 
-
 enum {
     AST_LITERAL = 256,
     AST_STRING,

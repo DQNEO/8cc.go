@@ -765,13 +765,16 @@ static bool is_type_keyword(Token *tok) {
 }
 
 static void read_decl_init_elem(List *initlist, Ctype *ctype) {
+    Token *tok = peek_token();
     Ast *init = read_expr();
-    list_push(initlist, init);
+    if (!init)
+        error("expression expected: %s", t2s(tok));
     result_type('=', init->ctype, ctype);
     init->totype = ctype;
-    Token *tok = read_token();
+    tok = read_token();
     if (!is_punct(tok, ','))
         unget_token(tok);
+    list_push(initlist, init);
 }
 
 static void read_decl_array_init_int(List *initlist, Ctype *ctype) {
@@ -945,8 +948,29 @@ static Ast *read_decl_array_init_val(Ctype *ctype) {
     return init;
 }
 
+static Ast *read_decl_struct_init_val(Ctype *ctype) {
+    expect('{');
+    List *initlist = make_list();
+    for (Iter *i = list_iter(dict_values(ctype->fields)); !iter_end(i);) {
+        Ctype *fieldtype = iter_next(i);
+        Token *tok = read_token();
+        if (is_punct(tok, '{')) {
+            if (fieldtype->type != CTYPE_ARRAY)
+                error("array expected, but got %s", ctype_to_string(fieldtype));
+            unget_token(tok);
+            read_decl_array_init_int(initlist, fieldtype);
+            continue;
+        }
+        unget_token(tok);
+        read_decl_init_elem(initlist, fieldtype);
+    }
+    expect('}');
+    return ast_init_list(initlist);
+}
+
 static Ast *read_decl_init_val(Ctype *ctype) {
     Ast *init = (ctype->type == CTYPE_ARRAY) ? read_decl_array_init_val(ctype)
+        : (ctype->type == CTYPE_STRUCT) ? read_decl_struct_init_val(ctype)
         : read_expr();
     expect(';');
     return init;

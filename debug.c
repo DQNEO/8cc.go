@@ -60,6 +60,7 @@ static void a2s_int(String *buf, Ast *ast) {
         case CTYPE_CHAR:
             if (ast->ival == '\n')      string_appendf(buf, "'\n'");
             else if (ast->ival == '\\') string_appendf(buf, "'\\\\'");
+            else if (ast->ival == '\0') string_appendf(buf, "'\\0'");
             else string_appendf(buf, "'%c'", ast->ival);
             break;
         case CTYPE_INT:

@@ -161,6 +161,7 @@ typedef struct Ast {
         // array or struct initializer
         struct {
             struct List *initlist;
+            Ctype *totype;
         };
         // If statement or ternary operator
         struct {

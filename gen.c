@@ -476,8 +476,8 @@ static void emit_expr(Ast *ast) {
             for (Iter *iter = list_iter(ast->declinit->initlist); !iter_end(iter);) {
                 Ast *elem = iter_next(iter);
                 emit_expr(elem);
-                emit_lsave(ast->declvar->ctype->ptr, ast->declvar->loff + off);
-                off += ast->declvar->ctype->ptr->size;
+                emit_lsave(elem->totype, ast->declvar->loff + off);
+                off += elem->totype->size;
             }
         } else if (ast->declvar->ctype->type == CTYPE_ARRAY) {
             assert(ast->declinit->type == AST_STRING);

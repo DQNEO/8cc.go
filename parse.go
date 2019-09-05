@@ -437,36 +437,6 @@ func is_long_token(s string) bool {
 	return false
 }
 
-func is_int_token(s string) bool {
-	for _, c := range []byte(s) {
-		if !isdigit(c) {
-			return false
-		}
-	}
-	return true
-}
-
-func is_float_token(s string) bool {
-	var c byte
-	var i int
-	var b = []byte(s)
-	for i, c = range b {
-		if !isdigit(c) {
-			break
-		}
-	}
-	if c != '.' {
-		return false
-	}
-	i++
-	for j := i; j < len(b); j++ {
-		if !isdigit(b[j]) {
-			return false
-		}
-	}
-	return true
-}
-
 func atol(sval string) int {
 	s := strings.TrimSuffix(sval, "L")
 	i, _ := strconv.Atoi(s)
@@ -474,23 +444,54 @@ func atol(sval string) int {
 }
 
 func read_number_ast(sval string) *Ast {
-	if is_long_token(sval) {
+	assert(sval[0] > 0)
+	index := 0
+	base := 10
+	if sval[0] == '0' {
+		index++
+		if index < len(sval) && (sval[index] == 'x' || sval[index] == 'X') {
+			base = 16
+			index++
+		} else if index < len(sval) && isdigit(sval[index]) {
+			base = 8
+		}
+	}
+	start := index
+	for index < len(sval) && isdigit(sval[index]) {
+		index++
+	}
+	if index < len(sval) && sval[index] == '.' {
+		if base != 10 {
+			errorf("malformed number: %s", sval)
+		}
+		index++
+		for index < len(sval) && isdigit(sval[index]) {
+			index++
+		}
+		if index < len(sval) && sval[index] != byte(0) {
+			errorf("malformed number: %s", sval)
+		}
+		end := index - 1
+		assert(start != end)
+		fval, _ := strconv.ParseFloat(sval, 64)
+		return ast_double(fval)
+	}
+	if index < len(sval) && (sval[index] == 'l' || sval[index] == 'L') {
 		ival := atol(sval)
 		return ast_inttype(ctype_long, ival)
-	}
-	if is_int_token(sval) {
-		val, _ := strconv.Atoi(sval)
-		if val >= UINT_MAX {
-			return ast_inttype(ctype_long, val)
+	} else if  index < len(sval) && (sval[index:index+1] == "ul" || sval[index:index+1] == "ul") {
+		val, _ := strconv.ParseInt(sval, base, 0)
+		return ast_inttype(ctype_long, int(val))
+	} else {
+		if index < len(sval) && sval[index] != byte(0) {
+			errorf("malformed number: %s", sval)
 		}
-		return ast_inttype(ctype_int, val)
+		val, _ := strconv.ParseInt(sval, 0, 64)
+		if val >= UINT_MAX {
+			return ast_inttype(ctype_long, int(val))
+		}
+		return ast_inttype(ctype_int, int(val))
 	}
-	if is_float_token(sval) {
-		fval, _ := strconv.ParseFloat(sval, 64)
-		return ast_double(float64(fval))
-	}
-	errorf("Malformed number: %s", sval)
-	return nil
 }
 
 func read_prim() *Ast {

@@ -316,6 +316,8 @@ func eval_intexpr(ast *Ast) int {
 		return bool2int(eval_intexpr(ast.left) >= eval_intexpr(ast.right))
 	case OP_LE:
 		return bool2int(eval_intexpr(ast.left) <= eval_intexpr(ast.right))
+	case OP_NE:
+		return bool2int(eval_intexpr(ast.left) != eval_intexpr(ast.right))
 	case OP_LOGAND:
 		return eval_intexpr(ast.left) * eval_intexpr(ast.right)
 	case OP_LOGOR:
@@ -336,7 +338,7 @@ func priority(tok *Token) int {
 		return 3
 	case '+', '-':
 		return 4
-	case '<', '>', OP_LE, OP_GE:
+	case '<', '>', OP_LE, OP_GE, OP_NE:
 		return 6
 	case '&':
 		return 8

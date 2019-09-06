@@ -182,6 +182,8 @@ func (ast *Ast) String() string {
 		return binop_to_string( ">=", ast)
 	case OP_LE:
 		return binop_to_string("<=", ast)
+	case OP_NE:
+		return binop_to_string("!=", ast)
 	case OP_INC:
 		return uop_to_string("++", ast)
 	case OP_DEC:
@@ -220,6 +222,8 @@ func (tok *Token) String() string {
 	case TTYPE_PUNCT:
 		if tok.is_punct(OP_EQ) {
 			return "=="
+		} else if tok.is_punct(OP_NE) {
+			return "!="
 		}
 		return format("%c", tok.punct)
 	case TTYPE_CHAR:

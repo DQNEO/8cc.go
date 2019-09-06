@@ -361,6 +361,9 @@ func emit_binop(ast *Ast) {
 	case OP_LE:
 		emit_comp("setle", ast)
 		return
+	case OP_NE:
+		emit_comp("setne", ast)
+		return
 	}
 
 	if is_inttype(ast.ctype) {

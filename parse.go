@@ -609,10 +609,34 @@ func result_type(op byte, a *Ctype, b *Ctype) *Ctype {
 	return ret
 }
 
+func get_sizeof_size(allow_typename bool) *Ast {
+	tok := read_token()
+	if allow_typename && is_type_keyword(tok) {
+		unget_token(tok)
+		_, ctype := read_decl_int()
+		assert(ctype != nil)
+		return ast_inttype(ctype_long, ctype.size)
+	}
+	if tok.is_punct('(') {
+		r := get_sizeof_size(true)
+		expect(')')
+		return r
+	}
+	unget_token(tok)
+	expr := read_unary_expr()
+	if expr.ctype.size == 0 {
+		errorf("invalid operand for sizeof(): %s", expr)
+	}
+	return ast_inttype(ctype_long, expr.ctype.size)
+}
+
 func read_unary_expr() *Ast {
 	tok := read_token()
 	if tok == nil {
 		errorf("premature end of input")
+	}
+	if tok.is_ident("sizeof") {
+		return get_sizeof_size(false)
 	}
 	if tok.typ != TTYPE_PUNCT {
 		unget_token(tok)
@@ -1080,15 +1104,20 @@ func read_decl_spec() *Ctype {
 func read_decl_int() (*Token, *Ctype) {
 	ctype := read_decl_spec()
 	tok := read_token()
+	var name *Token
 	if tok.is_punct(';') {
 		unget_token(tok)
-		return nil, ctype
+		name = nil
+		return name, ctype
 	}
 	if !tok.is_ident_type() {
-		errorf("identifier expected, but got %s", tok)
+		unget_token(tok)
+		name = nil
+	} else {
+		name = tok
 	}
 	ctype = read_array_dimensions(ctype)
-	return tok, ctype
+	return name, ctype
 }
 
 func read_decl_init_val(v *Ast) *Ast {

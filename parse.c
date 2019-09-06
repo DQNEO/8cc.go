@@ -996,6 +996,16 @@ static void read_typedef(void) {
     expect(';');
 }
 
+static void read_extern(void) {
+    Token *name;
+    Ctype *ctype;
+    read_decl_int(&name, &ctype);
+    if (!name)
+        error("Extern name missing");
+    ast_gvar(ctype, name->sval);
+    expect(';');
+}
+
 static Ast *read_if_stmt(void) {
     expect('(');
     Ast *cond = read_expr();
@@ -1141,6 +1151,10 @@ static Ast *read_toplevel(void) {
         if (!tok) return NULL;
         if (is_ident(tok, "typedef")) {
             read_typedef();
+            continue;
+        }
+        if (is_ident(tok, "extern")) {
+            read_extern();
             continue;
         }
         unget_token(tok);

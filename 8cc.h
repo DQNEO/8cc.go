@@ -128,10 +128,8 @@ typedef struct Ast {
         // Local/global variable
         struct {
             char *varname;
-            struct {
-                int loff;
-                char *glabel;
-            };
+            int loff;
+            char *glabel;
         };
         // Binary operator
         struct {

@@ -314,15 +314,15 @@ func eval_intexpr(ast *Ast) int {
 		} else {
 			return eval_intexpr(ast.els)
 		}
-	case PUNCT_EQ:
+	case OP_EQ:
 		return bool2int(eval_intexpr(ast.left) == eval_intexpr(ast.right))
-	case PUNCT_GE:
+	case OP_GE:
 		return bool2int(eval_intexpr(ast.left) >= eval_intexpr(ast.right))
-	case PUNCT_LE:
+	case OP_LE:
 		return bool2int(eval_intexpr(ast.left) <= eval_intexpr(ast.right))
-	case PUNCT_LOGAND:
+	case OP_LOGAND:
 		return eval_intexpr(ast.left) * eval_intexpr(ast.right)
-	case PUNCT_LOGOR:
+	case OP_LOGOR:
 		return bool2int(int2bool(eval_intexpr(ast.left)) || int2bool(eval_intexpr(ast.right)))
 	default:
 		errorf("Integer expression expected, but got %s", ast)
@@ -332,25 +332,25 @@ func eval_intexpr(ast *Ast) int {
 
 func priority(tok *Token) int {
 	switch tok.punct {
-	case '[', '.', PUNCT_ARROW:
+	case '[', '.', OP_ARROW:
 		return 1
-	case PUNCT_INC, PUNCT_DEC:
+	case OP_INC, OP_DEC:
 		return 2
 	case '*', '/':
 		return 3
 	case '+', '-':
 		return 4
-	case '<', '>', PUNCT_LE, PUNCT_GE:
+	case '<', '>', OP_LE, OP_GE:
 		return 6
 	case '&':
 		return 8
 	case '|':
 		return 9
-	case PUNCT_EQ:
+	case OP_EQ:
 		return 7
-	case PUNCT_LOGAND:
+	case OP_LOGAND:
 		return 11
-	case PUNCT_LOGOR:
+	case OP_LOGOR:
 		return 12
 	case '?':
 		return 13
@@ -715,7 +715,7 @@ func read_expr_int(prec int) *Ast {
 			ast = read_struct_field(ast)
 			continue
 		}
-		if tok.is_punct(PUNCT_ARROW) {
+		if tok.is_punct(OP_ARROW) {
 			if ast.ctype.typ != CTYPE_PTR {
 				errorf("pointer type expected, but got %s %s",
 					ast.ctype, ast)
@@ -728,7 +728,7 @@ func read_expr_int(prec int) *Ast {
 			ast = read_subscript_expr(ast)
 			continue
 		}
-		if tok.is_punct(PUNCT_INC) || tok.is_punct(PUNCT_DEC) {
+		if tok.is_punct(OP_INC) || tok.is_punct(OP_DEC) {
 			ensure_lvalue(ast)
 			ast = ast_uop(tok.punct, ast.ctype, ast)
 			continue

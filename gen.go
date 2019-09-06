@@ -352,13 +352,13 @@ func emit_binop(ast *Ast) {
 	case '>':
 		emit_comp("setg", ast)
 		return
-	case PUNCT_EQ :
+	case OP_EQ:
 		emit_comp("sete", ast)
 		return
-	case PUNCT_GE:
+	case OP_GE:
 		emit_comp("setge", ast)
 		return
-	case PUNCT_LE:
+	case OP_LE:
 		emit_comp("setle", ast)
 		return
 	}
@@ -576,9 +576,9 @@ func emit_expr(ast *Ast) {
 		}
 	case AST_STRUCT_REF:
 		emit_load_struct_ref(ast.struc, ast.ctype, 0)
-	case PUNCT_INC:
+	case OP_INC:
 		emit_inc_dec(ast, "add")
-	case PUNCT_DEC:
+	case OP_DEC:
 		emit_inc_dec(ast, "sub")
 	case '!':
 		emit_expr(ast.operand)
@@ -597,7 +597,7 @@ func emit_expr(ast *Ast) {
 		emit_expr(ast.right)
 		pop("rcx")
 		emit("or %%rcx, %%rax")
-	case PUNCT_LOGAND:
+	case OP_LOGAND:
 		end := make_label()
 		emit_expr(ast.left)
 		emit("test %%rax, %%rax")
@@ -609,7 +609,7 @@ func emit_expr(ast *Ast) {
 		emit("je %s", end)
 		emit("mov $1, %%rax")
 		emit("%s:", end)
-	case PUNCT_LOGOR:
+	case OP_LOGOR:
 		end := make_label()
 		emit_expr(ast.left)
 		emit("test %%rax, %%rax")

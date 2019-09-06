@@ -380,23 +380,23 @@ func read_token_int() *Token {
 	case c == '-':
 		c, _ = get()
 		if c == '-' {
-			return make_punct(PUNCT_DEC)
+			return make_punct(OP_DEC)
 		}
 		if c == '>' {
-			return make_punct(PUNCT_ARROW)
+			return make_punct(OP_ARROW)
 		}
 		unget(c)
 		return make_punct('-')
-	case c == '<': return read_rep('=', PUNCT_LE, '<')
-	case c == '>': return read_rep('=', PUNCT_GE, '>')
+	case c == '<': return read_rep('=', OP_LE, '<')
+	case c == '>': return read_rep('=', OP_GE, '>')
 	case c == '=':
-		return read_rep('=', PUNCT_EQ, int('='))
+		return read_rep('=', OP_EQ, int('='))
 	case c == '+':
-		return read_rep('+', PUNCT_INC, int('+'))
+		return read_rep('+', OP_INC, int('+'))
 	case c == '&':
-		return read_rep('&', PUNCT_LOGAND, int('&'))
+		return read_rep('&', OP_LOGAND, int('&'))
 	case c == '|':
-		return read_rep('|', PUNCT_LOGOR, int('|'))
+		return read_rep('|', OP_LOGOR, int('|'))
 	case c == '"':
 		return read_string()
 	case c == '\'':

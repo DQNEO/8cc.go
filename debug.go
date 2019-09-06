@@ -178,17 +178,17 @@ func (ast *Ast) String() string {
 		return uop_to_string("addr", ast)
 	case AST_DEREF:
 		return uop_to_string("deref", ast)
-	case PUNCT_GE:
+	case OP_GE:
 		return binop_to_string( ">=", ast)
-	case PUNCT_LE:
+	case OP_LE:
 		return binop_to_string("<=", ast)
-	case PUNCT_INC:
+	case OP_INC:
 		return uop_to_string("++", ast)
-	case PUNCT_DEC:
+	case OP_DEC:
 		return uop_to_string("--", ast)
-	case PUNCT_LOGAND:
+	case OP_LOGAND:
 		return binop_to_string("and", ast)
-	case PUNCT_LOGOR:
+	case OP_LOGOR:
 		return binop_to_string("or", ast)
 	case '!':
 		return uop_to_string("!", ast)
@@ -200,7 +200,7 @@ func (ast *Ast) String() string {
 		left := ast.left
 		right := ast.right
 		var s string
-		if ast.typ == PUNCT_EQ {
+		if ast.typ == OP_EQ {
 			s += "(== "
 		} else {
 			s += format("(%c ", ast.typ)
@@ -218,7 +218,7 @@ func (tok *Token) String() string {
 	case TTYPE_IDENT:
 		return tok.sval
 	case TTYPE_PUNCT:
-		if tok.is_punct(PUNCT_EQ) {
+		if tok.is_punct(OP_EQ) {
 			return "=="
 		}
 		return format("%c", tok.punct)

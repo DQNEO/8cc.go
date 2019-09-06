@@ -93,16 +93,12 @@ func ast_lvar(ctype *Ctype, name string) *Ast {
 	return r
 }
 
-func ast_gvar(ctype *Ctype, name string, filelocal bool) *Ast {
+func ast_gvar(ctype *Ctype, name string) *Ast {
 	r := &Ast{}
 	r.typ = AST_GVAR
 	r.ctype = ctype
 	r.varname = name
-	if filelocal {
-		r.glabel = make_label()
-	} else {
-		r.glabel = name
-	}
+	r.glabel = name
 	globalenv.PutAst(name, r)
 	return r
 }
@@ -1404,7 +1400,7 @@ func read_toplevel() *Ast {
 		ctype = read_array_dimensions(ctype)
 		tok = peek_token()
 		if tok.is_punct('=') || ctype.typ == CTYPE_ARRAY {
-			gvar := ast_gvar(ctype, name.sval, false)
+			gvar := ast_gvar(ctype, name.sval)
 			return read_decl_init(gvar)
 		}
 		if tok.is_punct('(') {
@@ -1412,7 +1408,7 @@ func read_toplevel() *Ast {
 		}
 		if tok.is_punct(';') {
 			read_token()
-			gvar := ast_gvar(ctype, name.sval, false)
+			gvar := ast_gvar(ctype, name.sval)
 			return ast_decl(gvar, nil)
 		}
 		errorf("Don't know how to handle %s", tok)

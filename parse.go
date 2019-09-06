@@ -252,7 +252,7 @@ func make_func_type(rettype *Ctype, paramtypes []*Ctype) *Ctype {
 }
 
 func is_inttype(ctype *Ctype) bool {
-	return ctype.typ == CTYPE_CHAR || ctype.typ == CTYPE_INT || ctype.typ == CTYPE_LONG
+	return ctype.typ == CTYPE_CHAR || ctype.typ == CTYPE_SHORT || ctype.typ == CTYPE_INT || ctype.typ == CTYPE_LONG
 }
 
 func is_flotype(ctype *Ctype) bool {

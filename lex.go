@@ -350,11 +350,11 @@ func read_token_int() *Token {
 		c, _ = get()
 		if c == '/' {
 			skip_line()
-			return read_token_int()
+			return space_token
 		}
 		if c == '*' {
 			skip_block_comment()
-			return read_token_int()
+			return space_token
 		}
 		unget(c)
 		return make_punct('/')

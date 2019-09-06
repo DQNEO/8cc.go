@@ -1362,13 +1362,13 @@ func read_func_params() []*Ast {
 	return paramvars // this is never reached
 }
 
-func read_func_def(typ *Ctype, fname string, params []*Ast) *Ast {
+func read_func_def(functype *Ctype, fname string, params []*Ast) *Ast {
 	localenv = MakeDict(localenv)
 	localvars = make([]*Ast, 0)
-	current_func_type = typ
+	current_func_type = functype
 	body := read_compound_stmt()
-	r := ast_func(typ, fname, params, localvars, body)
-	globalenv.PutCtype(fname, typ)
+	r := ast_func(functype, fname, params, localvars, body)
+	globalenv.PutCtype(fname, functype)
 	current_func_type = nil
 	localenv = nil
 	localvars = nil
@@ -1380,11 +1380,11 @@ func read_func_decl_or_def(rettype *Ctype, fname string) *Ast {
 	localenv = MakeDict(globalenv)
 	params := read_func_params()
 	tok := read_token()
-	typ := make_func_type(rettype, param_types(params))
+	functype := make_func_type(rettype, param_types(params))
 	if tok.is_punct('{') {
-		return read_func_def(typ, fname, params)
+		return read_func_def(functype, fname, params)
 	}
-	globalenv.PutCtype(fname, typ)
+	globalenv.PutCtype(fname, functype)
 	return read_toplevel()
 }
 

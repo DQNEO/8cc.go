@@ -1334,7 +1334,7 @@ func read_compound_stmt() *Ast {
 }
 
 func read_func_params() []*Ast {
-	var params []*Ast
+	var paramvars []*Ast
 	pt := read_token()
 	if pt.is_punct(')') {
 		return nil
@@ -1350,16 +1350,16 @@ func read_func_params() []*Ast {
 		if ctype.typ == CTYPE_ARRAY {
 			ctype = make_ptr_type(ctype.ptr)
 		}
-		params = append(params, ast_lvar(ctype, pname.sval))
+		paramvars = append(paramvars, ast_lvar(ctype, pname.sval))
 		tok := read_token()
 		if tok.is_punct(')') {
-			return params
+			return paramvars
 		}
 		if !tok.is_punct(',') {
 			errorf("Comma expected, but got %s", tok)
 		}
 	}
-	return params // this is never reached
+	return paramvars // this is never reached
 }
 
 func read_func_def(rettype *Ctype, fname string, params []*Ast) *Ast {

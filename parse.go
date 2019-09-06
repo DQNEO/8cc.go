@@ -1201,11 +1201,11 @@ func read_decl() *Ast {
 
 func read_typedef() {
 	name, ctype := read_decl_int()
+	expect(';')
 	if name == nil {
 		errorf("name missing")
 	}
 	typedefs.PutCtype(name.sval, ctype)
-	expect(';')
 }
 
 func read_extern() {

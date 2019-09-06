@@ -1121,13 +1121,13 @@ static void read_func_params(List *paramvars) {
     }
 }
 
-static Ast *read_func_def(Ctype *type, char *fname, List *params) {
+static Ast *read_func_def(Ctype *functype, char *fname, List *params) {
     localenv = make_dict(localenv);
     localvars = make_list();
-    current_func_type = type;
+    current_func_type = functype;
     Ast *body = read_compound_stmt();
-    Ast *r = ast_func(type, fname, params, body, localvars);
-    dict_put(globalenv, fname, type);
+    Ast *r = ast_func(functype, fname, params, body, localvars);
+    dict_put(globalenv, fname, functype);
     current_func_type = NULL;
     localenv = NULL;
     localvars = NULL;
@@ -1140,10 +1140,10 @@ static Ast *read_func_decl_or_def(Ctype *rettype, char *fname) {
     List *params = make_list();
     read_func_params(params);
     Token *tok = read_token();
-    Ctype *type = make_func_type(rettype, param_types(params));
+    Ctype *functype = make_func_type(rettype, param_types(params));
     if (is_punct(tok, '{'))
-        return read_func_def(type, fname, params);
-    dict_put(globalenv, fname, type);
+        return read_func_def(functype, fname, params);
+    dict_put(globalenv, fname, functype);
     return read_toplevel();
 }
 

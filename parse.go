@@ -18,7 +18,7 @@ var struct_defs Dict
 var union_defs Dict
 var typedefs Dict
 var localvars []*Ast
-var current_func_rettype *Ctype
+var current_func_type *Ctype
 var labelseq = 0
 
 var ctype_void = &Ctype{typ: CTYPE_VOID, size: 0, sign: true,}
@@ -1271,7 +1271,7 @@ func read_for_stmt() *Ast {
 func read_return_stmt() *Ast {
 	retval := read_expr()
 	expect(';')
-	return ast_return(current_func_rettype, retval)
+	return ast_return(current_func_type.rettype, retval)
 }
 
 func read_stmt() *Ast {
@@ -1363,14 +1363,14 @@ func read_func_params() []*Ast {
 }
 
 func read_func_def(rettype *Ctype, fname string, params []*Ast) *Ast {
+	typ := make_func_type(rettype, param_types(params))
 	localenv = MakeDict(localenv)
 	localvars = make([]*Ast, 0)
-	current_func_rettype = rettype
+	current_func_type = typ
 	body := read_compound_stmt()
-	typ := make_func_type(rettype, param_types(params))
 	r := ast_func(typ, fname, params, localvars, body)
 	globalenv.PutCtype(fname, typ)
-	current_func_rettype = nil
+	current_func_type = nil
 	localenv = nil
 	localvars = nil
 	return r

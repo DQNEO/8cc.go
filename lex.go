@@ -368,7 +368,7 @@ func read_token_int() *Token {
 		return make_punct('.')
 
 	case c == '*' || c == '(' || c == ')' || c == ',' || c == ';' || c == '[' || c == ']' ||
-		c == '{' || c == '}' || c == '!' || c == '?' || c == ':':
+		c == '{' || c == '}' || c == '?' || c == ':':
 		return make_punct(int(c))
 	case c == '#':
 		c, _ = get()
@@ -391,6 +391,8 @@ func read_token_int() *Token {
 	case c == '>': return read_rep('=', OP_GE, '>')
 	case c == '=':
 		return read_rep('=', OP_EQ, int('='))
+	case c == '!':
+		return read_rep('=', OP_EQ, int('!'))
 	case c == '+':
 		return read_rep('+', OP_INC, int('+'))
 	case c == '&':

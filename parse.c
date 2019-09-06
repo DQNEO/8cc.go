@@ -991,10 +991,10 @@ static void read_typedef(void) {
     Token *name;
     Ctype *ctype;
     read_decl_int(&name, &ctype);
+    expect(';');
     if (!name)
         error("name missing");
     dict_put(typedefs, name->sval, ctype);
-    expect(';');
 }
 
 static void read_extern(void) {

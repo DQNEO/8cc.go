@@ -1121,8 +1121,7 @@ static void read_func_params(List *paramvars) {
     }
 }
 
-static Ast *read_func_def(Ctype *rettype, char *fname, List *params) {
-    Ctype *type = make_func_type(rettype, param_types(params));
+static Ast *read_func_def(Ctype *type, char *fname, List *params) {
     localenv = make_dict(localenv);
     localvars = make_list();
     current_func_type = type;
@@ -1141,9 +1140,9 @@ static Ast *read_func_decl_or_def(Ctype *rettype, char *fname) {
     List *params = make_list();
     read_func_params(params);
     Token *tok = read_token();
-    if (is_punct(tok, '{'))
-        return read_func_def(rettype, fname, params);
     Ctype *type = make_func_type(rettype, param_types(params));
+    if (is_punct(tok, '{'))
+        return read_func_def(type, fname, params);
     dict_put(globalenv, fname, type);
     return read_toplevel();
 }

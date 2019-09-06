@@ -1333,11 +1333,14 @@ func read_compound_stmt() *Ast {
 	return ast_compound_stmt(list)
 }
 
-func read_func_params() []*Ast {
+func read_func_params(rettype *Ctype) (*Ctype, []*Ast) {
 	var paramvars []*Ast
+	var paramtypes []*Ctype
+	var rtype *Ctype
 	pt := read_token()
 	if pt.is_punct(')') {
-		return nil
+		rtype = make_func_type(rettype, paramtypes)
+		return rtype, nil
 	}
 	unget_token(pt)
 	for {
@@ -1350,16 +1353,17 @@ func read_func_params() []*Ast {
 		if ctype.typ == CTYPE_ARRAY {
 			ctype = make_ptr_type(ctype.ptr)
 		}
+		paramtypes = append(paramtypes, ctype)
 		paramvars = append(paramvars, ast_lvar(ctype, pname.sval))
 		tok := read_token()
 		if tok.is_punct(')') {
-			return paramvars
+			rtype = make_func_type(rettype, paramtypes)
+			return rtype, paramvars
 		}
 		if !tok.is_punct(',') {
 			errorf("Comma expected, but got %s", tok)
 		}
 	}
-	return paramvars // this is never reached
 }
 
 func read_func_def(functype *Ctype, fname string, params []*Ast) *Ast {
@@ -1378,9 +1382,8 @@ func read_func_def(functype *Ctype, fname string, params []*Ast) *Ast {
 func read_func_decl_or_def(rettype *Ctype, fname string) *Ast {
 	expect('(')
 	localenv = MakeDict(globalenv)
-	params := read_func_params()
+	functype, params := read_func_params(rettype)
 	tok := read_token()
-	functype := make_func_type(rettype, param_types(params))
 	if tok.is_punct('{') {
 		return read_func_def(functype, fname, params)
 	}

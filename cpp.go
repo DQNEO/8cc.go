@@ -260,9 +260,7 @@ func read_args_int(macro *Macro) []TokenList {
 		}
 		if tok.is_punct(')') {
 			unget_token(tok)
-			if len(r) != 0 || len(arg) != 0 {
-				r = append(r, arg)
-			}
+			r = append(r, arg)
 			return r
 		}
 		in_threedots := macro.is_varg && (len(r)+1 == macro.nargs)

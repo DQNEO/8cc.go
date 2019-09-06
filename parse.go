@@ -1333,7 +1333,7 @@ func read_compound_stmt() *Ast {
 	return ast_compound_stmt(list)
 }
 
-func read_params() []*Ast {
+func read_func_params() []*Ast {
 	var params []*Ast
 	pt := read_token()
 	if pt.is_punct(')') {
@@ -1379,7 +1379,7 @@ func read_func_def(rettype *Ctype, fname string, params []*Ast) *Ast {
 func read_func_decl_or_def(rettype *Ctype, fname string) *Ast {
 	expect('(')
 	localenv = MakeDict(globalenv)
-	params := read_params()
+	params := read_func_params()
 	tok := read_token()
 	if tok.is_punct('{') {
 		return read_func_def(rettype, fname, params)

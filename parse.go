@@ -1206,6 +1206,15 @@ func read_typedef() {
 	expect(';')
 }
 
+func read_extern() {
+	name, ctype := read_decl_int()
+	if name == nil {
+		errorf("Extern name missing")
+	}
+	ast_gvar(ctype, name.sval)
+	expect(';')
+}
+
 func read_if_stmt() *Ast {
 	expect('(')
 	cond := read_expr()
@@ -1386,6 +1395,10 @@ func read_toplevel() *Ast {
 		}
 		if tok.is_ident("typedef") {
 			read_typedef()
+			continue
+		}
+		if tok.is_ident("extern") {
+			read_extern()
 			continue
 		}
 		unget_token(tok)

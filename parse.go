@@ -1202,7 +1202,7 @@ func read_decl() *Ast {
 func read_typedef() {
 	name, ctype := read_decl_int()
 	if name == nil {
-		errorf("Typedef name missing")
+		errorf("name missing")
 	}
 	typedefs.PutCtype(name.sval, ctype)
 	expect(';')

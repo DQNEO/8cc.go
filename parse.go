@@ -1199,12 +1199,17 @@ func read_decl() *Ast {
 	return read_decl_init(variable)
 }
 
-func read_typedef() {
+func read_extern_typedef() (*Token, *Ctype)  {
 	name, ctype := read_decl_int()
-	expect(';')
 	if name == nil {
 		errorf("name missing")
 	}
+	expect(';')
+	return name, ctype
+}
+
+func read_typedef() {
+	name, ctype := read_extern_typedef()
 	typedefs.PutCtype(name.sval, ctype)
 }
 

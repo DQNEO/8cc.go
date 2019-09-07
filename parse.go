@@ -1410,7 +1410,7 @@ func read_func_decl_or_def(rettype *Ctype, fname string) *Ast {
 		return read_func_def(functype, fname, params)
 	}
 	globalenv.PutAst(fname, ast_gvar(functype, fname))
-	return read_toplevel()
+	return nil
 }
 
 func read_toplevel() *Ast {
@@ -1443,7 +1443,11 @@ func read_toplevel() *Ast {
 			return read_decl_init(gvar)
 		}
 		if tok.is_punct('(') {
-			return read_func_decl_or_def(ctype, name.sval)
+			fnc := read_func_decl_or_def(ctype, name.sval)
+			if fnc != nil {
+				return fnc
+			}
+			continue
 		}
 		if tok.is_punct(';') {
 			read_token()

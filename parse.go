@@ -401,13 +401,14 @@ func read_func_args(fname string) *Ast {
 	if MAX_ARGS < len(args) {
 		errorf("Too many arguments: %s", fname)
 	}
-	decl := localenv.GetCtype(fname)
-	if decl != nil {
-		if decl.typ != CTYPE_FUNC {
-			errorf("%s is not a function, but %s", fname, decl)
+	fnc := localenv.GetAst(fname)
+	if fnc != nil {
+		t := fnc.ctype
+		if t.typ != CTYPE_FUNC {
+			errorf("%s is not a function, but %s", fname, t)
 		}
-		function_type_check(fname, decl.params, param_types(args))
-		return ast_funcall(decl.rettype, fname, args, decl.params)
+		function_type_check(fname, t.params, param_types(args))
+		return ast_funcall(t.rettype, fname, args, t.params)
 	}
 	return ast_funcall(ctype_int, fname, args, nil)
 }
@@ -1206,7 +1207,7 @@ func read_extern_typedef() (string, *Ctype)  {
 	}
 	tok := read_token()
 	if tok.is_punct('(') {
-		ctype,_ = read_func_params(ctype)
+		ctype,_ = read_func_params(ctype, true)
 	} else {
 		unget_token(tok)
 	}
@@ -1340,7 +1341,7 @@ func read_compound_stmt() *Ast {
 	return ast_compound_stmt(list)
 }
 
-func read_func_params(rettype *Ctype) (*Ctype, []*Ast) {
+func read_func_params(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 	var paramvars []*Ast
 	var paramtypes []*Ctype
 	var rtype *Ctype
@@ -1354,14 +1355,20 @@ func read_func_params(rettype *Ctype) (*Ctype, []*Ast) {
 		ctype := read_decl_spec()
 		pname := read_token()
 		if !pname.is_ident_type() {
-			errorf("Identifier expected, but got %s", pname)
+			if !typeonly {
+				errorf("Identifier expected, but got %s", pname)
+			}
+			unget_token(pname)
+			pname = nil
 		}
 		ctype = read_array_dimensions(ctype)
 		if ctype.typ == CTYPE_ARRAY {
 			ctype = make_ptr_type(ctype.ptr)
 		}
 		paramtypes = append(paramtypes, ctype)
-		paramvars = append(paramvars, ast_lvar(ctype, pname.sval))
+		if !typeonly {
+			paramvars = append(paramvars, ast_lvar(ctype, pname.sval))
+		}
 		tok := read_token()
 		if tok.is_punct(')') {
 			rtype = make_func_type(rettype, paramtypes)
@@ -1379,7 +1386,7 @@ func read_func_def(functype *Ctype, fname string, params []*Ast) *Ast {
 	current_func_type = functype
 	body := read_compound_stmt()
 	r := ast_func(functype, fname, params, localvars, body)
-	globalenv.PutCtype(fname, functype)
+	globalenv.PutAst(fname, r)
 	current_func_type = nil
 	localenv = nil
 	localvars = nil
@@ -1389,12 +1396,12 @@ func read_func_def(functype *Ctype, fname string, params []*Ast) *Ast {
 func read_func_decl_or_def(rettype *Ctype, fname string) *Ast {
 	expect('(')
 	localenv = MakeDict(globalenv)
-	functype, params := read_func_params(rettype)
+	functype, params := read_func_params(rettype, false)
 	tok := read_token()
 	if tok.is_punct('{') {
 		return read_func_def(functype, fname, params)
 	}
-	globalenv.PutCtype(fname, functype)
+	globalenv.PutAst(fname, ast_gvar(functype, fname))
 	return read_toplevel()
 }
 

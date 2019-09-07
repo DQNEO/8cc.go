@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 func (ctype *Ctype) String() string {
 	if ctype == nil {
 		return "(nil)"
@@ -43,7 +45,7 @@ func (ctype *Ctype) String() string {
 		s += ")"
 		return s
 	default:
-		errorf("Unknown ctype: %d", ctype)
+		fmt.Sprintf("Unknown ctype: %d", ctype.typ)
 	}
 
 	return ""

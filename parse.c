@@ -887,7 +887,16 @@ static Ctype *read_enum_def(void) {
 
 static Ctype *read_decl_spec(void) {
     Token *tok = read_token();
-    if (!tok) return NULL;
+    for (;;) {
+        if (!tok) return NULL;
+        if (tok->type != TTYPE_IDENT)
+            error("Identifier expected, but got %s", t2s(tok));
+        if (is_ident(tok, "const"))
+            tok = read_token();
+        else
+            break;
+    }
+
     Ctype *ctype = is_ident(tok, "struct") ? read_struct_def()
         : is_ident(tok, "union") ? read_union_def()
         : is_ident(tok, "enum") ? read_enum_def()

@@ -1220,12 +1220,8 @@ func read_typedef() {
 }
 
 func read_extern() {
-	name, ctype := read_decl_int()
-	if name == nil {
-		errorf("Extern name missing")
-	}
-	ast_gvar(ctype, name.sval)
-	expect(';')
+	name, ctype := read_extern_typedef()
+	ast_gvar(ctype, name)
 }
 
 func read_if_stmt() *Ast {

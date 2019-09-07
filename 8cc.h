@@ -159,7 +159,7 @@ typedef struct Ast {
             struct Ast *declinit;
         };
         // Array initializer
-        struct List *arrayinit;
+        struct List *initlist;
         // If statement or ternary operator
         struct {
             struct Ast *cond;

@@ -119,7 +119,7 @@ static void a2s_int(String *buf, Ast *ast) {
         break;
     case AST_INIT_LIST:
         string_appendf(buf, "{");
-        for (Iter *i = list_iter(ast->arrayinit); !iter_end(i);) {
+        for (Iter *i = list_iter(ast->initlist); !iter_end(i);) {
             a2s_int(buf, iter_next(i));
             if (!iter_end(i))
                 string_appendf(buf, ",");

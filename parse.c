@@ -904,6 +904,8 @@ static Ctype *read_decl_spec(void) {
     assert(ctype);
     for (;;) {
         tok = read_token();
+        if (is_ident(tok, "const"))
+            continue;
         if (!is_punct(tok, '*')) {
             unget_token(tok);
             return ctype;

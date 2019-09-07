@@ -1098,6 +1098,9 @@ func read_decl_spec() *Ctype {
 	assert(ctype != nil)
 	for {
 		tok = read_token()
+		if tok.is_ident("const") {
+			continue
+		}
 		if !tok.is_punct('*') {
 			unget_token(tok)
 			return ctype

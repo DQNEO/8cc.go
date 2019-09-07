@@ -44,7 +44,7 @@ static void read_decl_int(Token **name, Ctype **ctype);
 static Ast *read_toplevel(void);
 static bool is_type_keyword(Token *tok);
 static Ast *read_unary_expr(void);
-static void read_func_params(Ctype **rtype, List *paramvars, Ctype *rettype);
+static void read_func_params(Ctype **rtype, List *rparams, Ctype *rettype);
 
 static Ast *ast_uop(int type, Ctype *ctype, Ast *operand) {
     Ast *r = malloc(sizeof(Ast));
@@ -1012,13 +1012,10 @@ static void read_typedef(void) {
 }
 
 static void read_extern(void) {
-    Token *name;
+    char *name;
     Ctype *ctype;
-    read_decl_int(&name, &ctype);
-    if (!name)
-        error("Extern name missing");
-    ast_gvar(ctype, name->sval);
-    expect(';');
+    read_extern_typedef(&name, &ctype);
+    ast_gvar(ctype, name);
 }
 
 static Ast *read_if_stmt(void) {

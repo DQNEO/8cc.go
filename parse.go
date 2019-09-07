@@ -299,12 +299,6 @@ func eval_intexpr(ast *Ast) int {
 			return ast.ival
 		}
 		errorf("Integer expression expected, but got %s", ast)
-	case '+': return E(L) + E(R)
-	case '-': return E(L) - E(R)
-	case '*': return E(L) * E(R)
-	case '/': return E(L) / E(R)
-	case '<': return bool2int(E(L) < E(R))
-	case '>': return bool2int(E(L) > E(R))
 	case '!':
 		return bool2int(!int2bool(E(ast.operand)))
 	case AST_TERNARY:
@@ -313,6 +307,12 @@ func eval_intexpr(ast *Ast) int {
 		} else {
 			return E(ast.els)
 		}
+	case '+': return E(L) + E(R)
+	case '-': return E(L) - E(R)
+	case '*': return E(L) * E(R)
+	case '/': return E(L) / E(R)
+	case '<': return bool2int(E(L) < E(R))
+	case '>': return bool2int(E(L) > E(R))
 	case OP_EQ: return bool2int(E(L) == E(R))
 	case OP_GE: return bool2int(E(L) >= E(R))
 	case OP_LE: return bool2int(E(L) <= E(R))

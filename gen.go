@@ -503,7 +503,7 @@ func emit_expr(ast *Ast) {
 		}
 		if ast.declinit.typ == AST_INIT_LIST {
 			off := 0
-			for _, v := range ast.declinit.arrayinit {
+			for _, v := range ast.declinit.initlist {
 				emit_expr(v)
 				emit_lsave(ast.declvar.ctype.ptr, ast.declvar.loff+off)
 				off += ast.declvar.ctype.ptr.size
@@ -676,7 +676,7 @@ func emit_data(v *Ast) {
 	emit_label(".global %s", v.declvar.varname)
 	emit_label("%s:", v.declvar.varname)
 	if v.declinit.typ == AST_INIT_LIST {
-		for _, v := range v.declinit.arrayinit {
+		for _, v := range v.declinit.initlist {
 			emit_data_int(v)
 		}
 		return

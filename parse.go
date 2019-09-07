@@ -142,11 +142,11 @@ func ast_decl(variable *Ast, init *Ast) *Ast {
 	return r
 }
 
-func ast_array_init(arrayinit []*Ast) *Ast {
+func ast_array_init(initlist []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_INIT_LIST
 	r.ctype = nil
-	r.arrayinit = arrayinit
+	r.initlist = initlist
 	return r
 }
 
@@ -1137,7 +1137,7 @@ func read_decl_init_val(v *Ast) *Ast {
 		if init.typ == AST_STRING {
 			length = len(init.val) + 1
 		} else {
-			length = len(init.arrayinit)
+			length = len(init.initlist)
 		}
 		if v.ctype.len == -1 {
 			v.ctype.len = length

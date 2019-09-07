@@ -126,7 +126,7 @@ type Ast struct {
 	declvar  *Ast
 	declinit *Ast
 	// Array initializer
-	arrayinit []*Ast
+	initlist []*Ast
 	// If statement or ternary operator
 	cond *Ast
 	then *Ast

@@ -132,9 +132,9 @@ func (ast *Ast) String() string {
 		return s
 	case AST_INIT_LIST:
 		s := "{"
-		for i, v := range ast.arrayinit {
+		for i, v := range ast.initlist {
 			s += v.String()
-			if i != len(ast.arrayinit)-1 {
+			if i != len(ast.initlist)-1 {
 				s += ","
 			}
 		}

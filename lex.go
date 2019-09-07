@@ -29,7 +29,7 @@ func make_file(name string, s *stream) *File {
 	return &File{
 		name: name,
 		line: 1,
-		column:1,
+		column:0,
 		fp : s,
 	}
 }

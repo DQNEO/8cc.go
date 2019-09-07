@@ -1352,6 +1352,17 @@ func read_func_params(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 	}
 	unget_token(pt)
 	for {
+		pt = read_token()
+		if pt.is_ident("...") {
+			if len(paramtypes) == 0 {
+				errorf("at least one parameter is required")
+			}
+			expect(')')
+			rtype = make_func_type(rettype, paramtypes)
+			return rtype, paramvars
+		} else {
+			unget_token(pt)
+		}
 		ctype := read_decl_spec()
 		pname := read_token()
 		if !pname.is_ident_type() {

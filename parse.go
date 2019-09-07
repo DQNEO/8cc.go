@@ -284,7 +284,11 @@ func is_right_assoc(tok *Token) bool {
 	return tok.punct == '='
 }
 
+
 func eval_intexpr(ast *Ast) int {
+	L := ast.left
+	R := ast.right
+
 	switch ast.typ {
 	case AST_LITERAL:
 		if is_inttype(ast.ctype) {
@@ -292,17 +296,17 @@ func eval_intexpr(ast *Ast) int {
 		}
 		errorf("Integer expression expected, but got %s", ast)
 	case '+':
-		return eval_intexpr(ast.left) + eval_intexpr(ast.right)
+		return eval_intexpr(L) + eval_intexpr(R)
 	case '-':
-		return eval_intexpr(ast.left) - eval_intexpr(ast.right)
+		return eval_intexpr(L) - eval_intexpr(R)
 	case '*':
-		return eval_intexpr(ast.left) * eval_intexpr(ast.right)
+		return eval_intexpr(L) * eval_intexpr(R)
 	case '/':
-		return eval_intexpr(ast.left) / eval_intexpr(ast.right)
+		return eval_intexpr(L) / eval_intexpr(R)
 	case '<':
-		return bool2int(eval_intexpr(ast.left) < eval_intexpr(ast.right))
+		return bool2int(eval_intexpr(L) < eval_intexpr(R))
 	case '>':
-		return bool2int(eval_intexpr(ast.left) > eval_intexpr(ast.right))
+		return bool2int(eval_intexpr(L) > eval_intexpr(R))
 	case '!':
 		return bool2int(!int2bool(eval_intexpr(ast.operand)))
 	case AST_TERNARY:
@@ -312,17 +316,17 @@ func eval_intexpr(ast *Ast) int {
 			return eval_intexpr(ast.els)
 		}
 	case OP_EQ:
-		return bool2int(eval_intexpr(ast.left) == eval_intexpr(ast.right))
+		return bool2int(eval_intexpr(L) == eval_intexpr(R))
 	case OP_GE:
-		return bool2int(eval_intexpr(ast.left) >= eval_intexpr(ast.right))
+		return bool2int(eval_intexpr(L) >= eval_intexpr(R))
 	case OP_LE:
-		return bool2int(eval_intexpr(ast.left) <= eval_intexpr(ast.right))
+		return bool2int(eval_intexpr(L) <= eval_intexpr(R))
 	case OP_NE:
-		return bool2int(eval_intexpr(ast.left) != eval_intexpr(ast.right))
+		return bool2int(eval_intexpr(L) != eval_intexpr(R))
 	case OP_LOGAND:
-		return eval_intexpr(ast.left) * eval_intexpr(ast.right)
+		return eval_intexpr(L) * eval_intexpr(R)
 	case OP_LOGOR:
-		return bool2int(int2bool(eval_intexpr(ast.left)) || int2bool(eval_intexpr(ast.right)))
+		return bool2int(int2bool(eval_intexpr(L)) || int2bool(eval_intexpr(R)))
 	default:
 		errorf("Integer expression expected, but got %s", ast)
 	}

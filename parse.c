@@ -987,22 +987,22 @@ static Ast *read_decl(void) {
     return read_decl_init(var);
 }
 
-static void read_extern_typedef(Token **rname, Ctype **rctype) {
+static void read_extern_typedef(char **rname, Ctype **rctype) {
     Token *name;
     Ctype *ctype;
     read_decl_int(&name, &ctype);
     if (!name)
         error("name missing");
     expect(';');
-    *rname = name;
+    *rname = name->sval;
     *rctype = ctype;
 }
 
 static void read_typedef(void) {
-    Token *name;
+    char *name;
     Ctype *ctype;
     read_extern_typedef(&name, &ctype);
-    dict_put(typedefs, name->sval, ctype);
+    dict_put(typedefs, name, ctype);
 }
 
 static void read_extern(void) {

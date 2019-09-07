@@ -723,9 +723,10 @@ func emit_func_prologue(fn *Ast) {
 	}
 	localarea := 0
 	for _, v := range fn.localvars {
-		off -= align(v.ctype.size, 8)
+		a := align(v.ctype.size, 8)
+		off -= a
 		v.loff = off
-		localarea += off
+		localarea -= a
 	}
 	if localarea != 0 {
 		emit("sub $%d, %%rsp", -localarea)

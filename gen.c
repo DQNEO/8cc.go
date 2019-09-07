@@ -471,7 +471,7 @@ static void emit_expr(Ast *ast) {
     case AST_DECL: {
         if (!ast->declinit)
             return;
-        if (ast->declinit->type == AST_ARRAY_INIT) {
+        if (ast->declinit->type == AST_INIT_LIST) {
             int off = 0;
             for (Iter *iter = list_iter(ast->declinit->arrayinit); !iter_end(iter);) {
                 emit_expr(iter_next(iter));
@@ -632,7 +632,7 @@ static void emit_data(Ast *v) {
     SAVE;
     emit_label(".global %s", v->declvar->varname);
     emit_label("%s:", v->declvar->varname);
-    if (v->declinit->type == AST_ARRAY_INIT) {
+    if (v->declinit->type == AST_INIT_LIST) {
         for (Iter *iter = list_iter(v->declinit->arrayinit); !iter_end(iter);) {
             emit_data_int(iter_next(iter));
         }

@@ -153,7 +153,7 @@ static Ast *ast_decl(Ast *var, Ast *init) {
 
 static Ast *ast_array_init(List *arrayinit) {
     Ast *r = malloc(sizeof(Ast));
-    r->type = AST_ARRAY_INIT;
+    r->type = AST_INIT_LIST;
     r->ctype = NULL;
     r->arrayinit = arrayinit;
     return r;

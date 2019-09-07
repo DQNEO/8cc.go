@@ -1070,9 +1070,20 @@ func read_enum_def() *Ctype {
 
 func read_decl_spec() *Ctype {
 	tok := read_token()
-	if tok == nil {
-		return nil
+	for {
+		if tok == nil {
+			return nil
+		}
+		if tok.typ != TTYPE_IDENT {
+			errorf("Identifier expected, but got %s", tok)
+		}
+		if tok.is_ident("const") {
+			tok = read_token()
+		} else {
+			break
+		}
 	}
+
 	var ctype *Ctype
 	if tok.is_ident("struct") {
 		ctype = read_struct_def()

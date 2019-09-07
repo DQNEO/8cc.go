@@ -1204,6 +1204,12 @@ func read_extern_typedef() (string, *Ctype)  {
 	if name == nil {
 		errorf("name missing")
 	}
+	tok := read_token()
+	if tok.is_punct('(') {
+		ctype,_ = read_func_params(ctype)
+	} else {
+		unget_token(tok)
+	}
 	expect(';')
 	return name.sval, ctype
 }

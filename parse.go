@@ -144,7 +144,7 @@ func ast_decl(variable *Ast, init *Ast) *Ast {
 
 func ast_array_init(arrayinit []*Ast) *Ast {
 	r := &Ast{}
-	r.typ = AST_ARRAY_INIT
+	r.typ = AST_INIT_LIST
 	r.ctype = nil
 	r.arrayinit = arrayinit
 	return r

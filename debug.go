@@ -130,7 +130,7 @@ func (ast *Ast) String() string {
 		}
 		s += ")"
 		return s
-	case AST_ARRAY_INIT:
+	case AST_INIT_LIST:
 		s := "{"
 		for i, v := range ast.arrayinit {
 			s += v.String()

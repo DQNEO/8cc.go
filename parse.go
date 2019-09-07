@@ -243,11 +243,12 @@ func make_struct_type(fields *Dict, size int) *Ctype {
 	return r
 }
 
-func make_func_type(rettype *Ctype, paramtypes []*Ctype) *Ctype {
+func make_func_type(rettype *Ctype, paramtypes []*Ctype, has_vaargs bool) *Ctype {
 	r := &Ctype{}
 	r.typ = CTYPE_FUNC
 	r.rettype = rettype
 	r.params = paramtypes
+	r.hasva = has_vaargs
 	return r
 }
 
@@ -1347,7 +1348,7 @@ func read_func_params(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 	var rtype *Ctype
 	pt := read_token()
 	if pt.is_punct(')') {
-		rtype = make_func_type(rettype, paramtypes)
+		rtype = make_func_type(rettype, paramtypes, false)
 		return rtype, nil
 	}
 	unget_token(pt)
@@ -1358,7 +1359,7 @@ func read_func_params(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 				errorf("at least one parameter is required")
 			}
 			expect(')')
-			rtype = make_func_type(rettype, paramtypes)
+			rtype = make_func_type(rettype, paramtypes, true)
 			return rtype, paramvars
 		} else {
 			unget_token(pt)
@@ -1382,7 +1383,7 @@ func read_func_params(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 		}
 		tok := read_token()
 		if tok.is_punct(')') {
-			rtype = make_func_type(rettype, paramtypes)
+			rtype = make_func_type(rettype, paramtypes, false)
 			return rtype, paramvars
 		}
 		if !tok.is_punct(',') {

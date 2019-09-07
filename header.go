@@ -87,6 +87,7 @@ type Ctype struct {
 	// function
 	rettype *Ctype
 	params  []*Ctype
+	hasva bool
 }
 
 type Ast struct {

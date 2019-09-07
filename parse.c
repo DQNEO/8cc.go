@@ -1144,7 +1144,7 @@ static void read_func_params(Ctype **rtype, List *paramvars, Ctype *rettype) {
         if (ctype->type == CTYPE_ARRAY)
             ctype = make_ptr_type(ctype->ptr);
         list_push(paramtypes, ctype);
-        if (paramvars)
+        if (!typeonly)
             list_push(paramvars, ast_lvar(ctype, pname->sval));
         Token *tok = read_token();
         if (is_punct(tok, ')')) {
@@ -1180,7 +1180,7 @@ static Ast *read_func_decl_or_def(Ctype *rettype, char *fname) {
     if (is_punct(tok, '{'))
         return read_func_def(functype, fname, params);
     dict_put(globalenv, fname, ast_gvar(functype, fname));
-    return read_toplevel();
+    return NULL;
 }
 
 static Ast *read_toplevel(void) {
@@ -1208,8 +1208,12 @@ static Ast *read_toplevel(void) {
             Ast *var = ast_gvar(ctype, name->sval);
             return read_decl_init(var);
         }
-        if (is_punct(tok, '('))
-            return read_func_decl_or_def(ctype, name->sval);
+        if (is_punct(tok, '(')) {
+            Ast *func = read_func_decl_or_def(ctype, name->sval);
+            if (func)
+                return func;
+            continue;
+        }
         if (is_punct(tok, ';')) {
             read_token();
             Ast *var = ast_gvar(ctype, name->sval);

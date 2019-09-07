@@ -285,6 +285,10 @@ func is_right_assoc(tok *Token) bool {
 }
 
 
+func E(ast *Ast) int {
+	return eval_intexpr(ast)
+}
+
 func eval_intexpr(ast *Ast) int {
 	L := ast.left
 	R := ast.right
@@ -295,38 +299,26 @@ func eval_intexpr(ast *Ast) int {
 			return ast.ival
 		}
 		errorf("Integer expression expected, but got %s", ast)
-	case '+':
-		return eval_intexpr(L) + eval_intexpr(R)
-	case '-':
-		return eval_intexpr(L) - eval_intexpr(R)
-	case '*':
-		return eval_intexpr(L) * eval_intexpr(R)
-	case '/':
-		return eval_intexpr(L) / eval_intexpr(R)
-	case '<':
-		return bool2int(eval_intexpr(L) < eval_intexpr(R))
-	case '>':
-		return bool2int(eval_intexpr(L) > eval_intexpr(R))
+	case '+': return E(L) + E(R)
+	case '-': return E(L) - E(R)
+	case '*': return E(L) * E(R)
+	case '/': return E(L) / E(R)
+	case '<': return bool2int(E(L) < E(R))
+	case '>': return bool2int(E(L) > E(R))
 	case '!':
-		return bool2int(!int2bool(eval_intexpr(ast.operand)))
+		return bool2int(!int2bool(E(ast.operand)))
 	case AST_TERNARY:
-		if int2bool(eval_intexpr(ast.cond)) {
-			return eval_intexpr(ast.then)
+		if int2bool(E(ast.cond)) {
+			return E(ast.then)
 		} else {
-			return eval_intexpr(ast.els)
+			return E(ast.els)
 		}
-	case OP_EQ:
-		return bool2int(eval_intexpr(L) == eval_intexpr(R))
-	case OP_GE:
-		return bool2int(eval_intexpr(L) >= eval_intexpr(R))
-	case OP_LE:
-		return bool2int(eval_intexpr(L) <= eval_intexpr(R))
-	case OP_NE:
-		return bool2int(eval_intexpr(L) != eval_intexpr(R))
-	case OP_LOGAND:
-		return eval_intexpr(L) * eval_intexpr(R)
-	case OP_LOGOR:
-		return bool2int(int2bool(eval_intexpr(L)) || int2bool(eval_intexpr(R)))
+	case OP_EQ: return bool2int(E(L) == E(R))
+	case OP_GE: return bool2int(E(L) >= E(R))
+	case OP_LE: return bool2int(E(L) <= E(R))
+	case OP_NE: return bool2int(E(L) != E(R))
+	case OP_LOGAND: return E(L) * E(R)
+	case OP_LOGOR: return bool2int(int2bool(E(L)) || int2bool(E(R)))
 	default:
 		errorf("Integer expression expected, but got %s", ast)
 	}

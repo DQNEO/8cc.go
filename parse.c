@@ -1120,6 +1120,15 @@ static void read_func_params(Ctype **rtype, List *paramvars, Ctype *rettype) {
     }
     unget_token(tok);
     for (;;) {
+        tok = read_token();
+        if (is_ident(tok, "...")) {
+            if (list_len(paramtypes) == 0)
+                error("at least one parameter is required");
+            expect(')');
+            *rtype = make_func_type(rettype, paramtypes);
+            return;
+        } else
+            unget_token(tok);
         Ctype *ctype = read_decl_spec();
         Token *pname = read_token();
         if (pname->type != TTYPE_IDENT) {

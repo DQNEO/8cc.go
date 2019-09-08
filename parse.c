@@ -763,6 +763,15 @@ static bool is_type_keyword(Token *tok) {
     return dict_get(typedefs, tok->sval);
 }
 
+static void read_decl_init_elem(List *initlist, Ctype *ctype) {
+    Ast *init = read_expr();
+    list_push(initlist, init);
+    result_type('=', init->ctype, ctype->ptr);
+    Token *tok = read_token();
+    if (!is_punct(tok, ','))
+        unget_token(tok);
+}
+
 static Ast *read_decl_array_init_int(List *initlist, Ctype *ctype) {
     Token *tok = read_token();
     if (ctype->ptr->type == CTYPE_CHAR && tok->type == TTYPE_STRING)
@@ -775,12 +784,7 @@ static Ast *read_decl_array_init_int(List *initlist, Ctype *ctype) {
         if (is_punct(tok, '}'))
             break;
         unget_token(tok);
-        Ast *init = read_expr();
-        list_push(initlist, init);
-        result_type('=', init->ctype, ctype->ptr);
-        tok = read_token();
-        if (!is_punct(tok, ','))
-            unget_token(tok);
+        read_decl_init_elem(initlist, ctype);
     }
     return ast_init_list(initlist);
 }

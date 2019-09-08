@@ -16,6 +16,9 @@ static char *ctype_to_string_int(Dict *dict, Ctype *ctype) {
     case CTYPE_ARRAY:
         return format("[%d]%s", ctype->len, ctype_to_string_int(dict, ctype->ptr));
     case CTYPE_STRUCT: {
+        if (dict_get(dict, format("%p", ctype)))
+            return "(struct)";
+        dict_put(dict, format("%p", ctype), (void *)1);
         String *s = make_string();
         string_appendf(s, "(struct");
         for (Iter *i = list_iter(dict_values(ctype->fields)); !iter_end(i);)

@@ -1242,6 +1242,8 @@ static Ast *read_toplevel(void) {
     for (;;) {
         Token *tok = read_token();
         if (!tok) return NULL;
+        if (is_ident(tok, "static"))
+            continue;
         if (is_ident(tok, "typedef")) {
             read_typedef();
             continue;

@@ -913,19 +913,22 @@ func is_type_keyword(tok *Token) bool {
 }
 
 func read_decl_init_elem(initlist []*Ast, ctype *Ctype) []*Ast {
+	tok := peek_token()
 	init := read_expr()
+	if init == nil {
+		errorf("expression expected: %s", tok)
+	}
 	initlist = append(initlist, init)
 	result_type('=', init.ctype, ctype)
 	init.totype = ctype
-	tok := read_token()
+	tok = read_token()
 	if !tok.is_punct(',') {
 		unget_token(tok)
 	}
 	return initlist
 }
 
-func read_decl_array_init_int(ctype *Ctype) []*Ast {
-	var initlist []*Ast
+func read_decl_array_init_int(initlist []*Ast, ctype *Ctype) []*Ast {
 	tok := read_token()
 	assert(ctype.typ == CTYPE_ARRAY)
 	if ctype.ptr.typ == CTYPE_CHAR && tok.typ == TTYPE_STRING {
@@ -1146,7 +1149,8 @@ func read_decl_int() (*Token, *Ctype) {
 }
 
 func read_decl_array_init_val(ctype *Ctype) *Ast {
-	initlist := read_decl_array_init_int(ctype)
+	var initlist []*Ast
+	initlist = read_decl_array_init_int(initlist, ctype)
 	init := ast_init_list(initlist)
 	var length int
 	if init.typ == AST_STRING {
@@ -1164,10 +1168,33 @@ func read_decl_array_init_val(ctype *Ctype) *Ast {
 	return init
 }
 
+func read_decl_struct_init_val(ctype *Ctype) *Ast {
+	expect('{')
+	var initlist []*Ast
+	for _, val := range ctype.fields.Values() {
+		fieldtype := val.ctype
+		tok := read_token()
+		if tok.is_punct('{') {
+			if fieldtype.typ != CTYPE_ARRAY {
+				errorf("array expected, but got %s", fieldtype)
+			}
+			unget_token(tok)
+			initlist = read_decl_array_init_int(initlist, fieldtype)
+			continue
+		}
+		unget_token(tok)
+		initlist= read_decl_init_elem(initlist, fieldtype)
+	}
+	expect('}')
+	return ast_init_list(initlist)
+}
+
 func read_decl_init_val(ctype *Ctype) *Ast {
 	var init *Ast
 	if ctype.typ == CTYPE_ARRAY {
 		init = read_decl_array_init_val(ctype)
+	} else if ctype.typ == CTYPE_STRUCT {
+		init = read_decl_struct_init_val(ctype)
 	} else {
 		init = read_expr()
 	}

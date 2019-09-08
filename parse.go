@@ -1152,6 +1152,7 @@ func read_decl_array_init_val(ctype *Ctype) *Ast {
 	var initlist []*Ast
 	initlist = read_decl_array_init_int(initlist, ctype)
 	init := ast_init_list(initlist)
+
 	var length int
 	if init.typ == AST_STRING {
 		length = len(init.val) + 1

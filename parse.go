@@ -921,7 +921,7 @@ func is_type_keyword(tok *Token) bool {
 
 	keyword := []string{
 		"char", "short", "int", "long", "float", "double", "struct",
-		"union", "signed", "unsigned", "enum", "void",
+		"union", "signed", "unsigned", "enum", "void", "extern",
 	}
 	for _, k := range keyword {
 		if k == tok.sval {
@@ -1136,7 +1136,7 @@ func read_decl_spec() *Ctype {
 	assert(ctype != nil)
 	for {
 		tok = read_token()
-		if tok.is_ident("const") {
+		if tok.is_ident("static") || tok.is_ident("const") {
 			continue
 		}
 		if !tok.is_punct('*') {

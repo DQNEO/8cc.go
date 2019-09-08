@@ -902,8 +902,11 @@ static Ctype *read_enum_def(void) {
             break;
         if (tok->type != TTYPE_IDENT)
             error("Identifier expected, but got %s", t2s(tok));
+        char *name = tok->sval;
+
+
         Ast *constval = ast_inttype(ctype_int, val++);
-        dict_put(localenv ? localenv : globalenv, tok->sval, constval);
+        dict_put(localenv ? localenv : globalenv, name, constval);
         tok = read_token();
         if (is_punct(tok, ','))
             continue;

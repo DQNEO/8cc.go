@@ -916,7 +916,7 @@ func read_decl_init_elem(initlist []*Ast, ctype *Ctype) []*Ast {
 	tok := peek_token()
 	init := read_expr()
 	if init == nil {
-		errorf("expression expected: %s", tok)
+		errorf("expression expected, but got %s", tok)
 	}
 	initlist = append(initlist, init)
 	result_type('=', init.ctype, ctype)

@@ -64,6 +64,7 @@ func initCpp() {
 
 	macros["__x86_64__"] = make_obj_marco([]*Token{cpp_token_one})
 	macros["__8cc__"] = make_obj_marco([]*Token{cpp_token_one})
+	macros["__STDC__"] = make_obj_marco([]*Token{cpp_token_one})
 	eval("typedef int __builtin_va_list[1];")
 }
 

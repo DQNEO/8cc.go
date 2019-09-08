@@ -912,6 +912,17 @@ func is_type_keyword(tok *Token) bool {
 	return typedefs.GetCtype(tok.sval) != nil
 }
 
+func read_decl_init_elem(initlist []*Ast, ctype *Ctype) []*Ast {
+	init := read_expr()
+	initlist = append(initlist, init)
+	result_type('=', init.ctype, ctype.ptr)
+	tok := read_token()
+	if !tok.is_punct(',') {
+		unget_token(tok)
+	}
+	return initlist
+}
+
 func read_decl_array_init_int(ctype *Ctype) *Ast {
 	var initlist []*Ast
 	tok := read_token()
@@ -928,13 +939,7 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 			break
 		}
 		unget_token(tok)
-		init := read_expr()
-		initlist = append(initlist, init)
-		result_type('=', init.ctype, ctype.ptr)
-		tok = read_token()
-		if !tok.is_punct(',') {
-			unget_token(tok)
-		}
+		initlist = read_decl_init_elem(initlist, ctype)
 	}
 
 	return ast_init_list(initlist)

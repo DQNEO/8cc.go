@@ -935,6 +935,7 @@ static Ast *read_decl_array_init_val(Ctype *ctype) {
     List *initlist = make_list();
     read_decl_array_init_int(initlist, ctype);
     Ast *init = ast_init_list(initlist);
+
     int len = (init->type == AST_STRING)
         ? strlen(init->sval) + 1
         : list_len(init->initlist);
@@ -1010,7 +1011,6 @@ static Ast *read_decl_init(Ast *var) {
             init = ast_inttype(ctype_int, eval_intexpr(init));
         return ast_decl(var, init);
     }
-
     if (var->ctype->len == -1)
         error("Missing array initializer");
     unget_token(tok);

@@ -913,6 +913,7 @@ func is_type_keyword(tok *Token) bool {
 }
 
 func read_decl_array_init_int(ctype *Ctype) *Ast {
+	var initlist []*Ast
 	tok := read_token()
 	if ctype.ptr.typ == CTYPE_CHAR && tok.typ == TTYPE_STRING {
 		return ast_string(tok.sval)
@@ -921,7 +922,6 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 	if !tok.is_punct('{') {
 		errorf("Expected an initializer list, but got %s", tok)
 	}
-	var initlist []*Ast
 	for {
 		tok := read_token()
 		if tok.is_punct('}') {

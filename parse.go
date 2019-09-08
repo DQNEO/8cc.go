@@ -1175,6 +1175,9 @@ func read_decl_struct_init_val(ctype *Ctype) *Ast {
 	for _, val := range ctype.fields.Values() {
 		fieldtype := val.ctype
 		tok := read_token()
+		if tok.is_punct('}') {
+			return ast_init_list(initlist)
+		}
 		if tok.is_punct('{') {
 			if fieldtype.typ != CTYPE_ARRAY {
 				errorf("array expected, but got %s", fieldtype)

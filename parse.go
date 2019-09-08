@@ -926,6 +926,7 @@ func read_decl_init_elem(initlist []*Ast, ctype *Ctype) []*Ast {
 func read_decl_array_init_int(ctype *Ctype) *Ast {
 	var initlist []*Ast
 	tok := read_token()
+	assert(ctype.typ == CTYPE_ARRAY)
 	if ctype.ptr.typ == CTYPE_CHAR && tok.typ == TTYPE_STRING {
 		return ast_string(tok.sval)
 	}

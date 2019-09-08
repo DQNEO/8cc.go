@@ -915,7 +915,7 @@ func is_type_keyword(tok *Token) bool {
 func read_decl_init_elem(initlist []*Ast, ctype *Ctype) []*Ast {
 	init := read_expr()
 	initlist = append(initlist, init)
-	result_type('=', init.ctype, ctype.ptr)
+	result_type('=', init.ctype, ctype)
 	tok := read_token()
 	if !tok.is_punct(',') {
 		unget_token(tok)
@@ -939,7 +939,7 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 			break
 		}
 		unget_token(tok)
-		initlist = read_decl_init_elem(initlist, ctype)
+		initlist = read_decl_init_elem(initlist, ctype.ptr)
 	}
 
 	return ast_init_list(initlist)

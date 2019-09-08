@@ -768,16 +768,25 @@ static void read_decl_init_elem(List *initlist, Ctype *ctype) {
     Ast *init = read_expr();
     list_push(initlist, init);
     result_type('=', init->ctype, ctype);
+    init->totype = ctype;
     Token *tok = read_token();
     if (!is_punct(tok, ','))
         unget_token(tok);
 }
 
-static Ast *read_decl_array_init_int(List *initlist, Ctype *ctype) {
+static void read_decl_array_init_int(List *initlist, Ctype *ctype) {
     Token *tok = read_token();
     assert(ctype->type == CTYPE_ARRAY);
     if (ctype->ptr->type == CTYPE_CHAR && tok->type == TTYPE_STRING) {
-        return ast_string(tok->sval);
+        for (char *p = tok->sval; *p; p++) {
+            Ast *c = ast_inttype(ctype_char, *p);
+            c->totype = ctype_char;
+            list_push(initlist, c);
+        }
+        Ast *c = ast_inttype(ctype_char, '\0');
+        c->totype = ctype_char;
+        list_push(initlist, c);
+        return;
     }
     if (!is_punct(tok, '{'))
         error("Expected an initializer list for %s, but got %s",
@@ -789,7 +798,6 @@ static Ast *read_decl_array_init_int(List *initlist, Ctype *ctype) {
         unget_token(tok);
         read_decl_init_elem(initlist, ctype->ptr);
     }
-    return ast_init_list(initlist);
 }
 
 static char *read_struct_union_tag(void) {
@@ -922,7 +930,8 @@ static Ctype *read_decl_spec(void) {
 
 static Ast *read_decl_array_init_val(Ctype *ctype) {
     List *initlist = make_list();
-    Ast *init = read_decl_array_init_int(initlist, ctype);
+    read_decl_array_init_int(initlist, ctype);
+    Ast *init = ast_init_list(initlist);
     int len = (init->type == AST_STRING)
         ? strlen(init->sval) + 1
         : list_len(init->initlist);

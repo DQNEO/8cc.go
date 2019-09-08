@@ -1092,12 +1092,13 @@ func read_enum_def() *Ctype {
 		if !tok.is_ident_type() {
 			errorf("Identifier expected, but got %s", tok)
 		}
+		name := tok.sval
 		constval := ast_inttype(ctype_int, val)
 		val++
 		if localenv != nil {
-			localenv.PutAst(tok.sval, constval)
+			localenv.PutAst(name, constval)
 		} else {
-			globalenv.PutAst(tok.sval, constval)
+			globalenv.PutAst(name, constval)
 		}
 		tok = read_token()
 		if tok.is_punct(',') {

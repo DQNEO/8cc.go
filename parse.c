@@ -917,20 +917,25 @@ static Ctype *read_decl_spec(void) {
     }
 }
 
+static Ast *read_decl_array_init_val(Ctype *ctype) {
+    List *initlist = make_list();
+    Ast *init = read_decl_array_init_int(initlist, ctype);
+    int len = (init->type == AST_STRING)
+        ? strlen(init->sval) + 1
+        : list_len(init->initlist);
+    if (ctype->len == -1) {
+        ctype->len = len;
+        ctype->size = len * ctype->ptr->size;
+    } else if (ctype->len != len) {
+        error("Invalid array initializer: expected %d items but got %d",
+              ctype->len, len);
+    }
+    return init;
+}
+
 static Ast *read_decl_init_val(Ctype *ctype) {
     if (ctype->type == CTYPE_ARRAY) {
-        List *initlist = make_list();
-        Ast *init = read_decl_array_init_int(initlist, ctype);
-        int len = (init->type == AST_STRING)
-            ? strlen(init->sval) + 1
-            : list_len(init->initlist);
-        if (ctype->len == -1) {
-            ctype->len = len;
-            ctype->size = len * ctype->ptr->size;
-        } else if (ctype->len != len) {
-            error("Invalid array initializer: expected %d items but got %d",
-                  ctype->len, len);
-        }
+        Ast *init = read_decl_array_init_val(ctype);
         expect(';');
         return init;
     }

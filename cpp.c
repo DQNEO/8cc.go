@@ -47,9 +47,8 @@ static __attribute__((constructor)) void init(void) {
     list_push(std_include_path, "/usr/include");
     list_push(std_include_path, ".");
 
-    Macro *dummy_macro = make_obj_macro(NULL);
-    dict_put(macros, "__x86_64__", dummy_macro);
-    dict_put(macros, "__8cc__", dummy_macro);
+    dict_put(macros, "__x86_64__", make_obj_macro(NULL));
+    dict_put(macros, "__8cc__", make_obj_macro(NULL));
     eval("typedef int __builtin_va_list[1];");
 }
 

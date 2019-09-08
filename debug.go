@@ -26,6 +26,10 @@ func (ctype *Ctype) ctype_to_string_int(dict map[string]bool) string {
 	case CTYPE_ARRAY:
 		return format("[%d]%s", ctype.len, ctype.ptr.ctype_to_string_int(dict))
 	case CTYPE_STRUCT:
+		if dict[format("%p", ctype)] {
+			return "(struct"
+		}
+		dict[format("%p", ctype)] = true
 		s := "(struct"
 		for _, v := range ctype.fields.Values() {
 			field := v

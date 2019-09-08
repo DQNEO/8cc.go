@@ -691,7 +691,9 @@ static Ctype *read_ctype(Token *tok) {
     enum { tchar = 1, tshort, tint, tlong, tllong } ti = unspec;
     for (;;) {
         char *s = tok->sval;
-        if (!strcmp(s, "signed")) {
+        if (!strcmp(s, "const")) {
+            // ignore
+        } else if (!strcmp(s, "signed")) {
             if (si != unspec) goto dupspec;
             si = ssign;
         } else if (!strcmp(s, "unsigned")) {
@@ -1245,7 +1247,7 @@ static Ast *read_toplevel(void) {
     for (;;) {
         Token *tok = read_token();
         if (!tok) return NULL;
-        if (is_ident(tok, "static"))
+        if (is_ident(tok, "static") || is_ident(tok, "const"))
             continue;
         if (is_ident(tok, "typedef")) {
             read_typedef();

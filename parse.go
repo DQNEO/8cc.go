@@ -916,6 +916,7 @@ func read_decl_init_elem(initlist []*Ast, ctype *Ctype) []*Ast {
 	init := read_expr()
 	initlist = append(initlist, init)
 	result_type('=', init.ctype, ctype)
+	init.totype = ctype
 	tok := read_token()
 	if !tok.is_punct(',') {
 		unget_token(tok)
@@ -923,12 +924,20 @@ func read_decl_init_elem(initlist []*Ast, ctype *Ctype) []*Ast {
 	return initlist
 }
 
-func read_decl_array_init_int(ctype *Ctype) *Ast {
+func read_decl_array_init_int(ctype *Ctype) []*Ast {
 	var initlist []*Ast
 	tok := read_token()
 	assert(ctype.typ == CTYPE_ARRAY)
 	if ctype.ptr.typ == CTYPE_CHAR && tok.typ == TTYPE_STRING {
-		return ast_string(tok.sval)
+		for _,p := range tok.sval {
+			c := ast_inttype(ctype_char, int(p))
+			c.totype = ctype_char
+			initlist = append(initlist, c)
+		}
+		c := ast_inttype(ctype_char, 0)
+		c.totype = ctype_char
+		initlist = append(initlist, c)
+		return initlist
 	}
 
 	if !tok.is_punct('{') {
@@ -943,7 +952,7 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 		initlist = read_decl_init_elem(initlist, ctype.ptr)
 	}
 
-	return ast_init_list(initlist)
+	return initlist
 }
 
 func read_struct_union_tag() string {
@@ -1137,7 +1146,8 @@ func read_decl_int() (*Token, *Ctype) {
 }
 
 func read_decl_array_init_val(ctype *Ctype) *Ast {
-	init := read_decl_array_init_int(ctype)
+	initlist := read_decl_array_init_int(ctype)
+	init := ast_init_list(initlist)
 	var length int
 	if init.typ == AST_STRING {
 		length = len(init.val) + 1

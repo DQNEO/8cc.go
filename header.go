@@ -127,6 +127,7 @@ type Ast struct {
 	declinit *Ast
 	// array or struct initializer
 	initlist []*Ast
+	totype *Ctype
 	// If statement or ternary operator
 	cond *Ast
 	then *Ast

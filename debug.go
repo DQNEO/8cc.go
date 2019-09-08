@@ -73,6 +73,8 @@ func (ast *Ast) String() string {
 				return "'\n'"
 			} else if ast.ival == '\\' {
 				return "'\\\\'"
+			} else if ast.ival == 0 {
+				return "'\\0'"
 			} else {
 				return format("'%c'", ast.ival)
 			}

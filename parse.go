@@ -1483,6 +1483,9 @@ func read_toplevel() *Ast {
 		if tok == nil {
 			return nil
 		}
+		if tok.is_ident("static") {
+			continue
+		}
 		if tok.is_ident("typedef") {
 			read_typedef()
 			continue

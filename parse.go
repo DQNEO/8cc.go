@@ -453,7 +453,9 @@ func read_number_ast(sval string) *Ast {
 		}
 	}
 	start := index
-	for index < len(sval) && isdigit(sval[index]) {
+	for index < len(sval) && (isdigit(sval[index]) ||
+		/* 'a' <= && 'f' <= looks to be a bug !! */
+		(base == 16 && (('a' <=  sval[index] && 'f' <= sval[index])|| 'A' <= sval[index] && 'F' <= sval[index]) )) {
 		index++
 	}
 	if index < len(sval) && sval[index] == '.' {

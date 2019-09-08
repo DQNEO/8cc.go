@@ -1154,12 +1154,12 @@ func read_decl_array_init_val(ctype *Ctype) *Ast {
 }
 
 func read_decl_init_val(ctype *Ctype) *Ast {
+	var init *Ast
 	if ctype.typ == CTYPE_ARRAY {
-		init := read_decl_array_init_val(ctype)
-		expect(';')
-		return init
+		init = read_decl_array_init_val(ctype)
+	} else {
+		init = read_expr()
 	}
-	init := read_expr()
 	expect(';')
 	return init
 }

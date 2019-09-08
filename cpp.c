@@ -25,9 +25,9 @@ typedef struct {
     bool is_varg;
 } Macro;
 
+static Macro *make_obj_macro(List *body);
 static Token *read_token_int(bool return_at_eol);
 static Token *read_expand(void);
-static Macro *make_obj_macro(List *body);
 
 static void eval(char *buf) {
     FILE *fp = fmemopen(buf, strlen(buf), "r");

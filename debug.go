@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func (ctype *Ctype) String() string {
+func (ctype *Ctype) ctype_to_string_int(dict map[string]bool) string {
 	if ctype == nil {
 		return "(nil)"
 	}
@@ -22,22 +22,22 @@ func (ctype *Ctype) String() string {
 	case CTYPE_DOUBLE:
 		return "double"
 	case CTYPE_PTR:
-		return format("*%s", ctype.ptr)
+		return format("*%s", ctype.ptr.ctype_to_string_int(dict))
 	case CTYPE_ARRAY:
-		return format("[%d]%s", ctype.len, ctype.ptr)
+		return format("[%d]%s", ctype.len, ctype.ptr.ctype_to_string_int(dict))
 	case CTYPE_STRUCT:
 		s := "(struct"
 		for _, v := range ctype.fields.Values() {
 			field := v
-			s += format(" (%s)", field.ctype)
+			s += format(" (%s)", field.ctype.ctype_to_string_int(dict))
 		}
 		s += ")"
 		return s
 	case CTYPE_FUNC:
-		s := format("%s(", ctype.rettype)
+		s := format("%s(", ctype.rettype.ctype_to_string_int(dict))
 		params := ctype.params
 		for i, t := range params {
-			s += format("%s", t)
+			s += format("%s", t.ctype_to_string_int(dict))
 			if i != len(params)-1 {
 				s += ","
 			}
@@ -49,6 +49,11 @@ func (ctype *Ctype) String() string {
 	}
 
 	return ""
+}
+
+func (ctype *Ctype) String() string {
+	dict := make(map[string]bool)
+	return ctype.ctype_to_string_int(dict)
 }
 
 type Block []*Ast

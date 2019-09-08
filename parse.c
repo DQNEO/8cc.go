@@ -763,7 +763,7 @@ static bool is_type_keyword(Token *tok) {
         return false;
     char *keyword[] = {
         "char", "short", "int", "long", "float", "double", "struct",
-        "union", "signed", "unsigned", "enum", "void",
+        "union", "signed", "unsigned", "enum", "void", "extern",
     };
     for (int i = 0; i < sizeof(keyword) / sizeof(*keyword); i++)
         if (!strcmp(keyword[i], tok->sval))
@@ -915,7 +915,7 @@ static Ctype *read_decl_spec(void) {
         if (!tok) return NULL;
         if (tok->type != TTYPE_IDENT)
             error("Identifier expected, but got %s", t2s(tok));
-        if (is_ident(tok, "const"))
+        if (is_ident(tok, "static") || is_ident(tok, "const"))
             tok = read_token();
         else
             break;

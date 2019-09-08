@@ -904,6 +904,11 @@ static Ctype *read_enum_def(void) {
             error("Identifier expected, but got %s", t2s(tok));
         char *name = tok->sval;
 
+        tok = read_token();
+        if (is_punct(tok, '='))
+            val = eval_intexpr(read_expr());
+        else
+            unget_token(tok);
 
         Ast *constval = ast_inttype(ctype_int, val++);
         dict_put(localenv ? localenv : globalenv, name, constval);
@@ -1085,7 +1090,6 @@ static void read_typedef(void) {
     char *name;
     Ctype *ctype;
     read_extern_typedef(&name, &ctype);
-    fprintf(stderr, "  typedef: %s -> %s\n", name, ctype_to_string(ctype));
     dict_put(typedefs, name, ctype);
 }
 

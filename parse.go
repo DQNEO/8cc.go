@@ -1135,21 +1135,21 @@ func read_decl_int() (*Token, *Ctype) {
 	return name, ctype
 }
 
-func read_decl_init_val(v *Ast) *Ast {
-	if v.ctype.typ == CTYPE_ARRAY {
-		init := read_decl_array_init_int(v.ctype)
+func read_decl_init_val(ctype *Ctype) *Ast {
+	if ctype.typ == CTYPE_ARRAY {
+		init := read_decl_array_init_int(ctype)
 		var length int
 		if init.typ == AST_STRING {
 			length = len(init.val) + 1
 		} else {
 			length = len(init.initlist)
 		}
-		if v.ctype.len == -1 {
-			v.ctype.len = length
-			v.ctype.size = length * v.ctype.ptr.size
-		} else if v.ctype.len != length {
+		if ctype.len == -1 {
+			ctype.len = length
+			ctype.size = length * ctype.ptr.size
+		} else if ctype.len != length {
 			errorf("Invalid array initializer: expected %d items but got %d",
-				v.ctype.len, length)
+				ctype.len, length)
 		}
 		expect(';')
 		return init
@@ -1193,7 +1193,7 @@ func read_array_dimensions(basetype *Ctype) *Ctype {
 func read_decl_init(variable *Ast) *Ast {
 	tok := read_token()
 	if tok.is_punct('=') {
-		init := read_decl_init_val(variable)
+		init := read_decl_init_val(variable.ctype)
 		if variable.typ == AST_GVAR && is_inttype(variable.ctype) {
 			init = ast_inttype(ctype_int, eval_intexpr(init))
 		}

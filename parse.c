@@ -688,7 +688,8 @@ static Ctype *read_ctype(Token *tok) {
 
     int unspec = 0;
     enum { ssign = 1, sunsign } si = unspec;
-    enum { tchar = 1, tshort, tint, tlong, tllong } ti = unspec;
+    enum { tchar = 1, tshort, tint, tlong, tllong,
+           tfloat, tdouble, tvoid } ti = unspec;
     for (;;) {
         char *s = tok->sval;
         if (!strcmp(s, "const")) {
@@ -709,21 +710,22 @@ static Ctype *read_ctype(Token *tok) {
             if (ti == unspec) ti = tint;
             else if (ti == tchar) goto duptype;
         } else if (!strcmp(s, "long")) {
-            if (ti == unspec) ti = tlong;
-            else if (ti == tlong) ti = tllong;
+            if (ti == unspec)  ti = tlong;
+            else if (ti == tlong)   ti = tllong;
+            else if (ti == tdouble) ti = tdouble;
             else goto duptype;
         } else if (!strcmp(s, "float")) {
             if (si != unspec) goto invspec;
             if (ti != unspec) goto duptype;
-            return ctype_float;
+            else ti = tfloat;
         } else if (!strcmp(s, "double")) {
             if (si != unspec) goto invspec;
-            if (ti != unspec) goto duptype;
-            return ctype_double;
+            if (ti != unspec && ti != tlong) goto duptype;
+            else ti = tfloat;
         } else if (!strcmp(s, "void")) {
             if (si != unspec) goto invspec;
             if (ti != unspec) goto duptype;
-            return ctype_void;
+            else ti = tvoid;
         } else {
             unget_token(tok);
             break;
@@ -743,6 +745,9 @@ static Ctype *read_ctype(Token *tok) {
     case tint:    return si == sunsign ? ctype_uint : ctype_int;
     case tlong:
     case tllong:  return si == sunsign ? ctype_ulong : ctype_long;
+    case tfloat:  return ctype_float;
+    case tdouble: return ctype_double;
+    case tvoid:   return ctype_void;
     }
     error("internal error");
  dupspec:

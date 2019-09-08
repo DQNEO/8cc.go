@@ -148,7 +148,10 @@ func emit_gsave(varname string, ctype *Ctype, off int) {
 
 func emit_lsave(ctype *Ctype, off int) {
 	if ctype.typ == CTYPE_FLOAT {
-		emit("cvtpd2ps %%xmm0, %d(%%rbp)", off)
+		push_xmm(0)
+		emit("cvtpd2ps %%xmm0, %%xmm0")
+		emit("movss %%xmm0, %d(%%rbp)", off)
+		pop_xmm(0)
 	} else if ctype.typ == CTYPE_DOUBLE {
 		emit("movsd %%xmm0, %d(%%rbp)", off)
 	} else {

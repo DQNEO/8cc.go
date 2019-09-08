@@ -142,7 +142,7 @@ func ast_decl(variable *Ast, init *Ast) *Ast {
 	return r
 }
 
-func ast_array_init(initlist []*Ast) *Ast {
+func ast_init_list(initlist []*Ast) *Ast {
 	r := &Ast{}
 	r.typ = AST_INIT_LIST
 	r.ctype = nil
@@ -937,7 +937,7 @@ func read_decl_array_init_int(ctype *Ctype) *Ast {
 		}
 	}
 
-	return ast_array_init(initlist)
+	return ast_init_list(initlist)
 }
 
 func read_struct_union_tag() string {

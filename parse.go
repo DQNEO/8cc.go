@@ -779,6 +779,9 @@ func read_ctype(tok *Token) *Ctype {
 		tint
 		tlong
 		tllong
+		tfloat
+		tdouble
+		tvoid
 	)
 	var ti ttype
 	for {
@@ -816,6 +819,8 @@ func read_ctype(tok *Token) *Ctype {
 				ti = tlong
 			} else if ti == tlong {
 				ti = tllong
+			} else if ti == tdouble {
+				ti = tdouble
 			} else {
 				duptype(tok)
 			}
@@ -825,24 +830,27 @@ func read_ctype(tok *Token) *Ctype {
 			}
 			if ti != unspec {
 				duptype(tok)
+			} else {
+				ti = tfloat
 			}
-			return ctype_float
 		} else if s == "double" {
 			if si != unspec {
 				invspec(tok)
 			}
-			if ti != unspec {
+			if ti != unspec && ti != tlong {
 				duptype(tok)
+			} else {
+				ti = tfloat
 			}
-			return ctype_double
 		} else if s == "void" {
 			if si != unspec {
 				invspec(tok)
 			}
 			if ti != unspec {
 				duptype(tok)
+			} else {
+				ti = tvoid
 			}
-			return ctype_void
 		} else {
 			unget_token(tok)
 			break
@@ -882,6 +890,12 @@ func read_ctype(tok *Token) *Ctype {
 		} else {
 			return ctype_long
 		}
+	case tfloat:
+		return ctype_float
+	case tdouble:
+		return ctype_double
+	case tvoid:
+		return ctype_void
 	}
 	errorf("internal error")
 	return nil

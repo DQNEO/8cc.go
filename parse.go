@@ -1093,6 +1093,14 @@ func read_enum_def() *Ctype {
 			errorf("Identifier expected, but got %s", tok)
 		}
 		name := tok.sval
+
+		tok = read_token()
+		if tok.is_punct('=') {
+			val = eval_intexpr(read_expr())
+		} else {
+			unget_token(tok)
+		}
+
 		constval := ast_inttype(ctype_int, val)
 		val++
 		if localenv != nil {

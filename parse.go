@@ -783,7 +783,9 @@ func read_ctype(tok *Token) *Ctype {
 	var ti ttype
 	for {
 		s := tok.sval
-		if s == "signed" {
+		if s == "const" {
+			// ignore
+		} else if s == "signed" {
 			if si != unspec {
 				dupspec(tok)
 			}
@@ -1491,7 +1493,7 @@ func read_toplevel() *Ast {
 		if tok == nil {
 			return nil
 		}
-		if tok.is_ident("static") {
+		if tok.is_ident("static") || tok.is_ident("const") {
 			continue
 		}
 		if tok.is_ident("typedef") {

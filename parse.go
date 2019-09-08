@@ -1152,14 +1152,14 @@ func read_decl_init_val(v *Ast) *Ast {
 				v.ctype.len, length)
 		}
 		expect(';')
-		return ast_decl(v, init)
+		return init
 	}
 	init := read_expr()
 	expect(';')
 	if v.typ == AST_GVAR {
 		init = ast_inttype(ctype_int, eval_intexpr(init))
 	}
-	return ast_decl(v, init)
+	return init
 }
 
 func read_array_dimensions_int(basetype *Ctype) *Ctype {
@@ -1196,7 +1196,8 @@ func read_array_dimensions(basetype *Ctype) *Ctype {
 func read_decl_init(variable *Ast) *Ast {
 	tok := read_token()
 	if tok.is_punct('=') {
-		return read_decl_init_val(variable)
+		init := read_decl_init_val(variable)
+		return ast_decl(variable, init)
 	}
 	if variable.ctype.len == -1 {
 		errorf("Missing array initializer")

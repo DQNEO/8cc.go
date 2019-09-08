@@ -2,8 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -1315,7 +1313,6 @@ func read_extern_typedef() (string, *Ctype)  {
 
 func read_typedef() {
 	name, ctype := read_extern_typedef()
-	fmt.Fprintf(os.Stderr, "  typedef: %s -> %s\n", name, ctype)
 	typedefs.PutCtype(name, ctype)
 }
 

@@ -12,6 +12,8 @@ clean:
 fmt:
 	gofmt -w *.go
 
+.PHONEY: test
+
 test: 8ccg $(TESTS) test.sh sample/nqueen
 	@echo
 	@for test in $(TESTS); do \

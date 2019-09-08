@@ -1156,9 +1156,6 @@ func read_decl_init_val(v *Ast) *Ast {
 	}
 	init := read_expr()
 	expect(';')
-	if v.typ == AST_GVAR {
-		init = ast_inttype(ctype_int, eval_intexpr(init))
-	}
 	return init
 }
 
@@ -1197,6 +1194,9 @@ func read_decl_init(variable *Ast) *Ast {
 	tok := read_token()
 	if tok.is_punct('=') {
 		init := read_decl_init_val(variable)
+		if variable.typ == AST_GVAR && is_inttype(variable.ctype) {
+			init = ast_inttype(ctype_int, eval_intexpr(init))
+		}
 		return ast_decl(variable, init)
 	}
 	if variable.ctype.len == -1 {

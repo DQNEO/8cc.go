@@ -652,6 +652,11 @@ func read_unary_expr() *Ast {
 		ensure_lvalue(operand)
 		return ast_uop(AST_ADDR, make_ptr_type(operand.ctype), operand)
 	}
+	if tok.is_punct('-') {
+		expr := read_expr()
+		return ast_binop('-', ast_inttype(ctype_int, 0), expr)
+	}
+
 	if tok.is_punct('*') {
 		operand := read_unary_expr()
 		ctype := convert_array(operand.ctype) // looks no need to call convert_array.

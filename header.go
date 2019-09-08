@@ -125,7 +125,7 @@ type Ast struct {
 	// Declaration
 	declvar  *Ast
 	declinit *Ast
-	// Array initializer
+	// array or struct initializer
 	initlist []*Ast
 	// If statement or ternary operator
 	cond *Ast

@@ -504,7 +504,8 @@ func emit_expr(ast *Ast) {
 		if ast.declinit.typ == AST_INIT_LIST {
 			off := 0
 			for _, v := range ast.declinit.initlist {
-				emit_expr(v)
+				elem := v
+				emit_expr(elem)
 				emit_lsave(ast.declvar.ctype.ptr, ast.declvar.loff+off)
 				off += ast.declvar.ctype.ptr.size
 			}

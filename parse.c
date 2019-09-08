@@ -775,8 +775,10 @@ static void read_decl_init_elem(List *initlist, Ctype *ctype) {
 
 static Ast *read_decl_array_init_int(List *initlist, Ctype *ctype) {
     Token *tok = read_token();
-    if (ctype->ptr->type == CTYPE_CHAR && tok->type == TTYPE_STRING)
+    assert(ctype->type == CTYPE_ARRAY);
+    if (ctype->ptr->type == CTYPE_CHAR && tok->type == TTYPE_STRING) {
         return ast_string(tok->sval);
+    }
     if (!is_punct(tok, '{'))
         error("Expected an initializer list for %s, but got %s",
               ctype_to_string(ctype), t2s(tok));

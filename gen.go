@@ -506,8 +506,8 @@ func emit_expr(ast *Ast) {
 			for _, v := range ast.declinit.initlist {
 				elem := v
 				emit_expr(elem)
-				emit_lsave(ast.declvar.ctype.ptr, ast.declvar.loff+off)
-				off += ast.declvar.ctype.ptr.size
+				emit_lsave(elem.totype, ast.declvar.loff+off)
+				off += elem.totype.size
 			}
 		} else if ast.declvar.ctype.typ == CTYPE_ARRAY {
 			assert(ast.declinit.typ == AST_STRING)

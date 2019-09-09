@@ -1118,6 +1118,24 @@ func read_enum_def() *Ctype {
 	return ctype_int
 }
 
+func read_declarator(basetype *Ctype) *Ctype {
+	ctype := basetype
+	for {
+		tok := read_token()
+		if tok.is_ident("static") || tok.is_ident("const") {
+			continue
+		}
+		if !tok.is_punct('*') {
+			unget_token(tok)
+			return ctype
+		}
+		// pointer
+		ctype = make_ptr_type(ctype)
+	}
+	return ctype
+
+}
+
 func read_decl_spec() *Ctype {
 	tok := read_token()
 	for {
@@ -1146,23 +1164,12 @@ func read_decl_spec() *Ctype {
 	}
 
 	assert(ctype != nil)
-	for {
-		tok = read_token()
-		if tok.is_ident("static") || tok.is_ident("const") {
-			continue
-		}
-		if !tok.is_punct('*') {
-			unget_token(tok)
-			return ctype
-		}
-		// pointer
-		ctype = make_ptr_type(ctype)
-	}
 	return ctype
 }
 
 func read_decl_int() (*Token, *Ctype) {
-	ctype := read_decl_spec()
+	basetype := read_decl_spec()
+	ctype := read_declarator(basetype)
 	tok := read_token()
 	var name *Token
 	if tok.is_punct(';') {
@@ -1459,7 +1466,8 @@ func read_func_params(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 		} else {
 			unget_token(pt)
 		}
-		ctype := read_decl_spec()
+		basetype := read_decl_spec()
+		ctype := read_declarator(basetype)
 		pname := read_token()
 		if !pname.is_ident_type() {
 			if !typeonly {
@@ -1530,7 +1538,8 @@ func read_toplevel() *Ast {
 			continue
 		}
 		unget_token(tok)
-		ctype := read_decl_spec()
+		basetype := read_decl_spec()
+		ctype := read_declarator(basetype)
 		name := read_token()
 		if name.is_punct(';') {
 			continue

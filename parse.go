@@ -1520,11 +1520,12 @@ func read_func_decl_or_def(rettype *Ctype, fname string) *Ast {
 	return nil
 }
 
-func read_toplevel() *Ast {
+func read_toplevels() []*Ast {
+	var r []*Ast
 	for {
 		tok := read_token()
 		if tok == nil {
-			return nil
+			return r
 		}
 		if tok.is_ident("static") || tok.is_ident("const") {
 			continue
@@ -1551,35 +1552,23 @@ func read_toplevel() *Ast {
 		tok = peek_token()
 		if tok.is_punct('=') || ctype.typ == CTYPE_ARRAY {
 			gvar := ast_gvar(ctype, name.sval)
-			return read_decl_init(gvar)
+			r = append(r, read_decl_init(gvar))
+			continue
 		}
 		if tok.is_punct('(') {
 			fnc := read_func_decl_or_def(ctype, name.sval)
 			if fnc != nil {
-				return fnc
+				r = append(r, fnc)
 			}
 			continue
 		}
 		if tok.is_punct(';') {
 			read_token()
 			gvar := ast_gvar(ctype, name.sval)
-			return ast_decl(gvar, nil)
+			r = append(r, ast_decl(gvar, nil))
+			continue
 		}
 		errorf("Don't know how to handle %s", tok)
 		return nil
 	}
-}
-
-func read_toplevels() []*Ast {
-	var r []*Ast
-
-	for {
-		ast := read_toplevel()
-		if ast == nil {
-			return r
-		}
-		r = append(r, ast)
-	}
-
-	return r
 }

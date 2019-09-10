@@ -894,38 +894,37 @@ static void read_decl_spec(Ctype **rtype) {
     enum { tchar = 1, tshort, tint, tlong, tllong,
            tfloat, tdouble, tvoid } ti = unspec;
     for (;;) {
-        char *s = tok->sval;
-        if (!strcmp(s, "const")) {
+        if (!strcmp(tok->sval, "const")) {
             // ignore
-        } else if (!strcmp(s, "signed")) {
+        } else if (!strcmp(tok->sval, "signed")) {
             if (si != unspec) goto dupspec;
             si = ssign;
-        } else if (!strcmp(s, "unsigned")) {
+        } else if (!strcmp(tok->sval, "unsigned")) {
             if (si != unspec) goto dupspec;
             si = sunsign;
-        } else if (!strcmp(s, "char")) {
+        } else if (!strcmp(tok->sval, "char")) {
             if (ti != unspec) goto duptype;
             ti = tchar;
-        } else if (!strcmp(s, "short")) {
+        } else if (!strcmp(tok->sval, "short")) {
             if (ti != unspec) goto duptype;
             ti = tshort;
-        } else if (!strcmp(s, "int")) {
+        } else if (!strcmp(tok->sval, "int")) {
             if (ti == unspec) ti = tint;
             else if (ti == tchar) goto duptype;
-        } else if (!strcmp(s, "long")) {
+        } else if (!strcmp(tok->sval, "long")) {
             if (ti == unspec)  ti = tlong;
             else if (ti == tlong)   ti = tllong;
             else if (ti == tdouble) ti = tdouble;
             else goto duptype;
-        } else if (!strcmp(s, "float")) {
+        } else if (!strcmp(tok->sval, "float")) {
             if (si != unspec) goto invspec;
             if (ti != unspec) goto duptype;
             else ti = tfloat;
-        } else if (!strcmp(s, "double")) {
+        } else if (!strcmp(tok->sval, "double")) {
             if (si != unspec) goto invspec;
             if (ti != unspec && ti != tlong) goto duptype;
             else ti = tfloat;
-        } else if (!strcmp(s, "void")) {
+        } else if (!strcmp(tok->sval, "void")) {
             if (si != unspec) goto invspec;
             if (ti != unspec) goto duptype;
             else ti = tvoid;

@@ -860,10 +860,13 @@ static Ctype *read_declarator(Ctype *basetype) {
 
 static Ctype *read_ctype(Token *tok);
 
-static Ctype *read_decl_spec(void) {
+static void read_decl_spec(Ctype **rtype) {
     Token *tok = read_token();
     for (;;) {
-        if (!tok) return NULL;
+        if (!tok) {
+            *rtype = NULL;
+            return;
+        }
         if (tok->type != TTYPE_IDENT)
             error("Identifier expected, but got %s", t2s(tok));
         if (is_ident(tok, "static") || is_ident(tok, "const"))
@@ -876,7 +879,7 @@ static Ctype *read_decl_spec(void) {
         : is_ident(tok, "enum") ? read_enum_def()
         : read_ctype(tok);
     assert(ctype);
-    return ctype;
+    *rtype = ctype;
 }
 
 static Ctype *read_ctype(Token *tok) {
@@ -1046,7 +1049,8 @@ static Ast *read_decl_init(Ast *var) {
 }
 
 static void read_decl_int(Token **name, Ctype **ctype) {
-    Ctype *basetype = read_decl_spec();
+    Ctype *basetype;
+    read_decl_spec(&basetype);
     Ctype *t = read_declarator(basetype);
     Token *tok = read_token();
     if (is_punct(tok, ';')) {
@@ -1215,7 +1219,8 @@ static void read_func_params(Ctype **rtype, List *paramvars, Ctype *rettype) {
             return;
         } else
             unget_token(tok);
-        Ctype *basetype = read_decl_spec();
+        Ctype *basetype;
+        read_decl_spec(&basetype);
         Ctype *ctype = read_declarator(basetype);
         Token *pname = read_token();
         if (pname->type != TTYPE_IDENT) {
@@ -1283,7 +1288,8 @@ List *read_toplevels(void) {
             continue;
         }
         unget_token(tok);
-        Ctype *basetype = read_decl_spec();
+        Ctype *basetype;
+        read_decl_spec(&basetype);
         Ctype *ctype = read_declarator(basetype);
         Token *name = read_token();
         if (is_punct(name, ';'))

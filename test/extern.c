@@ -1,6 +1,6 @@
 extern int expect(int, int);
-extern int externvar;
+extern int externvar1;
 
 int main() {
-    expect(99, externvar);
+    expect(98, externvar1);
 }

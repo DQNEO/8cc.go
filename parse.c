@@ -1068,14 +1068,14 @@ static void read_decl_int(char **name, Ctype **ctype) {
 }
 
 static Ast *read_decl(void) {
-    char *varname;
+    char *name;
     Ctype *ctype;
-    read_decl_int(&varname, &ctype);
-    if (!varname) {
+    read_decl_int(&name, &ctype);
+    if (!name) {
         expect(';');
         return NULL;
     }
-    Ast *var = ast_lvar(ctype, varname);
+    Ast *var = ast_lvar(ctype, name);
     return read_decl_init(var);
 }
 

@@ -685,83 +685,6 @@ Ast *read_expr(void) {
     return read_expr_int(MAX_OP_PRIO);
 }
 
-static Ctype *read_ctype(Token *tok) {
-    assert(tok && tok->type == TTYPE_IDENT);
-    Ctype *r = dict_get(typedefs, tok->sval);
-    if (r) return r;
-
-    int unspec = 0;
-    enum { ssign = 1, sunsign } si = unspec;
-    enum { tchar = 1, tshort, tint, tlong, tllong,
-           tfloat, tdouble, tvoid } ti = unspec;
-    for (;;) {
-        char *s = tok->sval;
-        if (!strcmp(s, "const")) {
-            // ignore
-        } else if (!strcmp(s, "signed")) {
-            if (si != unspec) goto dupspec;
-            si = ssign;
-        } else if (!strcmp(s, "unsigned")) {
-            if (si != unspec) goto dupspec;
-            si = sunsign;
-        } else if (!strcmp(s, "char")) {
-            if (ti != unspec) goto duptype;
-            ti = tchar;
-        } else if (!strcmp(s, "short")) {
-            if (ti != unspec) goto duptype;
-            ti = tshort;
-        } else if (!strcmp(s, "int")) {
-            if (ti == unspec) ti = tint;
-            else if (ti == tchar) goto duptype;
-        } else if (!strcmp(s, "long")) {
-            if (ti == unspec)  ti = tlong;
-            else if (ti == tlong)   ti = tllong;
-            else if (ti == tdouble) ti = tdouble;
-            else goto duptype;
-        } else if (!strcmp(s, "float")) {
-            if (si != unspec) goto invspec;
-            if (ti != unspec) goto duptype;
-            else ti = tfloat;
-        } else if (!strcmp(s, "double")) {
-            if (si != unspec) goto invspec;
-            if (ti != unspec && ti != tlong) goto duptype;
-            else ti = tfloat;
-        } else if (!strcmp(s, "void")) {
-            if (si != unspec) goto invspec;
-            if (ti != unspec) goto duptype;
-            else ti = tvoid;
-        } else {
-            unget_token(tok);
-            break;
-        }
-        tok = read_token();
-        if (tok->type != TTYPE_IDENT) {
-            unget_token(tok);
-            break;
-        }
-    }
-    if (ti == unspec && si == unspec)
-        error("Type expected, but got '%s'", t2s(tok));
-    if (ti == unspec) ti = tint;
-    switch (ti) {
-    case tchar:   return si == sunsign ? ctype_uchar : ctype_char;
-    case tshort:  return si == sunsign ? ctype_ushort : ctype_short;
-    case tint:    return si == sunsign ? ctype_uint : ctype_int;
-    case tlong:
-    case tllong:  return si == sunsign ? ctype_ulong : ctype_long;
-    case tfloat:  return ctype_float;
-    case tdouble: return ctype_double;
-    case tvoid:   return ctype_void;
-    }
-    error("internal error");
- dupspec:
-    error("duplicate specifier: %s", t2s(tok));
- duptype:
-    error("duplicate type specifier: %s", t2s(tok));
- invspec:
-    error("cannot combine signed/unsigned with %s", t2s(tok));
-}
-
 static bool is_type_keyword(Token *tok) {
     if (tok->type != TTYPE_IDENT)
         return false;
@@ -935,6 +858,8 @@ static Ctype *read_declarator(Ctype *basetype) {
     }
 }
 
+static Ctype *read_ctype(Token *tok);
+
 static Ctype *read_decl_spec(void) {
     Token *tok = read_token();
     for (;;) {
@@ -952,6 +877,83 @@ static Ctype *read_decl_spec(void) {
         : read_ctype(tok);
     assert(ctype);
     return ctype;
+}
+
+static Ctype *read_ctype(Token *tok) {
+    assert(tok && tok->type == TTYPE_IDENT);
+    Ctype *r = dict_get(typedefs, tok->sval);
+    if (r) return r;
+
+    int unspec = 0;
+    enum { ssign = 1, sunsign } si = unspec;
+    enum { tchar = 1, tshort, tint, tlong, tllong,
+           tfloat, tdouble, tvoid } ti = unspec;
+    for (;;) {
+        char *s = tok->sval;
+        if (!strcmp(s, "const")) {
+            // ignore
+        } else if (!strcmp(s, "signed")) {
+            if (si != unspec) goto dupspec;
+            si = ssign;
+        } else if (!strcmp(s, "unsigned")) {
+            if (si != unspec) goto dupspec;
+            si = sunsign;
+        } else if (!strcmp(s, "char")) {
+            if (ti != unspec) goto duptype;
+            ti = tchar;
+        } else if (!strcmp(s, "short")) {
+            if (ti != unspec) goto duptype;
+            ti = tshort;
+        } else if (!strcmp(s, "int")) {
+            if (ti == unspec) ti = tint;
+            else if (ti == tchar) goto duptype;
+        } else if (!strcmp(s, "long")) {
+            if (ti == unspec)  ti = tlong;
+            else if (ti == tlong)   ti = tllong;
+            else if (ti == tdouble) ti = tdouble;
+            else goto duptype;
+        } else if (!strcmp(s, "float")) {
+            if (si != unspec) goto invspec;
+            if (ti != unspec) goto duptype;
+            else ti = tfloat;
+        } else if (!strcmp(s, "double")) {
+            if (si != unspec) goto invspec;
+            if (ti != unspec && ti != tlong) goto duptype;
+            else ti = tfloat;
+        } else if (!strcmp(s, "void")) {
+            if (si != unspec) goto invspec;
+            if (ti != unspec) goto duptype;
+            else ti = tvoid;
+        } else {
+            unget_token(tok);
+            break;
+        }
+        tok = read_token();
+        if (tok->type != TTYPE_IDENT) {
+            unget_token(tok);
+            break;
+        }
+    }
+    if (ti == unspec && si == unspec)
+        error("Type expected, but got '%s'", t2s(tok));
+    if (ti == unspec) ti = tint;
+    switch (ti) {
+    case tchar:   return si == sunsign ? ctype_uchar : ctype_char;
+    case tshort:  return si == sunsign ? ctype_ushort : ctype_short;
+    case tint:    return si == sunsign ? ctype_uint : ctype_int;
+    case tlong:
+    case tllong:  return si == sunsign ? ctype_ulong : ctype_long;
+    case tfloat:  return ctype_float;
+    case tdouble: return ctype_double;
+    case tvoid:   return ctype_void;
+    }
+    error("internal error");
+ dupspec:
+    error("duplicate specifier: %s", t2s(tok));
+ duptype:
+    error("duplicate type specifier: %s", t2s(tok));
+ invspec:
+    error("cannot combine signed/unsigned with %s", t2s(tok));
 }
 
 static Ast *read_decl_array_init_val(Ctype *ctype) {

@@ -872,17 +872,9 @@ static void read_decl_spec(Ctype **rtype) {
         else
             break;
     }
-    Ctype *ctype = is_ident(tok, "struct") ? read_struct_def()
-        : is_ident(tok, "union") ? read_union_def()
-        : is_ident(tok, "enum") ? read_enum_def()
-        : NULL;
-    if (ctype) {
-        *rtype = ctype;
-        return;
-    }
-
 
     assert(tok && tok->type == TTYPE_IDENT);
+
     Ctype *r = dict_get(typedefs, tok->sval);
     if (r) {
         *rtype = r;
@@ -929,6 +921,15 @@ static void read_decl_spec(Ctype **rtype) {
             if (si != unspec) goto invspec;
             if (ti != unspec) goto duptype;
             else ti = tvoid;
+        } else if (_("struct")){
+            *rtype = read_struct_def();
+            return;
+        } else if (_("union")){
+            *rtype = read_union_def();
+            return;
+        } else if (_("enum")){
+            *rtype = read_enum_def();
+            return;
         } else {
             unget_token(tok);
             break;

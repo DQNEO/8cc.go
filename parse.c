@@ -869,23 +869,17 @@ static void read_decl_spec(Ctype **rtype) {
     enum { tchar = 1, tshort, tint, tlong, tllong,
            tfloat, tdouble, tvoid } ti = unspec;
 
-    for (;;) {
-        if (!tok) {
-            *rtype = NULL;
-            return;
-        }
-        if (tok->type != TTYPE_IDENT)
-            error("Identifier expected, but got %s", t2s(tok));
-        if (is_ident(tok, "static") || is_ident(tok, "const"))
-            tok = read_token();
-        else
-            break;
+    if (!tok) {
+        *rtype = NULL;
+        return;
     }
 
     assert(tok && tok->type == TTYPE_IDENT);
 
     for (;;) {
         if (_("const")) {
+            // ignore
+        } else if (_("static")) {
             // ignore
         } else if (_("signed")) {
             if (si != unspec) goto dupspec;

@@ -874,12 +874,8 @@ static void read_decl_spec(Ctype **rtype) {
     }
 
     assert(tok && tok->type == TTYPE_IDENT);
+    Ctype *tmp = NULL;
 
-    Ctype *r = dict_get(typedefs, tok->sval);
-    if (r) {
-        *rtype = r;
-        return;
-    }
 #define _(s) (!strcmp(tok->sval, s))
 
     int unspec = 0;
@@ -929,6 +925,9 @@ static void read_decl_spec(Ctype **rtype) {
             return;
         } else if (_("enum")){
             *rtype = read_enum_def();
+            return;
+        } else if ((tmp = dict_get(typedefs, tok->sval)) != NULL) {
+            *rtype = tmp;
             return;
         } else {
             unget_token(tok);

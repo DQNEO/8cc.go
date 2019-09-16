@@ -879,8 +879,8 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
 #undef unused
     Ctype *usertype = NULL, *tmp = NULL;
 
-    enum { tchar = 1, tshort, tint, tlong, tllong,
-           tfloat, tdouble, tvoid } ti = 0;
+    enum { kchar = 1, kshort, kint, klong, kllong,
+           kfloat, kdouble, kvoid } ti = 0;
 
     enum { ksigned = 1, kunsigned } sig = 0;
 
@@ -911,23 +911,23 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         else if (_("const"))    { kconst = 1; }
         else if (_("volatile")) { kvolatile = 1; }
         else if (_("inline"))   { kinline = 1; }
-        else if (_("void"))     { if (sig != 0) goto err; set(ti, tvoid);}
-        else if (_("char"))     { set(ti, tchar); }
-        else if (_("int"))      { if (ti == 0) { set(ti, tint) ;} else if (ti == tchar) goto err; }
-        else if (_("float"))    { if (sig != 0) goto err; { set(ti, tfloat);} }
-        else if (_("double"))   { if (sig != 0) goto err; if (ti != 0 && ti != tlong) goto err; else { set(ti, tfloat); } }
+        else if (_("void"))     { if (sig != 0) goto err; set(ti, kvoid);}
+        else if (_("char"))     { set(ti, kchar); }
+        else if (_("int"))      { if (ti == 0) { set(ti, kint) ;} else if (ti == kchar) goto err; }
+        else if (_("float"))    { if (sig != 0) goto err; { set(ti, kfloat);} }
+        else if (_("double"))   { if (sig != 0) goto err; if (ti != 0 && ti != klong) goto err; else { set(ti, kfloat); } }
         else if (_("signed"))   { set(sig, ksigned); }
         else if (_("unsigned")) { set(sig, kunsigned); }
-        else if (_("short"))    { set(ti, tshort); }
+        else if (_("short"))    { set(ti, kshort); }
         else if (_("struct"))   { set(usertype, read_struct_def()); }
         else if (_("union"))    { set(usertype, read_union_def()); }
         else if (_("enum"))     { set(usertype, read_enum_def());
         } else if ((tmp = dict_get(typedefs, tok->sval)) != NULL) {
             set(usertype, tmp);
         } else if (_("long"))     {
-            if (ti == 0)  ti = tlong;
-            else if (ti == tlong)   ti = tllong;
-            else if (ti == tdouble) ti = tdouble;
+            if (ti == 0)  ti = klong;
+            else if (ti == klong)   ti = kllong;
+            else if (ti == kdouble) ti = kdouble;
             else goto err;
         } else {
             unget_token(tok);
@@ -937,32 +937,32 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
 #undef set
 #undef setsclass
     }
-    if (ti == 0) ti = tint;
+    if (ti == 0) ti = kint;
     if (usertype) {
         *rtype = usertype;
         return;
     }
     switch (ti) {
-    case tchar:
+    case kchar:
          *rtype = (sig == kunsigned) ?  ctype_uchar : ctype_char;
         return;
-    case tshort:
+    case kshort:
        *rtype =  (sig == kunsigned) ? ctype_ushort : ctype_short;
       return;
-    case tint:
+    case kint:
          *rtype = (sig == kunsigned) ? ctype_uint : ctype_int;
         return;
-    case tlong:
-    case tllong:
+    case klong:
+    case kllong:
        *rtype =  (sig == kunsigned) ? ctype_ulong : ctype_long;
       return;
-    case tfloat:
+    case kfloat:
        *rtype = ctype_float;
       return;
-    case tdouble:
+    case kdouble:
       *rtype = ctype_double;
      return;
-    case tvoid:
+    case kvoid:
         *rtype = ctype_void;
        return;
     }

@@ -877,11 +877,11 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
     Ctype *tmp = NULL;
 
     int unspec = 0;
-    enum { ssign = 1, sunsign } si = unspec;
     enum { tchar = 1, tshort, tint, tlong, tllong,
            tfloat, tdouble, tvoid } ti = unspec;
 
     assert(tok && tok->type == TTYPE_IDENT);
+    enum { ksigned = 1, kunsigned } sig = 0;
 
     for (;;) {
 
@@ -907,11 +907,11 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         else if (_("const")) {
             // ignore
         } else if (_("signed")) {
-            if (si != unspec) goto dupspec;
-            si = ssign;
+            if (sig != unspec) goto dupspec;
+            sig = ksigned;
         } else if (_("unsigned")) {
-            if (si != unspec) goto dupspec;
-            si = sunsign;
+            if (sig != unspec) goto dupspec;
+            sig = kunsigned;
         } else if (_("char")) {
             if (ti != unspec) goto duptype;
             ti = tchar;
@@ -927,15 +927,15 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
             else if (ti == tdouble) ti = tdouble;
             else goto duptype;
         } else if (_("float")) {
-            if (si != unspec) goto invspec;
+            if (sig != unspec) goto invspec;
             if (ti != unspec) goto duptype;
             else ti = tfloat;
         } else if (_("double")) {
-            if (si != unspec) goto invspec;
+            if (sig != unspec) goto invspec;
             if (ti != unspec && ti != tlong) goto duptype;
             else ti = tfloat;
         } else if (_("void")) {
-            if (si != unspec) goto invspec;
+            if (sig != unspec) goto invspec;
             if (ti != unspec) goto duptype;
             else ti = tvoid;
         } else if (_("struct")){
@@ -957,22 +957,22 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
 #undef _
 #undef setsclass
     }
-    if (ti == unspec && si == unspec)
+    if (ti == unspec && sig == unspec)
         error("Type expected, but got '%s'", t2s(tok));
     if (ti == unspec) ti = tint;
     switch (ti) {
     case tchar:
-         *rtype = (si == sunsign) ?  ctype_uchar : ctype_char;
+         *rtype = (sig == kunsigned) ?  ctype_uchar : ctype_char;
         return;
     case tshort:
-       *rtype =  (si == sunsign) ? ctype_ushort : ctype_short;
+       *rtype =  (sig == kunsigned) ? ctype_ushort : ctype_short;
       return;
     case tint:
-         *rtype = (si == sunsign) ? ctype_uint : ctype_int;
+         *rtype = (sig == kunsigned) ? ctype_uint : ctype_int;
         return;
     case tlong:
     case tllong:
-       *rtype =  (si == sunsign) ? ctype_ulong : ctype_long;
+       *rtype =  (sig == kunsigned) ? ctype_ulong : ctype_long;
       return;
     case tfloat:
        *rtype = ctype_float;

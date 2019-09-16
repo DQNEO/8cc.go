@@ -905,21 +905,25 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         else if (_("auto"))     { setsclass(S_AUTO); }
         else if (_("register")) { setsclass(S_REGISTER); }
         else if (_("const"))    {  ; }
-        else if (_("signed"))   { if (sig != unspec) goto dupspec; sig = ksigned; }
-        else if (_("unsigned")) { if (sig != unspec) goto dupspec; sig = kunsigned; }
+        else if (_("void"))     { if (sig != unspec) goto invspec; if (ti != unspec) goto duptype; else ti = tvoid; }
         else if (_("char"))     { if (ti != unspec) goto duptype; ti = tchar; }
-        else if (_("short"))    { if (ti != unspec) goto duptype; ti = tshort; }
         else if (_("int"))      { if (ti == unspec) ti = tint; else if (ti == tchar) goto duptype; }
-        else if (_("long"))     { if (ti == unspec)  ti = tlong; else if (ti == tlong)   ti = tllong; else if (ti == tdouble) ti = tdouble; else goto duptype; }
         else if (_("float"))    { if (sig != unspec) goto invspec; if (ti != unspec) goto duptype; else ti = tfloat; }
         else if (_("double"))   { if (sig != unspec) goto invspec; if (ti != unspec && ti != tlong) goto duptype; else ti = tfloat; }
-        else if (_("void"))     { if (sig != unspec) goto invspec; if (ti != unspec) goto duptype; else ti = tvoid; }
+        else if (_("signed"))   { if (sig != unspec) goto dupspec; sig = ksigned; }
+        else if (_("unsigned")) { if (sig != unspec) goto dupspec; sig = kunsigned; }
+        else if (_("short"))    { if (ti != unspec) goto duptype; ti = tshort; }
         else if (_("struct"))   { *rtype = read_struct_def(); return; }
         else if (_("union"))    { *rtype = read_union_def(); return; }
         else if (_("enum"))     { *rtype = read_enum_def(); return;
         } else if ((tmp = dict_get(typedefs, tok->sval)) != NULL) {
             *rtype = tmp;
             return;
+        } else if (_("long"))     {
+            if (ti == unspec)  ti = tlong;
+            else if (ti == tlong)   ti = tllong;
+            else if (ti == tdouble) ti = tdouble;
+            else goto duptype;
         } else {
             unget_token(tok);
             break;

@@ -40,7 +40,7 @@ static Ast *read_compound_stmt(void);
 static Ast *read_decl_or_stmt(void);
 static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
-static void read_decl_int(char **name, Ctype **ctype);
+static void read_decl_int(char **name, Ctype **ctype, int *sclass);
 static bool is_type_keyword(Token *tok);
 static Ast *read_unary_expr(void);
 static void read_func_params(Ctype **rtype, List *rparams, Ctype *rettype);
@@ -567,7 +567,8 @@ static Ast *get_sizeof_size(bool allow_typename) {
         unget_token(tok);
         char *dummy;
         Ctype *ctype = NULL;
-        read_decl_int(&dummy, &ctype);
+        int sclass;
+        read_decl_int(&dummy, &ctype, &sclass);
         assert(ctype);
         return ast_inttype(ctype_long, ctype->size);
     }
@@ -764,7 +765,8 @@ static Dict *read_struct_union_fields(void) {
             break;
         char *name;
         Ctype *fieldtype;
-        read_decl_int(&name, &fieldtype);
+        int sclass;
+        read_decl_int(&name, &fieldtype, &sclass);
         dict_put(r, name, make_struct_field_type(fieldtype, 0));
         expect(';');
     }
@@ -865,9 +867,9 @@ static Ctype *read_declarator(Ctype *basetype) {
     }
 }
 
-static void read_decl_spec(Ctype **rtype) {
-    int *sclass = 0;
+static void read_decl_spec(Ctype **rtype, int *sclass) {
     *rtype = NULL;
+    *sclass = 0;
     Token *tok = peek_token();
     if (!tok || tok->type != TTYPE_IDENT)
         return;
@@ -1083,9 +1085,9 @@ static Ast *read_decl_init(Ast *var) {
     return ast_decl(var, NULL);
 }
 
-static void read_decl_int(char **name, Ctype **ctype) {
+static void read_decl_int(char **name, Ctype **ctype, int *sclass) {
     Ctype *basetype;
-    read_decl_spec(&basetype);
+    read_decl_spec(&basetype, sclass);
     Ctype *t = read_declarator(basetype);
     Token *tok = read_token();
     if (is_punct(tok, ';')) {
@@ -1105,7 +1107,8 @@ static void read_decl_int(char **name, Ctype **ctype) {
 static Ast *read_decl(void) {
     char *name;
     Ctype *ctype;
-    read_decl_int(&name, &ctype);
+    int sclass;
+    read_decl_int(&name, &ctype, &sclass);
     if (!name) {
         expect(';');
         return NULL;
@@ -1117,7 +1120,8 @@ static Ast *read_decl(void) {
 static void read_extern_typedef(char **rname, Ctype **rctype) {
     char *name;
     Ctype *ctype;
-    read_decl_int(&name, &ctype);
+    int sclass;
+    read_decl_int(&name, &ctype, &sclass);
     if (!name)
         error("name missing");
     Token *tok = read_token();
@@ -1255,7 +1259,8 @@ static void read_func_params(Ctype **rtype, List *paramvars, Ctype *rettype) {
         } else
             unget_token(tok);
         Ctype *basetype;
-        read_decl_spec(&basetype);
+        int sclass;
+        read_decl_spec(&basetype, &sclass);
         Ctype *ctype = read_declarator(basetype);
         Token *pname = read_token();
         if (pname->type != TTYPE_IDENT) {
@@ -1324,7 +1329,8 @@ List *read_toplevels(void) {
         }
         unget_token(tok);
         Ctype *basetype;
-        read_decl_spec(&basetype);
+        int sclass;
+        read_decl_spec(&basetype, &sclass);
         Ctype *ctype = read_declarator(basetype);
         Token *name = read_token();
         if (is_punct(name, ';'))

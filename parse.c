@@ -876,8 +876,6 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
 
     Ctype *tmp = NULL;
 
-#define _(s) (!strcmp(tok->sval, s))
-
     int unspec = 0;
     enum { ssign = 1, sunsign } si = unspec;
     enum { tchar = 1, tshort, tint, tlong, tllong,
@@ -890,6 +888,7 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
 #define setsclass(val)                          \
         if (*sclass != 0) goto err;             \
         *sclass = val
+#define _(s) (!strcmp(tok->sval, s))
 
         tok = read_token();
         if (!tok) {

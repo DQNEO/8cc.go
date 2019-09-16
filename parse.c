@@ -877,7 +877,7 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
 #define unused __attribute__((unused))
     bool kconst unused = false, kvolatile unused = false, kinline unused = false;
 #undef unused
-    Ctype *tmp = NULL;
+    Ctype *usertype = NULL, *tmp = NULL;
 
     enum { tchar = 1, tshort, tint, tlong, tllong,
            tfloat, tdouble, tvoid } ti = 0;
@@ -919,12 +919,11 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         else if (_("signed"))   { set(sig, ksigned); }
         else if (_("unsigned")) { set(sig, kunsigned); }
         else if (_("short"))    { set(ti, tshort); }
-        else if (_("struct"))   { *rtype = read_struct_def(); return; }
-        else if (_("union"))    { *rtype = read_union_def(); return; }
-        else if (_("enum"))     { *rtype = read_enum_def(); return;
+        else if (_("struct"))   { set(usertype, read_struct_def()); }
+        else if (_("union"))    { set(usertype, read_union_def()); }
+        else if (_("enum"))     { set(usertype, read_enum_def());
         } else if ((tmp = dict_get(typedefs, tok->sval)) != NULL) {
-            *rtype = tmp;
-            return;
+            set(usertype, tmp);
         } else if (_("long"))     {
             if (ti == 0)  ti = tlong;
             else if (ti == tlong)   ti = tllong;
@@ -938,9 +937,11 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
 #undef set
 #undef setsclass
     }
-    if (ti == 0 && sig == 0)
-        error("Type expected, but got '%s'", t2s(tok));
     if (ti == 0) ti = tint;
+    if (usertype) {
+        *rtype = usertype;
+        return;
+    }
     switch (ti) {
     case tchar:
          *rtype = (sig == kunsigned) ?  ctype_uchar : ctype_char;

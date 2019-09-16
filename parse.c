@@ -880,7 +880,6 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
     enum { tchar = 1, tshort, tint, tlong, tllong,
            tfloat, tdouble, tvoid } ti = unspec;
 
-    assert(tok && tok->type == TTYPE_IDENT);
     enum { ksigned = 1, kunsigned } sig = 0;
 
     for (;;) {

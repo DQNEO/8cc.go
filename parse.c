@@ -911,14 +911,14 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         else if (_("const"))    { kconst = 1; }
         else if (_("volatile")) { kvolatile = 1; }
         else if (_("inline"))   { kinline = 1; }
-        else if (_("void"))     { if (sig != 0) goto err; if (ti != 0) goto err; else { set(ti, tvoid); } }
-        else if (_("char"))     { if (ti != 0) goto err; set(ti, tchar); }
+        else if (_("void"))     { if (sig != 0) goto err; set(ti, tvoid);}
+        else if (_("char"))     { set(ti, tchar); }
         else if (_("int"))      { if (ti == 0) { set(ti, tint) ;} else if (ti == tchar) goto err; }
-        else if (_("float"))    { if (sig != 0) goto err; if (ti != 0) goto err; else { set(ti, tfloat);} }
+        else if (_("float"))    { if (sig != 0) goto err; { set(ti, tfloat);} }
         else if (_("double"))   { if (sig != 0) goto err; if (ti != 0 && ti != tlong) goto err; else { set(ti, tfloat); } }
-        else if (_("signed"))   { if (sig != 0) goto err; set(sig, ksigned); }
-        else if (_("unsigned")) { if (sig != 0) goto err; set(sig, kunsigned); }
-        else if (_("short"))    { if (ti != 0) goto err; set(ti, tshort); }
+        else if (_("signed"))   { set(sig, ksigned); }
+        else if (_("unsigned")) { set(sig, kunsigned); }
+        else if (_("short"))    { set(ti, tshort); }
         else if (_("struct"))   { *rtype = read_struct_def(); return; }
         else if (_("union"))    { *rtype = read_union_def(); return; }
         else if (_("enum"))     { *rtype = read_enum_def(); return;

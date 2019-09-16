@@ -912,14 +912,14 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         else if (_("const"))    { kconst = 1; }
         else if (_("volatile")) { kvolatile = 1; }
         else if (_("inline"))   { kinline = 1; }
-        else if (_("void"))     { if (sig != unspec) goto invspec; if (ti != unspec) goto duptype; else { set(ti, tvoid); } }
-        else if (_("char"))     { if (ti != unspec) goto duptype; set(ti, tchar); }
-        else if (_("int"))      { if (ti == unspec) { set(ti, tint) ;} else if (ti == tchar) goto duptype; }
-        else if (_("float"))    { if (sig != unspec) goto invspec; if (ti != unspec) goto duptype; else { set(ti, tfloat);} }
-        else if (_("double"))   { if (sig != unspec) goto invspec; if (ti != unspec && ti != tlong) goto duptype; else { set(ti, tfloat); } }
-        else if (_("signed"))   { if (sig != unspec) goto dupspec; set(sig, ksigned); }
-        else if (_("unsigned")) { if (sig != unspec) goto dupspec; set(sig, kunsigned); }
-        else if (_("short"))    { if (ti != unspec) goto duptype; set(ti, tshort); }
+        else if (_("void"))     { if (sig != unspec) goto err; if (ti != unspec) goto err; else { set(ti, tvoid); } }
+        else if (_("char"))     { if (ti != unspec) goto err; set(ti, tchar); }
+        else if (_("int"))      { if (ti == unspec) { set(ti, tint) ;} else if (ti == tchar) goto err; }
+        else if (_("float"))    { if (sig != unspec) goto err; if (ti != unspec) goto err; else { set(ti, tfloat);} }
+        else if (_("double"))   { if (sig != unspec) goto err; if (ti != unspec && ti != tlong) goto err; else { set(ti, tfloat); } }
+        else if (_("signed"))   { if (sig != unspec) goto err; set(sig, ksigned); }
+        else if (_("unsigned")) { if (sig != unspec) goto err; set(sig, kunsigned); }
+        else if (_("short"))    { if (ti != unspec) goto err; set(ti, tshort); }
         else if (_("struct"))   { *rtype = read_struct_def(); return; }
         else if (_("union"))    { *rtype = read_union_def(); return; }
         else if (_("enum"))     { *rtype = read_enum_def(); return;
@@ -930,7 +930,7 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
             if (ti == unspec)  ti = tlong;
             else if (ti == tlong)   ti = tllong;
             else if (ti == tdouble) ti = tdouble;
-            else goto duptype;
+            else goto err;
         } else {
             unget_token(tok);
             break;
@@ -967,12 +967,6 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
        return;
     }
     error("internal error");
- dupspec:
-    error("duplicate specifier: %s", t2s(tok));
- duptype:
-    error("duplicate type specifier: %s", t2s(tok));
- invspec:
-    error("cannot combine signed/unsigned with %s", t2s(tok));
  err:
     error("type mismatch: %s", t2s(tok));
 }

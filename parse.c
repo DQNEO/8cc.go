@@ -943,28 +943,14 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         return;
     }
     switch (ti) {
-    case kchar:
-         *rtype = (sig != kunsigned) ? ctype_char : ctype_uchar;
-        return;
-    case kshort:
-       *rtype =  (sig != kunsigned) ? ctype_short : ctype_ushort;
-      return;
-    case kint:
-         *rtype = (sig != kunsigned) ? ctype_int: ctype_uint ;
-        return;
+    case kchar: *rtype = (sig != kunsigned) ? ctype_char : ctype_uchar; return;
+    case kshort: *rtype =  (sig != kunsigned) ? ctype_short : ctype_ushort; return;
+    case kint: *rtype = (sig != kunsigned) ? ctype_int: ctype_uint; return;
     case klong:
-    case kllong:
-       *rtype =  (sig != kunsigned) ? ctype_long : ctype_ulong;
-      return;
-    case kfloat:
-       *rtype = ctype_float;
-      return;
-    case kdouble:
-      *rtype = ctype_double;
-     return;
-    case kvoid:
-        *rtype = ctype_void;
-       return;
+    case kllong: *rtype =  (sig != kunsigned) ? ctype_long : ctype_ulong; return;
+    case kfloat: *rtype = ctype_float; return;
+    case kdouble: *rtype = ctype_double; return;
+    case kvoid: *rtype = ctype_void; return;
     }
     error("internal error");
  err:

@@ -913,7 +913,7 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         else if (_("inline"))   { kinline = 1; }
         else if (_("void"))     { set(type, kvoid);}
         else if (_("char"))     { set(type, kchar); }
-        else if (_("int"))      { if (type == 0) { set(type, kint) ;} else if (type == kchar) goto err; }
+        else if (_("int"))      { set(type, kint);}
         else if (_("float"))    { set(type, kfloat);}
         else if (_("double"))   { set(type, kfloat);}
         else if (_("signed"))   { set(sig, ksigned); }

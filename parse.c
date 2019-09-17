@@ -860,6 +860,15 @@ static Ctype *read_declarator(Ctype *basetype) {
 
 static void read_decl_spec(Ctype **rtype) {
     Token *tok = read_token();
+    Ctype *tmp = NULL;
+
+#define _(s) (!strcmp(tok->sval, s))
+
+    int unspec = 0;
+    enum { ssign = 1, sunsign } si = unspec;
+    enum { tchar = 1, tshort, tint, tlong, tllong,
+           tfloat, tdouble, tvoid } ti = unspec;
+
     for (;;) {
         if (!tok) {
             *rtype = NULL;
@@ -874,14 +883,7 @@ static void read_decl_spec(Ctype **rtype) {
     }
 
     assert(tok && tok->type == TTYPE_IDENT);
-    Ctype *tmp = NULL;
 
-#define _(s) (!strcmp(tok->sval, s))
-
-    int unspec = 0;
-    enum { ssign = 1, sunsign } si = unspec;
-    enum { tchar = 1, tshort, tint, tlong, tllong,
-           tfloat, tdouble, tvoid } ti = unspec;
     for (;;) {
         if (_("const")) {
             // ignore

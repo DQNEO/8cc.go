@@ -619,7 +619,7 @@ func get_sizeof_size(allow_typename bool) *Ast {
 	tok := read_token()
 	if allow_typename && is_type_keyword(tok) {
 		unget_token(tok)
-		_, ctype := read_decl_int()
+		_, ctype, _ := read_decl_int()
 		assert(ctype != nil)
 		return ast_inttype(ctype_long, ctype.size)
 	}
@@ -865,7 +865,7 @@ func read_struct_union_fields() *Dict {
 		if !is_type_keyword(peek_token()) {
 			break
 		}
-		name, fieldtype  := read_decl_int()
+		name, fieldtype, _  := read_decl_int()
 		r.PutCtype(name, make_struct_field_type(fieldtype, 0))
 		expect(';')
 	}
@@ -999,12 +999,12 @@ func read_declarator(basetype *Ctype) *Ctype {
 
 }
 
-func read_decl_spec() *Ctype {
+func read_decl_spec() (*Ctype, int) {
 	var sclass int
 
 	tok := peek_token()
 	if tok == nil || tok.typ != TTYPE_IDENT {
-		return nil
+		return nil, 0
 	}
 
 	var tmp *Ctype
@@ -1042,7 +1042,7 @@ func read_decl_spec() *Ctype {
 
 		tok = read_token()
 		if tok == nil {
-			return nil
+			return nil, sclass
 		}
 		if tok.typ != TTYPE_IDENT {
 			unget_token(tok)
@@ -1127,13 +1127,13 @@ func read_decl_spec() *Ctype {
 				ti = tvoid
 			}
 		} else if s == "struct" {
-			return read_struct_def()
+			return read_struct_def(), sclass
 		} else if s == "union" {
-			return read_union_def()
+			return read_union_def(), sclass
 		} else if s == "enum" {
-			return read_enum_def()
+			return read_enum_def(), sclass
 		} else if tmp = typedefs.GetCtype(s); tmp != nil {
-			return tmp
+			return tmp, sclass
 		} else {
 			unget_token(tok)
 			break
@@ -1147,48 +1147,48 @@ func read_decl_spec() *Ctype {
 	switch ti {
 	case tchar:
 		if si == sunsign {
-			return ctype_uchar
+			return ctype_uchar, sclass
 		} else {
-			return ctype_char
+			return ctype_char, sclass
 		}
 	case tshort:
 		if si == sunsign {
-			return ctype_ushort
+			return ctype_ushort, sclass
 		} else {
-			return ctype_short
+			return ctype_short, sclass
 		}
 	case tint:
 		if si == sunsign {
-			return ctype_uint
+			return ctype_uint, sclass
 		} else {
-			return ctype_int
+			return ctype_int, sclass
 		}
 	case tlong, tllong:
 		if si == sunsign {
-			return ctype_ulong
+			return ctype_ulong, sclass
 		} else {
-			return ctype_long
+			return ctype_long, sclass
 		}
 	case tfloat:
-		return ctype_float
+		return ctype_float, sclass
 	case tdouble:
-		return ctype_double
+		return ctype_double, sclass
 	case tvoid:
-		return ctype_void
+		return ctype_void, sclass
 	}
 	errorf("internal error")
-	return nil
+	return nil, 0
 }
 
-func read_decl_int() (string, *Ctype) {
-	basetype := read_decl_spec()
+func read_decl_int() (string, *Ctype, int) {
+	basetype, sclass := read_decl_spec()
 	ctype := read_declarator(basetype)
 	tok := read_token()
 	var name string
 	if tok.is_punct(';') {
 		unget_token(tok)
 		name = ""
-		return name, ctype
+		return name, ctype, sclass
 	}
 	if !tok.is_ident_type() {
 		unget_token(tok)
@@ -1197,7 +1197,7 @@ func read_decl_int() (string, *Ctype) {
 		name = tok.sval
 	}
 	ctype = read_array_dimensions(ctype)
-	return name, ctype
+	return name, ctype, sclass
 }
 
 func read_decl_array_init_val(ctype *Ctype) *Ast {
@@ -1307,7 +1307,7 @@ func read_decl_init(variable *Ast) *Ast {
 }
 
 func read_decl() *Ast {
-	name, ctype := read_decl_int()
+	name, ctype, _ := read_decl_int()
 	if name == "" {
 		expect(';')
 		return nil
@@ -1317,7 +1317,7 @@ func read_decl() *Ast {
 }
 
 func read_extern_typedef() (string, *Ctype)  {
-	name, ctype := read_decl_int()
+	name, ctype, _ := read_decl_int()
 	if name == "" {
 		errorf("name missing")
 	}
@@ -1479,7 +1479,7 @@ func read_func_params(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 		} else {
 			unget_token(pt)
 		}
-		basetype := read_decl_spec()
+		basetype, _ := read_decl_spec()
 		ctype := read_declarator(basetype)
 		pname := read_token()
 		if !pname.is_ident_type() {
@@ -1552,7 +1552,7 @@ func read_toplevels() []*Ast {
 			continue
 		}
 		unget_token(tok)
-		basetype := read_decl_spec()
+		basetype, _ := read_decl_spec()
 		ctype := read_declarator(basetype)
 		name := read_token()
 		if name.is_punct(';') {

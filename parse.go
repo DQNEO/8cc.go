@@ -1009,11 +1009,7 @@ func read_decl_spec() *Ctype {
 	}
 
 	assert(tok != nil && tok.is_ident_type())
-
-	r := typedefs.GetCtype(tok.sval)
-	if r != nil {
-		return r
-	}
+	var tmp *Ctype
 
 	const unspec = 0
 
@@ -1109,6 +1105,8 @@ func read_decl_spec() *Ctype {
 			return read_union_def()
 		} else if s == "enum" {
 			return read_enum_def()
+		} else if tmp = typedefs.GetCtype(s); tmp != nil {
+			return tmp
 		} else {
 			unget_token(tok)
 			break

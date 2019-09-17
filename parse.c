@@ -1282,6 +1282,8 @@ List *read_toplevels(void) {
         ctype = read_array_dimensions(ctype);
         tok = read_token();
         if (is_punct(tok, '=')) {
+            if (sclass == S_TYPEDEF)
+                error("= after typedef");
             Ast *var = ast_gvar(ctype, name->sval);
             list_push(r, read_decl_init(var));
             continue;

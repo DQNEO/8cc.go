@@ -1063,40 +1063,24 @@ func read_decl_spec() (*Ctype, int) {
 			// ignore
 		} else if s == "static" {
 			// ignore
-		} else if s == "signed" {
+		} else if s == "void" {
 			if sig != unspec {
-				dupspec(tok)
+				invspec(tok)
 			}
-			sig = ksigned
-		} else if s == "unsigned" {
-			if sig != unspec {
-				dupspec(tok)
+			if ti != unspec {
+				duptype(tok)
+			} else {
+				ti = tvoid
 			}
-			sig = kunsigned
 		} else if s == "char" {
 			if ti != unspec {
 				duptype(tok)
 			}
 			ti = tchar
-		} else if s == "short" {
-			if ti != unspec {
-				duptype(tok)
-			}
-			ti = tshort
 		} else if s == "int" {
 			if ti == unspec {
 				ti = tint
 			} else if ti == tchar {
-				duptype(tok)
-			}
-		} else if s == "long" {
-			if ti == unspec {
-				ti = tlong
-			} else if ti == tlong {
-				ti = tllong
-			} else if ti == tdouble {
-				ti = tdouble
-			} else {
 				duptype(tok)
 			}
 		} else if s == "float" {
@@ -1117,21 +1101,37 @@ func read_decl_spec() (*Ctype, int) {
 			} else {
 				ti = tfloat
 			}
-		} else if s == "void" {
+		} else if s == "signed" {
 			if sig != unspec {
-				invspec(tok)
+				dupspec(tok)
 			}
+			sig = ksigned
+		} else if s == "unsigned" {
+			if sig != unspec {
+				dupspec(tok)
+			}
+			sig = kunsigned
+		} else if s == "short" {
 			if ti != unspec {
 				duptype(tok)
-			} else {
-				ti = tvoid
 			}
+			ti = tshort
 		} else if s == "struct" {
 			return read_struct_def(), sclass
 		} else if s == "union" {
 			return read_union_def(), sclass
 		} else if s == "enum" {
 			return read_enum_def(), sclass
+		} else if s == "long" {
+			if ti == unspec {
+				ti = tlong
+			} else if ti == tlong {
+				ti = tllong
+			} else if ti == tdouble {
+				ti = tdouble
+			} else {
+				duptype(tok)
+			}
 		} else if tmp = typedefs.GetCtype(s); tmp != nil {
 			return tmp, sclass
 		} else {

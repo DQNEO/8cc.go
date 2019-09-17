@@ -46,6 +46,14 @@ static Ast *read_unary_expr(void);
 static void read_func_params(Ctype **rtype, List *rparams, Ctype *rettype);
 static Ast *read_decl_init_val(Ctype *ctype);
 
+enum {
+    S_TYPEDEF = 1,
+    S_EXTERN,
+    S_STATIC,
+    S_AUTO,
+    S_REGISTER,
+};
+
 static Ast *ast_uop(int type, Ctype *ctype, Ast *operand) {
     Ast *r = malloc(sizeof(Ast));
     r->type = type;
@@ -859,6 +867,7 @@ static Ctype *read_declarator(Ctype *basetype) {
 }
 
 static void read_decl_spec(Ctype **rtype) {
+    int *sclass = 0;
     *rtype = NULL;
     Token *tok = peek_token();
     if (!tok || tok->type != TTYPE_IDENT)
@@ -876,6 +885,11 @@ static void read_decl_spec(Ctype **rtype) {
     assert(tok && tok->type == TTYPE_IDENT);
 
     for (;;) {
+
+#define setsclass(val)                          \
+        if (*sclass != 0) goto err;             \
+        *sclass = val
+
         tok = read_token();
         if (!tok) {
             *rtype = NULL;
@@ -885,10 +899,12 @@ static void read_decl_spec(Ctype **rtype) {
             unget_token(tok);
             break;
         }
-
-        if (_("const")) {
-            // ignore
-        } else if (_("static")) {
+        if (_("typedef"))       { setsclass(S_TYPEDEF); }
+        else if (_("extern"))   { setsclass(S_EXTERN); }
+        else if (_("static"))   { setsclass(S_STATIC); }
+        else if (_("auto"))     { setsclass(S_AUTO); }
+        else if (_("register")) { setsclass(S_REGISTER); }
+        else if (_("const")) {
             // ignore
         } else if (_("signed")) {
             if (si != unspec) goto dupspec;
@@ -938,6 +954,8 @@ static void read_decl_spec(Ctype **rtype) {
             unget_token(tok);
             break;
         }
+#undef _
+#undef setsclass
     }
     if (ti == unspec && si == unspec)
         error("Type expected, but got '%s'", t2s(tok));
@@ -973,8 +991,8 @@ static void read_decl_spec(Ctype **rtype) {
     error("duplicate type specifier: %s", t2s(tok));
  invspec:
     error("cannot combine signed/unsigned with %s", t2s(tok));
-
-#undef _
+ err:
+    error("type mismatch: %s", t2s(tok));
 }
 
 static Ast *read_decl_array_init_val(Ctype *ctype) {

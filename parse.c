@@ -930,7 +930,7 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         else if (_("char"))     { set(type, kchar); }
         else if (_("int"))      { set(type, kint); }
         else if (_("float"))    { set(type, kfloat); }
-        else if (_("double"))   { set(type, kfloat) ;}
+        else if (_("double"))   { set(type, kdouble); }
         else if (_("signed"))   { set(sig, ksigned); }
         else if (_("unsigned")) { set(sig, kunsigned); }
         else if (_("short"))    { set(size, kshort); }

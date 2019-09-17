@@ -21,18 +21,18 @@ var localvars []*Ast
 var current_func_type *Ctype
 var labelseq = 0
 
-var ctype_void = &Ctype{typ: CTYPE_VOID, size: 0, sign: true,}
-var ctype_char = &Ctype{typ: CTYPE_CHAR, size: 1, sign: true,}
-var ctype_short = &Ctype{typ: CTYPE_SHORT, size: 2, sign: true}
-var ctype_int = &Ctype{typ: CTYPE_INT, size: 4, sign: true,}
-var ctype_long = &Ctype{typ: CTYPE_LONG, size: 8, sign: true,}
-var ctype_float = &Ctype{typ: CTYPE_FLOAT, size: 4, sign: true,}
-var ctype_double = &Ctype{typ: CTYPE_DOUBLE, size: 8, sign: true,}
+var ctype_void = &Ctype{typ: CTYPE_VOID, size: 0, sig: true,}
+var ctype_char = &Ctype{typ: CTYPE_CHAR, size: 1, sig: true,}
+var ctype_short = &Ctype{typ: CTYPE_SHORT, size: 2, sig: true}
+var ctype_int = &Ctype{typ: CTYPE_INT, size: 4, sig: true,}
+var ctype_long = &Ctype{typ: CTYPE_LONG, size: 8, sig: true,}
+var ctype_float = &Ctype{typ: CTYPE_FLOAT, size: 4, sig: true,}
+var ctype_double = &Ctype{typ: CTYPE_DOUBLE, size: 8, sig: true,}
 
-var ctype_uchar = &Ctype{typ: CTYPE_CHAR, size: 1, sign: false,}
-var ctype_ushort = &Ctype{typ: CTYPE_SHORT, size: 2, sign: false}
-var ctype_uint = &Ctype{typ: CTYPE_INT, size: 4, sign: false,}
-var ctype_ulong = &Ctype{typ: CTYPE_LONG, size: 8, sign: false,}
+var ctype_uchar = &Ctype{typ: CTYPE_CHAR, size: 1, sig: false,}
+var ctype_ushort = &Ctype{typ: CTYPE_SHORT, size: 2, sig: false}
+var ctype_uint = &Ctype{typ: CTYPE_INT, size: 4, sig: false,}
+var ctype_ulong = &Ctype{typ: CTYPE_LONG, size: 8, sig: false,}
 
 const (
 	S_TYPEDEF int = iota + 1

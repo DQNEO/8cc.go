@@ -953,7 +953,7 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
     case kllong: *rtype =  (sig != kunsigned) ? ctype_long : ctype_ulong; return;
     default : *rtype = (sig != kunsigned) ? ctype_int: ctype_uint; return;
     }
-    error("internal error");
+    error("internal error: type: %d, size: %d", ti, ti);
  err:
     error("type mismatch: %s", t2s(tok));
 }

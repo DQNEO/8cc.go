@@ -905,10 +905,8 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
 #define _(s) (!strcmp(tok->sval, s))
 
         tok = read_token();
-        if (!tok) {
-            *rtype = NULL;
-            return;
-        }
+        if (!tok)
+            error("premature end of input");
         if (tok->type != TTYPE_IDENT) {
             unget_token(tok);
             break;

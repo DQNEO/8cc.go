@@ -1013,10 +1013,10 @@ func read_decl_spec() (*Ctype, int) {
 
 	type sign int
 	const (
-		ssign  = sign(iota + 1)
-		sunsign
+		ksigned = sign(iota + 1)
+		kunsigned
 	)
-	var si sign
+	var sig sign
 
 	type ttype int
 	const (
@@ -1064,15 +1064,15 @@ func read_decl_spec() (*Ctype, int) {
 		} else if s == "static" {
 			// ignore
 		} else if s == "signed" {
-			if si != unspec {
+			if sig != unspec {
 				dupspec(tok)
 			}
-			si = ssign
+			sig = ksigned
 		} else if s == "unsigned" {
-			if si != unspec {
+			if sig != unspec {
 				dupspec(tok)
 			}
-			si = sunsign
+			sig = kunsigned
 		} else if s == "char" {
 			if ti != unspec {
 				duptype(tok)
@@ -1100,7 +1100,7 @@ func read_decl_spec() (*Ctype, int) {
 				duptype(tok)
 			}
 		} else if s == "float" {
-			if si != unspec {
+			if sig != unspec {
 				invspec(tok)
 			}
 			if ti != unspec {
@@ -1109,7 +1109,7 @@ func read_decl_spec() (*Ctype, int) {
 				ti = tfloat
 			}
 		} else if s == "double" {
-			if si != unspec {
+			if sig != unspec {
 				invspec(tok)
 			}
 			if ti != unspec && ti != tlong {
@@ -1118,7 +1118,7 @@ func read_decl_spec() (*Ctype, int) {
 				ti = tfloat
 			}
 		} else if s == "void" {
-			if si != unspec {
+			if sig != unspec {
 				invspec(tok)
 			}
 			if ti != unspec {
@@ -1141,30 +1141,30 @@ func read_decl_spec() (*Ctype, int) {
 		setsclass = nil
 	}
 
-	if ti == unspec && si == unspec {
+	if ti == unspec && sig == unspec {
 		errorf("Type expected, but got '%s'", tok)
 	}
 	switch ti {
 	case tchar:
-		if si == sunsign {
+		if sig == kunsigned {
 			return ctype_uchar, sclass
 		} else {
 			return ctype_char, sclass
 		}
 	case tshort:
-		if si == sunsign {
+		if sig == kunsigned {
 			return ctype_ushort, sclass
 		} else {
 			return ctype_short, sclass
 		}
 	case tint:
-		if si == sunsign {
+		if sig == kunsigned {
 			return ctype_uint, sclass
 		} else {
 			return ctype_int, sclass
 		}
 	case tlong, tllong:
-		if si == sunsign {
+		if sig == kunsigned {
 			return ctype_ulong, sclass
 		} else {
 			return ctype_long, sclass

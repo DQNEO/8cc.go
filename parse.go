@@ -999,6 +999,10 @@ func read_declarator(basetype *Ctype) *Ctype {
 
 }
 
+var kconst int
+var kvolatile int
+var kinline int
+
 func read_decl_spec() (*Ctype, int) {
 	var sclass int
 
@@ -1059,7 +1063,11 @@ func read_decl_spec() (*Ctype, int) {
 		} else if s == "register" {
 			setsclass(S_REGISTER)
 		} else if s == "const" {
-			// ignore
+			kconst = 1
+		} else if s == "volatile" {
+			kvolatile = 1
+		} else if s == "inline" {
+			kinline = 1
 		} else if s == "static" {
 			// ignore
 		} else if s == "void" {

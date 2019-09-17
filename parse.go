@@ -1294,12 +1294,12 @@ func read_decl_init(variable *Ast) *Ast {
 }
 
 func read_decl() *Ast {
-	varname, ctype := read_decl_int()
-	if varname == "" {
+	name, ctype := read_decl_int()
+	if name == "" {
 		expect(';')
 		return nil
 	}
-	variable := ast_lvar(ctype, varname)
+	variable := ast_lvar(ctype, name)
 	return read_decl_init(variable)
 }
 

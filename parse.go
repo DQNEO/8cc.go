@@ -34,6 +34,14 @@ var ctype_ushort = &Ctype{typ: CTYPE_SHORT, size: 2, sign: false}
 var ctype_uint = &Ctype{typ: CTYPE_INT, size: 4, sign: false,}
 var ctype_ulong = &Ctype{typ: CTYPE_LONG, size: 8, sign: false,}
 
+const (
+	S_TYPEDEF int = iota + 1
+	S_EXTERN
+	S_STATIC
+	S_AUTO
+	S_REGISTER
+)
+
 func ast_uop(typ int, ctype *Ctype, operand *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
@@ -993,6 +1001,8 @@ func read_declarator(basetype *Ctype) *Ctype {
 }
 
 func read_decl_spec() *Ctype {
+	var sclass int
+
 	tok := peek_token()
 	if tok == nil || tok.typ != TTYPE_IDENT {
 		return nil
@@ -1024,6 +1034,13 @@ func read_decl_spec() *Ctype {
 
 	assert(tok != nil && tok.is_ident_type())
 	for {
+		setsclass := func (val int) {
+			if sclass != 0 {
+				panic("internal error")
+			}
+			sclass = val
+		}
+
 		tok = read_token()
 		if tok == nil {
 			return nil
@@ -1033,7 +1050,17 @@ func read_decl_spec() *Ctype {
 			break
 		}
 		s := tok.sval
-		if s == "const" {
+		if s == "typedef" {
+			setsclass(S_TYPEDEF)
+		} else if s == "extern" {
+			setsclass(S_EXTERN)
+		} else if s == "static" {
+			setsclass(S_STATIC)
+		} else if s == "auto" {
+			setsclass(S_AUTO)
+		} else if s == "register" {
+			setsclass(S_REGISTER)
+		} else if s == "const" {
 			// ignore
 		} else if s == "static" {
 			// ignore
@@ -1112,6 +1139,7 @@ func read_decl_spec() *Ctype {
 			unget_token(tok)
 			break
 		}
+		setsclass = nil
 	}
 
 	if ti == unspec && si == unspec {

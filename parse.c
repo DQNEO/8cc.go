@@ -880,7 +880,7 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
     Ctype *usertype = NULL, *tmp = NULL;
 
     enum { kchar = 1, kshort, kint, klong, kllong,
-           kfloat, kdouble, kvoid } ti = 0;
+           kfloat, kdouble, kvoid } type = 0;
     int size  = 0;
     enum { ksigned = 1, kunsigned } sig = 0;
 
@@ -911,11 +911,11 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         else if (_("const"))    { kconst = 1; }
         else if (_("volatile")) { kvolatile = 1; }
         else if (_("inline"))   { kinline = 1; }
-        else if (_("void"))     { set(ti, kvoid);}
-        else if (_("char"))     { set(ti, kchar); }
-        else if (_("int"))      { if (ti == 0) { set(ti, kint) ;} else if (ti == kchar) goto err; }
-        else if (_("float"))    { set(ti, kfloat);}
-        else if (_("double"))   { set(ti, kfloat);}
+        else if (_("void"))     { set(type, kvoid);}
+        else if (_("char"))     { set(type, kchar); }
+        else if (_("int"))      { if (type == 0) { set(type, kint) ;} else if (type == kchar) goto err; }
+        else if (_("float"))    { set(type, kfloat);}
+        else if (_("double"))   { set(type, kfloat);}
         else if (_("signed"))   { set(sig, ksigned); }
         else if (_("unsigned")) { set(sig, kunsigned); }
         else if (_("short"))    { set(size, kshort); }
@@ -940,7 +940,7 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         *rtype = usertype;
         return;
     }
-    switch (ti) {
+    switch (type) {
     case kchar: *rtype = (sig != kunsigned) ? ctype_char : ctype_uchar; return;
     case kfloat: *rtype = ctype_float; return;
     case kdouble: *rtype = ctype_double; return;
@@ -952,7 +952,7 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
     case kllong: *rtype =  (sig != kunsigned) ? ctype_long : ctype_ulong; return;
     default : *rtype = (sig != kunsigned) ? ctype_int: ctype_uint; return;
     }
-    error("internal error: type: %d, size: %d", ti, ti);
+    error("internal error: type: %d, size: %d", type, size);
  err:
     error("type mismatch: %s", t2s(tok));
 }

@@ -1096,6 +1096,11 @@ static Ast *read_decl(void) {
         expect(';');
         return NULL;
     }
+    if (sclass == S_TYPEDEF) {
+        dict_put(typedefs, name, ctype);
+        expect(';');
+        return NULL;
+    }
     Ast *var = ast_lvar(ctype, name);
     return read_decl_init(var);
 }
@@ -1182,17 +1187,12 @@ static Ast *read_stmt(void) {
 }
 
 static Ast *read_decl_or_stmt(void) {
-    Token *tok = read_token();
-    if (!tok) return NULL;
-    if (is_ident(tok, "typedef")) {
-        char *name;
-        Ctype *ctype;
-        read_extern_typedef(&name, &ctype);
-        dict_put(typedefs, name, ctype);
-        return read_decl_or_stmt();
+    for (;;) {
+        Token *tok = peek_token();
+        if (tok == NULL)
+            error("premature end of input");
+        return is_type_keyword(tok) ? read_decl() : read_stmt();
     }
-    unget_token(tok);
-    return is_type_keyword(tok) ? read_decl() : read_stmt();
 }
 
 static Ast *read_compound_stmt(void) {

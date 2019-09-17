@@ -956,16 +956,16 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         return;
     }
     switch (type) {
-    case kchar: *rtype = make_type(CTYPE_CHAR, sig != kunsigned); return;
-    case kfloat: *rtype = make_type(CTYPE_FLOAT, false); return;
+    case kchar:   *rtype = make_type(CTYPE_CHAR, sig != kunsigned); return;
+    case kfloat:  *rtype = make_type(CTYPE_FLOAT, false); return;
     case kdouble: *rtype = make_type(size == klong ? CTYPE_DOUBLE : CTYPE_DOUBLE, false); return;
     default: break;
     }
     switch (size) {
     case kshort: *rtype = make_type(CTYPE_SHORT, sig != kunsigned); return;
     case klong:  *rtype = make_type(CTYPE_LONG, sig != kunsigned); return;
-    case kllong: *rtype =  make_type(CTYPE_LONG, sig != kunsigned); return;
-    default : *rtype = make_type(CTYPE_INT, sig != kunsigned); return;
+    case kllong: *rtype = make_type(CTYPE_LONG, sig != kunsigned); return;
+    default:     *rtype = make_type(CTYPE_INT, sig != kunsigned); return;
     }
     error("internal error: type: %d, size: %d", type, size);
  err:

@@ -1031,7 +1031,6 @@ func read_decl_spec() (*Ctype, int) {
 	)
 	var ti ttype
 
-	assert(tok != nil && tok.is_ident_type())
 	for {
 		setsclass := func (val int) {
 			if sclass != 0 {

@@ -993,7 +993,11 @@ func read_declarator(basetype *Ctype) *Ctype {
 }
 
 func read_decl_spec() *Ctype {
-	tok := read_token()
+	tok := peek_token()
+	if tok == nil || tok.typ != TTYPE_IDENT {
+		return nil
+	}
+
 	var tmp *Ctype
 
 	const unspec = 0
@@ -1018,12 +1022,16 @@ func read_decl_spec() *Ctype {
 	)
 	var ti ttype
 
-	if tok == nil {
-		return nil
-	}
-
 	assert(tok != nil && tok.is_ident_type())
 	for {
+		tok = read_token()
+		if tok == nil {
+			return nil
+		}
+		if tok.typ != TTYPE_IDENT {
+			unget_token(tok)
+			break
+		}
 		s := tok.sval
 		if s == "const" {
 			// ignore
@@ -1101,11 +1109,6 @@ func read_decl_spec() *Ctype {
 		} else if tmp = typedefs.GetCtype(s); tmp != nil {
 			return tmp
 		} else {
-			unget_token(tok)
-			break
-		}
-		tok = read_token()
-		if !tok.is_ident_type() {
 			unget_token(tok)
 			break
 		}

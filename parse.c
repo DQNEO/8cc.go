@@ -937,7 +937,6 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
 #undef set
 #undef setsclass
     }
-    if (ti == 0) ti = kint;
     if (usertype) {
         *rtype = usertype;
         return;
@@ -950,8 +949,7 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
     case kshort: *rtype =  (sig != kunsigned) ? ctype_short : ctype_ushort; return;
     case klong:
     case kllong: *rtype =  (sig != kunsigned) ? ctype_long : ctype_ulong; return;
-    case kvoid: *rtype = ctype_void; return;
-    case kint: *rtype = (sig != kunsigned) ? ctype_int: ctype_uint; return;
+    default : *rtype = (sig != kunsigned) ? ctype_int: ctype_uint; return;
     }
     error("internal error");
  err:

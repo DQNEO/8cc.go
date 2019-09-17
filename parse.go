@@ -1016,14 +1016,12 @@ func read_decl_spec() *Ctype {
 	} else if tok.is_ident("enum") {
 		ctype = read_enum_def()
 	} else {
-		ctype = read_ctype(tok)
+		ctype = nil
+	}
+	if ctype != nil {
+		return ctype
 	}
 
-	assert(ctype != nil)
-	return ctype
-}
-
-func read_ctype(tok *Token) *Ctype {
 	assert(tok != nil && tok.is_ident_type())
 	r := typedefs.GetCtype(tok.sval)
 	if r != nil {

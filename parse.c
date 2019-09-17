@@ -858,8 +858,6 @@ static Ctype *read_declarator(Ctype *basetype) {
     }
 }
 
-static Ctype *read_ctype(Token *tok);
-
 static void read_decl_spec(Ctype **rtype) {
     Token *tok = read_token();
     for (;;) {
@@ -877,15 +875,19 @@ static void read_decl_spec(Ctype **rtype) {
     Ctype *ctype = is_ident(tok, "struct") ? read_struct_def()
         : is_ident(tok, "union") ? read_union_def()
         : is_ident(tok, "enum") ? read_enum_def()
-        : read_ctype(tok);
-    assert(ctype);
-    *rtype = ctype;
-}
+        : NULL;
+    if (ctype) {
+        *rtype = ctype;
+        return;
+    }
 
-static Ctype *read_ctype(Token *tok) {
+
     assert(tok && tok->type == TTYPE_IDENT);
     Ctype *r = dict_get(typedefs, tok->sval);
-    if (r) return r;
+    if (r) {
+        *rtype = r;
+        return;
+    }
 
     int unspec = 0;
     enum { ssign = 1, sunsign } si = unspec;
@@ -941,14 +943,28 @@ static Ctype *read_ctype(Token *tok) {
         error("Type expected, but got '%s'", t2s(tok));
     if (ti == unspec) ti = tint;
     switch (ti) {
-    case tchar:   return si == sunsign ? ctype_uchar : ctype_char;
-    case tshort:  return si == sunsign ? ctype_ushort : ctype_short;
-    case tint:    return si == sunsign ? ctype_uint : ctype_int;
+    case tchar:
+         *rtype = (si == sunsign) ?  ctype_uchar : ctype_char;
+        return;
+    case tshort:
+       *rtype =  (si == sunsign) ? ctype_ushort : ctype_short;
+      return;
+    case tint:
+         *rtype = (si == sunsign) ? ctype_uint : ctype_int;
+        return;
     case tlong:
-    case tllong:  return si == sunsign ? ctype_ulong : ctype_long;
-    case tfloat:  return ctype_float;
-    case tdouble: return ctype_double;
-    case tvoid:   return ctype_void;
+    case tllong:
+       *rtype =  (si == sunsign) ? ctype_ulong : ctype_long;
+      return;
+    case tfloat:
+       *rtype = ctype_float;
+      return;
+    case tdouble:
+      *rtype = ctype_double;
+     return;
+    case tvoid:
+        *rtype = ctype_void;
+       return;
     }
     error("internal error");
  dupspec:

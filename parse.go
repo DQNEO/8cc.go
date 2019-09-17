@@ -759,150 +759,6 @@ func read_expr() *Ast {
 	return read_expr_int(MAX_OP_PRIO)
 }
 
-func read_ctype(tok *Token) *Ctype {
-	assert(tok != nil && tok.is_ident_type())
-	r := typedefs.GetCtype(tok.sval)
-	if r != nil {
-		return r
-	}
-
-	const unspec = 0
-
-	type sign int
-	const (
-		ssign  = sign(iota + 1)
-		sunsign
-	)
-	var si sign
-
-	type ttype int
-	const (
-		tchar = ttype(iota + 1)
-		tshort
-		tint
-		tlong
-		tllong
-		tfloat
-		tdouble
-		tvoid
-	)
-	var ti ttype
-	for {
-		s := tok.sval
-		if s == "const" {
-			// ignore
-		} else if s == "signed" {
-			if si != unspec {
-				dupspec(tok)
-			}
-			si = ssign
-		} else if s == "unsigned" {
-			if si != unspec {
-				dupspec(tok)
-			}
-			si = sunsign
-		} else if s == "char" {
-			if ti != unspec {
-				duptype(tok)
-			}
-			ti = tchar
-		} else if s == "short" {
-			if ti != unspec {
-				duptype(tok)
-			}
-			ti = tshort
-		} else if s == "int" {
-			if ti == unspec {
-				ti = tint
-			} else if ti == tchar {
-				duptype(tok)
-			}
-		} else if s == "long" {
-			if ti == unspec {
-				ti = tlong
-			} else if ti == tlong {
-				ti = tllong
-			} else if ti == tdouble {
-				ti = tdouble
-			} else {
-				duptype(tok)
-			}
-		} else if s == "float" {
-			if si != unspec {
-				invspec(tok)
-			}
-			if ti != unspec {
-				duptype(tok)
-			} else {
-				ti = tfloat
-			}
-		} else if s == "double" {
-			if si != unspec {
-				invspec(tok)
-			}
-			if ti != unspec && ti != tlong {
-				duptype(tok)
-			} else {
-				ti = tfloat
-			}
-		} else if s == "void" {
-			if si != unspec {
-				invspec(tok)
-			}
-			if ti != unspec {
-				duptype(tok)
-			} else {
-				ti = tvoid
-			}
-		} else {
-			unget_token(tok)
-			break
-		}
-		tok = read_token()
-		if !tok.is_ident_type() {
-			unget_token(tok)
-			break
-		}
-	}
-
-	if ti == unspec && si == unspec {
-		errorf("Type expected, but got '%s'", tok)
-	}
-	switch ti {
-	case tchar:
-		if si == sunsign {
-			return ctype_uchar
-		} else {
-			return ctype_char
-		}
-	case tshort:
-		if si == sunsign {
-			return ctype_ushort
-		} else {
-			return ctype_short
-		}
-	case tint:
-		if si == sunsign {
-			return ctype_uint
-		} else {
-			return ctype_int
-		}
-	case tlong, tllong:
-		if si == sunsign {
-			return ctype_ulong
-		} else {
-			return ctype_long
-		}
-	case tfloat:
-		return ctype_float
-	case tdouble:
-		return ctype_double
-	case tvoid:
-		return ctype_void
-	}
-	errorf("internal error")
-	return nil
-}
 
 func dupspec(tok *Token) {
 	errorf("duplicate specifier: %s", tok)
@@ -1187,6 +1043,150 @@ func read_decl_int() (*Token, *Ctype) {
 	return name, ctype
 }
 
+func read_ctype(tok *Token) *Ctype {
+	assert(tok != nil && tok.is_ident_type())
+	r := typedefs.GetCtype(tok.sval)
+	if r != nil {
+		return r
+	}
+
+	const unspec = 0
+
+	type sign int
+	const (
+		ssign  = sign(iota + 1)
+		sunsign
+	)
+	var si sign
+
+	type ttype int
+	const (
+		tchar = ttype(iota + 1)
+		tshort
+		tint
+		tlong
+		tllong
+		tfloat
+		tdouble
+		tvoid
+	)
+	var ti ttype
+	for {
+		s := tok.sval
+		if s == "const" {
+			// ignore
+		} else if s == "signed" {
+			if si != unspec {
+				dupspec(tok)
+			}
+			si = ssign
+		} else if s == "unsigned" {
+			if si != unspec {
+				dupspec(tok)
+			}
+			si = sunsign
+		} else if s == "char" {
+			if ti != unspec {
+				duptype(tok)
+			}
+			ti = tchar
+		} else if s == "short" {
+			if ti != unspec {
+				duptype(tok)
+			}
+			ti = tshort
+		} else if s == "int" {
+			if ti == unspec {
+				ti = tint
+			} else if ti == tchar {
+				duptype(tok)
+			}
+		} else if s == "long" {
+			if ti == unspec {
+				ti = tlong
+			} else if ti == tlong {
+				ti = tllong
+			} else if ti == tdouble {
+				ti = tdouble
+			} else {
+				duptype(tok)
+			}
+		} else if s == "float" {
+			if si != unspec {
+				invspec(tok)
+			}
+			if ti != unspec {
+				duptype(tok)
+			} else {
+				ti = tfloat
+			}
+		} else if s == "double" {
+			if si != unspec {
+				invspec(tok)
+			}
+			if ti != unspec && ti != tlong {
+				duptype(tok)
+			} else {
+				ti = tfloat
+			}
+		} else if s == "void" {
+			if si != unspec {
+				invspec(tok)
+			}
+			if ti != unspec {
+				duptype(tok)
+			} else {
+				ti = tvoid
+			}
+		} else {
+			unget_token(tok)
+			break
+		}
+		tok = read_token()
+		if !tok.is_ident_type() {
+			unget_token(tok)
+			break
+		}
+	}
+
+	if ti == unspec && si == unspec {
+		errorf("Type expected, but got '%s'", tok)
+	}
+	switch ti {
+	case tchar:
+		if si == sunsign {
+			return ctype_uchar
+		} else {
+			return ctype_char
+		}
+	case tshort:
+		if si == sunsign {
+			return ctype_ushort
+		} else {
+			return ctype_short
+		}
+	case tint:
+		if si == sunsign {
+			return ctype_uint
+		} else {
+			return ctype_int
+		}
+	case tlong, tllong:
+		if si == sunsign {
+			return ctype_ulong
+		} else {
+			return ctype_long
+		}
+	case tfloat:
+		return ctype_float
+	case tdouble:
+		return ctype_double
+	case tvoid:
+		return ctype_void
+	}
+	errorf("internal error")
+	return nil
+}
 func read_decl_array_init_val(ctype *Ctype) *Ast {
 	var initlist []*Ast
 	initlist = read_decl_array_init_int(initlist, ctype)

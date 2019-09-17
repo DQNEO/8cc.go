@@ -1316,7 +1316,7 @@ List *read_toplevels(void) {
             error("Identifier expected, but got %s", t2s(name));
         ctype = read_array_dimensions(ctype);
         tok = read_token();
-        if (is_punct(tok, '=') || ctype->type == CTYPE_ARRAY) {
+        if (is_punct(tok, '=')) {
             Ast *var = ast_gvar(ctype, name->sval);
             unget_token(tok);
             list_push(r, read_decl_init(var));

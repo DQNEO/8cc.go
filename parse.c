@@ -607,10 +607,9 @@ static Ast *read_unary_expr(void) {
         return ast_uop('!', ctype_int, operand);
     }
     if (is_punct(tok, '-')) {
-        Ast *expr  = read_expr();
+        Ast *expr = read_expr();
         return ast_binop('-', ast_inttype(ctype_int, 0), expr);
     }
-
     if (is_punct(tok, '*')) {
         Ast *operand = read_unary_expr();
         Ctype *ctype = convert_array(operand->ctype);

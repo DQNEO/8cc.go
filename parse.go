@@ -994,21 +994,6 @@ func read_declarator(basetype *Ctype) *Ctype {
 
 func read_decl_spec() *Ctype {
 	tok := read_token()
-	for {
-		if tok == nil {
-			return nil
-		}
-		if tok.typ != TTYPE_IDENT {
-			errorf("Identifier expected, but got %s", tok)
-		}
-		if tok.is_ident("const") {
-			tok = read_token()
-		} else {
-			break
-		}
-	}
-
-	assert(tok != nil && tok.is_ident_type())
 	var tmp *Ctype
 
 	const unspec = 0
@@ -1032,6 +1017,22 @@ func read_decl_spec() *Ctype {
 		tvoid
 	)
 	var ti ttype
+
+	for {
+		if tok == nil {
+			return nil
+		}
+		if tok.typ != TTYPE_IDENT {
+			errorf("Identifier expected, but got %s", tok)
+		}
+		if tok.is_ident("const") {
+			tok = read_token()
+		} else {
+			break
+		}
+	}
+
+	assert(tok != nil && tok.is_ident_type())
 	for {
 		s := tok.sval
 		if s == "const" {

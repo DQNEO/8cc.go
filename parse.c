@@ -944,17 +944,17 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
     }
     switch (ti) {
     case kchar:
-         *rtype = (sig == kunsigned) ?  ctype_uchar : ctype_char;
+         *rtype = (sig != kunsigned) ? ctype_char : ctype_uchar;
         return;
     case kshort:
-       *rtype =  (sig == kunsigned) ? ctype_ushort : ctype_short;
+       *rtype =  (sig != kunsigned) ? ctype_short : ctype_ushort;
       return;
     case kint:
-         *rtype = (sig == kunsigned) ? ctype_uint : ctype_int;
+         *rtype = (sig != kunsigned) ? ctype_int: ctype_uint ;
         return;
     case klong:
     case kllong:
-       *rtype =  (sig == kunsigned) ? ctype_ulong : ctype_long;
+       *rtype =  (sig != kunsigned) ? ctype_long : ctype_ulong;
       return;
     case kfloat:
        *rtype = ctype_float;

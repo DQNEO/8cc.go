@@ -910,11 +910,11 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         else if (_("const"))    { kconst = 1; }
         else if (_("volatile")) { kvolatile = 1; }
         else if (_("inline"))   { kinline = 1; }
-        else if (_("void"))     { set(type, kvoid);}
+        else if (_("void"))     { set(type, kvoid); }
         else if (_("char"))     { set(type, kchar); }
-        else if (_("int"))      { set(type, kint);}
-        else if (_("float"))    { set(type, kfloat);}
-        else if (_("double"))   { set(type, kfloat);}
+        else if (_("int"))      { set(type, kint); }
+        else if (_("float"))    { set(type, kfloat); }
+        else if (_("double"))   { set(type, kfloat) ;}
         else if (_("signed"))   { set(sig, ksigned); }
         else if (_("unsigned")) { set(sig, kunsigned); }
         else if (_("short"))    { set(size, kshort); }
@@ -923,8 +923,8 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         else if (_("enum"))     { set(usertype, read_enum_def());
         } else if ((tmp = dict_get(typedefs, tok->sval)) != NULL) {
             set(usertype, tmp);
-        } else if (_("long"))     {
-            if (size == 0)  { set(size, klong); }
+        } else if (_("long")) {
+            if (size == 0) { set(size, klong); }
             else if (size == klong) size = kllong;
             else goto err;
         } else {

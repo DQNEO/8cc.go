@@ -859,7 +859,7 @@ func read_struct_union_fields() *Dict {
 			break
 		}
 		name, fieldtype  := read_decl_int()
-		r.PutCtype(name.sval, make_struct_field_type(fieldtype, 0))
+		r.PutCtype(name, make_struct_field_type(fieldtype, 0))
 		expect(';')
 	}
 	expect('}')
@@ -1023,21 +1023,21 @@ func read_decl_spec() *Ctype {
 	return ctype
 }
 
-func read_decl_int() (*Token, *Ctype) {
+func read_decl_int() (string, *Ctype) {
 	basetype := read_decl_spec()
 	ctype := read_declarator(basetype)
 	tok := read_token()
-	var name *Token
+	var name string
 	if tok.is_punct(';') {
 		unget_token(tok)
-		name = nil
+		name = ""
 		return name, ctype
 	}
 	if !tok.is_ident_type() {
 		unget_token(tok)
-		name = nil
+		name = ""
 	} else {
-		name = tok
+		name = tok.sval
 	}
 	ctype = read_array_dimensions(ctype)
 	return name, ctype
@@ -1295,17 +1295,17 @@ func read_decl_init(variable *Ast) *Ast {
 
 func read_decl() *Ast {
 	varname, ctype := read_decl_int()
-	if varname == nil {
+	if varname == "" {
 		expect(';')
 		return nil
 	}
-	variable := ast_lvar(ctype, varname.sval)
+	variable := ast_lvar(ctype, varname)
 	return read_decl_init(variable)
 }
 
 func read_extern_typedef() (string, *Ctype)  {
 	name, ctype := read_decl_int()
-	if name == nil {
+	if name == "" {
 		errorf("name missing")
 	}
 	tok := read_token()
@@ -1315,7 +1315,7 @@ func read_extern_typedef() (string, *Ctype)  {
 		unget_token(tok)
 	}
 	expect(';')
-	return name.sval, ctype
+	return name, ctype
 }
 
 func read_typedef() {

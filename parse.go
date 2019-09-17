@@ -1018,24 +1018,16 @@ func read_decl_spec() *Ctype {
 	)
 	var ti ttype
 
-	for {
-		if tok == nil {
-			return nil
-		}
-		if tok.typ != TTYPE_IDENT {
-			errorf("Identifier expected, but got %s", tok)
-		}
-		if tok.is_ident("const") {
-			tok = read_token()
-		} else {
-			break
-		}
+	if tok == nil {
+		return nil
 	}
 
 	assert(tok != nil && tok.is_ident_type())
 	for {
 		s := tok.sval
 		if s == "const" {
+			// ignore
+		} else if s == "static" {
 			// ignore
 		} else if s == "signed" {
 			if si != unspec {

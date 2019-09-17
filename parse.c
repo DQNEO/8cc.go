@@ -892,7 +892,6 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
     bool kconst unused = false, kvolatile unused = false, kinline unused = false;
 #undef unused
     Ctype *usertype = NULL, *tmp = NULL;
-
     enum { kvoid = 1, kchar, kint, kfloat, kdouble } type = 0;
     enum { kshort = 1, klong, kllong } size = 0;
     enum { ksigned = 1, kunsigned } sig = 0;

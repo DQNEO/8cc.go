@@ -1054,18 +1054,10 @@ static Ctype *read_array_dimensions(Ctype *basetype) {
 }
 
 static Ast *read_decl_init(Ast *var) {
-    Token *tok = read_token();
-    if (is_punct(tok, '=')) {
-        Ast *init = read_decl_init_val(var->ctype);
-        if (var->type == AST_GVAR && is_inttype(var->ctype))
-            init = ast_inttype(ctype_int, eval_intexpr(init));
-        return ast_decl(var, init);
-    }
-    if (var->ctype->len == -1)
-        error("Missing array initializer");
-    unget_token(tok);
-    expect(';');
-    return ast_decl(var, NULL);
+    Ast *init = read_decl_init_val(var->ctype);
+    if (var->type == AST_GVAR && is_inttype(var->ctype))
+        init = ast_inttype(ctype_int, eval_intexpr(init));
+    return ast_decl(var, init);
 }
 
 static void read_decl_int(char **name, Ctype **ctype, int *sclass) {
@@ -1102,7 +1094,16 @@ static Ast *read_decl(void) {
         return NULL;
     }
     Ast *var = ast_lvar(ctype, name);
-    return read_decl_init(var);
+    Token *tok = read_token();
+    if (is_punct(tok, '=')) {
+        return read_decl_init(var);
+    }
+
+    if (var->ctype->len == -1)
+        error("Missing array initializer");
+    unget_token(tok);
+    expect(';');
+    return ast_decl(var, NULL);
 }
 
 static void read_extern_typedef(char **rname, Ctype **rctype) {
@@ -1318,7 +1319,6 @@ List *read_toplevels(void) {
         tok = read_token();
         if (is_punct(tok, '=')) {
             Ast *var = ast_gvar(ctype, name->sval);
-            unget_token(tok);
             list_push(r, read_decl_init(var));
             continue;
         }

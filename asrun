@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm tmp.s
+rm -f tmp.s
 cat > tmp.s
 if [[ $1 = "-v" ]]; then
    cat tmp.s >/dev/stderr

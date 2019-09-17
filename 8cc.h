@@ -84,8 +84,10 @@ enum {
     CTYPE_SHORT,
     CTYPE_INT,
     CTYPE_LONG,
+    CTYPE_LLONG,
     CTYPE_FLOAT,
     CTYPE_DOUBLE,
+    CTYPE_LDOUBLE,
     CTYPE_ARRAY,
     CTYPE_PTR,
     CTYPE_STRUCT,
@@ -114,7 +116,7 @@ typedef struct Ast {
     int type;
     Ctype *ctype;
     union {
-        // Char, short ,int, or long
+        // Char, int, or long
         long ival;
         // Float or double
         struct {

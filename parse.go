@@ -1023,26 +1023,6 @@ func read_decl_spec() *Ctype {
 	return ctype
 }
 
-func read_decl_int() (string, *Ctype) {
-	basetype := read_decl_spec()
-	ctype := read_declarator(basetype)
-	tok := read_token()
-	var name string
-	if tok.is_punct(';') {
-		unget_token(tok)
-		name = ""
-		return name, ctype
-	}
-	if !tok.is_ident_type() {
-		unget_token(tok)
-		name = ""
-	} else {
-		name = tok.sval
-	}
-	ctype = read_array_dimensions(ctype)
-	return name, ctype
-}
-
 func read_ctype(tok *Token) *Ctype {
 	assert(tok != nil && tok.is_ident_type())
 	r := typedefs.GetCtype(tok.sval)
@@ -1187,6 +1167,27 @@ func read_ctype(tok *Token) *Ctype {
 	errorf("internal error")
 	return nil
 }
+
+func read_decl_int() (string, *Ctype) {
+	basetype := read_decl_spec()
+	ctype := read_declarator(basetype)
+	tok := read_token()
+	var name string
+	if tok.is_punct(';') {
+		unget_token(tok)
+		name = ""
+		return name, ctype
+	}
+	if !tok.is_ident_type() {
+		unget_token(tok)
+		name = ""
+	} else {
+		name = tok.sval
+	}
+	ctype = read_array_dimensions(ctype)
+	return name, ctype
+}
+
 func read_decl_array_init_val(ctype *Ctype) *Ast {
 	var initlist []*Ast
 	initlist = read_decl_array_init_int(initlist, ctype)

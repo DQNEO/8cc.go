@@ -1097,9 +1097,6 @@ static Ast *read_decl(void) {
     Token *tok = read_token();
     if (is_punct(tok, '='))
         return read_decl_init(var);
-
-    if (var->ctype->len == -1)
-        error("Missing array initializer");
     unget_token(tok);
     expect(';');
     return ast_decl(var, NULL);

@@ -1118,13 +1118,6 @@ static void read_extern_typedef(char **rname, Ctype **rctype) {
     *rctype = ctype;
 }
 
-static void read_extern(void) {
-    char *name;
-    Ctype *ctype;
-    read_extern_typedef(&name, &ctype);
-    ast_gvar(ctype, name);
-}
-
 static Ast *read_if_stmt(void) {
     expect('(');
     Ast *cond = read_expr();
@@ -1306,7 +1299,10 @@ List *read_toplevels(void) {
             continue;
         }
         if (is_ident(tok, "extern")) {
-            read_extern();
+            char *__name;
+            Ctype *__ctype;
+            read_extern_typedef(&__name, &__ctype);
+            ast_gvar(__ctype, __name);
             continue;
         }
         unget_token(tok);

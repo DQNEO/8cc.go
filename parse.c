@@ -1271,7 +1271,6 @@ static Ast *read_func_def(Ctype *functype, char *fname, List *params) {
 }
 
 static Ast *read_func_decl_or_def(Ctype *rettype, char *fname) {
-    expect('(');
     localenv = make_dict(globalenv);
 
     Ctype *functype;
@@ -1323,6 +1322,7 @@ List *read_toplevels(void) {
             continue;
         }
         if (is_punct(tok, '(')) {
+            read_token();
             Ast *func = read_func_decl_or_def(ctype, name->sval);
             if (func)
                 list_push(r, func);

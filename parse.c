@@ -900,8 +900,15 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         *sclass = val
 #define set(var, val)                                                   \
         if (var != 0) goto err;                                         \
-        var = val;
-
+        var = val;                                                      \
+        if (size == kshort && (type != 0 && type != kint))              \
+            goto err;                                                   \
+        if (size == klong && (type != 0 && type != kint && type != kdouble)) \
+            goto err;                                                   \
+        if (sig != 0 && (type == kvoid || type == kfloat || type == kdouble)) \
+            goto err;                                                   \
+        if (usertype && (type != 0 || size != 0 || sig != 0))           \
+            goto err
 #define _(s) (!strcmp(tok->sval, s))
 
         tok = read_token();
@@ -933,7 +940,7 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         } else if ((tmp = dict_get(typedefs, tok->sval)) != NULL) {
             set(usertype, tmp);
         } else if (_("long")) {
-            if (size == 0) { set(size, klong); }
+            if (size == 0) set(size, klong);
             else if (size == klong) size = kllong;
             else goto err;
         } else {

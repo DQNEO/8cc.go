@@ -872,63 +872,64 @@ static void read_decl_spec(Ctype **rtype) {
         else
             break;
     }
-    Ctype *ctype = is_ident(tok, "struct") ? read_struct_def()
-        : is_ident(tok, "union") ? read_union_def()
-        : is_ident(tok, "enum") ? read_enum_def()
-        : NULL;
-    if (ctype) {
-        *rtype = ctype;
-        return;
-    }
-
 
     assert(tok && tok->type == TTYPE_IDENT);
+
     Ctype *r = dict_get(typedefs, tok->sval);
     if (r) {
         *rtype = r;
         return;
     }
+#define _(s) (!strcmp(tok->sval, s))
 
     int unspec = 0;
     enum { ssign = 1, sunsign } si = unspec;
     enum { tchar = 1, tshort, tint, tlong, tllong,
            tfloat, tdouble, tvoid } ti = unspec;
     for (;;) {
-        char *s = tok->sval;
-        if (!strcmp(s, "const")) {
+        if (_("const")) {
             // ignore
-        } else if (!strcmp(s, "signed")) {
+        } else if (_("signed")) {
             if (si != unspec) goto dupspec;
             si = ssign;
-        } else if (!strcmp(s, "unsigned")) {
+        } else if (_("unsigned")) {
             if (si != unspec) goto dupspec;
             si = sunsign;
-        } else if (!strcmp(s, "char")) {
+        } else if (_("char")) {
             if (ti != unspec) goto duptype;
             ti = tchar;
-        } else if (!strcmp(s, "short")) {
+        } else if (_("short")) {
             if (ti != unspec) goto duptype;
             ti = tshort;
-        } else if (!strcmp(s, "int")) {
+        } else if (_("int")) {
             if (ti == unspec) ti = tint;
             else if (ti == tchar) goto duptype;
-        } else if (!strcmp(s, "long")) {
+        } else if (_("long")) {
             if (ti == unspec)  ti = tlong;
             else if (ti == tlong)   ti = tllong;
             else if (ti == tdouble) ti = tdouble;
             else goto duptype;
-        } else if (!strcmp(s, "float")) {
+        } else if (_("float")) {
             if (si != unspec) goto invspec;
             if (ti != unspec) goto duptype;
             else ti = tfloat;
-        } else if (!strcmp(s, "double")) {
+        } else if (_("double")) {
             if (si != unspec) goto invspec;
             if (ti != unspec && ti != tlong) goto duptype;
             else ti = tfloat;
-        } else if (!strcmp(s, "void")) {
+        } else if (_("void")) {
             if (si != unspec) goto invspec;
             if (ti != unspec) goto duptype;
             else ti = tvoid;
+        } else if (_("struct")){
+            *rtype = read_struct_def();
+            return;
+        } else if (_("union")){
+            *rtype = read_union_def();
+            return;
+        } else if (_("enum")){
+            *rtype = read_enum_def();
+            return;
         } else {
             unget_token(tok);
             break;
@@ -973,6 +974,8 @@ static void read_decl_spec(Ctype **rtype) {
     error("duplicate type specifier: %s", t2s(tok));
  invspec:
     error("cannot combine signed/unsigned with %s", t2s(tok));
+
+#undef _
 }
 
 static Ast *read_decl_array_init_val(Ctype *ctype) {

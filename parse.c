@@ -911,11 +911,11 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         else if (_("const"))    { kconst = 1; }
         else if (_("volatile")) { kvolatile = 1; }
         else if (_("inline"))   { kinline = 1; }
-        else if (_("void"))     { if (sig != 0) goto err; set(ti, kvoid);}
+        else if (_("void"))     { set(ti, kvoid);}
         else if (_("char"))     { set(ti, kchar); }
         else if (_("int"))      { if (ti == 0) { set(ti, kint) ;} else if (ti == kchar) goto err; }
-        else if (_("float"))    { if (sig != 0) goto err; { set(ti, kfloat);} }
-        else if (_("double"))   { if (sig != 0) goto err; if (ti != 0 && ti != klong) goto err; else { set(ti, kfloat); } }
+        else if (_("float"))    { set(ti, kfloat);}
+        else if (_("double"))   { set(ti, kfloat);}
         else if (_("signed"))   { set(sig, ksigned); }
         else if (_("unsigned")) { set(sig, kunsigned); }
         else if (_("short"))    { set(ti, kshort); }

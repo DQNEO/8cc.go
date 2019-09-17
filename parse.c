@@ -1118,13 +1118,6 @@ static void read_extern_typedef(char **rname, Ctype **rctype) {
     *rctype = ctype;
 }
 
-static void read_typedef(void) {
-    char *name;
-    Ctype *ctype;
-    read_extern_typedef(&name, &ctype);
-    dict_put(typedefs, name, ctype);
-}
-
 static void read_extern(void) {
     char *name;
     Ctype *ctype;
@@ -1199,7 +1192,10 @@ static Ast *read_decl_or_stmt(void) {
     Token *tok = read_token();
     if (!tok) return NULL;
     if (is_ident(tok, "typedef")) {
-        read_typedef();
+        char *name;
+        Ctype *ctype;
+        read_extern_typedef(&name, &ctype);
+        dict_put(typedefs, name, ctype);
         return read_decl_or_stmt();
     }
     unget_token(tok);
@@ -1303,7 +1299,10 @@ List *read_toplevels(void) {
         if (is_ident(tok, "static") || is_ident(tok, "const"))
             continue;
         if (is_ident(tok, "typedef")) {
-            read_typedef();
+            char *_name;
+            Ctype *_ctype;
+            read_extern_typedef(&_name, &_ctype);
+            dict_put(typedefs, _name, _ctype);
             continue;
         }
         if (is_ident(tok, "extern")) {

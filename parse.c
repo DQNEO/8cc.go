@@ -1336,7 +1336,8 @@ List *read_toplevels(void) {
         if (is_punct(tok, ';')) {
             read_token();
             Ast *var = ast_gvar(ctype, name->sval);
-            list_push(r, ast_decl(var, NULL));
+            if (sclass != S_EXTERN)
+                list_push(r, ast_decl(var, NULL));
             continue;
         }
         error("Don't know how to handle %s", t2s(tok));

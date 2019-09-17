@@ -1251,7 +1251,6 @@ static Ast *read_func_def(Ctype *functype, char *fname, List *params) {
 
 static Ast *read_func_decl_or_def(Ctype *rettype, char *fname) {
     localenv = make_dict(globalenv);
-
     Ctype *functype;
     List *params = make_list();
     read_func_params(&functype, params, rettype);

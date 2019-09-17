@@ -1102,24 +1102,6 @@ static Ast *read_decl(void) {
     return ast_decl(var, NULL);
 }
 
-static void read_extern_typedef(char **rname, Ctype **rctype) {
-    char *name;
-    Ctype *ctype;
-    int sclass;
-    read_decl_int(&name, &ctype, &sclass);
-    if (!name)
-        error("name missing");
-    Token *tok = read_token();
-
-    if (is_punct(tok, '('))
-        read_func_params(&ctype, NULL, ctype);
-    else
-        unget_token(tok);
-    expect(';');
-    *rname = name;
-    *rctype = ctype;
-}
-
 static Ast *read_if_stmt(void) {
     expect('(');
     Ast *cond = read_expr();
@@ -1287,20 +1269,6 @@ List *read_toplevels(void) {
         if (!tok) return r;
         if (is_ident(tok, "static") || is_ident(tok, "const"))
             continue;
-        if (is_ident(tok, "typedef")) {
-            char *_name;
-            Ctype *_ctype;
-            read_extern_typedef(&_name, &_ctype);
-            dict_put(typedefs, _name, _ctype);
-            continue;
-        }
-        if (is_ident(tok, "extern")) {
-            char *__name;
-            Ctype *__ctype;
-            read_extern_typedef(&__name, &__ctype);
-            ast_gvar(__ctype, __name);
-            continue;
-        }
         unget_token(tok);
         Ctype *basetype;
         int sclass;
@@ -1319,15 +1287,29 @@ List *read_toplevels(void) {
             continue;
         }
         if (is_punct(tok, '(')) {
-            Ast *func = read_func_decl_or_def(ctype, name->sval);
-            if (func)
-                list_push(r, func);
+            if (sclass == S_EXTERN) {
+                read_func_params(&ctype, NULL, ctype);
+                expect(';');
+                ast_gvar(ctype, name->sval);
+            } else if (sclass == S_TYPEDEF) {
+                read_func_params(&ctype, NULL, ctype);
+                expect(';');
+                dict_put(typedefs, name->sval, ctype);
+            } else {
+                Ast *func = read_func_decl_or_def(ctype, name->sval);
+                if (func)
+                    list_push(r, func);
+            }
             continue;
         }
         if (is_punct(tok, ';')) {
-            Ast *var = ast_gvar(ctype, name->sval);
-            if (sclass != S_EXTERN)
-                list_push(r, ast_decl(var, NULL));
+            if (sclass == S_TYPEDEF) {
+                dict_put(typedefs, name->sval, ctype);
+            } else {
+                Ast *var = ast_gvar(ctype, name->sval);
+                if (sclass != S_EXTERN)
+                    list_push(r, ast_decl(var, NULL));
+            }
             continue;
         }
         error("Don't know how to handle %s", t2s(tok));

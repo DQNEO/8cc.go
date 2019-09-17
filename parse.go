@@ -1008,21 +1008,8 @@ func read_decl_spec() *Ctype {
 		}
 	}
 
-	var ctype *Ctype
-	if tok.is_ident("struct") {
-		ctype = read_struct_def()
-	} else if tok.is_ident("union") {
-		ctype = read_union_def()
-	} else if tok.is_ident("enum") {
-		ctype = read_enum_def()
-	} else {
-		ctype = nil
-	}
-	if ctype != nil {
-		return ctype
-	}
-
 	assert(tok != nil && tok.is_ident_type())
+
 	r := typedefs.GetCtype(tok.sval)
 	if r != nil {
 		return r
@@ -1116,6 +1103,12 @@ func read_decl_spec() *Ctype {
 			} else {
 				ti = tvoid
 			}
+		} else if s == "struct" {
+			return read_struct_def()
+		} else if s == "union" {
+			return read_union_def()
+		} else if s == "enum" {
+			return read_enum_def()
 		} else {
 			unget_token(tok)
 			break

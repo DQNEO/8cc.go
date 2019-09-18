@@ -1071,7 +1071,7 @@ func read_decl_spec() (*Ctype, int) {
 
 		tok = read_token()
 		if tok == nil {
-			return nil, sclass
+			errorf("premature end of input")
 		}
 		if tok.typ != TTYPE_IDENT {
 			unget_token(tok)

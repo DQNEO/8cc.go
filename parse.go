@@ -998,6 +998,7 @@ func read_decl_spec() (*Ctype, int) {
 	}
 
 	var tmp *Ctype
+	var usertype *Ctype
 
 	type sign int
 	const (
@@ -1023,6 +1024,9 @@ func read_decl_spec() (*Ctype, int) {
 	}
 	setSig := func(s sign) {
 		sig = s
+	}
+	setUserType := func(t *Ctype) {
+		usertype = t
 	}
 	myerror := func (tok *Token) {
 		errorf("internal error")
@@ -1097,11 +1101,11 @@ func read_decl_spec() (*Ctype, int) {
 		} else if s == "short" {
 			setType(tshort)
 		} else if s == "struct" {
-			return read_struct_def(), sclass
+			setUserType(read_struct_def())
 		} else if s == "union" {
-			return read_union_def(), sclass
+			setUserType(read_union_def())
 		} else if s == "enum" {
-			return read_enum_def(), sclass
+			setUserType(read_enum_def())
 		} else if s == "long" {
 			if ti == 0 {
 				ti = tlong
@@ -1113,7 +1117,7 @@ func read_decl_spec() (*Ctype, int) {
 				myerror(tok)
 			}
 		} else if tmp = typedefs.GetCtype(s); tmp != nil {
-			return tmp, sclass
+			setUserType(tmp)
 		} else {
 			unget_token(tok)
 			break
@@ -1121,8 +1125,8 @@ func read_decl_spec() (*Ctype, int) {
 		setsclass = nil
 	}
 
-	if ti == 0 && sig == 0 {
-		errorf("Type expected, but got '%s'", tok)
+	if usertype != nil {
+		return usertype, sclass
 	}
 	switch ti {
 	case tchar:

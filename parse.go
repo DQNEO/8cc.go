@@ -1076,11 +1076,7 @@ func read_decl_spec() (*Ctype, int) {
 		} else if s == "char" {
 			setType(kchar)
 		} else if s == "int" {
-			if typ == 0 {
-				setType(kint)
-			} else if typ == kchar {
-				myerror(tok)
-			}
+			setType(kint)
 		} else if s == "float" {
 			setType(kfloat)
 		} else if s == "double" {

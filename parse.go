@@ -999,8 +999,6 @@ func read_decl_spec() (*Ctype, int) {
 
 	var tmp *Ctype
 
-	const unspec = 0
-
 	type sign int
 	const (
 		ksigned = sign(iota + 1)
@@ -1063,55 +1061,55 @@ func read_decl_spec() (*Ctype, int) {
 		} else if s == "static" {
 			// ignore
 		} else if s == "void" {
-			if sig != unspec {
+			if sig != 0 {
 				myerror(tok)
 			}
-			if ti != unspec {
+			if ti != 0 {
 				myerror(tok)
 			} else {
 				setType(tvoid)
 			}
 		} else if s == "char" {
-			if ti != unspec {
+			if ti != 0 {
 				myerror(tok)
 			}
 			setType(tchar)
 		} else if s == "int" {
-			if ti == unspec {
+			if ti == 0 {
 				setType(tint)
 			} else if ti == tchar {
 				myerror(tok)
 			}
 		} else if s == "float" {
-			if sig != unspec {
+			if sig != 0 {
 				myerror(tok)
 			}
-			if ti != unspec {
+			if ti != 0 {
 				myerror(tok)
 			} else {
 				setType(tfloat)
 			}
 		} else if s == "double" {
-			if sig != unspec {
+			if sig != 0 {
 				myerror(tok)
 			}
-			if ti != unspec && ti != tlong {
+			if ti != 0 && ti != tlong {
 				myerror(tok)
 			} else {
 				setType(tfloat)
 			}
 		} else if s == "signed" {
-			if sig != unspec {
+			if sig != 0 {
 				myerror(tok)
 			}
 			sig = ksigned
 		} else if s == "unsigned" {
-			if sig != unspec {
+			if sig != 0 {
 				myerror(tok)
 			}
 			sig = kunsigned
 		} else if s == "short" {
-			if ti != unspec {
+			if ti != 0 {
 				myerror(tok)
 			}
 			setType(tshort)
@@ -1122,7 +1120,7 @@ func read_decl_spec() (*Ctype, int) {
 		} else if s == "enum" {
 			return read_enum_def(), sclass
 		} else if s == "long" {
-			if ti == unspec {
+			if ti == 0 {
 				ti = tlong
 			} else if ti == tlong {
 				ti = tllong
@@ -1140,7 +1138,7 @@ func read_decl_spec() (*Ctype, int) {
 		setsclass = nil
 	}
 
-	if ti == unspec && sig == unspec {
+	if ti == 0 && sig == 0 {
 		errorf("Type expected, but got '%s'", tok)
 	}
 	switch ti {

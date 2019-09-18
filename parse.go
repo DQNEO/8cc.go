@@ -1527,7 +1527,6 @@ func read_func_def(functype *Ctype, fname string, params []*Ast) *Ast {
 }
 
 func read_func_decl_or_def(rettype *Ctype, fname string) *Ast {
-	expect('(')
 	localenv = MakeDict(globalenv)
 	functype, params := read_func_params(rettype, false)
 	tok := read_token()
@@ -1576,6 +1575,7 @@ func read_toplevels() []*Ast {
 			continue
 		}
 		if tok.is_punct('(') {
+			read_token()
 			fnc := read_func_decl_or_def(ctype, name.sval)
 			if fnc != nil {
 				r = append(r, fnc)

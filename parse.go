@@ -1034,7 +1034,9 @@ func read_decl_spec() (*Ctype, int) {
 		tvoid
 	)
 	var ti ttype
-
+	setType := func (val ttype) {
+		ti = val
+	}
 	for {
 		setsclass := func (val int) {
 			if sclass != 0 {
@@ -1077,16 +1079,16 @@ func read_decl_spec() (*Ctype, int) {
 			if ti != unspec {
 				duptype(tok)
 			} else {
-				ti = tvoid
+				setType(tvoid)
 			}
 		} else if s == "char" {
 			if ti != unspec {
 				duptype(tok)
 			}
-			ti = tchar
+			setType(tchar)
 		} else if s == "int" {
 			if ti == unspec {
-				ti = tint
+				setType(tint)
 			} else if ti == tchar {
 				duptype(tok)
 			}
@@ -1097,7 +1099,7 @@ func read_decl_spec() (*Ctype, int) {
 			if ti != unspec {
 				duptype(tok)
 			} else {
-				ti = tfloat
+				setType(tfloat)
 			}
 		} else if s == "double" {
 			if sig != unspec {
@@ -1106,7 +1108,7 @@ func read_decl_spec() (*Ctype, int) {
 			if ti != unspec && ti != tlong {
 				duptype(tok)
 			} else {
-				ti = tfloat
+				setType(tfloat)
 			}
 		} else if s == "signed" {
 			if sig != unspec {
@@ -1122,7 +1124,7 @@ func read_decl_spec() (*Ctype, int) {
 			if ti != unspec {
 				duptype(tok)
 			}
-			ti = tshort
+			setType(tshort)
 		} else if s == "struct" {
 			return read_struct_def(), sclass
 		} else if s == "union" {

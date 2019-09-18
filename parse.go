@@ -1569,7 +1569,7 @@ func read_toplevels() []*Ast {
 		}
 		ctype = read_array_dimensions(ctype)
 		tok = read_token()
-		if tok.is_punct('=') || ctype.typ == CTYPE_ARRAY {
+		if tok.is_punct('=') {
 			gvar := ast_gvar(ctype, name.sval)
 			unget_token(tok)
 			r = append(r, read_decl_init(gvar))

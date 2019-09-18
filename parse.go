@@ -1126,6 +1126,8 @@ func read_decl_spec() (*Ctype, int) {
 		return ctype_float, sclass
 	case kdouble:
 		return ctype_double, sclass
+	}
+	switch ti {
 	case kshort:
 		if sig != kunsigned {
 			return ctype_short, sclass

@@ -1138,9 +1138,7 @@ func read_decl_spec() (*Ctype, int) {
 		} else {
 			return ctype_ulong, sclass
 		}
-	case kvoid:
-		return ctype_void, sclass
-	case kint:
+	default:
 		if sig != kunsigned {
 			return ctype_int, sclass
 		} else {

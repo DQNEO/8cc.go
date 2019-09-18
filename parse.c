@@ -1315,21 +1315,20 @@ List *read_toplevels(void) {
         if (name->type != TTYPE_IDENT)
             error("Identifier expected, but got %s", t2s(name));
         ctype = read_array_dimensions(ctype);
-        tok = peek_token();
+        tok = read_token();
         if (is_punct(tok, '=') || ctype->type == CTYPE_ARRAY) {
             Ast *var = ast_gvar(ctype, name->sval);
+            unget_token(tok);
             list_push(r, read_decl_init(var));
             continue;
         }
         if (is_punct(tok, '(')) {
-            read_token();
             Ast *func = read_func_decl_or_def(ctype, name->sval);
             if (func)
                 list_push(r, func);
             continue;
         }
         if (is_punct(tok, ';')) {
-            read_token();
             Ast *var = ast_gvar(ctype, name->sval);
             if (sclass != S_EXTERN)
                 list_push(r, ast_decl(var, NULL));

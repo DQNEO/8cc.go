@@ -879,9 +879,8 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
 #undef unused
     Ctype *usertype = NULL, *tmp = NULL;
 
-    enum { kchar = 1, kshort, kint, klong, kllong,
-           kfloat, kdouble, kvoid } type = 0;
-    int size  = 0;
+    enum { kvoid = 1, kchar, kint, kfloat, kdouble } type = 0;
+    enum { kshort = 1, klong, kllong } size  = 0;
     enum { ksigned = 1, kunsigned } sig = 0;
 
     for (;;) {

@@ -1345,11 +1345,6 @@ func read_extern_typedef() (string, *Ctype)  {
 	return name, ctype
 }
 
-func read_typedef() {
-	name, ctype := read_extern_typedef()
-	typedefs.PutCtype(name, ctype)
-}
-
 func read_extern() {
 	name, ctype := read_extern_typedef()
 	ast_gvar(ctype, name)
@@ -1438,7 +1433,8 @@ func read_decl_or_stmt() *Ast {
 		return nil
 	}
 	if tok.is_ident("typedef") {
-		read_typedef()
+		name, ctype := read_extern_typedef()
+		typedefs.PutCtype(name, ctype)
 		return read_decl_or_stmt()
 	}
 	unget_token(tok)
@@ -1558,7 +1554,8 @@ func read_toplevels() []*Ast {
 			continue
 		}
 		if tok.is_ident("typedef") {
-			read_typedef()
+			name, ctype := read_extern_typedef()
+			typedefs.PutCtype(name, ctype)
 			continue
 		}
 		if tok.is_ident("extern") {

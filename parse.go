@@ -1009,14 +1009,14 @@ func read_decl_spec() (*Ctype, int) {
 
 	type ttype int
 	const (
-		tchar = ttype(iota + 1)
-		tshort
-		tint
-		tlong
-		tllong
-		tfloat
-		tdouble
-		tvoid
+		kchar = ttype(iota + 1)
+		kshort
+		kint
+		klong
+		kllong
+		kfloat
+		kdouble
+		kvoid
 	)
 	var ti ttype
 	setType := func (val ttype) {
@@ -1071,35 +1071,35 @@ func read_decl_spec() (*Ctype, int) {
 			if sig != 0 {
 				myerror(tok)
 			}
-			setType(tvoid)
+			setType(kvoid)
 		} else if s == "char" {
-			setType(tchar)
+			setType(kchar)
 		} else if s == "int" {
 			if ti == 0 {
-				setType(tint)
-			} else if ti == tchar {
+				setType(kint)
+			} else if ti == kchar {
 				myerror(tok)
 			}
 		} else if s == "float" {
 			if sig != 0 {
 				myerror(tok)
 			}
-			setType(tfloat)
+			setType(kfloat)
 		} else if s == "double" {
 			if sig != 0 {
 				myerror(tok)
 			}
-			if ti != 0 && ti != tlong {
+			if ti != 0 && ti != klong {
 				myerror(tok)
 			} else {
-				setType(tfloat)
+				setType(kfloat)
 			}
 		} else if s == "signed" {
 			setSig(ksigned)
 		} else if s == "unsigned" {
 			setSig(kunsigned)
 		} else if s == "short" {
-			setType(tshort)
+			setType(kshort)
 		} else if s == "struct" {
 			setUserType(read_struct_def())
 		} else if s == "union" {
@@ -1108,11 +1108,11 @@ func read_decl_spec() (*Ctype, int) {
 			setUserType(read_enum_def())
 		} else if s == "long" {
 			if ti == 0 {
-				ti = tlong
-			} else if ti == tlong {
-				ti = tllong
-			} else if ti == tdouble {
-				ti = tdouble
+				ti = klong
+			} else if ti == klong {
+				ti = kllong
+			} else if ti == kdouble {
+				ti = kdouble
 			} else {
 				myerror(tok)
 			}
@@ -1129,35 +1129,35 @@ func read_decl_spec() (*Ctype, int) {
 		return usertype, sclass
 	}
 	switch ti {
-	case tchar:
+	case kchar:
 		if sig == kunsigned {
 			return ctype_uchar, sclass
 		} else {
 			return ctype_char, sclass
 		}
-	case tshort:
+	case kshort:
 		if sig == kunsigned {
 			return ctype_ushort, sclass
 		} else {
 			return ctype_short, sclass
 		}
-	case tint:
+	case kint:
 		if sig == kunsigned {
 			return ctype_uint, sclass
 		} else {
 			return ctype_int, sclass
 		}
-	case tlong, tllong:
+	case klong, kllong:
 		if sig == kunsigned {
 			return ctype_ulong, sclass
 		} else {
 			return ctype_long, sclass
 		}
-	case tfloat:
+	case kfloat:
 		return ctype_float, sclass
-	case tdouble:
+	case kdouble:
 		return ctype_double, sclass
-	case tvoid:
+	case kvoid:
 		return ctype_void, sclass
 	}
 	return nil, 0

@@ -26,10 +26,6 @@ Ctype *ctype_int = &(Ctype){ CTYPE_INT, 4, true };
 Ctype *ctype_long = &(Ctype){ CTYPE_LONG, 8, true };
 Ctype *ctype_float = &(Ctype){ CTYPE_FLOAT, 4, true };
 Ctype *ctype_double = &(Ctype){ CTYPE_DOUBLE, 8, true };
-
-static Ctype *ctype_uchar = &(Ctype){ CTYPE_CHAR, 1, false };
-static Ctype *ctype_ushort = &(Ctype){ CTYPE_SHORT, 2, false };
-static Ctype *ctype_uint = &(Ctype){ CTYPE_INT, 4, false };
 static Ctype *ctype_ulong = &(Ctype){ CTYPE_LONG, 8, false };
 
 static int labelseq = 0;
@@ -221,6 +217,21 @@ static Ast *ast_struct_ref(Ctype *ctype, Ast *struc, char *name) {
     r->ctype = ctype;
     r->struc = struc;
     r->field = name;
+    return r;
+}
+
+static Ctype *make_type(int type, bool sig) {
+    Ctype *r = malloc(sizeof(Ctype));
+    r->type = type;
+    r->sig = sig;
+    if (type == CTYPE_VOID)         r->size = 0;
+    else if (type == CTYPE_CHAR)    r->size = 1;
+    else if (type == CTYPE_SHORT)   r->size = 2;
+    else if (type == CTYPE_INT)     r->size = 4;
+    else if (type == CTYPE_LONG)    r->size = 8;
+    else if (type == CTYPE_FLOAT)   r->size = 8;
+    else if (type == CTYPE_DOUBLE)  r->size = 8;
+    else error("internal error");
     return r;
 }
 
@@ -910,11 +921,11 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         else if (_("const"))    { kconst = 1; }
         else if (_("volatile")) { kvolatile = 1; }
         else if (_("inline"))   { kinline = 1; }
-        else if (_("void"))     { set(type, kvoid);}
+        else if (_("void"))     { set(type, kvoid); }
         else if (_("char"))     { set(type, kchar); }
-        else if (_("int"))      { set(type, kint);}
-        else if (_("float"))    { set(type, kfloat);}
-        else if (_("double"))   { set(type, kfloat);}
+        else if (_("int"))      { set(type, kint); }
+        else if (_("float"))    { set(type, kfloat); }
+        else if (_("double"))   { set(type, kfloat) ;}
         else if (_("signed"))   { set(sig, ksigned); }
         else if (_("unsigned")) { set(sig, kunsigned); }
         else if (_("short"))    { set(size, kshort); }
@@ -923,8 +934,8 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         else if (_("enum"))     { set(usertype, read_enum_def());
         } else if ((tmp = dict_get(typedefs, tok->sval)) != NULL) {
             set(usertype, tmp);
-        } else if (_("long"))     {
-            if (size == 0)  { set(size, klong); }
+        } else if (_("long")) {
+            if (size == 0) { set(size, klong); }
             else if (size == klong) size = kllong;
             else goto err;
         } else {
@@ -940,16 +951,16 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         return;
     }
     switch (type) {
-    case kchar: *rtype = (sig != kunsigned) ? ctype_char : ctype_uchar; return;
-    case kfloat: *rtype = ctype_float; return;
-    case kdouble: *rtype = ctype_double; return;
+    case kchar: *rtype = make_type(CTYPE_CHAR, sig != kunsigned); return;
+    case kfloat: *rtype = make_type(CTYPE_FLOAT, false); return;
+    case kdouble: *rtype = make_type(size == klong ? CTYPE_DOUBLE : CTYPE_DOUBLE, false); return;
     default: break;
     }
     switch (size) {
-    case kshort: *rtype =  (sig != kunsigned) ? ctype_short : ctype_ushort; return;
-    case klong:
-    case kllong: *rtype =  (sig != kunsigned) ? ctype_long : ctype_ulong; return;
-    default : *rtype = (sig != kunsigned) ? ctype_int: ctype_uint; return;
+    case kshort: *rtype = make_type(CTYPE_SHORT, sig != kunsigned); return;
+    case klong:  *rtype = make_type(CTYPE_LONG, sig != kunsigned); return;
+    case kllong: *rtype =  make_type(CTYPE_LONG, sig != kunsigned); return;
+    default : *rtype = make_type(CTYPE_INT, sig != kunsigned); return;
     }
     error("internal error: type: %d, size: %d", type, size);
  err:

@@ -1068,9 +1068,6 @@ func read_decl_spec() (*Ctype, int) {
 		} else if s == "static" {
 			// ignore
 		} else if s == "void" {
-			if sig != 0 {
-				myerror(tok)
-			}
 			setType(kvoid)
 		} else if s == "char" {
 			setType(kchar)
@@ -1081,19 +1078,9 @@ func read_decl_spec() (*Ctype, int) {
 				myerror(tok)
 			}
 		} else if s == "float" {
-			if sig != 0 {
-				myerror(tok)
-			}
 			setType(kfloat)
 		} else if s == "double" {
-			if sig != 0 {
-				myerror(tok)
-			}
-			if ti != 0 && ti != klong {
-				myerror(tok)
-			} else {
-				setType(kfloat)
-			}
+			setType(kfloat)
 		} else if s == "signed" {
 			setSig(ksigned)
 		} else if s == "unsigned" {

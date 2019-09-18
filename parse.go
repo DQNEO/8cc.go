@@ -1124,7 +1124,7 @@ func read_decl_spec() (*Ctype, int) {
 		} else if s == "float" {
 			setType(kfloat)
 		} else if s == "double" {
-			setType(kfloat)
+			setType(kdouble)
 		} else if s == "signed" {
 			setSig(ksigned)
 		} else if s == "unsigned" {

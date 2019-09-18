@@ -1543,6 +1543,9 @@ func read_toplevels() []*Ast {
 		ctype = read_array_dimensions(ctype)
 		tok = read_token()
 		if tok.is_punct('=') {
+			if sclass == S_TYPEDEF {
+				errorf("= after typedef")
+			}
 			gvar := ast_gvar(ctype, name.sval)
 			r = append(r, read_decl_init(gvar))
 			continue

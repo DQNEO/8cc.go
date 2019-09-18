@@ -911,11 +911,11 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         else if (_("const"))    { kconst = 1; }
         else if (_("volatile")) { kvolatile = 1; }
         else if (_("inline"))   { kinline = 1; }
-        else if (_("void"))     { if (sig != 0) goto err; set(ti, kvoid);}
+        else if (_("void"))     { set(ti, kvoid);}
         else if (_("char"))     { set(ti, kchar); }
         else if (_("int"))      { if (ti == 0) { set(ti, kint) ;} else if (ti == kchar) goto err; }
-        else if (_("float"))    { if (sig != 0) goto err; { set(ti, kfloat);} }
-        else if (_("double"))   { if (sig != 0) goto err; if (ti != 0 && ti != klong) goto err; else { set(ti, kfloat); } }
+        else if (_("float"))    { set(ti, kfloat);}
+        else if (_("double"))   { set(ti, kfloat);}
         else if (_("signed"))   { set(sig, ksigned); }
         else if (_("unsigned")) { set(sig, kunsigned); }
         else if (_("short"))    { set(ti, kshort); }
@@ -937,34 +937,19 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
 #undef set
 #undef setsclass
     }
-    if (ti == 0) ti = kint;
     if (usertype) {
         *rtype = usertype;
         return;
     }
     switch (ti) {
-    case kchar:
-         *rtype = (sig == kunsigned) ?  ctype_uchar : ctype_char;
-        return;
-    case kshort:
-       *rtype =  (sig == kunsigned) ? ctype_ushort : ctype_short;
-      return;
-    case kint:
-         *rtype = (sig == kunsigned) ? ctype_uint : ctype_int;
-        return;
+    case kchar: *rtype = (sig != kunsigned) ? ctype_char : ctype_uchar; return;
+    case kfloat: *rtype = ctype_float; return;
+    case kdouble: *rtype = ctype_double; return;
+
+    case kshort: *rtype =  (sig != kunsigned) ? ctype_short : ctype_ushort; return;
     case klong:
-    case kllong:
-       *rtype =  (sig == kunsigned) ? ctype_ulong : ctype_long;
-      return;
-    case kfloat:
-       *rtype = ctype_float;
-      return;
-    case kdouble:
-      *rtype = ctype_double;
-     return;
-    case kvoid:
-        *rtype = ctype_void;
-       return;
+    case kllong: *rtype =  (sig != kunsigned) ? ctype_long : ctype_ulong; return;
+    default : *rtype = (sig != kunsigned) ? ctype_int: ctype_uint; return;
     }
     error("internal error");
  err:

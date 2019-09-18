@@ -766,20 +766,6 @@ func read_expr() *Ast {
 	return read_expr_int(MAX_OP_PRIO)
 }
 
-
-func dupspec(tok *Token) {
-	errorf("duplicate specifier: %s", tok)
-}
-
-func duptype(tok *Token) {
-	errorf("duplicate type specifier: %s", tok)
-}
-
-func invspec(tok *Token){
-	errorf("cannot combine signed/unsigned with %s", tok)
-}
-
-
 func is_type_keyword(tok *Token) bool {
 	if !tok.is_ident_type() {
 		return false
@@ -1037,6 +1023,10 @@ func read_decl_spec() (*Ctype, int) {
 	setType := func (val ttype) {
 		ti = val
 	}
+	myerror := func (tok *Token) {
+		errorf("internal error")
+	}
+
 	for {
 		setsclass := func (val int) {
 			if sclass != 0 {
@@ -1074,55 +1064,55 @@ func read_decl_spec() (*Ctype, int) {
 			// ignore
 		} else if s == "void" {
 			if sig != unspec {
-				invspec(tok)
+				myerror(tok)
 			}
 			if ti != unspec {
-				duptype(tok)
+				myerror(tok)
 			} else {
 				setType(tvoid)
 			}
 		} else if s == "char" {
 			if ti != unspec {
-				duptype(tok)
+				myerror(tok)
 			}
 			setType(tchar)
 		} else if s == "int" {
 			if ti == unspec {
 				setType(tint)
 			} else if ti == tchar {
-				duptype(tok)
+				myerror(tok)
 			}
 		} else if s == "float" {
 			if sig != unspec {
-				invspec(tok)
+				myerror(tok)
 			}
 			if ti != unspec {
-				duptype(tok)
+				myerror(tok)
 			} else {
 				setType(tfloat)
 			}
 		} else if s == "double" {
 			if sig != unspec {
-				invspec(tok)
+				myerror(tok)
 			}
 			if ti != unspec && ti != tlong {
-				duptype(tok)
+				myerror(tok)
 			} else {
 				setType(tfloat)
 			}
 		} else if s == "signed" {
 			if sig != unspec {
-				dupspec(tok)
+				myerror(tok)
 			}
 			sig = ksigned
 		} else if s == "unsigned" {
 			if sig != unspec {
-				dupspec(tok)
+				myerror(tok)
 			}
 			sig = kunsigned
 		} else if s == "short" {
 			if ti != unspec {
-				duptype(tok)
+				myerror(tok)
 			}
 			setType(tshort)
 		} else if s == "struct" {
@@ -1139,7 +1129,7 @@ func read_decl_spec() (*Ctype, int) {
 			} else if ti == tdouble {
 				ti = tdouble
 			} else {
-				duptype(tok)
+				myerror(tok)
 			}
 		} else if tmp = typedefs.GetCtype(s); tmp != nil {
 			return tmp, sclass
@@ -1185,7 +1175,6 @@ func read_decl_spec() (*Ctype, int) {
 	case tvoid:
 		return ctype_void, sclass
 	}
-	errorf("internal error")
 	return nil, 0
 }
 

@@ -1566,7 +1566,7 @@ func read_toplevels() []*Ast {
 			continue
 		}
 		unget_token(tok)
-		basetype, _ := read_decl_spec()
+		basetype, sclass := read_decl_spec()
 		ctype := read_declarator(basetype)
 		name := read_token()
 		if name.is_punct(';') {
@@ -1592,7 +1592,9 @@ func read_toplevels() []*Ast {
 		if tok.is_punct(';') {
 			read_token()
 			gvar := ast_gvar(ctype, name.sval)
-			r = append(r, ast_decl(gvar, nil))
+			if sclass != S_EXTERN {
+				r = append(r, ast_decl(gvar, nil))
+			}
 			continue
 		}
 		errorf("Don't know how to handle %s", tok)

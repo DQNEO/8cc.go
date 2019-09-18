@@ -881,7 +881,7 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
 
     enum { kchar = 1, kshort, kint, klong, kllong,
            kfloat, kdouble, kvoid } ti = 0;
-
+    int size  = 0;
     enum { ksigned = 1, kunsigned } sig = 0;
 
     for (;;) {
@@ -918,16 +918,15 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         else if (_("double"))   { set(ti, kfloat);}
         else if (_("signed"))   { set(sig, ksigned); }
         else if (_("unsigned")) { set(sig, kunsigned); }
-        else if (_("short"))    { set(ti, kshort); }
+        else if (_("short"))    { set(size, kshort); }
         else if (_("struct"))   { set(usertype, read_struct_def()); }
         else if (_("union"))    { set(usertype, read_union_def()); }
         else if (_("enum"))     { set(usertype, read_enum_def());
         } else if ((tmp = dict_get(typedefs, tok->sval)) != NULL) {
             set(usertype, tmp);
         } else if (_("long"))     {
-            if (ti == 0)  ti = klong;
-            else if (ti == klong)   ti = kllong;
-            else if (ti == kdouble) ti = kdouble;
+            if (size == 0)  { set(size, klong); }
+            else if (size == klong) size = kllong;
             else goto err;
         } else {
             unget_token(tok);
@@ -945,13 +944,15 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
     case kchar: *rtype = (sig != kunsigned) ? ctype_char : ctype_uchar; return;
     case kfloat: *rtype = ctype_float; return;
     case kdouble: *rtype = ctype_double; return;
-
+    default: break;
+    }
+    switch (size) {
     case kshort: *rtype =  (sig != kunsigned) ? ctype_short : ctype_ushort; return;
     case klong:
     case kllong: *rtype =  (sig != kunsigned) ? ctype_long : ctype_ulong; return;
     default : *rtype = (sig != kunsigned) ? ctype_int: ctype_uint; return;
     }
-    error("internal error");
+    error("internal error: type: %d, size: %d", ti, ti);
  err:
     error("type mismatch: %s", t2s(tok));
 }

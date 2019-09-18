@@ -1568,14 +1568,14 @@ func read_toplevels() []*Ast {
 			errorf("Identifier name expected, but got %s", name)
 		}
 		ctype = read_array_dimensions(ctype)
-		tok = peek_token()
+		tok = read_token()
 		if tok.is_punct('=') || ctype.typ == CTYPE_ARRAY {
 			gvar := ast_gvar(ctype, name.sval)
+			unget_token(tok)
 			r = append(r, read_decl_init(gvar))
 			continue
 		}
 		if tok.is_punct('(') {
-			read_token()
 			fnc := read_func_decl_or_def(ctype, name.sval)
 			if fnc != nil {
 				r = append(r, fnc)
@@ -1583,7 +1583,6 @@ func read_toplevels() []*Ast {
 			continue
 		}
 		if tok.is_punct(';') {
-			read_token()
 			gvar := ast_gvar(ctype, name.sval)
 			if sclass != S_EXTERN {
 				r = append(r, ast_decl(gvar, nil))

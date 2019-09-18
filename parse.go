@@ -1010,13 +1010,15 @@ func read_decl_spec() (*Ctype, int) {
 	type ttype int
 	const (
 		kchar = ttype(iota + 1)
-		kshort
 		kint
-		klong
-		kllong
 		kfloat
 		kdouble
 		kvoid
+	)
+	const (
+		kshort = ttype(iota + 1)
+		klong
+		kllong
 	)
 	var typ ttype
 	var size ttype

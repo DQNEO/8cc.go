@@ -1304,20 +1304,11 @@ func read_array_dimensions(basetype *Ctype) *Ctype {
 }
 
 func read_decl_init(variable *Ast) *Ast {
-	tok := read_token()
-	if tok.is_punct('=') {
-		init := read_decl_init_val(variable.ctype)
-		if variable.typ == AST_GVAR && is_inttype(variable.ctype) {
-			init = ast_inttype(ctype_int, eval_intexpr(init))
-		}
-		return ast_decl(variable, init)
+	init := read_decl_init_val(variable.ctype)
+	if variable.typ == AST_GVAR && is_inttype(variable.ctype) {
+		init = ast_inttype(ctype_int, eval_intexpr(init))
 	}
-	if variable.ctype.len == -1 {
-		errorf("Missing array initializer")
-	}
-	unget_token(tok)
-	expect(';')
-	return ast_decl(variable, nil)
+	return ast_decl(variable, init)
 }
 
 func read_decl() *Ast {
@@ -1332,7 +1323,13 @@ func read_decl() *Ast {
 		return nil
 	}
 	variable := ast_lvar(ctype, name)
-	return read_decl_init(variable)
+	tok := read_token()
+	if tok.is_punct('=') {
+		return read_decl_init(variable)
+	}
+	unget_token(tok)
+	expect(';')
+	return ast_decl(variable, nil)
 }
 
 func read_extern_typedef() (string, *Ctype)  {
@@ -1572,7 +1569,6 @@ func read_toplevels() []*Ast {
 		tok = read_token()
 		if tok.is_punct('=') {
 			gvar := ast_gvar(ctype, name.sval)
-			unget_token(tok)
 			r = append(r, read_decl_init(gvar))
 			continue
 		}

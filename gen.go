@@ -125,7 +125,7 @@ func emit_lload(ctype *Ctype, off int) {
 		emit("lea %d(%%rbp), %%rax", off)
 	} else if ctype.typ == CTYPE_FLOAT {
 		emit("cvtps2pd %d(%%rbp), %%xmm0", off)
-	} else if ctype.typ == CTYPE_DOUBLE {
+	} else if ctype.typ == CTYPE_DOUBLE || ctype.typ == CTYPE_LDOUBLE {
 		emit("movsd %d(%%rbp), %%xmm0", off)
 	} else {
 		reg := get_int_reg(ctype, 'a')
@@ -152,7 +152,7 @@ func emit_lsave(ctype *Ctype, off int) {
 		emit("cvtpd2ps %%xmm0, %%xmm0")
 		emit("movss %%xmm0, %d(%%rbp)", off)
 		pop_xmm(0)
-	} else if ctype.typ == CTYPE_DOUBLE {
+	} else if ctype.typ == CTYPE_DOUBLE || ctype.typ == CTYPE_LDOUBLE {
 		emit("movsd %%xmm0, %d(%%rbp)", off)
 	} else {
 		reg := get_int_reg(ctype, 'a')
@@ -332,7 +332,9 @@ func emit_save_convert(to *Ctype, from *Ctype) {
 		emit("cvtsi2ss %%eax, %%xmm0")
 	} else if is_flotype(from) && to.typ == CTYPE_FLOAT {
 		emit("cvtpd2ps %%xmm0, %%xmm0")
-	} else {
+	} else if is_inttype(from) && (to.typ == CTYPE_DOUBLE || to.typ == CTYPE_LDOUBLE) {
+		emit("cvtsi2sd %%eax, %%xmm0")
+	} else if !(is_flotype(from) && (to.typ == CTYPE_DOUBLE || to.typ == CTYPE_LDOUBLE)) {
 		emit_load_convert(to, from)
 	}
 }
@@ -427,7 +429,7 @@ func emit_expr(ast *Ast) {
 			emit("mov $%d, %%eax", ast.ival)
 		case CTYPE_LONG:
 			emit("mov $%d, %%rax", ast.ival)
-		case CTYPE_FLOAT, CTYPE_DOUBLE:
+		case CTYPE_FLOAT, CTYPE_DOUBLE, CTYPE_LDOUBLE:
 			emit("movsd %s(%%rip), %%xmm0", ast.flabel)
 		default:
 			errorf("internal error")
@@ -714,7 +716,7 @@ func emit_func_prologue(fn *Ast) {
 		if is_flotype(v.ctype) {
 			push_xmm(xreg)
 			xreg++
-		} else if v.ctype.typ == CTYPE_DOUBLE {
+		} else if v.ctype.typ == CTYPE_DOUBLE || v.ctype.typ == CTYPE_LDOUBLE {
 			push_xmm(xreg)
 			xreg++
 		} else {

@@ -17,8 +17,12 @@ func (ctype *Ctype) ctype_to_string_int(dict map[string]bool) string {
 		return "int"
 	case CTYPE_LONG:
 		return "long"
+	case CTYPE_LLONG:
+		return "long long"
 	case CTYPE_FLOAT:
 		return "float"
+	case CTYPE_LDOUBLE:
+		return "long double"
 	case CTYPE_DOUBLE:
 		return "double"
 	case CTYPE_PTR:

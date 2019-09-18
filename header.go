@@ -64,8 +64,10 @@ const (
 	CTYPE_SHORT
 	CTYPE_INT
 	CTYPE_LONG
+	CTYPE_LLONG
 	CTYPE_FLOAT
 	CTYPE_DOUBLE
+	CTYPE_LDOUBLE
 	CTYPE_ARRAY
 	CTYPE_PTR
 	CTYPE_STRUCT
@@ -94,7 +96,7 @@ type Ast struct {
 	typ   int
 	ctype *Ctype
 	// want to be "union"
-	// Char, short, int, or long
+	// Char, int, or long
 	ival int
 	// Float or double
 	fval   float64

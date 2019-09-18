@@ -227,9 +227,13 @@ func make_type(typ int, sig bool) *Ctype {
 		r.size = 4
 	case CTYPE_LONG:
 		r.size = 8
+	case CTYPE_LLONG:
+		r.size = 8
 	case CTYPE_FLOAT:
 		r.size = 8
 	case CTYPE_DOUBLE:
+		r.size = 8
+	case CTYPE_LDOUBLE:
 		r.size = 8
 	default:
 		errorf("internal error")
@@ -284,11 +288,13 @@ func make_func_type(rettype *Ctype, paramtypes []*Ctype, has_vaargs bool) *Ctype
 }
 
 func is_inttype(ctype *Ctype) bool {
-	return ctype.typ == CTYPE_CHAR || ctype.typ == CTYPE_SHORT || ctype.typ == CTYPE_INT || ctype.typ == CTYPE_LONG
+	return ctype.typ == CTYPE_CHAR || ctype.typ == CTYPE_SHORT ||
+		ctype.typ == CTYPE_INT || ctype.typ == CTYPE_LONG || ctype.typ == CTYPE_LLONG
 }
 
 func is_flotype(ctype *Ctype) bool {
-	return ctype.typ == CTYPE_FLOAT || ctype.typ == CTYPE_DOUBLE
+	return ctype.typ == CTYPE_FLOAT || ctype.typ == CTYPE_DOUBLE ||
+		ctype.typ == CTYPE_LDOUBLE
 }
 
 func ensure_lvalue(ast *Ast) {
@@ -575,31 +581,31 @@ func result_type_int(op byte, a *Ctype, b *Ctype) (*Ctype, error) {
 		switch b.typ {
 		case CTYPE_CHAR, CTYPE_SHORT, CTYPE_INT:
 			return ctype_int, nil
-		case CTYPE_LONG:
+		case CTYPE_LONG, CTYPE_LLONG:
 			return ctype_long, nil
-		case CTYPE_FLOAT, CTYPE_DOUBLE:
+		case CTYPE_FLOAT, CTYPE_DOUBLE, CTYPE_LDOUBLE:
 			return ctype_double, nil
 		case CTYPE_ARRAY, CTYPE_PTR:
 			return b, nil
 		}
 		errorf("internal error")
-	case CTYPE_LONG:
+	case CTYPE_LONG, CTYPE_LLONG:
 		switch b.typ {
-		case CTYPE_LONG:
+		case CTYPE_LONG, CTYPE_LLONG:
 			return ctype_long, nil
-		case CTYPE_FLOAT, CTYPE_DOUBLE:
+		case CTYPE_FLOAT, CTYPE_DOUBLE, CTYPE_LDOUBLE:
 			return ctype_double, nil
 		case CTYPE_ARRAY, CTYPE_PTR:
 			return b, nil
 		}
 		errorf("internal error")
 	case CTYPE_FLOAT:
-		if b.typ == CTYPE_FLOAT || b.typ == CTYPE_DOUBLE {
+		if b.typ == CTYPE_FLOAT || b.typ == CTYPE_DOUBLE || b.typ == CTYPE_LDOUBLE {
 			return ctype_double, nil
 		}
 		return nil, default_err
-	case CTYPE_DOUBLE:
-		if b.typ == CTYPE_DOUBLE {
+	case CTYPE_DOUBLE, CTYPE_LDOUBLE:
+		if b.typ == CTYPE_DOUBLE || b.typ == CTYPE_LDOUBLE  {
 			return ctype_double, nil
 		}
 	case CTYPE_ARRAY:
@@ -1165,7 +1171,7 @@ func read_decl_spec() (*Ctype, int) {
 	case kdouble:
 		var ctyp int
 		if size == klong {
-			ctyp = CTYPE_DOUBLE
+			ctyp = CTYPE_LDOUBLE
 		} else {
 			ctyp = CTYPE_DOUBLE
 		}
@@ -1174,8 +1180,10 @@ func read_decl_spec() (*Ctype, int) {
 	switch size {
 	case kshort:
 		return make_type(CTYPE_SHORT, sig != kunsigned), sclass
-	case klong, kllong:
+	case klong:
 		return make_type(CTYPE_LONG, sig != kunsigned), sclass
+	case kllong:
+		return make_type(CTYPE_LLONG, sig != kunsigned), sclass
 	default:
 		return make_type(CTYPE_INT, sig != kunsigned ), sclass
 	}

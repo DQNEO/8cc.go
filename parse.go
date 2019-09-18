@@ -1117,28 +1117,28 @@ func read_decl_spec() (*Ctype, int) {
 	}
 	switch ti {
 	case kchar:
-		if sig == kunsigned {
-			return ctype_uchar, sclass
-		} else {
+		if sig != kunsigned {
 			return ctype_char, sclass
+		} else {
+			return ctype_uchar, sclass
 		}
 	case kshort:
-		if sig == kunsigned {
-			return ctype_ushort, sclass
-		} else {
+		if sig != kunsigned {
 			return ctype_short, sclass
+		} else {
+			return ctype_ushort, sclass
 		}
 	case kint:
-		if sig == kunsigned {
-			return ctype_uint, sclass
-		} else {
+		if sig != kunsigned {
 			return ctype_int, sclass
+		} else {
+			return ctype_uint, sclass
 		}
 	case klong, kllong:
-		if sig == kunsigned {
-			return ctype_ulong, sclass
-		} else {
+		if sig != kunsigned {
 			return ctype_long, sclass
+		} else {
+			return ctype_ulong, sclass
 		}
 	case kfloat:
 		return ctype_float, sclass

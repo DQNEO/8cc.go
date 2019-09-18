@@ -1122,17 +1122,15 @@ func read_decl_spec() (*Ctype, int) {
 		} else {
 			return ctype_uchar, sclass
 		}
+	case kfloat:
+		return ctype_float, sclass
+	case kdouble:
+		return ctype_double, sclass
 	case kshort:
 		if sig != kunsigned {
 			return ctype_short, sclass
 		} else {
 			return ctype_ushort, sclass
-		}
-	case kint:
-		if sig != kunsigned {
-			return ctype_int, sclass
-		} else {
-			return ctype_uint, sclass
 		}
 	case klong, kllong:
 		if sig != kunsigned {
@@ -1140,12 +1138,14 @@ func read_decl_spec() (*Ctype, int) {
 		} else {
 			return ctype_ulong, sclass
 		}
-	case kfloat:
-		return ctype_float, sclass
-	case kdouble:
-		return ctype_double, sclass
 	case kvoid:
 		return ctype_void, sclass
+	case kint:
+		if sig != kunsigned {
+			return ctype_int, sclass
+		} else {
+			return ctype_uint, sclass
+		}
 	}
 	return nil, 0
 }

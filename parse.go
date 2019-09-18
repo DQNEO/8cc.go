@@ -1019,11 +1019,15 @@ func read_decl_spec() (*Ctype, int) {
 		kvoid
 	)
 	var ti ttype
+	var size ttype
 	setType := func (val ttype) {
 		ti = val
 	}
 	setSig := func(s sign) {
 		sig = s
+	}
+	setSize := func(s ttype) {
+		size = s
 	}
 	setUserType := func(t *Ctype) {
 		usertype = t
@@ -1086,7 +1090,7 @@ func read_decl_spec() (*Ctype, int) {
 		} else if s == "unsigned" {
 			setSig(kunsigned)
 		} else if s == "short" {
-			setType(kshort)
+			setSize(kshort)
 		} else if s == "struct" {
 			setUserType(read_struct_def())
 		} else if s == "union" {
@@ -1094,12 +1098,10 @@ func read_decl_spec() (*Ctype, int) {
 		} else if s == "enum" {
 			setUserType(read_enum_def())
 		} else if s == "long" {
-			if ti == 0 {
-				ti = klong
-			} else if ti == klong {
-				ti = kllong
-			} else if ti == kdouble {
-				ti = kdouble
+			if size == 0 {
+				setSize(klong)
+			} else if size == klong {
+				size = kllong
 			} else {
 				myerror(tok)
 			}
@@ -1127,7 +1129,7 @@ func read_decl_spec() (*Ctype, int) {
 	case kdouble:
 		return ctype_double, sclass
 	}
-	switch ti {
+	switch size {
 	case kshort:
 		if sig != kunsigned {
 			return ctype_short, sclass

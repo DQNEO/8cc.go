@@ -29,9 +29,6 @@ var ctype_long = &Ctype{typ: CTYPE_LONG, size: 8, sig: true,}
 var ctype_float = &Ctype{typ: CTYPE_FLOAT, size: 4, sig: true,}
 var ctype_double = &Ctype{typ: CTYPE_DOUBLE, size: 8, sig: true,}
 
-var ctype_uchar = &Ctype{typ: CTYPE_CHAR, size: 1, sig: false,}
-var ctype_ushort = &Ctype{typ: CTYPE_SHORT, size: 2, sig: false}
-var ctype_uint = &Ctype{typ: CTYPE_INT, size: 4, sig: false,}
 var ctype_ulong = &Ctype{typ: CTYPE_LONG, size: 8, sig: false,}
 
 const (
@@ -211,6 +208,32 @@ func ast_struct_ref(ctype *Ctype, struc *Ast, name string) *Ast {
 	r.ctype = ctype
 	r.struc = struc
 	r.field = name
+	return r
+}
+
+func make_type(typ int, sig bool) *Ctype {
+	r := &Ctype{
+		typ:typ,
+		sig:sig,
+	}
+	switch typ {
+	case CTYPE_VOID:
+		r.size = 0
+	case CTYPE_CHAR:
+		r.size = 1
+	case CTYPE_SHORT:
+		r.size = 2
+	case CTYPE_INT:
+		r.size = 4
+	case CTYPE_LONG:
+		r.size = 8
+	case CTYPE_FLOAT:
+		r.size = 8
+	case CTYPE_DOUBLE:
+		r.size = 8
+	default:
+		errorf("internal error")
+	}
 	return r
 }
 
@@ -1117,35 +1140,25 @@ func read_decl_spec() (*Ctype, int) {
 	}
 	switch typ {
 	case kchar:
-		if sig != kunsigned {
-			return ctype_char, sclass
-		} else {
-			return ctype_uchar, sclass
-		}
+		return make_type(CTYPE_CHAR, sig != kunsigned), sclass
 	case kfloat:
-		return ctype_float, sclass
+		return make_type(CTYPE_FLOAT, false), sclass
 	case kdouble:
-		return ctype_double, sclass
+		var ctyp int
+		if size == klong {
+			ctyp = CTYPE_DOUBLE
+		} else {
+			ctyp = CTYPE_DOUBLE
+		}
+		return make_type(ctyp, false), sclass
 	}
 	switch size {
 	case kshort:
-		if sig != kunsigned {
-			return ctype_short, sclass
-		} else {
-			return ctype_ushort, sclass
-		}
+		return make_type(CTYPE_SHORT, sig != kunsigned), sclass
 	case klong, kllong:
-		if sig != kunsigned {
-			return ctype_long, sclass
-		} else {
-			return ctype_ulong, sclass
-		}
+		return make_type(CTYPE_LONG, sig != kunsigned), sclass
 	default:
-		if sig != kunsigned {
-			return ctype_int, sclass
-		} else {
-			return ctype_uint, sclass
-		}
+		return make_type(CTYPE_INT, sig != kunsigned ), sclass
 	}
 	return nil, 0
 }

@@ -414,7 +414,7 @@ static Ast *read_func_args(char *fname) {
     if (func) {
         Ctype *t = func->ctype;
         if (t->type != CTYPE_FUNC)
-            error("%s is not a function, but %s", fname, ctype_to_string(t));
+            error("%s is not a function, but %s", fname, c2s(t));
         assert(t->params);
         function_type_check(fname, t->params, param_types(args));
         return ast_funcall(t->rettype, fname, args, t->params);
@@ -553,7 +553,7 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
             goto err;
         return result_type_int(jmpbuf, op, a->ptr, b->ptr);
     default:
-        error("internal error: %s %s", ctype_to_string(a), ctype_to_string(b));
+        error("internal error: %s %s", c2s(a), c2s(b));
     }
  err:
     longjmp(*jmpbuf, 1);
@@ -577,7 +577,7 @@ Ctype *result_type(char op, Ctype *a, Ctype *b) {
     if (setjmp(jmpbuf) == 0)
         return result_type_int(&jmpbuf, op, convert_array(a), convert_array(b));
     error("incompatible operands: %c: <%s> and <%s>",
-          op, ctype_to_string(a), ctype_to_string(b));
+          op, c2s(a), c2s(b));
 }
 
 static Ast *get_sizeof_size(bool allow_typename) {
@@ -685,7 +685,7 @@ static Ast *read_expr_int(int prec) {
         if (is_punct(tok, OP_ARROW)) {
             if (ast->ctype->type != CTYPE_PTR)
                 error("pointer type expected, but got %s %s",
-                      ctype_to_string(ast->ctype), a2s(ast));
+                      c2s(ast->ctype), a2s(ast));
             ast = ast_uop(AST_DEREF, ast->ctype->ptr, ast);
             ast = read_struct_field(ast);
             continue;
@@ -754,7 +754,7 @@ static void read_decl_array_init_int(List *initlist, Ctype *ctype) {
     }
     if (!is_punct(tok, '{'))
         error("Expected an initializer list for %s, but got %s",
-              ctype_to_string(ctype), t2s(tok));
+              c2s(ctype), t2s(tok));
     for (;;) {
         Token *tok = read_token();
         if (is_punct(tok, '}'))
@@ -1007,7 +1007,7 @@ static Ast *read_decl_struct_init_val(Ctype *ctype) {
             return ast_init_list(initlist);
         if (is_punct(tok, '{')) {
             if (fieldtype->type != CTYPE_ARRAY)
-                error("array expected, but got %s", ctype_to_string(fieldtype));
+                error("array expected, but got %s", c2s(fieldtype));
             unget_token(tok);
             read_decl_array_init_int(initlist, fieldtype);
             continue;
@@ -1251,7 +1251,6 @@ static Ast *read_func_def(Ctype *functype, char *fname, List *params) {
 
 static Ast *read_func_decl_or_def(Ctype *rettype, char *fname) {
     localenv = make_dict(globalenv);
-
     Ctype *functype;
     List *params = make_list();
     read_func_params(&functype, params, rettype);
@@ -1282,6 +1281,8 @@ List *read_toplevels(void) {
         ctype = read_array_dimensions(ctype);
         tok = read_token();
         if (is_punct(tok, '=')) {
+            if (sclass == S_TYPEDEF)
+                error("= after typedef");
             Ast *var = ast_gvar(ctype, name->sval);
             list_push(r, read_decl_init(var));
             continue;

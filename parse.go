@@ -1018,10 +1018,10 @@ func read_decl_spec() (*Ctype, int) {
 		kdouble
 		kvoid
 	)
-	var ti ttype
+	var typ ttype
 	var size ttype
 	setType := func (val ttype) {
-		ti = val
+		typ = val
 	}
 	setSig := func(s sign) {
 		sig = s
@@ -1076,9 +1076,9 @@ func read_decl_spec() (*Ctype, int) {
 		} else if s == "char" {
 			setType(kchar)
 		} else if s == "int" {
-			if ti == 0 {
+			if typ == 0 {
 				setType(kint)
-			} else if ti == kchar {
+			} else if typ == kchar {
 				myerror(tok)
 			}
 		} else if s == "float" {
@@ -1117,7 +1117,7 @@ func read_decl_spec() (*Ctype, int) {
 	if usertype != nil {
 		return usertype, sclass
 	}
-	switch ti {
+	switch typ {
 	case kchar:
 		if sig != kunsigned {
 			return ctype_char, sclass

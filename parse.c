@@ -229,8 +229,10 @@ static Ctype *make_type(int type, bool sig) {
     else if (type == CTYPE_SHORT)   r->size = 2;
     else if (type == CTYPE_INT)     r->size = 4;
     else if (type == CTYPE_LONG)    r->size = 8;
+    else if (type == CTYPE_LLONG)   r->size = 8;
     else if (type == CTYPE_FLOAT)   r->size = 8;
     else if (type == CTYPE_DOUBLE)  r->size = 8;
+    else if (type == CTYPE_LDOUBLE) r->size = 8;
     else error("internal error");
     return r;
 }
@@ -278,11 +280,12 @@ static Ctype* make_func_type(Ctype *rettype, List *paramtypes, bool has_varargs)
 
 bool is_inttype(Ctype *ctype) {
     return ctype->type == CTYPE_CHAR || ctype->type == CTYPE_SHORT ||
-        ctype->type == CTYPE_INT || ctype->type == CTYPE_LONG;
+        ctype->type == CTYPE_INT || ctype->type == CTYPE_LONG || ctype->type == CTYPE_LLONG;
 }
 
 bool is_flotype(Ctype *ctype) {
-    return ctype->type == CTYPE_FLOAT || ctype->type == CTYPE_DOUBLE;
+    return ctype->type == CTYPE_FLOAT || ctype->type == CTYPE_DOUBLE ||
+        ctype->type == CTYPE_LDOUBLE;
 }
 
 static void ensure_lvalue(Ast *ast) {
@@ -514,30 +517,30 @@ static Ctype *result_type_int(jmp_buf *jmpbuf, char op, Ctype *a, Ctype *b) {
         switch (b->type) {
         case CTYPE_CHAR: case CTYPE_SHORT: case CTYPE_INT:
             return ctype_int;
-        case CTYPE_LONG:
+        case CTYPE_LONG: case CTYPE_LLONG:
             return ctype_long;
-        case CTYPE_FLOAT: case CTYPE_DOUBLE:
+        case CTYPE_FLOAT: case CTYPE_DOUBLE: case CTYPE_LDOUBLE:
             return ctype_double;
         case CTYPE_ARRAY: case CTYPE_PTR:
             return b;
         }
         error("internal error");
-    case CTYPE_LONG:
+    case CTYPE_LONG: case CTYPE_LLONG:
         switch (b->type) {
-        case CTYPE_LONG:
+        case CTYPE_LONG: case CTYPE_LLONG:
             return ctype_long;
-        case CTYPE_FLOAT: case CTYPE_DOUBLE:
+        case CTYPE_FLOAT: case CTYPE_DOUBLE: case CTYPE_LDOUBLE:
             return ctype_double;
         case CTYPE_ARRAY: case CTYPE_PTR:
             return b;
         }
         error("internal error");
     case CTYPE_FLOAT:
-        if (b->type == CTYPE_FLOAT || b->type == CTYPE_DOUBLE)
+        if (b->type == CTYPE_FLOAT || b->type == CTYPE_DOUBLE || b->type == CTYPE_LDOUBLE)
             return ctype_double;
         goto err;
-    case CTYPE_DOUBLE:
-        if (b->type == CTYPE_DOUBLE)
+    case CTYPE_DOUBLE: case CTYPE_LDOUBLE:
+        if (b->type == CTYPE_DOUBLE || b->type == CTYPE_LDOUBLE)
             return ctype_double;
         goto err;
     case CTYPE_ARRAY:
@@ -958,13 +961,13 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
     switch (type) {
     case kchar:   *rtype = make_type(CTYPE_CHAR, sig != kunsigned); return;
     case kfloat:  *rtype = make_type(CTYPE_FLOAT, false); return;
-    case kdouble: *rtype = make_type(size == klong ? CTYPE_DOUBLE : CTYPE_DOUBLE, false); return;
+    case kdouble: *rtype = make_type(size == klong ? CTYPE_LDOUBLE : CTYPE_DOUBLE, false); return;
     default: break;
     }
     switch (size) {
     case kshort: *rtype = make_type(CTYPE_SHORT, sig != kunsigned); return;
     case klong:  *rtype = make_type(CTYPE_LONG, sig != kunsigned); return;
-    case kllong: *rtype = make_type(CTYPE_LONG, sig != kunsigned); return;
+    case kllong: *rtype = make_type(CTYPE_LLONG, sig != kunsigned); return;
     default:     *rtype = make_type(CTYPE_INT, sig != kunsigned); return;
     }
     error("internal error: type: %d, size: %d", type, size);

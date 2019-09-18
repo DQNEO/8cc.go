@@ -1021,6 +1021,9 @@ func read_decl_spec() (*Ctype, int) {
 	setType := func (val ttype) {
 		ti = val
 	}
+	setSig := func(s sign) {
+		sig = s
+	}
 	myerror := func (tok *Token) {
 		errorf("internal error")
 	}
@@ -1064,15 +1067,8 @@ func read_decl_spec() (*Ctype, int) {
 			if sig != 0 {
 				myerror(tok)
 			}
-			if ti != 0 {
-				myerror(tok)
-			} else {
-				setType(tvoid)
-			}
+			setType(tvoid)
 		} else if s == "char" {
-			if ti != 0 {
-				myerror(tok)
-			}
 			setType(tchar)
 		} else if s == "int" {
 			if ti == 0 {
@@ -1084,11 +1080,7 @@ func read_decl_spec() (*Ctype, int) {
 			if sig != 0 {
 				myerror(tok)
 			}
-			if ti != 0 {
-				myerror(tok)
-			} else {
-				setType(tfloat)
-			}
+			setType(tfloat)
 		} else if s == "double" {
 			if sig != 0 {
 				myerror(tok)
@@ -1099,19 +1091,10 @@ func read_decl_spec() (*Ctype, int) {
 				setType(tfloat)
 			}
 		} else if s == "signed" {
-			if sig != 0 {
-				myerror(tok)
-			}
-			sig = ksigned
+			setSig(ksigned)
 		} else if s == "unsigned" {
-			if sig != 0 {
-				myerror(tok)
-			}
-			sig = kunsigned
+			setSig(kunsigned)
 		} else if s == "short" {
-			if ti != 0 {
-				myerror(tok)
-			}
 			setType(tshort)
 		} else if s == "struct" {
 			return read_struct_def(), sclass

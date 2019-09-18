@@ -220,6 +220,12 @@ static Ast *ast_struct_ref(Ctype *ctype, Ast *struc, char *name) {
     return r;
 }
 
+static Ctype *copy_type(Ctype *ctype) {
+    Ctype *r = malloc(sizeof(Ctype));
+    memcpy(r, ctype, sizeof(Ctype));
+    return r;
+}
+
 static Ctype *make_type(int type, bool sig) {
     Ctype *r = malloc(sizeof(Ctype));
     r->type = type;
@@ -255,8 +261,7 @@ static Ctype* make_array_type(Ctype *ctype, int len) {
 }
 
 static Ctype* make_struct_field_type(Ctype *ctype, int offset) {
-    Ctype *r = malloc(sizeof(Ctype));
-    memcpy(r, ctype, sizeof(Ctype));
+    Ctype *r = copy_type(ctype);
     r->offset = offset;
     return r;
 }
@@ -892,7 +897,6 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
     bool kconst unused = false, kvolatile unused = false, kinline unused = false;
 #undef unused
     Ctype *usertype = NULL, *tmp = NULL;
-
     enum { kvoid = 1, kchar, kint, kfloat, kdouble } type = 0;
     enum { kshort = 1, klong, kllong } size = 0;
     enum { ksigned = 1, kunsigned } sig = 0;

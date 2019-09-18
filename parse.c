@@ -891,7 +891,7 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
     Ctype *usertype = NULL, *tmp = NULL;
 
     enum { kvoid = 1, kchar, kint, kfloat, kdouble } type = 0;
-    enum { kshort = 1, klong, kllong } size  = 0;
+    enum { kshort = 1, klong, kllong } size = 0;
     enum { ksigned = 1, kunsigned } sig = 0;
 
     for (;;) {
@@ -900,15 +900,20 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         *sclass = val
 #define set(var, val)                                                   \
         if (var != 0) goto err;                                         \
-        var = val;
-
+        var = val;                                                      \
+        if (size == kshort && (type != 0 && type != kint))              \
+            goto err;                                                   \
+        if (size == klong && (type != 0 && type != kint && type != kdouble)) \
+            goto err;                                                   \
+        if (sig != 0 && (type == kvoid || type == kfloat || type == kdouble)) \
+            goto err;                                                   \
+        if (usertype && (type != 0 || size != 0 || sig != 0))           \
+            goto err
 #define _(s) (!strcmp(tok->sval, s))
 
         tok = read_token();
-        if (!tok) {
-            *rtype = NULL;
-            return;
-        }
+        if (!tok)
+            error("premature end of input");
         if (tok->type != TTYPE_IDENT) {
             unget_token(tok);
             break;
@@ -925,7 +930,7 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         else if (_("char"))     { set(type, kchar); }
         else if (_("int"))      { set(type, kint); }
         else if (_("float"))    { set(type, kfloat); }
-        else if (_("double"))   { set(type, kfloat) ;}
+        else if (_("double"))   { set(type, kdouble); }
         else if (_("signed"))   { set(sig, ksigned); }
         else if (_("unsigned")) { set(sig, kunsigned); }
         else if (_("short"))    { set(size, kshort); }
@@ -935,7 +940,7 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         } else if ((tmp = dict_get(typedefs, tok->sval)) != NULL) {
             set(usertype, tmp);
         } else if (_("long")) {
-            if (size == 0) { set(size, klong); }
+            if (size == 0) set(size, klong);
             else if (size == klong) size = kllong;
             else goto err;
         } else {
@@ -951,16 +956,16 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
         return;
     }
     switch (type) {
-    case kchar: *rtype = make_type(CTYPE_CHAR, sig != kunsigned); return;
-    case kfloat: *rtype = make_type(CTYPE_FLOAT, false); return;
+    case kchar:   *rtype = make_type(CTYPE_CHAR, sig != kunsigned); return;
+    case kfloat:  *rtype = make_type(CTYPE_FLOAT, false); return;
     case kdouble: *rtype = make_type(size == klong ? CTYPE_DOUBLE : CTYPE_DOUBLE, false); return;
     default: break;
     }
     switch (size) {
     case kshort: *rtype = make_type(CTYPE_SHORT, sig != kunsigned); return;
     case klong:  *rtype = make_type(CTYPE_LONG, sig != kunsigned); return;
-    case kllong: *rtype =  make_type(CTYPE_LONG, sig != kunsigned); return;
-    default : *rtype = make_type(CTYPE_INT, sig != kunsigned); return;
+    case kllong: *rtype = make_type(CTYPE_LONG, sig != kunsigned); return;
+    default:     *rtype = make_type(CTYPE_INT, sig != kunsigned); return;
     }
     error("internal error: type: %d, size: %d", type, size);
  err:

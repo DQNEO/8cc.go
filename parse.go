@@ -211,6 +211,11 @@ func ast_struct_ref(ctype *Ctype, struc *Ast, name string) *Ast {
 	return r
 }
 
+func copy_type(ctype *Ctype) *Ctype {
+	copy := *ctype
+	return &copy
+}
+
 func make_type(typ int, sig bool) *Ctype {
 	r := &Ctype{
 		typ:typ,
@@ -263,8 +268,7 @@ func make_array_type(ctype *Ctype, len int) *Ctype {
 }
 
 func make_struct_field_type(ctype *Ctype, offset int) *Ctype {
-	copy := *ctype
-	r := &copy
+	r := copy_type(ctype)
 	//r.name = name
 	r.offset = offset
 	return r

@@ -1321,8 +1321,13 @@ func read_decl_init(variable *Ast) *Ast {
 }
 
 func read_decl() *Ast {
-	name, ctype, _ := read_decl_int()
+	name, ctype, sclass := read_decl_int()
 	if name == "" {
+		expect(';')
+		return nil
+	}
+	if sclass == S_TYPEDEF {
+		typedefs.PutCtype(name, ctype)
 		expect(';')
 		return nil
 	}
@@ -1423,20 +1428,16 @@ func read_stmt() *Ast {
 }
 
 func read_decl_or_stmt() *Ast {
-	tok := read_token()
-	if tok == nil {
-		return nil
-	}
-	if tok.is_ident("typedef") {
-		name, ctype := read_extern_typedef()
-		typedefs.PutCtype(name, ctype)
-		return read_decl_or_stmt()
-	}
-	unget_token(tok)
-	if is_type_keyword(tok) {
-		return read_decl()
-	} else {
-		return read_stmt()
+	for {
+		tok := peek_token()
+		if tok == nil {
+			errorf("premature end of input")
+		}
+		if is_type_keyword(tok) {
+			return read_decl()
+		} else {
+			return read_stmt()
+		}
 	}
 }
 

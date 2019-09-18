@@ -1045,20 +1045,39 @@ func read_decl_spec() (*Ctype, int) {
 	)
 	var typ ttype
 	var size ttype
+
+	myerror := func (tok *Token) {
+		errorf("internal error")
+	}
+	check := func() {
+		if size == kshort && (typ != 0 && typ != kint) {
+			myerror(tok)
+		}
+		if size == klong && (typ != 0 && typ != kint && typ != kdouble) {
+			myerror(tok)
+		}
+		if sig != 0 && (typ == kvoid || typ == kfloat || typ == kdouble) {
+			myerror(tok)
+		}
+		if usertype != nil && (typ != 0 || size != 0 || sig != 0) {
+			myerror(tok)
+		}
+	}
 	setType := func (val ttype) {
 		typ = val
+		check()
 	}
 	setSig := func(s sign) {
 		sig = s
+		check()
 	}
 	setSize := func(s ttype) {
 		size = s
+		check()
 	}
 	setUserType := func(t *Ctype) {
 		usertype = t
-	}
-	myerror := func (tok *Token) {
-		errorf("internal error")
+		check()
 	}
 
 	for {

@@ -1511,6 +1511,7 @@ func read_func_def(functype *Ctype, fname string, params []*Ast) *Ast {
 
 func read_func_decl_or_def(rettype *Ctype, fname string) *Ast {
 	localenv = MakeDict(globalenv)
+
 	functype, params := read_func_params(rettype, false)
 	tok := read_token()
 	if tok.is_punct('{') {

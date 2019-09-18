@@ -1332,21 +1332,6 @@ func read_decl() *Ast {
 	return ast_decl(variable, nil)
 }
 
-func read_extern_typedef() (string, *Ctype)  {
-	name, ctype, _ := read_decl_int()
-	if name == "" {
-		errorf("name missing")
-	}
-	tok := read_token()
-	if tok.is_punct('(') {
-		ctype,_ = read_func_params(ctype, true)
-	} else {
-		unget_token(tok)
-	}
-	expect(';')
-	return name, ctype
-}
-
 func read_if_stmt() *Ast {
 	expect('(')
 	cond := read_expr()
@@ -1545,16 +1530,6 @@ func read_toplevels() []*Ast {
 		if tok.is_ident("static") || tok.is_ident("const") {
 			continue
 		}
-		if tok.is_ident("typedef") {
-			name, ctype := read_extern_typedef()
-			typedefs.PutCtype(name, ctype)
-			continue
-		}
-		if tok.is_ident("extern") {
-			name, ctype := read_extern_typedef()
-			ast_gvar(ctype, name)
-			continue
-		}
 		unget_token(tok)
 		basetype, sclass := read_decl_spec()
 		ctype := read_declarator(basetype)
@@ -1573,16 +1548,30 @@ func read_toplevels() []*Ast {
 			continue
 		}
 		if tok.is_punct('(') {
-			fnc := read_func_decl_or_def(ctype, name.sval)
-			if fnc != nil {
-				r = append(r, fnc)
+			if sclass == S_EXTERN {
+				ctype,_ = read_func_params(ctype, true)
+				expect(';')
+				ast_gvar(ctype, name.sval)
+			} else if sclass == S_TYPEDEF {
+				ctype,_ = read_func_params(ctype, true)
+				expect(';')
+				typedefs.PutCtype(name.sval, ctype)
+			} else {
+				fnc := read_func_decl_or_def(ctype, name.sval)
+				if fnc != nil {
+					r = append(r, fnc)
+				}
 			}
 			continue
 		}
 		if tok.is_punct(';') {
-			gvar := ast_gvar(ctype, name.sval)
-			if sclass != S_EXTERN {
-				r = append(r, ast_decl(gvar, nil))
+			if sclass == S_TYPEDEF {
+				typedefs.PutCtype(name.sval, ctype)
+			} else {
+				gvar := ast_gvar(ctype, name.sval)
+				if sclass != S_EXTERN {
+					r = append(r, ast_decl(gvar, nil))
+				}
 			}
 			continue
 		}

@@ -930,10 +930,10 @@ func read_struct_union_def(env *Dict, compute_size func(*Dict)int) *Ctype {
 	} else {
 		prev = nil
 	}
+	fields := read_struct_union_fields()
 	if prev != nil {
 		return prev
 	}
-	fields := read_struct_union_fields()
 	var r *Ctype
 	if fields != nil {
 		r = make_struct_type(fields, compute_size(fields))

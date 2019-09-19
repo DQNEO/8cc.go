@@ -107,7 +107,7 @@ static Token *read_ident(void) {
     return r;
 }
 
-void expect_newline(void) {
+static void expect_newline(void) {
     Token *tok = read_cpp_token();
     if (!tok || tok->type != TTYPE_NEWLINE)
         error("Newline expected, but got %s", t2s(tok));

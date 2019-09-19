@@ -216,7 +216,6 @@ extern char *input_position(void);
 extern void unget_token(Token *tok);
 extern Token *peek_token(void);
 extern Token *read_token(void);
-extern void expect_newline(void);
 
 extern char *t2s(Token *tok);
 extern bool is_punct(Token *tok, int c);

@@ -710,9 +710,10 @@ static void emit_func_prologue(Ast *func) {
     int localarea = 0;
     for (Iter *i = list_iter(func->localvars); !iter_end(i);) {
         Ast *v = iter_next(i);
-        off -= align(v->ctype->size, 8);
+        int a = align(v->ctype->size, 8);
+        off -= a;
         v->loff = off;
-        localarea += off;
+        localarea -= a;
     }
     if (localarea)
         emit("sub $%d, %%rsp", -localarea);

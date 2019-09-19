@@ -966,7 +966,7 @@ static void read_decl_spec(Ctype **rtype, int *sclass) {
     switch (type) {
     case kchar:   *rtype = make_type(CTYPE_CHAR, sig != kunsigned); return;
     case kfloat:  *rtype = make_type(CTYPE_FLOAT, false); return;
-    case kdouble: *rtype = make_type(size == klong ? CTYPE_DOUBLE : CTYPE_LDOUBLE, false); return;
+    case kdouble: *rtype = make_type(size == klong ? CTYPE_LDOUBLE : CTYPE_DOUBLE, false); return;
     default: break;
     }
     switch (size) {

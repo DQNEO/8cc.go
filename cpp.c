@@ -228,11 +228,11 @@ static void glue_push(List *tokens, Token *tok) {
     list_push(tokens, glue_tokens(last, tok));
 }
 
-static char *join_tokens(List *args, bool sep) {
+static char *join_tokens(List *args) {
     String *s = make_string();
     for (Iter *i = list_iter(args); !iter_end(i);) {
         Token *tok = iter_next(i);
-        if (sep && string_len(s) && tok->space)
+        if (string_len(s) && tok->space)
             string_appendf(s, " ");
         switch (tok->type) {
         case TTYPE_IDENT:
@@ -246,7 +246,7 @@ static char *join_tokens(List *args, bool sep) {
             string_appendf(s, "%s", quote_char(tok->c));
             break;
         case TTYPE_STRING:
-            string_appendf(s, "\"%s\"", quote_cstring(tok->sval));
+            string_appendf(s, "\"%s\"", tok->sval);
             break;
         default:
             error("internal error");
@@ -255,10 +255,10 @@ static char *join_tokens(List *args, bool sep) {
     return get_cstring(s);
 }
 
-static Token *stringize(Token *tmpl, List *args) {
-    Token *r = copy_token(tmpl);
+static Token *stringize(List *args) {
+    Token *r = malloc(sizeof(Token));
     r->type = TTYPE_STRING;
-    r->sval = join_tokens(args, true);
+    r->sval = join_tokens(args);
     return r;
 }
 
@@ -283,7 +283,7 @@ static List *subst(Macro *macro, List *args, Dict *hideset) {
         bool t1_param = (!islast && t1->type == TTYPE_MACRO_PARAM);
 
         if (is_punct(t0, '#') && t1_param) {
-            list_push(r, stringize(t0, list_get(args, t1->position)));
+            list_push(r, stringize(list_get(args, t1->position)));
             i++;
             continue;
         }
@@ -439,7 +439,7 @@ static void read_undef(void) {
     dict_remove(macros, name->sval);
 }
 
-static Token *read_defined_op(void) {
+static Token *read_defined_operator(void) {
     Token *tok = read_cpp_token();
     if (is_punct(tok, '(')) {
         tok = read_cpp_token();
@@ -457,7 +457,7 @@ static List *read_intexpr_line(void) {
         Token *tok = read_token_int(true);
         if (!tok) return r;
         if (is_ident(tok, "defined"))
-            list_push(r, read_defined_op());
+            list_push(r, read_defined_operator());
         else if (tok->type == TTYPE_IDENT)
             list_push(r, cpp_token_one);
         else
@@ -522,8 +522,12 @@ static void read_elif(void) {
         error("#elif after #else");
     if (ci->wastrue)
         skip_cond_incl();
-    else if (read_constexpr())
-        ci->wastrue = true;
+    else {
+        bool cond = read_constexpr();
+        ci->wastrue = cond;
+        if (!cond)
+            skip_cond_incl();
+    }
 }
 
 static void read_endif(void) {
@@ -538,28 +542,6 @@ static void read_cpp_header_name(char **name, bool *std) {
         if (read_header_file_name(name, std))
             return;
     }
-    Token *tok = read_expand();
-    if (!tok || tok->type == TTYPE_NEWLINE)
-        error("expected file name, but got %s", t2s(tok));
-    if (tok->type == TTYPE_STRING) {
-        *name = tok->sval;
-        *std = false;
-        return;
-    }
-    if (!is_punct(tok, '<'))
-        error("'<' expected, but got %s", t2s(tok));
-    List *tokens = make_list();
-    for (;;) {
-        Token *tok = read_expand();
-        if (!tok || tok->type == TTYPE_NEWLINE)
-            error("premature end of header name");
-        if (is_punct(tok, '>'))
-            break;
-        list_push(tokens, tok);
-    }
-    *name = join_tokens(tokens, false);
-    *std = true;
-    return;
 }
 
 static char *construct_path(char *path1, char *path2) {
@@ -591,6 +573,7 @@ static char *macro_to_string(char *name, Macro *m) {
         string_appendf(s, "%s ->", name, m->nargs);
     else
         string_appendf(s, "%s(%d) ->", name, m->nargs);
+    if (!m->body) return get_cstring(s);
     for (Iter *i = list_iter(m->body); !iter_end(i);)
         string_appendf(s, " %s", t2s(iter_next(i)));
     return get_cstring(s);

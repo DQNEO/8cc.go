@@ -20,9 +20,6 @@ extern int string_len(String *s);
 extern void string_append(String *s, char c);
 extern void string_appendf(String *s, char *fmt, ...);
 
-#define STRING(x)                                                       \
-    (String){ .body = (x), .nalloc = sizeof(x), .len = sizeof(x) + 1 }
-
 enum {
     TTYPE_IDENT,
     TTYPE_PUNCT,

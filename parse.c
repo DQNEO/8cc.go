@@ -100,8 +100,7 @@ static Ast *ast_lvar(Ctype *ctype, char *name) {
     r->type = AST_LVAR;
     r->ctype = ctype;
     r->varname = name;
-    if (localenv)
-        dict_put(localenv, name, r);
+    dict_put(localenv, name, r);
     if (localvars)
         list_push(localvars, r);
     return r;
@@ -324,6 +323,7 @@ int eval_intexpr(Ast *ast) {
             return ast->ival;
         error("Integer expression expected, but got %s", a2s(ast));
     case '!': return !eval_intexpr(ast->operand);
+    case AST_TERNARY: return eval_intexpr(ast->cond) ? eval_intexpr(ast->then) : eval_intexpr(ast->els);
 #define L (eval_intexpr(ast->left))
 #define R (eval_intexpr(ast->right))
     case '+': return L + R;
@@ -608,6 +608,10 @@ static Ast *read_unary_expr(void) {
     if (!tok) error("premature end of input");
     if (is_ident(tok, "sizeof"))
         return get_sizeof_size(false);
+    if (tok->type != TTYPE_PUNCT) {
+        unget_token(tok);
+        return read_prim();
+    }
     if (is_punct(tok, '(')) {
         Ast *r = read_expr();
         expect(')');
@@ -815,13 +819,8 @@ static Ctype *read_struct_union_def(Dict *env, int (*compute_size)(Dict *)) {
     char *tag = read_struct_union_tag();
     Ctype *prev = tag ? dict_get(env, tag) : NULL;
     Dict *fields = read_struct_union_fields();
-    if (prev && !fields)
+    if (prev)
         return prev;
-    if (prev && fields) {
-        prev->fields = fields;
-        prev->size = compute_size(fields);
-        return prev;
-    }
     Ctype *r = fields
         ? make_struct_type(fields, compute_size(fields))
         : make_struct_type(NULL, 0);

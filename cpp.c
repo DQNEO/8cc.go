@@ -97,7 +97,7 @@ static Token *copy_token(Token *tok) {
 static void expect(char punct) {
     Token *tok = read_cpp_token();
     if (!tok || !is_punct(tok, punct))
-        error("%c expected, but got %s", t2s(tok));
+        error("%c expected, but got %s", punct, t2s(tok));
 }
 
 static Token *read_ident(void) {

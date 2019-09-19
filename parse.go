@@ -1509,29 +1509,69 @@ func read_func_def(functype *Ctype, fname string, params []*Ast) *Ast {
 	return r
 }
 
-func read_func_decl_or_def(rettype *Ctype, fname string) *Ast {
-	localenv = MakeDict(globalenv)
-
-	functype, params := read_func_params(rettype, false)
-	tok := read_token()
-	if tok.is_punct('{') {
-		return read_func_def(functype, fname, params)
+func is_funcdef() bool {
+	buf := make(TokenList, 0)
+	nest := 0
+	paren := false
+	r := true
+	for {
+		tok := read_token()
+		buf = append(buf, tok)
+		if tok == nil {
+			errorf("premature end of input")
+		}
+		if nest == 0 && paren && tok.is_punct('{') {
+			break
+		}
+		if nest == 0 && (tok.is_punct(';') || tok.is_punct(',') || tok.is_punct('=')) {
+			r = false
+			break
+		}
+		if tok.is_punct('(') {
+			nest++
+		}
+		if tok.is_punct(')') {
+			if nest == 0 {
+				errorf("extra close parenthesis")
+			}
+			paren = true
+			nest--
+		}
 	}
-	globalenv.PutAst(fname, ast_gvar(functype, fname))
-	return nil
+	for i:= len(buf) - 1; i >= 0 ;i-- {
+		unget_token(buf[i])
+	}
+
+	return r
+}
+
+func read_funcdef() *Ast {
+	basetype, _ := read_decl_spec()
+	rettype := read_declarator(basetype)
+	name := read_token()
+	if name.typ != TTYPE_IDENT {
+		errorf("function name expected, but got %s", name)
+	}
+	localenv = MakeDict(globalenv)
+	expect('(')
+	functype, params := read_func_params(rettype, false)
+	expect('{')
+	r := read_func_def(functype, name.sval, params)
+	localenv = nil
+	return r
 }
 
 func read_toplevels() []*Ast {
 	var r []*Ast
 	for {
-		tok := read_token()
+		tok := peek_token()
 		if tok == nil {
 			return r
 		}
-		if tok.is_ident("static") || tok.is_ident("const") {
+		if is_funcdef() {
+			r = append(r, read_funcdef())
 			continue
 		}
-		unget_token(tok)
 		basetype, sclass := read_decl_spec()
 		ctype := read_declarator(basetype)
 		name := read_token()
@@ -1552,19 +1592,12 @@ func read_toplevels() []*Ast {
 			continue
 		}
 		if tok.is_punct('(') {
-			if sclass == S_EXTERN {
-				ctype,_ = read_func_params(ctype, true)
-				expect(';')
-				ast_gvar(ctype, name.sval)
-			} else if sclass == S_TYPEDEF {
-				ctype,_ = read_func_params(ctype, true)
-				expect(';')
+			ctype,_ = read_func_params(ctype, true)
+			expect(';')
+			if sclass == S_TYPEDEF {
 				typedefs.PutCtype(name.sval, ctype)
 			} else {
-				fnc := read_func_decl_or_def(ctype, name.sval)
-				if fnc != nil {
-					r = append(r, fnc)
-				}
+				ast_gvar(ctype, name.sval)
 			}
 			continue
 		}

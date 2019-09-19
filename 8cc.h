@@ -79,7 +79,6 @@ enum {
     OP_LOGAND,
     OP_LOGOR,
     OP_ARROW,
-    OP_SIZEOF,
 };
 
 enum {

@@ -6,7 +6,7 @@ function compile {
         echo "Failed to compile $1"
         exit
     fi
-    gcc -o tmp.out tmp.s
+    gcc -o tmp.out tmp.s -no-pie
     if [ $? -ne 0 ]; then
         echo "GCC failed: $1"
         exit

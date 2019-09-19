@@ -177,28 +177,28 @@ int ifdef() {
 #else
     a = 2;
 #endif
-    expect(a, 1);
+    expect(1, a);
 
 #ifdef NO_SUCH_MACRO
     a = 3;
 #else
     a = 4;
 #endif
-    expect(a, 4);
+    expect(4, a);
 
 #ifndef ONE
     a = 5;
 #else
     a = 6;
 #endif
-    expect(a, 6);
+    expect(6, a);
 
 #ifndef NO_SUCH_MACRO
     a = 7;
 #else
     a = 8;
 #endif
-    expect(a, 7);
+    expect(7, a);
 }
 
 int plus(int a, int b) {

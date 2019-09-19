@@ -1266,10 +1266,6 @@ List *read_toplevels(void) {
     for (;;) {
         Token *tok = peek_token();
         if (!tok) return r;
-        if (is_ident(tok, "static") || is_ident(tok, "const")) {
-            read_token();
-            continue;
-        }
         Ctype *basetype;
         int sclass;
         read_decl_spec(&basetype, &sclass);

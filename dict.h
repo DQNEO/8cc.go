@@ -6,7 +6,6 @@
 typedef struct Dict {
     List *list;
     struct Dict *parent;
-    int size;
 } Dict;
 
 #define EMPTY_DICT                              \

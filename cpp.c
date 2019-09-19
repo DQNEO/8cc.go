@@ -42,8 +42,8 @@ static __attribute__((constructor)) void init(void) {
     std_include_path = make_list();
     list_push(std_include_path, "/usr/local/include");
     list_push(std_include_path, "/usr/include/x86_64-linux-gnu");
-    list_push(std_include_path, "/usr/lib/gcc/x86_64-linux-gnu/7/include");
     list_push(std_include_path, "/usr/include/linux");
+    list_push(std_include_path, "/usr/lib/gcc/x86_64-linux-gnu/7/include");
     list_push(std_include_path, "/usr/include");
     list_push(std_include_path, ".");
 

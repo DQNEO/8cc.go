@@ -210,6 +210,8 @@ char *t2s(Token *tok) {
     case TTYPE_PUNCT:
         if (is_punct(tok, OP_EQ))
             return "==";
+        else if (is_punct(tok, OP_NE))
+            return "!=";
         return format("%c", tok->c);
     case TTYPE_CHAR:
         return format("%c", tok->c);

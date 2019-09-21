@@ -1020,11 +1020,9 @@ static Ast *read_decl_struct_init_val(Ctype *ctype) {
 }
 
 static Ast *read_decl_init_val(Ctype *ctype) {
-    Ast *init = (ctype->type == CTYPE_ARRAY) ? read_decl_array_init_val(ctype)
+    return (ctype->type == CTYPE_ARRAY) ? read_decl_array_init_val(ctype)
         : (ctype->type == CTYPE_STRUCT) ? read_decl_struct_init_val(ctype)
         : read_expr();
-    expect(';');
-    return init;
 }
 
 static Ctype *read_array_dimensions_int(Ctype *basetype) {
@@ -1097,6 +1095,7 @@ static Ast *read_decl(void) {
     Token *tok = read_token();
     if (is_punct(tok, '=')) {
         Ast *r = read_decl_init(var);
+        expect(';');
         return r;
     }
     unget_token(tok);
@@ -1306,7 +1305,8 @@ static void read_toplevel(List *toplevel) {
     Ctype *basetype;
     int sclass;
     read_decl_spec(&basetype, &sclass);
-    Ctype *ctype = read_declarator(basetype);
+    for (;;) {
+        Ctype *ctype = read_declarator(basetype);
         Token *name = read_token();
         if (is_punct(name, ';'))
             return;
@@ -1319,18 +1319,15 @@ static void read_toplevel(List *toplevel) {
                 error("= after typedef");
             Ast *var = ast_gvar(ctype, name->sval);
             list_push(toplevel, read_decl_init(var));
-            return;
-        }
-        if (is_punct(tok, '(')) {
+            tok = read_token();
+        } else if (is_punct(tok, '(')) {
             read_func_params(&ctype, NULL, ctype);
-            expect(';');
             if (sclass == S_TYPEDEF)
                 dict_put(typedefs, name->sval, ctype);
             else
                 ast_gvar(ctype, name->sval);
-            return;
-        }
-        if (is_punct(tok, ';')) {
+            tok = read_token();
+        } else {
             if (sclass == S_TYPEDEF) {
                 dict_put(typedefs, name->sval, ctype);
             } else {
@@ -1338,9 +1335,12 @@ static void read_toplevel(List *toplevel) {
                 if (sclass != S_EXTERN)
                     list_push(toplevel, ast_decl(var, NULL));
             }
-            return;
         }
-        error("Don't know how to handle %s", t2s(tok));
+        if (is_punct(tok, ';'))
+            return;
+        if (!is_punct(tok, ','))
+            error("; or , are expected, but got %s", t2s(tok));
+    }
 }
 
 List *read_toplevels(void) {

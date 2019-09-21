@@ -1325,7 +1325,8 @@ func read_decl() *Ast {
 	variable := ast_lvar(ctype, name)
 	tok := read_token()
 	if tok.is_punct('=') {
-		return read_decl_init(variable)
+		r := read_decl_init(variable)
+		return r
 	}
 	unget_token(tok)
 	expect(';')

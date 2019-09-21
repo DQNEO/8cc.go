@@ -1344,8 +1344,7 @@ static void read_toplevel(List *r) {
 List *read_toplevels(void) {
     List *r = make_list();
     for (;;) {
-        Token *tok = peek_token();
-        if (!tok) return r;
+        if (!peek_token()) return r;
         if (is_funcdef()) {
             list_push(r, read_funcdef());
         } else {

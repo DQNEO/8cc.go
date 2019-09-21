@@ -1095,8 +1095,10 @@ static Ast *read_decl(void) {
     }
     Ast *var = ast_lvar(ctype, name);
     Token *tok = read_token();
-    if (is_punct(tok, '='))
-        return read_decl_init(var);
+    if (is_punct(tok, '=')) {
+        Ast *r = read_decl_init(var);
+        return r;
+    }
     unget_token(tok);
     expect(';');
     return ast_decl(var, NULL);

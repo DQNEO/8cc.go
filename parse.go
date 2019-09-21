@@ -1571,7 +1571,7 @@ func read_toplevels() []*Ast {
 		if is_funcdef() {
 			r = append(r, read_funcdef())
 			continue
-		}
+		} else {
 		basetype, sclass := read_decl_spec()
 		ctype := read_declarator(basetype)
 		name := read_token()
@@ -1614,5 +1614,6 @@ func read_toplevels() []*Ast {
 		}
 		errorf("Don't know how to handle %s", tok)
 		return nil
+		}
 	}
 }

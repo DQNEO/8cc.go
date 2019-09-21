@@ -1561,6 +1561,52 @@ func read_funcdef() *Ast {
 	return r
 }
 
+func read_toplevel(r []*Ast) []*Ast {
+	basetype, sclass := read_decl_spec()
+	ctype := read_declarator(basetype)
+	name := read_token()
+	if name.is_punct(';') {
+		return r
+	}
+	if !name.is_ident_type() {
+		errorf("Identifier name expected, but got %s", name)
+	}
+	ctype = read_array_dimensions(ctype)
+	tok := read_token()
+	if tok.is_punct('=') {
+		if sclass == S_TYPEDEF {
+			errorf("= after typedef")
+		}
+		gvar := ast_gvar(ctype, name.sval)
+		r = append(r, read_decl_init(gvar))
+		return r
+	}
+	if tok.is_punct('(') {
+		ctype,_ = read_func_params(ctype, true)
+		expect(';')
+		if sclass == S_TYPEDEF {
+			typedefs.PutCtype(name.sval, ctype)
+		} else {
+			ast_gvar(ctype, name.sval)
+		}
+		return r
+	}
+	if tok.is_punct(';') {
+		if sclass == S_TYPEDEF {
+			typedefs.PutCtype(name.sval, ctype)
+		} else {
+			gvar := ast_gvar(ctype, name.sval)
+			if sclass != S_EXTERN {
+				r = append(r, ast_decl(gvar, nil))
+			}
+		}
+		return r
+	}
+	errorf("Don't know how to handle %s", tok)
+	return nil
+
+}
+
 func read_toplevels() []*Ast {
 	var r []*Ast
 	for {
@@ -1570,50 +1616,8 @@ func read_toplevels() []*Ast {
 		}
 		if is_funcdef() {
 			r = append(r, read_funcdef())
-			continue
 		} else {
-		basetype, sclass := read_decl_spec()
-		ctype := read_declarator(basetype)
-		name := read_token()
-		if name.is_punct(';') {
-			continue
-		}
-		if !name.is_ident_type() {
-			errorf("Identifier name expected, but got %s", name)
-		}
-		ctype = read_array_dimensions(ctype)
-		tok = read_token()
-		if tok.is_punct('=') {
-			if sclass == S_TYPEDEF {
-				errorf("= after typedef")
-			}
-			gvar := ast_gvar(ctype, name.sval)
-			r = append(r, read_decl_init(gvar))
-			continue
-		}
-		if tok.is_punct('(') {
-			ctype,_ = read_func_params(ctype, true)
-			expect(';')
-			if sclass == S_TYPEDEF {
-				typedefs.PutCtype(name.sval, ctype)
-			} else {
-				ast_gvar(ctype, name.sval)
-			}
-			continue
-		}
-		if tok.is_punct(';') {
-			if sclass == S_TYPEDEF {
-				typedefs.PutCtype(name.sval, ctype)
-			} else {
-				gvar := ast_gvar(ctype, name.sval)
-				if sclass != S_EXTERN {
-					r = append(r, ast_decl(gvar, nil))
-				}
-			}
-			continue
-		}
-		errorf("Don't know how to handle %s", tok)
-		return nil
+			r = read_toplevel(r)
 		}
 	}
 }

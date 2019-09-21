@@ -1307,8 +1307,7 @@ List *read_toplevels(void) {
         if (!tok) return r;
         if (is_funcdef()) {
             list_push(r, read_funcdef());
-            continue;
-        }
+        } else {
         Ctype *basetype;
         int sclass;
         read_decl_spec(&basetype, &sclass);
@@ -1347,5 +1346,6 @@ List *read_toplevels(void) {
             continue;
         }
         error("Don't know how to handle %s", t2s(tok));
+        }
     }
 }

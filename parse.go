@@ -1610,8 +1610,7 @@ func read_toplevel(r []*Ast) []*Ast {
 func read_toplevels() []*Ast {
 	var r []*Ast
 	for {
-		tok := peek_token()
-		if tok == nil {
+		if peek_token() == nil {
 			return r
 		}
 		if is_funcdef() {

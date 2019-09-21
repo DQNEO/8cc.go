@@ -1300,31 +1300,24 @@ static Ast *read_funcdef(void) {
     return r;
 }
 
-List *read_toplevels(void) {
-    List *r = make_list();
-    for (;;) {
-        Token *tok = peek_token();
-        if (!tok) return r;
-        if (is_funcdef()) {
-            list_push(r, read_funcdef());
-        } else {
+static void read_toplevel(List *r) {
         Ctype *basetype;
         int sclass;
         read_decl_spec(&basetype, &sclass);
         Ctype *ctype = read_declarator(basetype);
         Token *name = read_token();
         if (is_punct(name, ';'))
-            continue;
+            return;
         if (name->type != TTYPE_IDENT)
             error("Identifier expected, but got %s", t2s(name));
         ctype = read_array_dimensions(ctype);
-        tok = read_token();
+        Token *tok = read_token();
         if (is_punct(tok, '=')) {
             if (sclass == S_TYPEDEF)
                 error("= after typedef");
             Ast *var = ast_gvar(ctype, name->sval);
             list_push(r, read_decl_init(var));
-            continue;
+            return;
         }
         if (is_punct(tok, '(')) {
             read_func_params(&ctype, NULL, ctype);
@@ -1333,7 +1326,7 @@ List *read_toplevels(void) {
                 dict_put(typedefs, name->sval, ctype);
             else
                 ast_gvar(ctype, name->sval);
-            continue;
+            return;
         }
         if (is_punct(tok, ';')) {
             if (sclass == S_TYPEDEF) {
@@ -1343,9 +1336,20 @@ List *read_toplevels(void) {
                 if (sclass != S_EXTERN)
                     list_push(r, ast_decl(var, NULL));
             }
-            continue;
+            return;
         }
         error("Don't know how to handle %s", t2s(tok));
+}
+
+List *read_toplevels(void) {
+    List *r = make_list();
+    for (;;) {
+        Token *tok = peek_token();
+        if (!tok) return r;
+        if (is_funcdef()) {
+            list_push(r, read_funcdef());
+        } else {
+            read_toplevel(r);
         }
     }
 }

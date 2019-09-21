@@ -1303,10 +1303,10 @@ static Ast *read_funcdef(void) {
 }
 
 static void read_toplevel(List *r) {
-        Ctype *basetype;
-        int sclass;
-        read_decl_spec(&basetype, &sclass);
-        Ctype *ctype = read_declarator(basetype);
+    Ctype *basetype;
+    int sclass;
+    read_decl_spec(&basetype, &sclass);
+    Ctype *ctype = read_declarator(basetype);
         Token *name = read_token();
         if (is_punct(name, ';'))
             return;

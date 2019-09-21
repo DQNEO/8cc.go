@@ -1268,7 +1268,6 @@ func read_decl_init_val(ctype *Ctype) *Ast {
 	} else {
 		init = read_expr()
 	}
-	expect(';')
 	return init
 }
 
@@ -1326,6 +1325,7 @@ func read_decl() *Ast {
 	tok := read_token()
 	if tok.is_punct('=') {
 		r := read_decl_init(variable)
+		expect(';')
 		return r
 	}
 	unget_token(tok)
@@ -1580,6 +1580,7 @@ func read_toplevel(toplevel []*Ast) []*Ast {
 		}
 		gvar := ast_gvar(ctype, name.sval)
 		toplevel = append(toplevel, read_decl_init(gvar))
+		expect(';')
 		return toplevel
 	}
 	if tok.is_punct('(') {

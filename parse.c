@@ -1065,20 +1065,23 @@ static void read_decl_type(Dict *r) {
     Ctype *basetype;
     int dummy;
     read_decl_spec(&basetype, &dummy);
-    Ctype *t = read_declarator(basetype);
-    Token *tok = read_token();
-    char *name = NULL;
-    if (is_punct(tok, ';')) {
+    for (;;) {
+        Ctype *t = read_declarator(basetype);
+        Token *tok = read_token();
+        char *name = NULL;
+        if (tok->type == TTYPE_IDENT)
+            name = tok->sval;
+        else
+            unget_token(tok);
+        Ctype *ctype = read_array_dimensions(t);
+        dict_put(r, name, make_struct_field_type(ctype, 0));
+        tok = read_token();
+        if (is_punct(tok, ','))
+            continue;
         unget_token(tok);
+        expect(';');
         return;
     }
-    if (tok->type == TTYPE_IDENT)
-        name = tok->sval;
-    else
-        unget_token(tok);
-    Ctype *ctype = read_array_dimensions(t);
-    dict_put(r, name, make_struct_field_type(ctype, 0));
-    expect(';');
 }
 
 static Ast *read_if_stmt(void) {

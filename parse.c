@@ -44,7 +44,7 @@ static void read_func_params(Ctype **rtype, List *rparams, Ctype *rettype);
 static Ast *read_decl_init_val(Ctype *ctype);
 static Ctype *read_cast_type(void);
 static void read_decl(List *block, MakeVarFn make_var);
-static void read_decl_type(char **name, Ctype **ctype);
+static void read_decl_type(Dict *r, char **name, Ctype **ctype);
 
 enum {
     S_TYPEDEF = 1,
@@ -784,9 +784,7 @@ static Dict *read_struct_union_fields(void) {
             break;
         char *name;
         Ctype *fieldtype;
-        read_decl_type(&name, &fieldtype);
-        dict_put(r, name, make_struct_field_type(fieldtype, 0));
-        expect(';');
+        read_decl_type(r, &name, &fieldtype);
     }
     expect('}');
     return r;
@@ -1065,7 +1063,7 @@ static Ctype *read_cast_type(void) {
     return read_declarator(basetype);
 }
 
-static void read_decl_type(char **name, Ctype **ctype) {
+static void read_decl_type(Dict *r, char **name, Ctype **ctype) {
     Ctype *basetype;
     int dummy;
     read_decl_spec(&basetype, &dummy);
@@ -1083,6 +1081,8 @@ static void read_decl_type(char **name, Ctype **ctype) {
         *name = tok->sval;
     }
     *ctype = read_array_dimensions(t);
+    dict_put(r, *name, make_struct_field_type(*ctype, 0));
+    expect(';');
 }
 
 static Ast *read_if_stmt(void) {

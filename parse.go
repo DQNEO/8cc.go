@@ -885,7 +885,7 @@ func read_struct_union_fields() *Dict {
 		if !is_type_keyword(peek_token()) {
 			break
 		}
-		name, fieldtype := read_decl_int()
+		name, fieldtype := read_decl_type()
 		r.PutCtype(name, make_struct_field_type(fieldtype, 0))
 		expect(';')
 	}
@@ -1198,7 +1198,7 @@ func read_cast_type() *Ctype {
 	return read_declarator(basetype)
 }
 
-func read_decl_int() (string, *Ctype) {
+func read_decl_type() (string, *Ctype) {
 	basetype, _ := read_decl_spec()
 	ctype := read_declarator(basetype)
 	tok := read_token()

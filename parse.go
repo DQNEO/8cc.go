@@ -1564,49 +1564,50 @@ func read_funcdef() *Ast {
 
 func read_toplevel(toplevel []*Ast) []*Ast {
 	basetype, sclass := read_decl_spec()
-	ctype := read_declarator(basetype)
-	name := read_token()
-	if name.is_punct(';') {
-		return toplevel
-	}
-	if !name.is_ident_type() {
-		errorf("Identifier name expected, but got %s", name)
-	}
-	ctype = read_array_dimensions(ctype)
-	tok := read_token()
-	if tok.is_punct('=') {
-		if sclass == S_TYPEDEF {
-			errorf("= after typedef")
+	for {
+		ctype := read_declarator(basetype)
+		name := read_token()
+		if name.is_punct(';') {
+			return toplevel
 		}
-		gvar := ast_gvar(ctype, name.sval)
-		toplevel = append(toplevel, read_decl_init(gvar))
-		expect(';')
-		return toplevel
-	}
-	if tok.is_punct('(') {
-		ctype,_ = read_func_params(ctype, true)
-		expect(';')
-		if sclass == S_TYPEDEF {
-			typedefs.PutCtype(name.sval, ctype)
-		} else {
-			ast_gvar(ctype, name.sval)
+		if !name.is_ident_type() {
+			errorf("Identifier name expected, but got %s", name)
 		}
-		return toplevel
-	}
-	if tok.is_punct(';') {
-		if sclass == S_TYPEDEF {
-			typedefs.PutCtype(name.sval, ctype)
-		} else {
+		ctype = read_array_dimensions(ctype)
+		tok := read_token()
+		if tok.is_punct('=') {
+			if sclass == S_TYPEDEF {
+				errorf("= after typedef")
+			}
 			gvar := ast_gvar(ctype, name.sval)
-			if sclass != S_EXTERN {
-				toplevel = append(toplevel, ast_decl(gvar, nil))
+			toplevel = append(toplevel, read_decl_init(gvar))
+			tok = read_token()
+		} else if tok.is_punct('(') {
+			ctype, _ = read_func_params(ctype, true)
+			if sclass == S_TYPEDEF {
+				typedefs.PutCtype(name.sval, ctype)
+			} else {
+				ast_gvar(ctype, name.sval)
+			}
+			tok = read_token()
+		} else {
+			if sclass == S_TYPEDEF {
+				typedefs.PutCtype(name.sval, ctype)
+			} else {
+				gvar := ast_gvar(ctype, name.sval)
+				if sclass != S_EXTERN {
+					toplevel = append(toplevel, ast_decl(gvar, nil))
+				}
 			}
 		}
-		return toplevel
-	}
-	errorf("Don't know how to handle %s", tok)
-	return nil
 
+		if tok.is_punct(';') {
+			return toplevel
+		}
+		if !tok.is_punct(',') {
+			errorf("Don't know how to handle %s", tok)
+		}
+	}
 }
 
 func read_toplevels() []*Ast {

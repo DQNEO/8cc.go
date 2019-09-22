@@ -98,6 +98,8 @@ func ast_lvar(ctype *Ctype, name string) *Ast {
 	return r
 }
 
+type MakeVarFn func(ctype *Ctype, name string) *Ast
+
 func ast_gvar(ctype *Ctype, name string) *Ast {
 	r := &Ast{}
 	r.typ = AST_GVAR
@@ -1562,7 +1564,7 @@ func read_funcdef() *Ast {
 	return r
 }
 
-func read_decl(block []*Ast) []*Ast {
+func read_decl(block []*Ast, make_var MakeVarFn) []*Ast {
 	basetype, sclass := read_decl_spec()
 	for {
 		ctype := read_declarator(basetype)
@@ -1579,7 +1581,7 @@ func read_decl(block []*Ast) []*Ast {
 			if sclass == S_TYPEDEF {
 				errorf("= after typedef")
 			}
-			gvar := ast_gvar(ctype, name.sval)
+			gvar := make_var(ctype, name.sval)
 			block = append(block, read_decl_init(gvar))
 			tok = read_token()
 		} else if tok.is_punct('(') {
@@ -1587,14 +1589,14 @@ func read_decl(block []*Ast) []*Ast {
 			if sclass == S_TYPEDEF {
 				typedefs.PutCtype(name.sval, ctype)
 			} else {
-				ast_gvar(ctype, name.sval)
+				make_var(ctype, name.sval)
 			}
 			tok = read_token()
 		} else {
 			if sclass == S_TYPEDEF {
 				typedefs.PutCtype(name.sval, ctype)
 			} else {
-				gvar := ast_gvar(ctype, name.sval)
+				gvar := make_var(ctype, name.sval)
 				if sclass != S_EXTERN {
 					block = append(block, ast_decl(gvar, nil))
 				}
@@ -1619,7 +1621,7 @@ func read_toplevels() []*Ast {
 		if is_funcdef() {
 			r = append(r, read_funcdef())
 		} else {
-			r = read_decl(r)
+			r = read_decl(r, ast_gvar)
 		}
 	}
 }

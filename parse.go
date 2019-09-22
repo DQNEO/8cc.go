@@ -98,7 +98,12 @@ func ast_lvar(ctype *Ctype, name string) *Ast {
 	return r
 }
 
+type DefineFn func(opaque *Dict, ctype *Ctype, name string)
 type MakeVarFn func(ctype *Ctype, name string) *Ast
+
+func define_struct_union_field(opaque *Dict, ctype *Ctype, name string) {
+	opaque.PutCtype(name, ctype)
+}
 
 func ast_gvar(ctype *Ctype, name string) *Ast {
 	r := &Ast{}
@@ -885,7 +890,7 @@ func read_struct_union_fields() *Dict {
 		if !is_type_keyword(peek_token()) {
 			break
 		}
-		read_decl_type(r)
+		read_decl_type(r, define_struct_union_field)
 	}
 	expect('}')
 	return r
@@ -1196,7 +1201,7 @@ func read_cast_type() *Ctype {
 	return read_declarator(basetype)
 }
 
-func read_decl_type(r *Dict) {
+func read_decl_type(r *Dict, define DefineFn) {
 	basetype, _ := read_decl_spec()
 	for {
 		ctype := read_declarator(basetype)
@@ -1208,7 +1213,7 @@ func read_decl_type(r *Dict) {
 			unget_token(tok)
 		}
 		ctype = read_array_dimensions(ctype)
-		r.PutCtype(name, make_struct_field_type(ctype, 0))
+		define(r, ctype, name)
 		tok = read_token()
 		if tok.is_punct(',') {
 			continue

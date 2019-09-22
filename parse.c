@@ -44,7 +44,7 @@ static Ast *read_unary_expr(void);
 static void read_func_params(Ctype **rtype, List *rparams, Ctype *rettype);
 static Ast *read_decl_init_val(Ctype *ctype);
 static Ctype *read_cast_type(void);
-static void read_decl(List *toplevel, MakeVarFn make_var);
+static void read_decl(List *block, MakeVarFn make_var);
 static void read_decl_type(void *opaque, DefineFn define);
 
 enum {

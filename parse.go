@@ -1205,10 +1205,10 @@ func read_decl_type(r *Dict) {
 		unget_token(tok)
 		return
 	}
-	if !tok.is_ident_type() {
-		unget_token(tok)
-	} else {
+	if tok.is_ident_type() {
 		name = tok.sval
+	} else {
+		unget_token(tok)
 	}
 	ctype = read_array_dimensions(ctype)
 	r.PutCtype(name, make_struct_field_type(ctype, 0))

@@ -885,7 +885,7 @@ func read_struct_union_fields() *Dict {
 		if !is_type_keyword(peek_token()) {
 			break
 		}
-		name, fieldtype, _  := read_decl_int()
+		name, fieldtype := read_decl_int()
 		r.PutCtype(name, make_struct_field_type(fieldtype, 0))
 		expect(';')
 	}
@@ -1198,15 +1198,15 @@ func read_cast_type() *Ctype {
 	return read_declarator(basetype)
 }
 
-func read_decl_int() (string, *Ctype, int) {
-	basetype, sclass := read_decl_spec()
+func read_decl_int() (string, *Ctype) {
+	basetype, _ := read_decl_spec()
 	ctype := read_declarator(basetype)
 	tok := read_token()
 	var name string
 	if tok.is_punct(';') {
 		unget_token(tok)
 		name = ""
-		return name, ctype, sclass
+		return name, ctype
 	}
 	if !tok.is_ident_type() {
 		unget_token(tok)
@@ -1215,7 +1215,7 @@ func read_decl_int() (string, *Ctype, int) {
 		name = tok.sval
 	}
 	ctype = read_array_dimensions(ctype)
-	return name, ctype, sclass
+	return name, ctype
 }
 
 func read_decl_array_init_val(ctype *Ctype) *Ast {

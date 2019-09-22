@@ -1077,7 +1077,7 @@ static void read_decl_int(char **name, Ctype **ctype, int *sclass) {
     *ctype = read_array_dimensions(t);
 }
 
-static Ast *read_decl(void) {
+static Ast *read_decl_type(void) {
     char *name;
     Ctype *ctype;
     int sclass;
@@ -1171,7 +1171,7 @@ static Ast *read_decl_or_stmt(void) {
         Token *tok = peek_token();
         if (tok == NULL)
             error("premature end of input");
-        return is_type_keyword(tok) ? read_decl() : read_stmt();
+        return is_type_keyword(tok) ? read_decl_type() : read_stmt();
     }
 }
 
@@ -1301,7 +1301,7 @@ static Ast *read_funcdef(void) {
     return r;
 }
 
-static void read_toplevel(List *toplevel) {
+static void read_decl(List *toplevel) {
     Ctype *basetype;
     int sclass;
     read_decl_spec(&basetype, &sclass);
@@ -1351,6 +1351,6 @@ List *read_toplevels(void) {
         if (is_funcdef())
             list_push(r, read_funcdef());
         else
-            read_toplevel(r);
+            read_decl(r);
     }
 }

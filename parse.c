@@ -30,6 +30,7 @@ static Ctype *ctype_ulong = &(Ctype){ CTYPE_LONG, 8, false };
 
 static int labelseq = 0;
 
+typedef void DefineFn(void *opaque, Ctype *ctype, char *name);
 typedef Ast *MakeVarFn(Ctype *ctype, char *name);
 
 static Ctype* make_ptr_type(Ctype *ctype);
@@ -44,7 +45,7 @@ static void read_func_params(Ctype **rtype, List *rparams, Ctype *rettype);
 static Ast *read_decl_init_val(Ctype *ctype);
 static Ctype *read_cast_type(void);
 static void read_decl(List *block, MakeVarFn make_var);
-static void read_decl_type(Dict *r);
+static void read_decl_type(void *opaque, DefineFn define);
 
 enum {
     S_TYPEDEF = 1,
@@ -772,6 +773,10 @@ static char *read_struct_union_tag(void) {
     return NULL;
 }
 
+static void define_struct_union_field(void *dict, Ctype *ctype, char *name) {
+    dict_put(dict, name, make_struct_field_type(ctype, 0));
+}
+
 static Dict *read_struct_union_fields(void) {
     Token *tok = read_token();
     if (!is_punct(tok, '{')) {
@@ -782,7 +787,7 @@ static Dict *read_struct_union_fields(void) {
     for (;;) {
         if (!is_type_keyword(peek_token()))
             break;
-        read_decl_type(r);
+        read_decl_type(r, define_struct_union_field);
     }
     expect('}');
     return r;
@@ -1061,7 +1066,7 @@ static Ctype *read_cast_type(void) {
     return read_declarator(basetype);
 }
 
-static void read_decl_type(Dict *r) {
+static void read_decl_type(void *opaque, DefineFn define) {
     Ctype *basetype;
     int dummy;
     read_decl_spec(&basetype, &dummy);
@@ -1074,7 +1079,7 @@ static void read_decl_type(Dict *r) {
         else
             unget_token(tok);
         Ctype *ctype = read_array_dimensions(t);
-        dict_put(r, name, make_struct_field_type(ctype, 0));
+        define(opaque, ctype, name);
         tok = read_token();
         if (is_punct(tok, ','))
             continue;

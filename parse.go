@@ -1479,7 +1479,7 @@ func read_func_params(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 	}
 }
 
-func read_func_def(functype *Ctype, fname string, params []*Ast) *Ast {
+func read_func_body(functype *Ctype, fname string, params []*Ast) *Ast {
 	localenv = MakeDict(localenv)
 	localvars = make([]*Ast, 0)
 	current_func_type = functype
@@ -1539,7 +1539,7 @@ func read_funcdef() *Ast {
 	expect('(')
 	functype, params := read_func_params(rettype, false)
 	expect('{')
-	r := read_func_def(functype, name.sval, params)
+	r := read_func_body(functype, name.sval, params)
 	localenv = nil
 	return r
 }

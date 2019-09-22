@@ -1415,16 +1415,14 @@ func read_stmt() *Ast {
 }
 
 func read_decl_or_stmt() *Ast {
-	for {
-		tok := peek_token()
-		if tok == nil {
-			errorf("premature end of input")
-		}
-		if is_type_keyword(tok) {
-			return read_decl_type()
-		} else {
-			return read_stmt()
-		}
+	tok := peek_token()
+	if tok == nil {
+		errorf("premature end of input")
+	}
+	if is_type_keyword(tok) {
+		return read_decl_type()
+	} else {
+		return read_stmt()
 	}
 }
 

@@ -1070,7 +1070,6 @@ static void read_decl_type(Dict *r) {
     char *name = NULL;
     if (is_punct(tok, ';')) {
         unget_token(tok);
-        name = NULL;
         return;
     }
     if (tok->type == TTYPE_IDENT)

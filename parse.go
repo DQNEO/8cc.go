@@ -1435,9 +1435,6 @@ func read_compound_stmt() *Ast {
 		if stmt != nil {
 			list = append(list, stmt)
 		}
-		if stmt == nil {
-			continue
-		}
 		tok := read_token()
 		if tok.is_punct('}') {
 			break

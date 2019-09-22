@@ -880,11 +880,12 @@ static Ctype *read_declarator(Ctype *basetype) {
         Token *tok = read_token();
         if (is_ident(tok, "const"))
             continue;
-        if (!is_punct(tok, '*')) {
-            unget_token(tok);
-            return ctype;
+        if (is_punct(tok, '*')) {
+            ctype = make_ptr_type(ctype);
+            continue;
         }
-        ctype = make_ptr_type(ctype);
+        unget_token(tok);
+        return ctype;
     }
 }
 

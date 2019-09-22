@@ -1198,21 +1198,25 @@ func read_cast_type() *Ctype {
 
 func read_decl_type(r *Dict) {
 	basetype, _ := read_decl_spec()
-	ctype := read_declarator(basetype)
-	tok := read_token()
-	var name string
-	if tok.is_punct(';') {
+	for {
+		ctype := read_declarator(basetype)
+		tok := read_token()
+		var name string
+		if tok.is_ident_type() {
+			name = tok.sval
+		} else {
+			unget_token(tok)
+		}
+		ctype = read_array_dimensions(ctype)
+		r.PutCtype(name, make_struct_field_type(ctype, 0))
+		tok = read_token()
+		if tok.is_punct(',') {
+			continue
+		}
 		unget_token(tok)
+		expect(';')
 		return
 	}
-	if tok.is_ident_type() {
-		name = tok.sval
-	} else {
-		unget_token(tok)
-	}
-	ctype = read_array_dimensions(ctype)
-	r.PutCtype(name, make_struct_field_type(ctype, 0))
-	expect(';')
 }
 
 func read_decl_array_init_val(ctype *Ctype) *Ast {

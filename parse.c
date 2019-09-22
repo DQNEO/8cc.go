@@ -30,6 +30,8 @@ static Ctype *ctype_ulong = &(Ctype){ CTYPE_LONG, 8, false };
 
 static int labelseq = 0;
 
+typedef Ast *MakeVarFn(Ctype *ctype, char *name);
+
 static Ctype* make_ptr_type(Ctype *ctype);
 static Ctype* make_array_type(Ctype *ctype, int size);
 static Ast *read_compound_stmt(void);
@@ -1301,7 +1303,7 @@ static Ast *read_funcdef(void) {
     return r;
 }
 
-static void read_decl(List *toplevel) {
+static void read_decl(List *block, MakeVarFn make_var) {
     Ctype *basetype;
     int sclass;
     read_decl_spec(&basetype, &sclass);
@@ -1317,23 +1319,23 @@ static void read_decl(List *toplevel) {
         if (is_punct(tok, '=')) {
             if (sclass == S_TYPEDEF)
                 error("= after typedef");
-            Ast *var = ast_gvar(ctype, name->sval);
-            list_push(toplevel, read_decl_init(var));
+            Ast *var = make_var(ctype, name->sval);
+            list_push(block, read_decl_init(var));
             tok = read_token();
         } else if (is_punct(tok, '(')) {
             read_func_params(&ctype, NULL, ctype);
             if (sclass == S_TYPEDEF)
                 dict_put(typedefs, name->sval, ctype);
             else
-                ast_gvar(ctype, name->sval);
+                make_var(ctype, name->sval);
             tok = read_token();
         } else {
             if (sclass == S_TYPEDEF) {
                 dict_put(typedefs, name->sval, ctype);
             } else {
-                Ast *var = ast_gvar(ctype, name->sval);
+                Ast *var = make_var(ctype, name->sval);
                 if (sclass != S_EXTERN)
-                    list_push(toplevel, ast_decl(var, NULL));
+                    list_push(block, ast_decl(var, NULL));
             }
         }
         if (is_punct(tok, ';'))
@@ -1351,6 +1353,6 @@ List *read_toplevels(void) {
         if (is_funcdef())
             list_push(r, read_funcdef());
         else
-            read_decl(r);
+            read_decl(r, ast_gvar);
     }
 }

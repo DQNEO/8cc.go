@@ -1357,7 +1357,8 @@ func read_opt_decl_or_stmt() *Ast {
 		return nil
 	}
 	unget_token(tok)
-	return read_decl_or_stmt()
+	var list []*Ast = make([]*Ast,0)
+	return read_decl_or_stmt(&list)
 }
 
 func read_opt_expr() *Ast {
@@ -1414,15 +1415,21 @@ func read_stmt() *Ast {
 	return r
 }
 
-func read_decl_or_stmt() *Ast {
+func read_decl_or_stmt(list *[]*Ast) *Ast {
 	tok := peek_token()
 	if tok == nil {
 		errorf("premature end of input")
 	}
 	if is_type_keyword(tok) {
-		return read_decl_type()
+		ast := read_decl_type()
+		if ast != nil {
+			*list = append(*list, ast)
+		}
+		return ast
 	} else {
-		return read_stmt()
+		ast := read_stmt()
+		*list = append(*list, ast)
+		return ast
 	}
 }
 
@@ -1431,10 +1438,7 @@ func read_compound_stmt() *Ast {
 	var list []*Ast
 
 	for {
-		stmt := read_decl_or_stmt()
-		if stmt != nil {
-			list = append(list, stmt)
-		}
+		read_decl_or_stmt(&list)
 		tok := read_token()
 		if tok.is_punct('}') {
 			break

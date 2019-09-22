@@ -1562,13 +1562,13 @@ func read_funcdef() *Ast {
 	return r
 }
 
-func read_decl(toplevel []*Ast) []*Ast {
+func read_decl(block []*Ast) []*Ast {
 	basetype, sclass := read_decl_spec()
 	for {
 		ctype := read_declarator(basetype)
 		name := read_token()
 		if name.is_punct(';') {
-			return toplevel
+			return block
 		}
 		if !name.is_ident_type() {
 			errorf("Identifier name expected, but got %s", name)
@@ -1580,7 +1580,7 @@ func read_decl(toplevel []*Ast) []*Ast {
 				errorf("= after typedef")
 			}
 			gvar := ast_gvar(ctype, name.sval)
-			toplevel = append(toplevel, read_decl_init(gvar))
+			block = append(block, read_decl_init(gvar))
 			tok = read_token()
 		} else if tok.is_punct('(') {
 			ctype, _ = read_func_params(ctype, true)
@@ -1596,13 +1596,13 @@ func read_decl(toplevel []*Ast) []*Ast {
 			} else {
 				gvar := ast_gvar(ctype, name.sval)
 				if sclass != S_EXTERN {
-					toplevel = append(toplevel, ast_decl(gvar, nil))
+					block = append(block, ast_decl(gvar, nil))
 				}
 			}
 		}
 
 		if tok.is_punct(';') {
-			return toplevel
+			return block
 		}
 		if !tok.is_punct(',') {
 			errorf("Don't know how to handle %s", tok)

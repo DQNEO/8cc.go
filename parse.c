@@ -35,7 +35,7 @@ typedef Ast *MakeVarFn(Ctype *ctype, char *name);
 static Ctype* make_ptr_type(Ctype *ctype);
 static Ctype* make_array_type(Ctype *ctype, int size);
 static Ast *read_compound_stmt(void);
-static Ast *read_decl_or_stmt(List *list);
+static void read_decl_or_stmt(List *list);
 static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
 static void read_decl_int(char **name, Ctype **ctype, int *sclass);
@@ -1130,7 +1130,8 @@ static Ast *read_opt_decl_or_stmt(void) {
         return NULL;
     unget_token(tok);
     List *list = make_list();
-    return read_decl_or_stmt(list);
+    read_decl_or_stmt(list);
+    return list_shift(list);
 }
 
 static Ast *read_opt_expr(void) {
@@ -1174,7 +1175,7 @@ static Ast *read_stmt(void) {
     return r;
 }
 
-static Ast *read_decl_or_stmt(List *list) {
+static void read_decl_or_stmt(List *list) {
     Token *tok = peek_token();
     if (tok == NULL)
         error("premature end of input");
@@ -1182,11 +1183,8 @@ static Ast *read_decl_or_stmt(List *list) {
         Ast *ast = read_decl_type();
         if (ast)
             list_push(list, ast);
-        return ast;
     } else {
-        Ast *ast = read_stmt();
-        list_push(list, ast);
-        return ast;
+        list_push(list, read_stmt());
     }
 }
 

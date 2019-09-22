@@ -35,7 +35,7 @@ typedef Ast *MakeVarFn(Ctype *ctype, char *name);
 static Ctype* make_ptr_type(Ctype *ctype);
 static Ctype* make_array_type(Ctype *ctype, int size);
 static Ast *read_compound_stmt(void);
-static Ast *read_decl_or_stmt(void);
+static Ast *read_decl_or_stmt(List *list);
 static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
 static void read_decl_int(char **name, Ctype **ctype, int *sclass);
@@ -1129,7 +1129,8 @@ static Ast *read_opt_decl_or_stmt(void) {
     if (is_punct(tok, ';'))
         return NULL;
     unget_token(tok);
-    return read_decl_or_stmt();
+    List *list = make_list();
+    return read_decl_or_stmt(list);
 }
 
 static Ast *read_opt_expr(void) {
@@ -1173,22 +1174,27 @@ static Ast *read_stmt(void) {
     return r;
 }
 
-static Ast *read_decl_or_stmt(void) {
+static Ast *read_decl_or_stmt(List *list) {
     Token *tok = peek_token();
     if (tok == NULL)
         error("premature end of input");
-    if (is_type_keyword(tok))
-        return read_decl_type();
-    else
-        return read_stmt();
+    if (is_type_keyword(tok)) {
+        Ast *ast = read_decl_type();
+        if (ast)
+            list_push(list, ast);
+        return ast;
+    } else {
+        Ast *ast = read_stmt();
+        list_push(list, ast);
+        return ast;
+    }
 }
 
 static Ast *read_compound_stmt(void) {
     localenv = make_dict(localenv);
     List *list = make_list();
     for (;;) {
-        Ast *stmt = read_decl_or_stmt();
-        if (stmt) list_push(list, stmt);
+        read_decl_or_stmt(list);
         Token *tok = read_token();
         if (is_punct(tok, '}'))
             break;

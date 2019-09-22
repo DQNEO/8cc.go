@@ -38,13 +38,13 @@ static Ast *read_compound_stmt(void);
 static void read_decl_or_stmt(List *list);
 static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
-static void read_decl_type(char **name, Ctype **ctype);
 static bool is_type_keyword(Token *tok);
 static Ast *read_unary_expr(void);
 static void read_func_params(Ctype **rtype, List *rparams, Ctype *rettype);
 static Ast *read_decl_init_val(Ctype *ctype);
 static Ctype *read_cast_type(void);
 static void read_decl(List *block, MakeVarFn make_var);
+static void read_decl_type(char **name, Ctype **ctype);
 
 enum {
     S_TYPEDEF = 1,

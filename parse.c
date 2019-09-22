@@ -43,6 +43,7 @@ static bool is_type_keyword(Token *tok);
 static Ast *read_unary_expr(void);
 static void read_func_params(Ctype **rtype, List *rparams, Ctype *rettype);
 static Ast *read_decl_init_val(Ctype *ctype);
+static Ctype *read_cast_type(void);
 
 enum {
     S_TYPEDEF = 1,
@@ -586,11 +587,7 @@ static Ast *get_sizeof_size(bool allow_typename) {
     Token *tok = read_token();
     if (allow_typename && is_type_keyword(tok)) {
         unget_token(tok);
-        char *dummy;
-        Ctype *ctype = NULL;
-        int sclass;
-        read_decl_int(&dummy, &ctype, &sclass);
-        assert(ctype);
+        Ctype *ctype = read_cast_type();
         return ast_inttype(ctype_long, ctype->size);
     }
     if (is_punct(tok, '(')) {
@@ -1059,6 +1056,13 @@ static Ast *read_decl_init(Ast *var) {
     if (var->type == AST_GVAR && is_inttype(var->ctype))
         init = ast_inttype(ctype_int, eval_intexpr(init));
     return ast_decl(var, init);
+}
+
+static Ctype *read_cast_type(void) {
+    Ctype *basetype;
+    int sclass;
+    read_decl_spec(&basetype, &sclass);
+    return read_declarator(basetype);
 }
 
 static void read_decl_int(char **name, Ctype **ctype, int *sclass) {

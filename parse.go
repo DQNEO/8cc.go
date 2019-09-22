@@ -1314,29 +1314,6 @@ func read_decl_init(variable *Ast) *Ast {
 	return ast_decl(variable, init)
 }
 
-func read_decl_type() *Ast {
-	name, ctype, sclass := read_decl_int()
-	if name == "" {
-		expect(';')
-		return nil
-	}
-	if sclass == S_TYPEDEF {
-		typedefs.PutCtype(name, ctype)
-		expect(';')
-		return nil
-	}
-	variable := ast_lvar(ctype, name)
-	tok := read_token()
-	if tok.is_punct('=') {
-		r := read_decl_init(variable)
-		expect(';')
-		return r
-	}
-	unget_token(tok)
-	expect(';')
-	return ast_decl(variable, nil)
-}
-
 func read_if_stmt() *Ast {
 	expect('(')
 	cond := read_expr()
@@ -1423,10 +1400,7 @@ func read_decl_or_stmt(list *[]*Ast) {
 		errorf("premature end of input")
 	}
 	if is_type_keyword(tok) {
-		ast := read_decl_type()
-		if ast != nil {
-			*list = append(*list, ast)
-		}
+		*list = read_decl(*list, ast_lvar)
 	} else {
 		*list = append(*list, read_stmt())
 	}

@@ -1198,7 +1198,8 @@ func read_decl_spec() (*Ctype, int) {
 
 func read_cast_type() *Ctype {
 	basetype, _ := read_decl_spec()
-	return read_declarator(basetype)
+	basetype = read_declarator(basetype)
+	return read_array_dimensions(basetype)
 }
 
 func read_decl_type(r *Dict, define DefineFn) {

@@ -44,6 +44,7 @@ static Ast *read_unary_expr(void);
 static void read_func_params(Ctype **rtype, List *rparams, Ctype *rettype);
 static Ast *read_decl_init_val(Ctype *ctype);
 static Ctype *read_cast_type(void);
+static void read_decl(List *block, MakeVarFn make_var);
 
 enum {
     S_TYPEDEF = 1,
@@ -1084,32 +1085,6 @@ static void read_decl_int(char **name, Ctype **ctype, int *sclass) {
     *ctype = read_array_dimensions(t);
 }
 
-static Ast *read_decl_type(void) {
-    char *name;
-    Ctype *ctype;
-    int sclass;
-    read_decl_int(&name, &ctype, &sclass);
-    if (!name) {
-        expect(';');
-        return NULL;
-    }
-    if (sclass == S_TYPEDEF) {
-        dict_put(typedefs, name, ctype);
-        expect(';');
-        return NULL;
-    }
-    Ast *var = ast_lvar(ctype, name);
-    Token *tok = read_token();
-    if (is_punct(tok, '=')) {
-        Ast *r = read_decl_init(var);
-        expect(';');
-        return r;
-    }
-    unget_token(tok);
-    expect(';');
-    return ast_decl(var, NULL);
-}
-
 static Ast *read_if_stmt(void) {
     expect('(');
     Ast *cond = read_expr();
@@ -1179,13 +1154,10 @@ static void read_decl_or_stmt(List *list) {
     Token *tok = peek_token();
     if (tok == NULL)
         error("premature end of input");
-    if (is_type_keyword(tok)) {
-        Ast *ast = read_decl_type();
-        if (ast)
-            list_push(list, ast);
-    } else {
+    if (is_type_keyword(tok))
+        read_decl(list, ast_lvar);
+    else
         list_push(list, read_stmt());
-    }
 }
 
 static Ast *read_compound_stmt(void) {

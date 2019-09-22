@@ -1301,7 +1301,7 @@ static Ast *read_funcdef(void) {
     return r;
 }
 
-static void read_decl(List *toplevel) {
+static void read_decl(List *block) {
     Ctype *basetype;
     int sclass;
     read_decl_spec(&basetype, &sclass);
@@ -1318,7 +1318,7 @@ static void read_decl(List *toplevel) {
             if (sclass == S_TYPEDEF)
                 error("= after typedef");
             Ast *var = ast_gvar(ctype, name->sval);
-            list_push(toplevel, read_decl_init(var));
+            list_push(block, read_decl_init(var));
             tok = read_token();
         } else if (is_punct(tok, '(')) {
             read_func_params(&ctype, NULL, ctype);
@@ -1333,7 +1333,7 @@ static void read_decl(List *toplevel) {
             } else {
                 Ast *var = ast_gvar(ctype, name->sval);
                 if (sclass != S_EXTERN)
-                    list_push(toplevel, ast_decl(var, NULL));
+                    list_push(block, ast_decl(var, NULL));
             }
         }
         if (is_punct(tok, ';'))

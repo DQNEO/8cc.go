@@ -1189,7 +1189,6 @@ static Ast *read_compound_stmt(void) {
     for (;;) {
         Ast *stmt = read_decl_or_stmt();
         if (stmt) list_push(list, stmt);
-        if (!stmt) continue;
         Token *tok = read_token();
         if (is_punct(tok, '}'))
             break;

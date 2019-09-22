@@ -1177,7 +1177,10 @@ static Ast *read_decl_or_stmt(void) {
     Token *tok = peek_token();
     if (tok == NULL)
         error("premature end of input");
-    return is_type_keyword(tok) ? read_decl_type() : read_stmt();
+    if (is_type_keyword(tok))
+        return read_decl_type();
+    else
+        return read_stmt();
 }
 
 static Ast *read_compound_stmt(void) {

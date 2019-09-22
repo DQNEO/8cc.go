@@ -1310,7 +1310,7 @@ func read_decl_init(variable *Ast) *Ast {
 	return ast_decl(variable, init)
 }
 
-func read_decl() *Ast {
+func read_decl_type() *Ast {
 	name, ctype, sclass := read_decl_int()
 	if name == "" {
 		expect(';')
@@ -1417,7 +1417,7 @@ func read_decl_or_stmt() *Ast {
 			errorf("premature end of input")
 		}
 		if is_type_keyword(tok) {
-			return read_decl()
+			return read_decl_type()
 		} else {
 			return read_stmt()
 		}
@@ -1562,7 +1562,7 @@ func read_funcdef() *Ast {
 	return r
 }
 
-func read_toplevel(toplevel []*Ast) []*Ast {
+func read_decl(toplevel []*Ast) []*Ast {
 	basetype, sclass := read_decl_spec()
 	for {
 		ctype := read_declarator(basetype)
@@ -1619,7 +1619,7 @@ func read_toplevels() []*Ast {
 		if is_funcdef() {
 			r = append(r, read_funcdef())
 		} else {
-			r = read_toplevel(r)
+			r = read_decl(r)
 		}
 	}
 }

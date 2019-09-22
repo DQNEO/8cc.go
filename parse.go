@@ -1009,15 +1009,13 @@ func read_declarator(basetype *Ctype) *Ctype {
 		if tok.is_ident("static") || tok.is_ident("const") {
 			continue
 		}
-		if !tok.is_punct('*') {
-			unget_token(tok)
-			return ctype
+		if tok.is_punct('*') {
+			ctype = make_ptr_type(ctype)
+			continue
 		}
-		// pointer
-		ctype = make_ptr_type(ctype)
+		unget_token(tok)
+		return ctype
 	}
-	return ctype
-
 }
 
 var kconst int

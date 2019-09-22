@@ -38,13 +38,13 @@ static Ast *read_compound_stmt(void);
 static void read_decl_or_stmt(List *list);
 static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
-static void read_decl_int(char **name, Ctype **ctype, int *sclass);
 static bool is_type_keyword(Token *tok);
 static Ast *read_unary_expr(void);
 static void read_func_params(Ctype **rtype, List *rparams, Ctype *rettype);
 static Ast *read_decl_init_val(Ctype *ctype);
 static Ctype *read_cast_type(void);
 static void read_decl(List *block, MakeVarFn make_var);
+static void read_decl_type(Dict *r, char **name, Ctype **ctype);
 
 enum {
     S_TYPEDEF = 1,
@@ -784,10 +784,7 @@ static Dict *read_struct_union_fields(void) {
             break;
         char *name;
         Ctype *fieldtype;
-        int sclass;
-        read_decl_int(&name, &fieldtype, &sclass);
-        dict_put(r, name, make_struct_field_type(fieldtype, 0));
-        expect(';');
+        read_decl_type(r, &name, &fieldtype);
     }
     expect('}');
     return r;
@@ -1066,9 +1063,10 @@ static Ctype *read_cast_type(void) {
     return read_declarator(basetype);
 }
 
-static void read_decl_int(char **name, Ctype **ctype, int *sclass) {
+static void read_decl_type(Dict *r, char **name, Ctype **ctype) {
     Ctype *basetype;
-    read_decl_spec(&basetype, sclass);
+    int dummy;
+    read_decl_spec(&basetype, &dummy);
     Ctype *t = read_declarator(basetype);
     Token *tok = read_token();
     if (is_punct(tok, ';')) {
@@ -1083,6 +1081,8 @@ static void read_decl_int(char **name, Ctype **ctype, int *sclass) {
         *name = tok->sval;
     }
     *ctype = read_array_dimensions(t);
+    dict_put(r, *name, make_struct_field_type(*ctype, 0));
+    expect(';');
 }
 
 static Ast *read_if_stmt(void) {

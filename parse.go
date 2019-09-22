@@ -654,8 +654,7 @@ func get_sizeof_size(allow_typename bool) *Ast {
 	tok := read_token()
 	if allow_typename && is_type_keyword(tok) {
 		unget_token(tok)
-		_, ctype, _ := read_decl_int()
-		assert(ctype != nil)
+		ctype := read_cast_type()
 		return ast_inttype(ctype_long, ctype.size)
 	}
 	if tok.is_punct('(') {
@@ -1192,6 +1191,11 @@ func read_decl_spec() (*Ctype, int) {
 		return make_type(CTYPE_INT, sig != kunsigned ), sclass
 	}
 	return nil, 0
+}
+
+func read_cast_type() *Ctype {
+	basetype, _ := read_decl_spec()
+	return read_declarator(basetype)
 }
 
 func read_decl_int() (string, *Ctype, int) {

@@ -1073,11 +1073,10 @@ static void read_decl_type(Dict *r) {
         name = NULL;
         return;
     }
-    if (tok->type != TTYPE_IDENT) {
-        unget_token(tok);
-        name = NULL;
-    } else {
+    if (tok->type == TTYPE_IDENT) {
         name = tok->sval;
+    } else {
+        unget_token(tok);
     }
     Ctype *ctype = read_array_dimensions(t);
     dict_put(r, name, make_struct_field_type(ctype, 0));

@@ -1358,7 +1358,9 @@ func read_opt_decl_or_stmt() *Ast {
 	}
 	unget_token(tok)
 	var list []*Ast = make([]*Ast,0)
-	return read_decl_or_stmt(&list)
+	read_decl_or_stmt(&list)
+	return list[0]
+
 }
 
 func read_opt_expr() *Ast {
@@ -1415,7 +1417,7 @@ func read_stmt() *Ast {
 	return r
 }
 
-func read_decl_or_stmt(list *[]*Ast) *Ast {
+func read_decl_or_stmt(list *[]*Ast) {
 	tok := peek_token()
 	if tok == nil {
 		errorf("premature end of input")
@@ -1425,11 +1427,8 @@ func read_decl_or_stmt(list *[]*Ast) *Ast {
 		if ast != nil {
 			*list = append(*list, ast)
 		}
-		return ast
 	} else {
-		ast := read_stmt()
-		*list = append(*list, ast)
-		return ast
+		*list = append(*list, read_stmt())
 	}
 }
 

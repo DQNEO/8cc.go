@@ -43,7 +43,7 @@ static bool is_type_keyword(Token *tok);
 static Ast *read_unary_expr(void);
 static void read_func_param_list(Ctype **rtype, List *rparams, Ctype *rettype);
 static Ast *read_decl_init_val(Ctype *ctype);
-static void read_func_param(Ctype **rtype);
+static void read_func_param(Ctype **rtype, char **name, bool optional);
 static void read_decl(List *block, MakeVarFn make_var);
 static void read_decl_type(void *opaque, DefineFn define);
 
@@ -590,7 +590,7 @@ static Ast *get_sizeof_size(bool allow_typename) {
     if (allow_typename && is_type_keyword(tok)) {
         unget_token(tok);
         Ctype *ctype;
-        read_func_param(&ctype);
+        read_func_param(&ctype, NULL, true);
         return ast_inttype(ctype_long, ctype->size);
     }
     if (is_punct(tok, '(')) {
@@ -1060,11 +1060,23 @@ static Ast *read_decl_init(Ast *var) {
     return ast_decl(var, init);
 }
 
-static void read_func_param(Ctype **rtype) {
+static void read_func_param(Ctype **rtype, char **name, bool optional) {
     Ctype *basetype;
     int sclass;
     read_decl_spec(&basetype, &sclass);
     basetype = read_declarator(basetype);
+
+
+    Token *ptok = read_token();
+    if (ptok->type == TTYPE_IDENT) {
+        if (name)
+            *name = ptok->sval;
+    } else {
+        if (!optional)
+            error("Identifier expected, but got %s", t2s(ptok));
+        unget_token(ptok);
+    }
+
     *rtype = read_array_dimensions(basetype);
 }
 
@@ -1201,20 +1213,7 @@ static void read_func_param_list(Ctype **rtype, List *paramvars, Ctype *rettype)
             unget_token(tok);
         Ctype *ctype;
         char *name;
-        Ctype *basetype;
-        int sclass;
-        read_decl_spec(&basetype, &sclass);
-        basetype = read_declarator(basetype);
-
-        Token *ptok = read_token();
-        if (ptok->type == TTYPE_IDENT) {
-            name = ptok->sval;
-        } else {
-            if (!typeonly)
-                error("Identifier expected, but got %s", t2s(ptok));
-            unget_token(ptok);
-        }
-        ctype = read_array_dimensions(basetype);
+        read_func_param(&ctype, &name, typeonly);
         if (ctype->type == CTYPE_ARRAY)
 
             ctype = make_ptr_type(ctype->ptr);

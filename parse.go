@@ -659,7 +659,8 @@ func get_sizeof_size(allow_typename bool) *Ast {
 	tok := read_token()
 	if allow_typename && is_type_keyword(tok) {
 		unget_token(tok)
-		ctype := read_func_param()
+		var ctype *Ctype
+		read_func_param(&ctype)
 		return ast_inttype(ctype_long, ctype.size)
 	}
 	if tok.is_punct('(') {
@@ -1196,10 +1197,10 @@ func read_decl_spec() (*Ctype, int) {
 	return nil, 0
 }
 
-func read_func_param() *Ctype {
+func read_func_param(rtype **Ctype) {
 	basetype, _ := read_decl_spec()
 	basetype = read_declarator(basetype)
-	return read_array_dimensions(basetype)
+	*rtype = read_array_dimensions(basetype)
 }
 
 func read_decl_type(r *Dict, define DefineFn) {

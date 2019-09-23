@@ -1476,7 +1476,7 @@ func read_func_param_list(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 			return rtype, paramvars
 		}
 		if !tok.is_punct(',') {
-			errorf("Comma expected, but got %s", tok)
+			errorf("comma expected, but got %s", tok)
 		}
 	}
 }

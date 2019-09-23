@@ -1464,15 +1464,15 @@ func read_func_param_list(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 		} else {
 			unget_token(pt)
 		}
-		var ctype *Ctype
+		var ptype *Ctype
 		var name string
-		read_func_param(&ctype, &name, typeonly)
-		if ctype.typ == CTYPE_ARRAY {
-			ctype = make_ptr_type(ctype.ptr)
+		read_func_param(&ptype, &name, typeonly)
+		if ptype.typ == CTYPE_ARRAY {
+			ptype = make_ptr_type(ptype.ptr)
 		}
-		paramtypes = append(paramtypes, ctype)
+		paramtypes = append(paramtypes, ptype)
 		if !typeonly {
-			paramvars = append(paramvars, ast_lvar(ctype, name))
+			paramvars = append(paramvars, ast_lvar(ptype, name))
 		}
 		tok := read_token()
 		if tok.is_punct(')') {

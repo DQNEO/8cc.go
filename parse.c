@@ -1069,9 +1069,9 @@ static void read_func_param(Ctype **rtype, char **name, bool optional) {
     if (tok->type == TTYPE_IDENT) {
         if (name)
             *name = tok->sval;
+    } else if (!optional) {
+        error("Identifier expected, but got %s", t2s(tok));
     } else {
-        if (!optional)
-            error("Identifier expected, but got %s", t2s(tok));
         unget_token(tok);
     }
 

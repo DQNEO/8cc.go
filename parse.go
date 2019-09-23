@@ -1468,7 +1468,8 @@ func read_func_param_list(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 		}
 		paramtypes = append(paramtypes, ctype)
 		if !typeonly {
-			paramvars = append(paramvars, ast_lvar(ctype, pname.sval))
+			name := pname.sval
+			paramvars = append(paramvars, ast_lvar(ctype, name))
 		}
 		tok := read_token()
 		if tok.is_punct(')') {

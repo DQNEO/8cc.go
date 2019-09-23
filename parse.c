@@ -1067,6 +1067,8 @@ static void read_func_param(Ctype **rtype, char **name, bool optional) {
     basetype = read_declarator(basetype);
     Token *tok = read_token();
     if (tok->type == TTYPE_IDENT) {
+        if (name == NULL && !optional)
+            error("identifier is not expected, but got %s", t2s(tok));
         if (name)
             *name = tok->sval;
     } else if (!optional) {

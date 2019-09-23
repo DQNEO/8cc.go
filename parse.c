@@ -1076,7 +1076,6 @@ static void read_func_param(Ctype **rtype, char **name, bool optional) {
     } else {
         unget_token(tok);
     }
-
     *rtype = read_array_dimensions(basetype);
 }
 

@@ -791,15 +791,15 @@ static Dict *read_struct_union_fields(void) {
         int dummy;
         read_decl_spec(&basetype, &dummy);
         for (;;) {
-            Ctype *t = read_declarator(basetype);
+            Ctype *fieldtype = read_declarator(basetype);
             Token *tok = read_token();
             char *name = NULL;
             if (tok->type == TTYPE_IDENT)
                 name = tok->sval;
             else
                 unget_token(tok);
-            Ctype *ctype = read_array_dimensions(t);
-            dict_put(r, name, make_struct_field_type(ctype, 0));
+            fieldtype = read_array_dimensions(fieldtype);
+            dict_put(r, name, make_struct_field_type(fieldtype, 0));
             tok = read_token();
             if (is_punct(tok, ','))
                 continue;

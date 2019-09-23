@@ -1202,6 +1202,9 @@ func read_func_param(rtype **Ctype, name *string, optional bool) {
 	basetype = read_declarator(basetype)
 	tok := read_token()
 	if tok.is_ident_type() {
+		if name == nil && !optional {
+			errorf("identifier is not expected, but got %s", tok)
+		}
 		if name != nil {
 			*name = tok.sval
 		}

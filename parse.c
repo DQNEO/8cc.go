@@ -1065,16 +1065,14 @@ static void read_func_param(Ctype **rtype, char **name, bool optional) {
     int sclass;
     read_decl_spec(&basetype, &sclass);
     basetype = read_declarator(basetype);
-
-
-    Token *ptok = read_token();
-    if (ptok->type == TTYPE_IDENT) {
+    Token *tok = read_token();
+    if (tok->type == TTYPE_IDENT) {
         if (name)
-            *name = ptok->sval;
+            *name = tok->sval;
     } else {
         if (!optional)
-            error("Identifier expected, but got %s", t2s(ptok));
-        unget_token(ptok);
+            error("Identifier expected, but got %s", t2s(tok));
+        unget_token(tok);
     }
 
     *rtype = read_array_dimensions(basetype);

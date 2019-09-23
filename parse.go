@@ -1463,7 +1463,6 @@ func read_func_param_list(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 				errorf("Identifier expected, but got %s", ptok)
 			}
 			unget_token(ptok)
-			ptok = nil
 		}
 		ctype = read_array_dimensions(ctype)
 		if ctype.typ == CTYPE_ARRAY {

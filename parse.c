@@ -1192,9 +1192,8 @@ static Ctype *read_func_param_list(List *paramvars, Ctype *rettype) {
     bool typeonly = !paramvars;
     List *paramtypes = make_list();
     Token *tok = read_token();
-    if (is_punct(tok, ')')) {
+    if (is_punct(tok, ')'))
         return make_func_type(rettype, paramtypes, false);
-    }
     unget_token(tok);
     for (;;) {
         tok = read_token();
@@ -1214,9 +1213,8 @@ static Ctype *read_func_param_list(List *paramvars, Ctype *rettype) {
         if (!typeonly)
             list_push(paramvars, ast_lvar(ptype, name));
         Token *tok = read_token();
-        if (is_punct(tok, ')')) {
+        if (is_punct(tok, ')'))
             return make_func_type(rettype, paramtypes, false);
-        }
         if (!is_punct(tok, ','))
             error("comma expected, but got %s", t2s(tok));
     }

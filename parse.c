@@ -1199,14 +1199,14 @@ static void read_func_param_list(Ctype **rtype, List *paramvars, Ctype *rettype)
             return;
         } else
             unget_token(tok);
+        Ctype *ctype;
+        char *name;
         Ctype *basetype;
         int sclass;
         read_decl_spec(&basetype, &sclass);
-        Ctype *ctype;
         basetype = read_declarator(basetype);
 
         Token *ptok = read_token();
-        char *name;
         if (ptok->type == TTYPE_IDENT) {
             name = ptok->sval;
         } else {

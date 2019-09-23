@@ -775,10 +775,6 @@ static char *read_struct_union_tag(void) {
     return NULL;
 }
 
-static void define_struct_union_field(void *dict, Ctype *ctype, char *name) {
-    dict_put(dict, name, make_struct_field_type(ctype, 0));
-}
-
 static Dict *read_struct_union_fields(void) {
     Token *tok = read_token();
     if (!is_punct(tok, '{')) {
@@ -1093,7 +1089,7 @@ static void read_decl_type(void *opaque) {
         else
             unget_token(tok);
         Ctype *ctype = read_array_dimensions(t);
-        define_struct_union_field(opaque, ctype, name);
+        dict_put(opaque, name, make_struct_field_type(ctype, 0));
         tok = read_token();
         if (is_punct(tok, ','))
             continue;

@@ -1076,7 +1076,7 @@ static void read_func_param(Ctype **rtype, char **name, bool optional) {
     *rtype = read_array_dimensions(basetype);
 }
 
-static void read_decl_type(void *opaque) {
+static void read_decl_type(void *r) {
     Ctype *basetype;
     int dummy;
     read_decl_spec(&basetype, &dummy);
@@ -1089,7 +1089,7 @@ static void read_decl_type(void *opaque) {
         else
             unget_token(tok);
         Ctype *ctype = read_array_dimensions(t);
-        dict_put(opaque, name, make_struct_field_type(ctype, 0));
+        dict_put(r, name, make_struct_field_type(ctype, 0));
         tok = read_token();
         if (is_punct(tok, ','))
             continue;

@@ -1214,8 +1214,10 @@ static void read_func_param_list(Ctype **rtype, List *paramvars, Ctype *rettype)
         if (ctype->type == CTYPE_ARRAY)
             ctype = make_ptr_type(ctype->ptr);
         list_push(paramtypes, ctype);
-        if (!typeonly)
-            list_push(paramvars, ast_lvar(ctype, pname->sval));
+        if (!typeonly) {
+            char *name = pname->sval;
+            list_push(paramvars, ast_lvar(ctype, name));
+        }
         Token *tok = read_token();
         if (is_punct(tok, ')')) {
             *rtype = make_func_type(rettype, paramtypes, false);

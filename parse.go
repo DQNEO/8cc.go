@@ -1452,11 +1452,11 @@ func read_func_param_list(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 		} else {
 			unget_token(pt)
 		}
-		basetype, _ := read_decl_spec()
 		var ctype *Ctype
+		var name string
+		basetype, _ := read_decl_spec()
 		basetype = read_declarator(basetype)
 		ptok := read_token()
-		var name string
 		if ptok.is_ident_type() {
 			name = ptok.sval
 		} else {

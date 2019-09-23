@@ -43,7 +43,7 @@ static bool is_type_keyword(Token *tok);
 static Ast *read_unary_expr(void);
 static void read_func_param_list(Ctype **rtype, List *rparams, Ctype *rettype);
 static Ast *read_decl_init_val(Ctype *ctype);
-static Ctype *read_func_param(void);
+static void read_func_param(Ctype **rtype);
 static void read_decl(List *block, MakeVarFn make_var);
 static void read_decl_type(void *opaque, DefineFn define);
 
@@ -589,7 +589,8 @@ static Ast *get_sizeof_size(bool allow_typename) {
     Token *tok = read_token();
     if (allow_typename && is_type_keyword(tok)) {
         unget_token(tok);
-        Ctype *ctype = read_func_param();
+        Ctype *ctype;
+        read_func_param(&ctype);
         return ast_inttype(ctype_long, ctype->size);
     }
     if (is_punct(tok, '(')) {
@@ -1059,12 +1060,12 @@ static Ast *read_decl_init(Ast *var) {
     return ast_decl(var, init);
 }
 
-static Ctype *read_func_param(void) {
+static void read_func_param(Ctype **rtype) {
     Ctype *basetype;
     int sclass;
     read_decl_spec(&basetype, &sclass);
     basetype = read_declarator(basetype);
-    return read_array_dimensions(basetype);
+    *rtype = read_array_dimensions(basetype);
 }
 
 static void read_decl_type(void *opaque, DefineFn define) {

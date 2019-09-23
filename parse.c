@@ -1211,15 +1211,15 @@ static void read_func_param_list(Ctype **rtype, List *paramvars, Ctype *rettype)
             return;
         } else
             unget_token(tok);
-        Ctype *ctype;
+        Ctype *ptype;
         char *name;
-        read_func_param(&ctype, &name, typeonly);
-        if (ctype->type == CTYPE_ARRAY)
+        read_func_param(&ptype, &name, typeonly);
+        if (ptype->type == CTYPE_ARRAY)
 
-            ctype = make_ptr_type(ctype->ptr);
-        list_push(paramtypes, ctype);
+            ptype = make_ptr_type(ptype->ptr);
+        list_push(paramtypes, ptype);
         if (!typeonly) {
-            list_push(paramvars, ast_lvar(ctype, name));
+            list_push(paramvars, ast_lvar(ptype, name));
         }
         Token *tok = read_token();
         if (is_punct(tok, ')')) {

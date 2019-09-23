@@ -1453,7 +1453,8 @@ func read_func_param_list(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 			unget_token(pt)
 		}
 		basetype, _ := read_decl_spec()
-		ctype := read_declarator(basetype)
+		var ctype *Ctype
+		basetype = read_declarator(basetype)
 		ptok := read_token()
 		var name string
 		if ptok.is_ident_type() {
@@ -1464,7 +1465,7 @@ func read_func_param_list(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 			}
 			unget_token(ptok)
 		}
-		ctype = read_array_dimensions(ctype)
+		ctype = read_array_dimensions(basetype)
 		if ctype.typ == CTYPE_ARRAY {
 			ctype = make_ptr_type(ctype.ptr)
 		}

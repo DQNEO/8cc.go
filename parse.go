@@ -1200,17 +1200,16 @@ func read_decl_spec() (*Ctype, int) {
 func read_func_param(rtype **Ctype, name *string, optional bool) {
 	basetype, _ := read_decl_spec()
 	basetype = read_declarator(basetype)
-
-	ptok := read_token()
-	if ptok.is_ident_type() {
+	tok := read_token()
+	if tok.is_ident_type() {
 		if name != nil {
-			*name = ptok.sval
+			*name = tok.sval
 		}
 	} else {
 		if !optional {
-			errorf("Identifier expected, but got %s", ptok)
+			errorf("Identifier expected, but got %s", tok)
 		}
-		unget_token(ptok)
+		unget_token(tok)
 	}
 	*rtype = read_array_dimensions(basetype)
 }

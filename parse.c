@@ -41,9 +41,9 @@ static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
 static bool is_type_keyword(Token *tok);
 static Ast *read_unary_expr(void);
-static void read_func_params(Ctype **rtype, List *rparams, Ctype *rettype);
+static void read_func_param_list(Ctype **rtype, List *rparams, Ctype *rettype);
 static Ast *read_decl_init_val(Ctype *ctype);
-static Ctype *read_cast_type(void);
+static Ctype *read_func_param(void);
 static void read_decl(List *block, MakeVarFn make_var);
 static void read_decl_type(void *opaque, DefineFn define);
 
@@ -589,7 +589,7 @@ static Ast *get_sizeof_size(bool allow_typename) {
     Token *tok = read_token();
     if (allow_typename && is_type_keyword(tok)) {
         unget_token(tok);
-        Ctype *ctype = read_cast_type();
+        Ctype *ctype = read_func_param();
         return ast_inttype(ctype_long, ctype->size);
     }
     if (is_punct(tok, '(')) {
@@ -1059,7 +1059,7 @@ static Ast *read_decl_init(Ast *var) {
     return ast_decl(var, init);
 }
 
-static Ctype *read_cast_type(void) {
+static Ctype *read_func_param(void) {
     Ctype *basetype;
     int sclass;
     read_decl_spec(&basetype, &sclass);
@@ -1179,7 +1179,7 @@ static Ast *read_compound_stmt(void) {
     return ast_compound_stmt(list);
 }
 
-static void read_func_params(Ctype **rtype, List *paramvars, Ctype *rettype) {
+static void read_func_param_list(Ctype **rtype, List *paramvars, Ctype *rettype) {
     bool typeonly = !paramvars;
     List *paramtypes = make_list();
     Token *tok = read_token();
@@ -1282,7 +1282,7 @@ static Ast *read_funcdef(void) {
     localenv = make_dict(globalenv);
     List *params = make_list();
     expect('(');
-    read_func_params(&functype, params, rettype);
+    read_func_param_list(&functype, params, rettype);
     expect('{');
     Ast *r = read_func_body(functype, name->sval, params);
     localenv = NULL;
@@ -1309,7 +1309,7 @@ static void read_decl(List *block, MakeVarFn make_var) {
             list_push(block, read_decl_init(var));
             tok = read_token();
         } else if (is_punct(tok, '(')) {
-            read_func_params(&ctype, NULL, ctype);
+            read_func_param_list(&ctype, NULL, ctype);
             if (sclass == S_TYPEDEF)
                 dict_put(typedefs, name->sval, ctype);
             else

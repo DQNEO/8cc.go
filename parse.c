@@ -1222,7 +1222,7 @@ static void read_func_param_list(Ctype **rtype, List *paramvars, Ctype *rettype)
             return;
         }
         if (!is_punct(tok, ','))
-            error("Comma expected, but got %s", t2s(tok));
+            error("comma expected, but got %s", t2s(tok));
     }
 }
 

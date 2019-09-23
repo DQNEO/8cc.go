@@ -1211,7 +1211,6 @@ static void read_func_param_list(Ctype **rtype, List *paramvars, Ctype *rettype)
             if (!typeonly)
                 error("Identifier expected, but got %s", t2s(ptok));
             unget_token(ptok);
-            ptok = NULL;
         }
         ctype = read_array_dimensions(ctype);
         if (ctype->type == CTYPE_ARRAY)

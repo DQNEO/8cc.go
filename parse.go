@@ -1205,10 +1205,9 @@ func read_func_param(rtype **Ctype, name *string, optional bool) {
 		if name != nil {
 			*name = tok.sval
 		}
+	} else if !optional {
+		errorf("Identifier expected, but got %s", tok)
 	} else {
-		if !optional {
-			errorf("Identifier expected, but got %s", tok)
-		}
 		unget_token(tok)
 	}
 	*rtype = read_array_dimensions(basetype)

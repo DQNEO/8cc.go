@@ -659,7 +659,7 @@ func get_sizeof_size(allow_typename bool) *Ast {
 	tok := read_token()
 	if allow_typename && is_type_keyword(tok) {
 		unget_token(tok)
-		ctype := read_cast_type()
+		ctype := read_func_param()
 		return ast_inttype(ctype_long, ctype.size)
 	}
 	if tok.is_punct('(') {
@@ -1196,7 +1196,7 @@ func read_decl_spec() (*Ctype, int) {
 	return nil, 0
 }
 
-func read_cast_type() *Ctype {
+func read_func_param() *Ctype {
 	basetype, _ := read_decl_spec()
 	basetype = read_declarator(basetype)
 	return read_array_dimensions(basetype)
@@ -1429,7 +1429,7 @@ func read_compound_stmt() *Ast {
 	return ast_compound_stmt(list)
 }
 
-func read_func_params(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
+func read_func_param_list(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 	var paramvars []*Ast
 	var paramtypes []*Ctype
 	var rtype *Ctype
@@ -1538,7 +1538,7 @@ func read_funcdef() *Ast {
 	}
 	localenv = MakeDict(globalenv)
 	expect('(')
-	functype, params := read_func_params(rettype, false)
+	functype, params := read_func_param_list(rettype, false)
 	expect('{')
 	r := read_func_body(functype, name.sval, params)
 	localenv = nil
@@ -1566,7 +1566,7 @@ func read_decl(block []*Ast, make_var MakeVarFn) []*Ast {
 			block = append(block, read_decl_init(gvar))
 			tok = read_token()
 		} else if tok.is_punct('(') {
-			ctype, _ = read_func_params(ctype, true)
+			ctype, _ = read_func_param_list(ctype, true)
 			if sclass == S_TYPEDEF {
 				typedefs.PutCtype(name.sval, ctype)
 			} else {

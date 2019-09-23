@@ -1456,14 +1456,14 @@ func read_func_param_list(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 		ctype := read_declarator(basetype)
 		pname := read_token()
 		var name string
-		if !pname.is_ident_type() {
+		if pname.is_ident_type() {
+			name = pname.sval
+		} else {
 			if !typeonly {
 				errorf("Identifier expected, but got %s", pname)
 			}
 			unget_token(pname)
 			pname = nil
-		} else {
-			name = pname.sval
 		}
 		ctype = read_array_dimensions(ctype)
 		if ctype.typ == CTYPE_ARRAY {

@@ -660,7 +660,7 @@ func get_sizeof_size(allow_typename bool) *Ast {
 	if allow_typename && is_type_keyword(tok) {
 		unget_token(tok)
 		var ctype *Ctype
-		read_func_param(&ctype)
+		read_func_param(&ctype, nil, true)
 		return ast_inttype(ctype_long, ctype.size)
 	}
 	if tok.is_punct('(') {
@@ -1197,9 +1197,21 @@ func read_decl_spec() (*Ctype, int) {
 	return nil, 0
 }
 
-func read_func_param(rtype **Ctype) {
+func read_func_param(rtype **Ctype, name *string, optional bool) {
 	basetype, _ := read_decl_spec()
 	basetype = read_declarator(basetype)
+
+	ptok := read_token()
+	if ptok.is_ident_type() {
+		if name != nil {
+			*name = ptok.sval
+		}
+	} else {
+		if !optional {
+			errorf("Identifier expected, but got %s", ptok)
+		}
+		unget_token(ptok)
+	}
 	*rtype = read_array_dimensions(basetype)
 }
 
@@ -1454,18 +1466,7 @@ func read_func_param_list(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
 		}
 		var ctype *Ctype
 		var name string
-		basetype, _ := read_decl_spec()
-		basetype = read_declarator(basetype)
-		ptok := read_token()
-		if ptok.is_ident_type() {
-			name = ptok.sval
-		} else {
-			if !typeonly {
-				errorf("Identifier expected, but got %s", ptok)
-			}
-			unget_token(ptok)
-		}
-		ctype = read_array_dimensions(basetype)
+		read_func_param(&ctype, &name, typeonly)
 		if ctype.typ == CTYPE_ARRAY {
 			ctype = make_ptr_type(ctype.ptr)
 		}

@@ -17,5 +17,8 @@ jobs:
       uses: actions/checkout@v1
 
 
-    - name: Build and test
-      run: make -f MakefileGo test
+    - name: test 8cc
+      run: make test
+
+    - name: test 8cc.go
+      run: make -f MakefileGo clean test

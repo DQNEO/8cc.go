@@ -1204,18 +1204,20 @@ static void read_func_param_list(Ctype **rtype, List *paramvars, Ctype *rettype)
         read_decl_spec(&basetype, &sclass);
         Ctype *ctype = read_declarator(basetype);
         Token *pname = read_token();
+        char *name;
         if (pname->type != TTYPE_IDENT) {
             if (!typeonly)
                 error("Identifier expected, but got %s", t2s(pname));
             unget_token(pname);
             pname = NULL;
+        } else {
+            name = pname->sval;
         }
         ctype = read_array_dimensions(ctype);
         if (ctype->type == CTYPE_ARRAY)
             ctype = make_ptr_type(ctype->ptr);
         list_push(paramtypes, ctype);
         if (!typeonly) {
-            char *name = pname->sval;
             list_push(paramvars, ast_lvar(ctype, name));
         }
         Token *tok = read_token();

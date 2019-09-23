@@ -185,7 +185,6 @@ typedef struct Ast {
         struct {
             struct Ast *struc;
             char *field;  // only for ast_to_string
-            Ctype *fieldtype;
         };
     };
 } Ast;

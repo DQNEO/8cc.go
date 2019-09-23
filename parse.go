@@ -1209,7 +1209,7 @@ func read_func_param(rtype **Ctype, name *string, optional bool) {
 			*name = tok.sval
 		}
 	} else if !optional {
-		errorf("Identifier expected, but got %s", tok)
+		errorf("identifier expected, but got %s", tok)
 	} else {
 		unget_token(tok)
 	}

@@ -1265,7 +1265,8 @@ static bool is_funcdef(void) {
 }
 
 static Ast *read_funcdef(void) {
-    Ctype *basetype, *functype;
+    Ctype *basetype;
+    Ctype *functype;
     int sclass;
 
     read_decl_spec(&basetype, &sclass);

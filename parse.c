@@ -1123,8 +1123,7 @@ static void read_func_param(Ctype **rtype, char **name, bool optional) {
     Ctype *basetype;
     int sclass;
     read_decl_spec(&basetype, &sclass);
-    int ctx = (optional) ? 2 : 12;
-    basetype = read_declarator(name, basetype, ctx);
+    basetype = read_declarator(name, basetype, optional ? 2 : 12);
     *rtype = read_array_dimensions(basetype);
 }
 

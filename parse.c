@@ -1080,17 +1080,17 @@ static Ast *read_decl_init(Ast *var) {
     return ast_decl(var, init);
 }
 
-static void read_func_param(Ctype **rtype, char **name, bool optional) {
+static void read_func_param(Ctype **rtype, char **rname, bool optional) {
     Ctype *basetype;
     int sclass;
     read_decl_spec(&basetype, &sclass);
     Token *tok;
     basetype = read_declarator(&tok, basetype);
     if (tok->type == TTYPE_IDENT) {
-        if (name == NULL && !optional)
+        if (rname == NULL && !optional)
             error("identifier is not expected, but got %s", t2s(tok));
-        if (name)
-            *name = tok->sval;
+        if (rname)
+            *rname = tok->sval;
     } else if (!optional) {
         error("identifier expected, but got %s", t2s(tok));
     } else {
@@ -1271,17 +1271,17 @@ static Ast *read_funcdef(void) {
 
     read_decl_spec(&basetype, &sclass);
     Token *tok;
-    char *cname;
+    char *name;
     Ctype *rettype = read_declarator(&tok, basetype);
     if (tok->type != TTYPE_IDENT)
         error("function tok expected, but got %s", t2s(tok));
-    cname = tok->sval;
+    name = tok->sval;
     localenv = make_dict(globalenv);
     List *params = make_list();
     expect('(');
     functype = read_func_param_list(params, rettype);
     expect('{');
-    Ast *r = read_func_body(functype, cname, params);
+    Ast *r = read_func_body(functype, name, params);
     localenv = NULL;
     return r;
 }

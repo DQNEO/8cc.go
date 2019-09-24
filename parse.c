@@ -891,7 +891,7 @@ static Ctype *read_declarator(char **rname, Ctype *basetype, int ctx) {
     Ctype *ctype = basetype;
     for (;;) {
         Token *tok = read_token();
-        if (is_ident(tok, "const"))
+        if (is_ident(tok, "const") || is_ident(tok, "volatile"))
             continue;
         if (is_punct(tok, '*')) {
             ctype = make_ptr_type(ctype);

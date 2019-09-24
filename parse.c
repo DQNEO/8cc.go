@@ -44,7 +44,7 @@ static Ctype *read_func_param_list(List *rparams, Ctype *rettype);
 static Ast *read_decl_init_val(Ctype *ctype);
 static void read_func_param(Ctype **rtype, char **name, bool optional);
 static void read_decl(List *block, MakeVarFn make_var);
-static Ctype *read_declarator(char **rname, Token **rtok, Ctype *basetype);
+static Ctype *read_declarator(char **rname, Token **rtok, Ctype *basetype, int ctx);
 static void read_decl_spec(Ctype **rtype, int *sclass);
 static Ctype *read_array_dimensions(Ctype *basetype);
 
@@ -793,11 +793,7 @@ static Dict *read_struct_union_fields(void) {
         for (;;) {
             Token *tok;
             char *name = NULL;
-            Ctype *fieldtype = read_declarator(&name, &tok, basetype);
-            if (tok->type == TTYPE_IDENT)
-                name = tok->sval;
-            else
-                unget_token(tok);
+            Ctype *fieldtype = read_declarator(&name, &tok, basetype, 1);
             fieldtype = read_array_dimensions(fieldtype);
             dict_put(r, name, make_struct_field_type(fieldtype, 0));
             tok = read_token();
@@ -892,7 +888,7 @@ static Ctype *read_enum_def(void) {
     return ctype_int;
 }
 
-static Ctype *read_declarator(char **rname, Token **rtok, Ctype *basetype) {
+static Ctype *read_declarator(char **rname, Token **rtok, Ctype *basetype, int ctx) {
     if (rname) *rname = NULL;
     Ctype *ctype = basetype;
     for (;;) {
@@ -905,6 +901,15 @@ static Ctype *read_declarator(char **rname, Token **rtok, Ctype *basetype) {
         }
         unget_token(tok);
         *rtok = read_token();
+
+
+        if (ctx == 1) {
+            if ((*rtok)->type == TTYPE_IDENT)
+                *rname = (*rtok)->sval;
+            else
+                unget_token(*rtok);
+        }
+
         return ctype;
     }
 }
@@ -1086,7 +1091,8 @@ static void read_func_param(Ctype **rtype, char **rname, bool optional) {
     int sclass;
     read_decl_spec(&basetype, &sclass);
     Token *tok;
-    basetype = read_declarator(rname, &tok, basetype);
+    int ctx = (optional) ? 2 : 12;
+    basetype = read_declarator(rname, &tok, basetype, ctx);
     if (tok->type == TTYPE_IDENT) {
         if (rname == NULL && !optional)
             error("identifier is not expected, but got %s", t2s(tok));
@@ -1273,7 +1279,7 @@ static Ast *read_funcdef(void) {
     read_decl_spec(&basetype, &sclass);
     Token *tok;
     char *name;
-    Ctype *rettype = read_declarator(&name, &tok, basetype);
+    Ctype *rettype = read_declarator(&name, &tok, basetype, 3);
     if (tok->type != TTYPE_IDENT)
         error("function tok expected, but got %s", t2s(tok));
     name = tok->sval;
@@ -1294,7 +1300,7 @@ static void read_decl(List *block, MakeVarFn make_var) {
     for (;;) {
         Token *ntok;
         char *name;
-        Ctype *ctype = read_declarator(&name, &ntok, basetype);
+        Ctype *ctype = read_declarator(&name, &ntok, basetype, 4);
         if (is_punct(ntok, ';'))
             return;
         if (ntok->type != TTYPE_IDENT)

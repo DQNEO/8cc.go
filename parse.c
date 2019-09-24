@@ -908,6 +908,10 @@ static Ctype *read_declarator(char **rname, Token **rtok, Ctype *basetype, int c
                 *rname = (*rtok)->sval;
             else
                 unget_token(*rtok);
+        } else if (ctx == 3) {
+            if ((*rtok)->type != TTYPE_IDENT)
+                error("function tok expected, but got %s", t2s(*rtok));
+            *rname = (*rtok)->sval;
         }
 
         return ctype;
@@ -1280,9 +1284,6 @@ static Ast *read_funcdef(void) {
     Token *tok;
     char *name;
     Ctype *rettype = read_declarator(&name, &tok, basetype, 3);
-    if (tok->type != TTYPE_IDENT)
-        error("function tok expected, but got %s", t2s(tok));
-    name = tok->sval;
     localenv = make_dict(globalenv);
     List *params = make_list();
     expect('(');

@@ -1294,16 +1294,14 @@ static bool is_funcdef(void) {
 
 static Ast *read_funcdef(void) {
     Ctype *basetype;
-    Ctype *functype;
     int sclass;
-
     char *name;
     List *params = make_list();
     read_decl_spec(&basetype, &sclass);
     localenv = make_dict(globalenv);
     Ctype *rettype = read_declarator(&name, basetype, 3);
     expect('(');
-    functype = read_func_param_list(params, rettype);
+    Ctype *functype = read_func_param_list(params, rettype);
     expect('{');
     Ast *r = read_func_body(functype, name, params);
     localenv = NULL;

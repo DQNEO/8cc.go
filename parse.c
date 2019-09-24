@@ -893,6 +893,7 @@ static Ctype *read_enum_def(void) {
 }
 
 static Ctype *read_declarator(char **rname, Token **rtok, Ctype *basetype) {
+    if (rname) *rname = NULL;
     Ctype *ctype = basetype;
     for (;;) {
         Token *tok = read_token();

@@ -910,6 +910,8 @@ static Ctype *read_declarator(char **rname, Ctype *basetype, int ctx) {
             if (rtok->type != TTYPE_IDENT)
                 error("function tok expected, but got %s", t2s(rtok));
             *rname = rtok->sval;
+            expect('(');
+
         } else if (ctx == 4) {
             if (is_punct(rtok, ';'))
                 return NULL;
@@ -1301,7 +1303,6 @@ static Ast *read_funcdef(void) {
     read_decl_spec(&basetype, &sclass);
     localenv = make_dict(globalenv);
     Ctype *rettype = read_declarator(&name, basetype, 3);
-    expect('(');
     Ctype *functype = read_func_param_list(params, rettype);
     expect('{');
     Ast *r = read_func_body(functype, name, params);

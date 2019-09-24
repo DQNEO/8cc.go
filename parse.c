@@ -1270,17 +1270,18 @@ static Ast *read_funcdef(void) {
     int sclass;
 
     read_decl_spec(&basetype, &sclass);
-    Token *name;
-    Ctype *rettype = read_declarator(&name, basetype);
-    if (name->type != TTYPE_IDENT)
-        error("function name expected, but got %s", t2s(name));
-
+    Token *tok;
+    char *cname;
+    Ctype *rettype = read_declarator(&tok, basetype);
+    if (tok->type != TTYPE_IDENT)
+        error("function tok expected, but got %s", t2s(tok));
+    cname = tok->sval;
     localenv = make_dict(globalenv);
     List *params = make_list();
     expect('(');
     functype = read_func_param_list(params, rettype);
     expect('{');
-    Ast *r = read_func_body(functype, name->sval, params);
+    Ast *r = read_func_body(functype, cname, params);
     localenv = NULL;
     return r;
 }
@@ -1290,32 +1291,34 @@ static void read_decl(List *block, MakeVarFn make_var) {
     int sclass;
     read_decl_spec(&basetype, &sclass);
     for (;;) {
-        Token *name;
-        Ctype *ctype = read_declarator(&name, basetype);
-        if (is_punct(name, ';'))
+        Token *ntok;
+        char *name;
+        Ctype *ctype = read_declarator(&ntok, basetype);
+        if (is_punct(ntok, ';'))
             return;
-        if (name->type != TTYPE_IDENT)
-            error("Identifier expected, but got %s", t2s(name));
+        if (ntok->type != TTYPE_IDENT)
+            error("Identifier expected, but got %s", t2s(ntok));
+        name = ntok->sval;
         ctype = read_array_dimensions(ctype);
         Token *tok = read_token();
         if (is_punct(tok, '=')) {
             if (sclass == S_TYPEDEF)
                 error("= after typedef");
-            Ast *var = make_var(ctype, name->sval);
+            Ast *var = make_var(ctype, name);
             list_push(block, read_decl_init(var));
             tok = read_token();
         } else if (is_punct(tok, '(')) {
             ctype = read_func_param_list(NULL, ctype);
             if (sclass == S_TYPEDEF)
-                dict_put(typedefs, name->sval, ctype);
+                dict_put(typedefs, name, ctype);
             else
-                make_var(ctype, name->sval);
+                make_var(ctype, name);
             tok = read_token();
         } else {
             if (sclass == S_TYPEDEF) {
-                dict_put(typedefs, name->sval, ctype);
+                dict_put(typedefs, name, ctype);
             } else {
-                Ast *var = make_var(ctype, name->sval);
+                Ast *var = make_var(ctype, name);
                 if (sclass != S_EXTERN)
                     list_push(block, ast_decl(var, NULL));
             }

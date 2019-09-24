@@ -918,7 +918,31 @@ static Ctype *read_declarator(char **rname, Token **rtok, Ctype *basetype, int c
             if ((*rtok)->type != TTYPE_IDENT)
                 error("Identifier expected, but got %s", t2s(*rtok));
             *rname = (*rtok)->sval;
+        } else if (ctx == 2 )  { // optional= true
+            bool optional = true;
+            if ((*rtok)->type == TTYPE_IDENT) {
+                if (rname == NULL && !optional)
+                    error("identifier is not expected, but got %s", t2s(*rtok));
+                if (rname)
+                    *rname = (*rtok)->sval;
+            } else if (!optional) {
+                error("identifier expected, but got %s", t2s(*rtok));
+            } else {
+                unget_token(*rtok);
+            }
 
+        } else if (ctx == 12) {
+            bool optional = false;
+            if ((*rtok)->type == TTYPE_IDENT) {
+                if (rname == NULL && !optional)
+                    error("identifier is not expected, but got %s", t2s(*rtok));
+                if (rname)
+                    *rname = (*rtok)->sval;
+            } else if (!optional) {
+                error("identifier expected, but got %s", t2s(*rtok));
+            } else {
+                unget_token(*rtok);
+            }
         }
 
         return ctype;
@@ -1104,16 +1128,6 @@ static void read_func_param(Ctype **rtype, char **rname, bool optional) {
     Token *tok;
     int ctx = (optional) ? 2 : 12;
     basetype = read_declarator(rname, &tok, basetype, ctx);
-    if (tok->type == TTYPE_IDENT) {
-        if (rname == NULL && !optional)
-            error("identifier is not expected, but got %s", t2s(tok));
-        if (rname)
-            *rname = tok->sval;
-    } else if (!optional) {
-        error("identifier expected, but got %s", t2s(tok));
-    } else {
-        unget_token(tok);
-    }
     *rtype = read_array_dimensions(basetype);
 }
 

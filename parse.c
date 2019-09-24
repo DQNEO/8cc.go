@@ -1119,12 +1119,12 @@ static Ast *read_decl_init(Ast *var) {
     return ast_decl(var, init);
 }
 
-static void read_func_param(Ctype **rtype, char **rname, bool optional) {
+static void read_func_param(Ctype **rtype, char **name, bool optional) {
     Ctype *basetype;
     int sclass;
     read_decl_spec(&basetype, &sclass);
     int ctx = (optional) ? 2 : 12;
-    basetype = read_declarator(rname, basetype, ctx);
+    basetype = read_declarator(name, basetype, ctx);
     *rtype = read_array_dimensions(basetype);
 }
 

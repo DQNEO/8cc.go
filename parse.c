@@ -916,6 +916,7 @@ static Ctype *read_declarator(char **rname, Ctype *basetype, int ctx) {
             if (rtok->type != TTYPE_IDENT)
                 error("Identifier expected, but got %s", t2s(rtok));
             *rname = rtok->sval;
+            ctype = read_array_dimensions(ctype);
         } else if (ctx == 2 )  { // optional= true
             bool optional = true;
             if (rtok->type == TTYPE_IDENT) {
@@ -1316,7 +1317,6 @@ static void read_decl(List *block, MakeVarFn make_var) {
         char *name = NULL;
         Ctype *ctype = read_declarator(&name, basetype, 4);
         if (!ctype) return;
-        ctype = read_array_dimensions(ctype);
         Token *tok = read_token();
         if (is_punct(tok, '=')) {
             if (sclass == S_TYPEDEF)

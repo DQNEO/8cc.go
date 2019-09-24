@@ -44,7 +44,7 @@ static Ctype *read_func_param_list(List *rparams, Ctype *rettype);
 static Ast *read_decl_init_val(Ctype *ctype);
 static void read_func_param(Ctype **rtype, char **name, bool optional);
 static void read_decl(List *block, MakeVarFn make_var);
-static Ctype *read_declarator(Token **rname, Ctype *basetype);
+static Ctype *read_declarator(Token **rtok, Ctype *basetype);
 static void read_decl_spec(Ctype **rtype, int *sclass);
 static Ctype *read_array_dimensions(Ctype *basetype);
 
@@ -892,7 +892,7 @@ static Ctype *read_enum_def(void) {
     return ctype_int;
 }
 
-static Ctype *read_declarator(Token **rname, Ctype *basetype) {
+static Ctype *read_declarator(Token **rtok, Ctype *basetype) {
     Ctype *ctype = basetype;
     for (;;) {
         Token *tok = read_token();
@@ -903,7 +903,7 @@ static Ctype *read_declarator(Token **rname, Ctype *basetype) {
             continue;
         }
         unget_token(tok);
-        *rname = read_token();
+        *rtok = read_token();
         return ctype;
     }
 }

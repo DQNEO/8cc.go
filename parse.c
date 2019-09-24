@@ -1315,7 +1315,7 @@ static void read_decl(List *block, MakeVarFn make_var) {
     int sclass;
     read_decl_spec(&basetype, &sclass);
     for (;;) {
-        char *name;
+        char *name = NULL;
         Ctype *ctype = read_declarator(&name, basetype, 4);
         if (!ctype) return;
         ctype = read_array_dimensions(ctype);

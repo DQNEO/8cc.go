@@ -793,7 +793,6 @@ static Dict *read_struct_union_fields(void) {
         for (;;) {
             char *name;
             Ctype *fieldtype = read_declarator(&name, basetype, 1);
-            fieldtype = read_array_dimensions(fieldtype);
             dict_put(r, name, make_struct_field_type(fieldtype, 0));
             tok = read_token();
             if (is_punct(tok, ','))
@@ -906,6 +905,7 @@ static Ctype *read_declarator(char **rname, Ctype *basetype, int ctx) {
                 *rname = rtok->sval;
             else
                 unget_token(rtok);
+            ctype = read_array_dimensions(ctype);
         } else if (ctx == 3) {
             if (rtok->type != TTYPE_IDENT)
                 error("function tok expected, but got %s", t2s(rtok));

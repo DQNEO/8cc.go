@@ -907,18 +907,17 @@ static Ctype *read_declarator(char **rname, Ctype *basetype, List *params, int c
                 unget_token(rtok);
             ctype = read_array_dimensions(ctype);
         } else if (ctx == 3) {
-            if (rtok->type != TTYPE_IDENT)
-                error("function tok expected, but got %s", t2s(rtok));
-            *rname = rtok->sval;
-            expect('(');
-            ctype = read_func_param_list(params, ctype);
-        } else if (ctx == 4) {
             if (is_punct(rtok, ';'))
                 return NULL;
             if (rtok->type != TTYPE_IDENT)
-                error("Identifier expected, but got %s", t2s(rtok));
+                error("function tok expected, but got %s", t2s(rtok));
             *rname = rtok->sval;
+            if (params) {
+                expect('(');
+                ctype = read_func_param_list(params, ctype);
+            } else {
             ctype = read_array_dimensions(ctype);
+            }
         } else if (ctx == 2 )  { // optional= true
             if (rtok->type == TTYPE_IDENT) {
                 if (rname)
@@ -1297,7 +1296,7 @@ static void read_decl(List *block, MakeVarFn make_var) {
     read_decl_spec(&basetype, &sclass);
     for (;;) {
         char *name = NULL;
-        Ctype *ctype = read_declarator(&name, basetype, NULL, 4);
+        Ctype *ctype = read_declarator(&name, basetype, NULL, 3);
         if (!ctype) return;
         Token *tok = read_token();
         if (is_punct(tok, '=')) {

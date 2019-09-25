@@ -894,7 +894,13 @@ static Ctype *read_enum_def(void) {
 }
 
 static Ctype *read_direct_declarator2(Ctype *basetype) {
-    return read_array_dimensions(basetype);
+    Token *tok = read_token();
+    if (is_punct(tok, '[')) {
+        unget_token(tok);
+        return read_array_dimensions(basetype);
+    }
+    unget_token(tok);
+    return basetype;
 }
 
 static void skip_type_qualifiers(void) {

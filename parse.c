@@ -928,13 +928,11 @@ static Ctype *read_declarator(char **rname, Ctype *basetype, List *params, int c
             }
 
         } else if (ctx == 12) {
-            if (rtok->type == TTYPE_IDENT) {
-                if (rname == NULL)
-                    error("identifier is not expected, but got %s", t2s(rtok));
+            if (rtok->type == TTYPE_IDENT)
                 *rname = rtok->sval;
-            } else {
-                error("identifier expected, but got %s", t2s(rtok));
-            }
+            else
+                unget_token(rtok);
+            ctype = read_array_dimensions(ctype);
         }
 
         return ctype;

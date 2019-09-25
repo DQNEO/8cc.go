@@ -893,7 +893,7 @@ static Ctype *read_enum_def(void) {
     return ctype_int;
 }
 
-static Ctype *read_direct_declarator2(Ctype *basetype) {
+static Ctype *read_direct_declarator2(Ctype *basetype, List *params) {
     Token *tok = read_token();
     if (is_punct(tok, '[')) {
         unget_token(tok);
@@ -953,7 +953,7 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
             return ctype;
         }
 
-        return read_direct_declarator2(ctype);
+        return read_direct_declarator2(ctype, params);
     }
 }
 

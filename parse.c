@@ -920,12 +920,11 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
     if (rname) *rname = NULL;
     Ctype *ctype = basetype;
 
-    for (;;) {
         skip_type_qualifiers();
         Token *tok = read_token();
         if (is_punct(tok, '*')) {
             ctype = make_ptr_type(ctype);
-            continue;
+            return read_direct_declarator1(rname, ctype, params, ctx);
         }
         unget_token(tok);
         Token *rtok = read_token();
@@ -952,7 +951,6 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
         }
 
         return read_direct_declarator2(ctype, params);
-    }
 }
 
 static Ctype *read_declarator(char **rname, Ctype *basetype, List *params, int ctx) {

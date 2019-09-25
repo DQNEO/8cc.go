@@ -917,7 +917,6 @@ static void skip_type_qualifiers(void) {
 }
 
 static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *params, int ctx) {
-    if (rname) *rname = NULL;
     Ctype *ctype = basetype;
 
     skip_type_qualifiers();
@@ -942,8 +941,7 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
         *rname = rtok->sval;
     } else if (ctx == DECL_PARAM_TYPEONLY )  { // optional= true
         if (rtok->type == TTYPE_IDENT) {
-            if (rname)
-                *rname = rtok->sval;
+            *rname = rtok->sval;
         } else {
             unget_token(rtok);
         }

@@ -920,37 +920,37 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
     if (rname) *rname = NULL;
     Ctype *ctype = basetype;
 
-        skip_type_qualifiers();
-        Token *tok = read_token();
-        if (is_punct(tok, '*')) {
-            ctype = make_ptr_type(ctype);
-            return read_direct_declarator1(rname, ctype, params, ctx);
-        }
-        unget_token(tok);
-        Token *rtok = read_token();
+    skip_type_qualifiers();
+    Token *tok = read_token();
+    if (is_punct(tok, '*')) {
+        ctype = make_ptr_type(ctype);
+        return read_direct_declarator1(rname, ctype, params, ctx);
+    }
+    unget_token(tok);
+    Token *rtok = read_token();
 
-        if (ctx == DECL_PARAM) {
-            if (rtok->type == TTYPE_IDENT)
-                *rname = rtok->sval;
-            else
-                unget_token(rtok);
-        } else if (ctx == DECL_BODY) {
-            if (is_punct(rtok, ';'))
-                return NULL;
-            if (rtok->type != TTYPE_IDENT)
-                error("function tok expected, but got %s", t2s(rtok));
+    if (ctx == DECL_PARAM) {
+        if (rtok->type == TTYPE_IDENT)
             *rname = rtok->sval;
-        } else if (ctx == DECL_PARAM_TYPEONLY )  { // optional= true
-            if (rtok->type == TTYPE_IDENT) {
-                if (rname)
-                    *rname = rtok->sval;
-            } else {
-                unget_token(rtok);
-            }
-            return ctype;
+        else
+            unget_token(rtok);
+    } else if (ctx == DECL_BODY) {
+        if (is_punct(rtok, ';'))
+            return NULL;
+        if (rtok->type != TTYPE_IDENT)
+            error("function tok expected, but got %s", t2s(rtok));
+        *rname = rtok->sval;
+    } else if (ctx == DECL_PARAM_TYPEONLY )  { // optional= true
+        if (rtok->type == TTYPE_IDENT) {
+            if (rname)
+                *rname = rtok->sval;
+        } else {
+            unget_token(rtok);
         }
+        return ctype;
+    }
 
-        return read_direct_declarator2(ctype, params);
+    return read_direct_declarator2(ctype, params);
 }
 
 static Ctype *read_declarator(char **rname, Ctype *basetype, List *params, int ctx) {

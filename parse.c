@@ -917,9 +917,9 @@ static void skip_type_qualifiers(void) {
 }
 
 static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *params, int ctx) {
-    skip_type_qualifiers();
     Token *tok = read_token();
     if (is_punct(tok, '*')) {
+        skip_type_qualifiers();
         Ctype *ctype = make_ptr_type(basetype);
         return read_direct_declarator1(rname, ctype, params, ctx);
     }

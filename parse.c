@@ -893,6 +893,10 @@ static Ctype *read_enum_def(void) {
     return ctype_int;
 }
 
+static Ctype *read_direct_declarator2(Ctype *basetype) {
+    return read_array_dimensions(basetype);
+}
+
 static void skip_type_qualifiers(void) {
     for (;;) {
         Token *tok = read_token();
@@ -901,10 +905,6 @@ static void skip_type_qualifiers(void) {
         unget_token(tok);
         return;
     }
-}
-
-static Ctype *read_direct_declarator2(Ctype *basetype) {
-    return read_array_dimensions(basetype);
 }
 
 static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *params, int ctx) {
@@ -926,7 +926,6 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
                 *rname = rtok->sval;
             else
                 unget_token(rtok);
-            ctype = read_direct_declarator2(ctype);
         } else if (ctx == DECL_BODY) {
             if (is_punct(rtok, ';'))
                 return NULL;
@@ -936,8 +935,7 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
             if (params) {
                 expect('(');
                 ctype = read_func_param_list(params, ctype);
-            } else {
-            ctype = read_direct_declarator2(ctype);
+                return ctype;
             }
         } else if (ctx == DECL_PARAM_TYPEONLY )  { // optional= true
             if (rtok->type == TTYPE_IDENT) {
@@ -946,9 +944,10 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
             } else {
                 unget_token(rtok);
             }
+            return ctype;
         }
 
-        return ctype;
+        return read_direct_declarator2(ctype);
     }
 }
 

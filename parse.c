@@ -926,13 +926,6 @@ static Ctype *read_declarator(char **rname, Ctype *basetype, List *params, int c
             } else {
                 unget_token(rtok);
             }
-
-        } else if (ctx == 12) {
-            if (rtok->type == TTYPE_IDENT)
-                *rname = rtok->sval;
-            else
-                unget_token(rtok);
-            ctype = read_array_dimensions(ctype);
         }
 
         return ctype;
@@ -1115,7 +1108,7 @@ static void read_func_param(Ctype **rtype, char **name, bool optional) {
     Ctype *basetype;
     int sclass;
     read_decl_spec(&basetype, &sclass);
-    basetype = read_declarator(name, basetype, NULL, optional ? 2 : 12);
+    basetype = read_declarator(name, basetype, NULL, optional ? 2 : 1);
     *rtype = read_array_dimensions(basetype);
 }
 

@@ -893,7 +893,7 @@ static Ctype *read_enum_def(void) {
     return ctype_int;
 }
 
-static Ctype *read_declarator(char **rname, Ctype *basetype, List *params, int ctx) {
+static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *params, int ctx) {
     if (rname) *rname = NULL;
     Ctype *ctype = basetype;
     for (;;) {
@@ -936,6 +936,11 @@ static Ctype *read_declarator(char **rname, Ctype *basetype, List *params, int c
 
         return ctype;
     }
+}
+
+static Ctype *read_declarator(char **rname, Ctype *basetype, List *params, int ctx) {
+    Ctype *t = read_direct_declarator1(rname, basetype, params, ctx);
+    return t;
 }
 
 static void read_decl_spec(Ctype **rtype, int *sclass) {

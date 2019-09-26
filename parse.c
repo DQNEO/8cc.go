@@ -1328,6 +1328,10 @@ static void read_decl(List *block, MakeVarFn make_var) {
     Ctype *basetype;
     int sclass;
     read_decl_spec(&basetype, &sclass);
+    Token *tok = read_token();
+    if (is_punct(tok, ';'))
+        return;
+    unget_token(tok);
     for (;;) {
         char *name = NULL;
         Ctype *ctype = read_declarator(&name, basetype, NULL, DECL_BODY);

@@ -896,8 +896,19 @@ static Ctype *read_enum_def(void) {
 static Ctype *read_direct_declarator2(Ctype *basetype, List *params) {
     Token *tok = read_token();
     if (is_punct(tok, '[')) {
-        unget_token(tok);
-        return read_array_dimensions(basetype);
+        int len;
+        tok = read_token();
+        if (is_punct(tok, ']')) {
+            len = -1;
+        } else {
+            unget_token(tok);
+            len = eval_intexpr(read_expr());
+            expect(']');
+        }
+        Ctype *t = read_direct_declarator2(basetype, params);
+        if (t->type == CTYPE_FUNC)
+            error("array of functions");
+        return make_array_type(t, len);
     }
     if (is_punct(tok, '(') && params) {
         return read_func_param_list(params, basetype);

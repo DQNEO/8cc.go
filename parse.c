@@ -1335,7 +1335,6 @@ static void read_decl(List *block, MakeVarFn make_var) {
     for (;;) {
         char *name = NULL;
         Ctype *ctype = read_declarator(&name, basetype, NULL, DECL_BODY);
-        if (!ctype) return;
         tok = read_token();
         if (is_punct(tok, '=')) {
             if (sclass == S_TYPEDEF)

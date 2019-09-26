@@ -1346,14 +1346,12 @@ static void read_decl(List *block, MakeVarFn make_var) {
             else
                 make_var(ctype, name);
             tok = read_token();
+        } else if (sclass == S_TYPEDEF) {
+            dict_put(typedefs, name, ctype);
         } else {
-            if (sclass == S_TYPEDEF) {
-                dict_put(typedefs, name, ctype);
-            } else {
-                Ast *var = make_var(ctype, name);
-                if (sclass != S_EXTERN)
-                    list_push(block, ast_decl(var, NULL));
-            }
+            Ast *var = make_var(ctype, name);
+            if (sclass != S_EXTERN)
+                list_push(block, ast_decl(var, NULL));
         }
         if (is_punct(tok, ';'))
             return;

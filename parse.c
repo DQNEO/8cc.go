@@ -945,15 +945,15 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
     } else if (ctx == DECL_BODY) {
         if (is_punct(rtok, ';'))
             return NULL;
-        if (rtok->type != TTYPE_IDENT)
-            error("function tok expected, but got %s", t2s(rtok));
-        *rname = rtok->sval;
-    } else if (ctx == DECL_PARAM_TYPEONLY )  { // optional= true
-        if (rtok->type == TTYPE_IDENT) {
+        if (rtok->type == TTYPE_IDENT)
             *rname = rtok->sval;
-        } else {
+        else
+            error("function tok expected, but got %s", t2s(rtok));
+    } else if (ctx == DECL_PARAM_TYPEONLY )  { // optional= true
+        if (rtok->type == TTYPE_IDENT)
+            *rname = rtok->sval;
+        else
             unget_token(rtok);
-        }
         return basetype;
     }
 

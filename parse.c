@@ -936,17 +936,17 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
 
     if (tok->type == TTYPE_IDENT) {
         *rname = tok->sval;
-        if (ctx == DECL_PARAM_TYPEONLY )  {
+        if (ctx == DECL_PARAM_TYPEONLY)  {
             return basetype;
         }
-    } else {
-        unget_token(tok);
-        if (ctx == DECL_BODY) {
-            error("function tok expected, but got %s", t2s(tok));
-        }
-        if (ctx == DECL_PARAM_TYPEONLY )  {
-            return basetype;
-        }
+        return read_direct_declarator2(basetype, params);
+    }
+    unget_token(tok);
+    if (ctx == DECL_BODY) {
+        error("function tok expected, but got %s", t2s(tok));
+    }
+    if (ctx == DECL_PARAM_TYPEONLY)  {
+        return basetype;
     }
 
     return read_direct_declarator2(basetype, params);

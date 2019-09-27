@@ -814,7 +814,6 @@ static Dict *read_struct_union_fields(void) {
             expect(';');
             break;
         }
-
     }
     expect('}');
     return r;

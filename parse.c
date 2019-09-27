@@ -940,8 +940,6 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
         else
             unget_token(tok);
     } else if (ctx == DECL_BODY) {
-        if (is_punct(tok, ';'))
-            return NULL;
         if (tok->type == TTYPE_IDENT)
             *rname = tok->sval;
         else

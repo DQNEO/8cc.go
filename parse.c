@@ -295,6 +295,13 @@ static Ctype* make_func_type(Ctype *rettype, List *paramtypes, bool has_varargs)
     return r;
 }
 
+static Ctype *make_stub_type(void) {
+    Ctype *r = malloc(sizeof(Ctype));
+    r->type = CTYPE_STUB;
+    r->size = 0;
+    return r;
+}
+
 bool is_inttype(Ctype *ctype) {
     return ctype->type == CTYPE_CHAR || ctype->type == CTYPE_SHORT ||
         ctype->type == CTYPE_INT || ctype->type == CTYPE_LONG || ctype->type == CTYPE_LLONG;
@@ -928,6 +935,14 @@ static void skip_type_qualifiers(void) {
 
 static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *params, int ctx) {
     Token *tok = read_token();
+    Token *next = peek_token();
+    if (is_punct(tok, '(') && !is_type_keyword(next) && !is_punct(next, ')')) {
+        Ctype *stub = make_stub_type();
+        Ctype *t = read_direct_declarator1(rname, stub, params, ctx);
+        expect(')');
+        *stub = *read_direct_declarator2(basetype, params);
+        return t;
+    }
     if (is_punct(tok, '*')) {
         skip_type_qualifiers();
         Ctype *ctype = make_ptr_type(basetype);

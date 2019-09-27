@@ -608,7 +608,7 @@ static Ast *get_sizeof_size(bool allow_typename) {
     unget_token(tok);
     Ast *expr = read_unary_expr();
     if (expr->ctype->size == 0)
-        error("invalid operand for sizeof(): %s", a2s(expr));
+        error("invalid operand for sizeof(): %s type=%s size=%d", a2s(expr), c2s(expr->ctype), expr->ctype->size);
     return ast_inttype(ctype_long, expr->ctype->size);
 }
 

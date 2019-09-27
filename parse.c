@@ -46,7 +46,6 @@ static void read_func_param(Ctype **rtype, char **name, bool optional);
 static void read_decl(List *block, MakeVarFn make_var);
 static Ctype *read_declarator(char **name, Ctype *basetype, List *params, int ctx);
 static void read_decl_spec(Ctype **rtype, int *sclass);
-static Ctype *read_array_dimensions(Ctype *basetype);
 
 enum {
     S_TYPEDEF = 1,

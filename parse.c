@@ -953,16 +953,15 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
         *stub = *make_ptr_type(basetype);
         return t;
     }
-
     if (tok->type == TTYPE_IDENT) {
+        if (ctx == DECL_CAST)
+            error("identifier is NOT expected, but got %s", t2s(tok));
         *rname = tok->sval;
         return read_direct_declarator2(basetype, params);
     }
+    if (ctx == DECL_BODY || ctx == DECL_PARAM)
+        error("identifier, ( or * are expected, but got %s", t2s(tok));
     unget_token(tok);
-    if (ctx == DECL_BODY) {
-        error("function tok expected, but got %s", t2s(tok));
-    }
-
     return read_direct_declarator2(basetype, params);
 }
 

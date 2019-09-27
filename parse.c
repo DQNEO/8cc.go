@@ -916,6 +916,10 @@ static Ctype *read_direct_declarator2(Ctype *basetype, List *params) {
         return make_array_type(t, len);
     }
     if (is_punct(tok, '(')) {
+        if (basetype->type == CTYPE_FUNC)
+            error("function returning an function");
+        if (basetype->type == CTYPE_ARRAY)
+            error("function returning an array");
         return read_func_param_list(params, basetype);
     }
     unget_token(tok);

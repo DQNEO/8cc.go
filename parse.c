@@ -384,14 +384,14 @@ static int priority(Token *tok) {
         return 4;
     case '<': case '>': case OP_LE: case OP_GE: case OP_NE:
         return 6;
+    case OP_EQ:
+        return 7;
     case '&':
         return 8;
     case '^':
         return 9;
     case '|':
         return 10;
-    case OP_EQ:
-        return 7;
     case OP_LOGAND:
         return 11;
     case OP_LOGOR:

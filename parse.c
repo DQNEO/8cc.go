@@ -41,7 +41,7 @@ static Ctype *convert_array(Ctype *ctype);
 static Ast *read_stmt(void);
 static bool is_type_keyword(Token *tok);
 static Ast *read_unary_expr(void);
-static void read_func_param_list(Ctype **rtype, List *rparams, Ctype *rettype);
+static Ctype *read_func_param_list(List *rparams, Ctype *rettype);
 static Ast *read_decl_init_val(Ctype *ctype);
 static void read_func_param(Ctype **rtype, char **name, bool optional);
 static void read_decl(List *block, MakeVarFn make_var);
@@ -1193,13 +1193,12 @@ static Ast *read_compound_stmt(void) {
     return ast_compound_stmt(list);
 }
 
-static void read_func_param_list(Ctype **rtype, List *paramvars, Ctype *rettype) {
+static Ctype *read_func_param_list(List *paramvars, Ctype *rettype) {
     bool typeonly = !paramvars;
     List *paramtypes = make_list();
     Token *tok = read_token();
     if (is_punct(tok, ')')) {
-        *rtype = make_func_type(rettype, paramtypes, false);
-        return;
+        return make_func_type(rettype, paramtypes, false);
     }
     unget_token(tok);
     for (;;) {
@@ -1208,8 +1207,7 @@ static void read_func_param_list(Ctype **rtype, List *paramvars, Ctype *rettype)
             if (list_len(paramtypes) == 0)
                 error("at least one parameter is required");
             expect(')');
-            *rtype = make_func_type(rettype, paramtypes, true);
-            return;
+            return make_func_type(rettype, paramtypes, true);
         } else
             unget_token(tok);
         Ctype *ptype;
@@ -1222,8 +1220,7 @@ static void read_func_param_list(Ctype **rtype, List *paramvars, Ctype *rettype)
             list_push(paramvars, ast_lvar(ptype, name));
         Token *tok = read_token();
         if (is_punct(tok, ')')) {
-            *rtype = make_func_type(rettype, paramtypes, false);
-            return;
+            return make_func_type(rettype, paramtypes, false);
         }
         if (!is_punct(tok, ','))
             error("comma expected, but got %s", t2s(tok));
@@ -1287,7 +1284,7 @@ static Ast *read_funcdef(void) {
     localenv = make_dict(globalenv);
     List *params = make_list();
     expect('(');
-    read_func_param_list(&functype, params, rettype);
+    functype = read_func_param_list(params, rettype);
     expect('{');
     Ast *r = read_func_body(functype, name->sval, params);
     localenv = NULL;
@@ -1314,7 +1311,7 @@ static void read_decl(List *block, MakeVarFn make_var) {
             list_push(block, read_decl_init(var));
             tok = read_token();
         } else if (is_punct(tok, '(')) {
-            read_func_param_list(&ctype, NULL, ctype);
+            ctype = read_func_param_list(NULL, ctype);
             if (sclass == S_TYPEDEF)
                 dict_put(typedefs, name->sval, ctype);
             else

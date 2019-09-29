@@ -42,7 +42,7 @@ func (ctype *Ctype) c2s_int(dict map[string]bool) string {
 		s += ")"
 		return s
 	case CTYPE_FUNC:
-		s := format("%s(", ctype.rettype.c2s_int(dict))
+		s := format("(")
 		params := ctype.params
 		for i, t := range params {
 			s += format("%s", t.c2s_int(dict))
@@ -50,7 +50,7 @@ func (ctype *Ctype) c2s_int(dict map[string]bool) string {
 				s += ","
 			}
 		}
-		s += ")"
+		s += format(") -> %s", ctype.rettype.c2s_int(dict))
 		return s
 	default:
 		fmt.Sprintf("Unknown ctype: %d", ctype.typ)

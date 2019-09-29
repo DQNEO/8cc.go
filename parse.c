@@ -378,6 +378,8 @@ static int priority(Token *tok) {
         return 6;
     case '&':
         return 8;
+    case '^':
+        return 9;
     case '|':
         return 10;
     case OP_EQ:

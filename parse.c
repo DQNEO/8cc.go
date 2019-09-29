@@ -347,6 +347,7 @@ int eval_intexpr(Ast *ast) {
             return ast->ival;
         error("Integer expression expected, but got %s", a2s(ast));
     case '!': return !eval_intexpr(ast->operand);
+    case '~': return ~eval_intexpr(ast->operand);
     case AST_TERNARY: return eval_intexpr(ast->cond) ? eval_intexpr(ast->then) : eval_intexpr(ast->els);
 #define L (eval_intexpr(ast->left))
 #define R (eval_intexpr(ast->right))
@@ -357,6 +358,7 @@ int eval_intexpr(Ast *ast) {
     case '<': return L < R;
     case '>': return L > R;
     case '^': return L ^ R;
+    case '&': return L & R;
     case OP_EQ: return L == R;
     case OP_GE: return L >= R;
     case OP_LE: return L <= R;

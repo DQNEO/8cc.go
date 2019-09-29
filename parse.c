@@ -321,6 +321,11 @@ static void ensure_lvalue(Ast *ast) {
     }
 }
 
+static void ensure_inttype(Ast *ast) {
+    if (!is_inttype(ast->ctype))
+        error("integer type expected, but got %s", a2s(ast));
+}
+
 static void expect(char punct) {
     Token *tok = read_token();
     if (!is_punct(tok, punct))
@@ -730,6 +735,10 @@ static Ast *read_expr_int(int prec) {
         Ast *rest = read_expr_int(prec2 + (is_right_assoc(tok) ? 1 : 0));
         if (!rest)
             error("second operand missing");
+        if (is_punct(tok, '^')) {
+            ensure_inttype(ast);
+            ensure_inttype(rest);
+        }
         ast = ast_binop(tok->punct, ast, rest);
     }
 }

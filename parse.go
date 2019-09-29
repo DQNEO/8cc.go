@@ -778,6 +778,7 @@ func read_expr_int(prec int) *Ast {
 			ast = read_subscript_expr(ast)
 			continue
 		}
+		// This is BUG?
 		if tok.is_punct(OP_INC) || tok.is_punct(OP_DEC) {
 			ensure_lvalue(ast)
 			ast = ast_uop(tok.punct, ast.ctype, ast)

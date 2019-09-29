@@ -892,7 +892,26 @@ func read_struct_union_fields() *Dict {
 		if !is_type_keyword(peek_token()) {
 			break
 		}
-		read_decl_type(r)
+		basetype, _ := read_decl_spec()
+		for {
+			ctype := read_declarator(basetype)
+			tok := read_token()
+			var name string
+			if tok.is_ident_type() {
+				name = tok.sval
+			} else {
+				unget_token(tok)
+			}
+			ctype = read_array_dimensions(ctype)
+			r.PutCtype(name, ctype)
+			tok = read_token()
+			if tok.is_punct(',') {
+				continue
+			}
+			unget_token(tok)
+			expect(';')
+			break
+		}
 	}
 	expect('}')
 	return r
@@ -1215,29 +1234,6 @@ func read_func_param(rtype **Ctype, name *string, optional bool) {
 		unget_token(tok)
 	}
 	*rtype = read_array_dimensions(basetype)
-}
-
-func read_decl_type(r *Dict) {
-	basetype, _ := read_decl_spec()
-	for {
-		ctype := read_declarator(basetype)
-		tok := read_token()
-		var name string
-		if tok.is_ident_type() {
-			name = tok.sval
-		} else {
-			unget_token(tok)
-		}
-		ctype = read_array_dimensions(ctype)
-		r.PutCtype(name, ctype)
-		tok = read_token()
-		if tok.is_punct(',') {
-			continue
-		}
-		unget_token(tok)
-		expect(';')
-		return
-	}
 }
 
 func read_decl_array_init_val(ctype *Ctype) *Ast {

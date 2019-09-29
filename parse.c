@@ -351,6 +351,7 @@ int eval_intexpr(Ast *ast) {
     case '/': return L / R;
     case '<': return L < R;
     case '>': return L > R;
+    case '^': return L ^ R;
     case OP_EQ: return L == R;
     case OP_GE: return L >= R;
     case OP_LE: return L <= R;

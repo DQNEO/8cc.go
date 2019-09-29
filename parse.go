@@ -1229,7 +1229,7 @@ func read_decl_type(r *Dict) {
 			unget_token(tok)
 		}
 		ctype = read_array_dimensions(ctype)
-		define_struct_union_field(r, ctype, name)
+		r.PutCtype(name, ctype)
 		tok = read_token()
 		if tok.is_punct(',') {
 			continue

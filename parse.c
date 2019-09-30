@@ -792,8 +792,8 @@ static Dict *read_struct_union_fields(void) {
         read_decl_spec(&basetype, &dummy);
         for (;;) {
             Token *tok;
-            Ctype *fieldtype = read_declarator(&tok, basetype);
             char *name = NULL;
+            Ctype *fieldtype = read_declarator(&tok, basetype);
             if (tok->type == TTYPE_IDENT)
                 name = tok->sval;
             else

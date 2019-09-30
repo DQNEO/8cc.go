@@ -1581,8 +1581,8 @@ func read_funcdef() *Ast {
 	basetype, _ := read_decl_spec()
 	localenv = MakeDict(globalenv)
 	var params []*Ast = make([]*Ast, 0)
-	rettype, params := read_declarator(&name, basetype, params, 3)
-	functype, params := read_func_param_list(rettype, params)
+	functype, params := read_declarator(&name, basetype, params, 3)
+	functype, params = read_func_param_list(functype, params)
 	expect('{')
 	r := read_func_body(functype, name, params)
 	localenv = nil

@@ -895,7 +895,7 @@ func read_struct_union_fields() *Dict {
 		basetype, _ := read_decl_spec()
 		for {
 			var name string
-			fieldtype := read_declarator(&name, basetype, 1)
+			fieldtype := read_declarator(&name, basetype, nil, 1)
 			r.PutCtype(name, fieldtype)
 			tok = read_token()
 			if tok.is_punct(',') {
@@ -1018,7 +1018,7 @@ func read_enum_def() *Ctype {
 	return ctype_int
 }
 
-func read_declarator(rname *string, basetype *Ctype, ctx int) *Ctype {
+func read_declarator(rname *string, basetype *Ctype, params []*Ast, ctx int) *Ctype {
 	if rname != nil {
 		*rname = ""
 	}
@@ -1276,7 +1276,7 @@ func read_func_param(rtype **Ctype, name *string, optional bool) {
 	} else {
 		ctx = 12
 	}
-	basetype = read_declarator(name, basetype, ctx)
+	basetype = read_declarator(name, basetype, nil, ctx)
 	*rtype = read_array_dimensions(basetype)
 }
 
@@ -1580,7 +1580,8 @@ func read_funcdef() *Ast {
 	var name string
 	basetype, _ := read_decl_spec()
 	localenv = MakeDict(globalenv)
-	rettype := read_declarator(&name, basetype, 3)
+	var params []*Ast
+	rettype := read_declarator(&name, basetype, params, 3)
 	functype, params := read_func_param_list(rettype, false)
 	expect('{')
 	r := read_func_body(functype, name, params)
@@ -1592,7 +1593,7 @@ func read_decl(block []*Ast, make_var MakeVarFn) []*Ast {
 	basetype, sclass := read_decl_spec()
 	for {
 		var name string
-		ctype := read_declarator(&name, basetype, 4)
+		ctype := read_declarator(&name, basetype, nil, 4)
 		if ctype == nil {
 			return nil
 		}

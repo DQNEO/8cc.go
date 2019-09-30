@@ -896,7 +896,6 @@ func read_struct_union_fields() *Dict {
 		for {
 			var name string
 			fieldtype := read_declarator(&name, basetype, 1)
-			fieldtype = read_array_dimensions(fieldtype)
 			r.PutCtype(name, fieldtype)
 			tok = read_token()
 			if tok.is_punct(',') {
@@ -1043,6 +1042,7 @@ func read_declarator(rname *string, basetype *Ctype, ctx int) *Ctype {
 			} else {
 				unget_token(rtok)
 			}
+			ctype = read_array_dimensions(ctype)
 		} else if ctx == 2 {
 			optional := true
 			if rtok.is_ident_type() {

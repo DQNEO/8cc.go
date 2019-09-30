@@ -895,8 +895,8 @@ func read_struct_union_fields() *Dict {
 		basetype, _ := read_decl_spec()
 		for {
 			var tok *Token
-			fieldtype := read_declarator(&tok, basetype)
 			var name string
+			fieldtype := read_declarator(&tok, basetype)
 			if tok.is_ident_type() {
 				name = tok.sval
 			} else {

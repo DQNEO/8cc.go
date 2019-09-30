@@ -920,29 +920,21 @@ static Ctype *read_declarator(char **rname, Ctype *basetype, List *params, int c
             *rname = rtok->sval;
             ctype = read_array_dimensions(ctype);
         } else if (ctx == 2 )  { // optional= true
-            bool optional = true;
             if (rtok->type == TTYPE_IDENT) {
-                if (rname == NULL && !optional)
-                    error("identifier is not expected, but got %s", t2s(rtok));
                 if (rname)
                     *rname = rtok->sval;
-            } else if (!optional) {
-                error("identifier expected, but got %s", t2s(rtok));
             } else {
                 unget_token(rtok);
             }
 
         } else if (ctx == 12) {
-            bool optional = false;
             if (rtok->type == TTYPE_IDENT) {
-                if (rname == NULL && !optional)
+                if (rname == NULL)
                     error("identifier is not expected, but got %s", t2s(rtok));
                 if (rname)
                     *rname = rtok->sval;
-            } else if (!optional) {
-                error("identifier expected, but got %s", t2s(rtok));
             } else {
-                unget_token(rtok);
+                error("identifier expected, but got %s", t2s(rtok));
             }
         }
 

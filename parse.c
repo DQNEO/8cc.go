@@ -793,7 +793,6 @@ static Dict *read_struct_union_fields(void) {
         for (;;) {
             char *name;
             Ctype *fieldtype = read_declarator(&name, basetype, 1);
-            fieldtype = read_array_dimensions(fieldtype);
             dict_put(r, name, make_struct_field_type(fieldtype, 0));
             tok = read_token();
             if (is_punct(tok, ','))
@@ -906,6 +905,7 @@ static Ctype *read_declarator(char **rname, Ctype *basetype, int ctx) {
                 *rname = rtok->sval;
             else
                 unget_token(rtok);
+            ctype = read_array_dimensions(ctype);
         } else if (ctx == 3) {
             if (rtok->type != TTYPE_IDENT)
                 error("function tok expected, but got %s", t2s(rtok));
@@ -1119,12 +1119,11 @@ static Ast *read_decl_init(Ast *var) {
     return ast_decl(var, init);
 }
 
-static void read_func_param(Ctype **rtype, char **rname, bool optional) {
+static void read_func_param(Ctype **rtype, char **name, bool optional) {
     Ctype *basetype;
     int sclass;
     read_decl_spec(&basetype, &sclass);
-    int ctx = (optional) ? 2 : 12;
-    basetype = read_declarator(rname, basetype, ctx);
+    basetype = read_declarator(name, basetype, optional ? 2 : 12);
     *rtype = read_array_dimensions(basetype);
 }
 
@@ -1298,11 +1297,11 @@ static Ast *read_funcdef(void) {
     Ctype *functype;
     int sclass;
 
-    read_decl_spec(&basetype, &sclass);
     char *name;
-    Ctype *rettype = read_declarator(&name, basetype, 3);
-    localenv = make_dict(globalenv);
     List *params = make_list();
+    read_decl_spec(&basetype, &sclass);
+    localenv = make_dict(globalenv);
+    Ctype *rettype = read_declarator(&name, basetype, 3);
     expect('(');
     functype = read_func_param_list(params, rettype);
     expect('{');
@@ -1316,7 +1315,7 @@ static void read_decl(List *block, MakeVarFn make_var) {
     int sclass;
     read_decl_spec(&basetype, &sclass);
     for (;;) {
-        char *name;
+        char *name = NULL;
         Ctype *ctype = read_declarator(&name, basetype, 4);
         if (!ctype) return;
         ctype = read_array_dimensions(ctype);

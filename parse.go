@@ -1062,6 +1062,7 @@ func read_declarator(rname *string, basetype *Ctype, ctx int) *Ctype {
 				errorf("function tok expected, but got %s", rtok)
 			}
 			*rname = rtok.sval
+			expect('(')
 		} else if ctx == 4 {
 			if rtok.is_punct(';') {
 				return nil
@@ -1580,7 +1581,6 @@ func read_funcdef() *Ast {
 	basetype, _ := read_decl_spec()
 	localenv = MakeDict(globalenv)
 	rettype := read_declarator(&name, basetype, 3)
-	expect('(')
 	functype, params := read_func_param_list(rettype, false)
 	expect('{')
 	r := read_func_body(functype, name, params)

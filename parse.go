@@ -1218,16 +1218,16 @@ func read_decl_spec() (*Ctype, int) {
 	return nil, 0
 }
 
-func read_func_param(rtype **Ctype, name *string, optional bool) {
+func read_func_param(rtype **Ctype, rname *string, optional bool) {
 	basetype, _ := read_decl_spec()
 	var tok *Token
 	basetype = read_declarator(&tok, basetype)
 	if tok.is_ident_type() {
-		if name == nil && !optional {
+		if rname == nil && !optional {
 			errorf("identifier is not expected, but got %s", tok)
 		}
-		if name != nil {
-			*name = tok.sval
+		if rname != nil {
+			*rname = tok.sval
 		}
 	} else if !optional {
 		errorf("identifier expected, but got %s", tok)
@@ -1540,12 +1540,12 @@ func read_funcdef() *Ast {
 	if tok.typ != TTYPE_IDENT {
 		errorf("function tok expected, but got %s", tok)
 	}
-	cname := tok.sval
+	name := tok.sval
 	localenv = MakeDict(globalenv)
 	expect('(')
 	functype, params := read_func_param_list(rettype, false)
 	expect('{')
-	r := read_func_body(functype, cname, params)
+	r := read_func_body(functype, name, params)
 	localenv = nil
 	return r
 }

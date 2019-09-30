@@ -1063,6 +1063,7 @@ func read_declarator(rname *string, basetype *Ctype, params []*Ast, ctx int) (*C
 			}
 			*rname = rtok.sval
 			expect('(')
+			ctype, params = read_func_param_list(ctype, params)
 		} else if ctx == 4 {
 			if rtok.is_punct(';') {
 				return nil, params
@@ -1582,7 +1583,6 @@ func read_funcdef() *Ast {
 	localenv = MakeDict(globalenv)
 	var params []*Ast = make([]*Ast, 0)
 	functype, params := read_declarator(&name, basetype, params, 3)
-	functype, params = read_func_param_list(functype, params)
 	expect('{')
 	r := read_func_body(functype, name, params)
 	localenv = nil

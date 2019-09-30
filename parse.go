@@ -1067,13 +1067,6 @@ func read_declarator(rname *string, basetype *Ctype, params []*Ast, ctx int) (*C
 			}
 			*rname = rtok.sval
 			ctype = read_array_dimensions(ctype)
-		} else if ctx == 12 {
-			if rtok.is_ident_type() {
-				*rname = rtok.sval
-			} else {
-				unget_token(rtok)
-			}
-			ctype = read_array_dimensions(ctype)
 		}
 
 		return ctype, params
@@ -1262,7 +1255,7 @@ func read_func_param(rtype **Ctype, name *string, optional bool) {
 	if optional {
 		ctx = 2
 	} else {
-		ctx = 12
+		ctx = 1
 	}
 	basetype,_ = read_declarator(name, basetype, nil, ctx)
 	*rtype = read_array_dimensions(basetype)

@@ -1484,8 +1484,8 @@ func read_compound_stmt() *Ast {
 	return ast_compound_stmt(list)
 }
 
-func read_func_param_list(rettype *Ctype, typeonly bool) (*Ctype, []*Ast) {
-	var paramvars []*Ast
+func read_func_param_list(rettype *Ctype, paramvars []*Ast) (*Ctype, []*Ast) {
+	typeonly := (paramvars == nil)
 	var paramtypes []*Ctype
 	var rtype *Ctype
 	pt := read_token()
@@ -1580,9 +1580,9 @@ func read_funcdef() *Ast {
 	var name string
 	basetype, _ := read_decl_spec()
 	localenv = MakeDict(globalenv)
-	var params []*Ast
+	var params []*Ast = make([]*Ast, 0)
 	rettype, params := read_declarator(&name, basetype, params, 3)
-	functype, params := read_func_param_list(rettype, false)
+	functype, params := read_func_param_list(rettype, params)
 	expect('{')
 	r := read_func_body(functype, name, params)
 	localenv = nil
@@ -1606,7 +1606,7 @@ func read_decl(block []*Ast, make_var MakeVarFn) []*Ast {
 			block = append(block, read_decl_init(gvar))
 			tok = read_token()
 		} else if tok.is_punct('(') {
-			ctype, _ = read_func_param_list(ctype, true)
+			ctype, _ = read_func_param_list(ctype, nil)
 			if sclass == S_TYPEDEF {
 				typedefs.PutCtype(name, ctype)
 			} else {

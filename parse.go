@@ -1069,13 +1069,11 @@ func read_declarator(rname *string, basetype *Ctype, params []*Ast, ctx int) (*C
 			ctype = read_array_dimensions(ctype)
 		} else if ctx == 12 {
 			if rtok.is_ident_type() {
-				if rname == nil {
-					errorf("identifier is not expected, but got %s", rtok)
-				}
 				*rname = rtok.sval
 			} else {
-				errorf("identifier expected, but got %s", rtok)
+				unget_token(rtok)
 			}
+			ctype = read_array_dimensions(ctype)
 		}
 
 		return ctype, params

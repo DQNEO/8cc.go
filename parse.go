@@ -39,6 +39,13 @@ const (
 	S_REGISTER
 )
 
+const (
+	DECL_BODY int = iota + 1
+	DECL_PARAM
+	DECL_PARAM_TYPEONLY
+	DECL_CAST
+)
+
 func ast_uop(typ int, ctype *Ctype, operand *Ast) *Ast {
 	r := &Ast{}
 	r.typ = typ
@@ -895,7 +902,7 @@ func read_struct_union_fields() *Dict {
 		basetype, _ := read_decl_spec()
 		for {
 			var name string
-			fieldtype,_ := read_declarator(&name, basetype, nil, 1)
+			fieldtype,_ := read_declarator(&name, basetype, nil, DECL_PARAM)
 			r.PutCtype(name, fieldtype)
 			tok = read_token()
 			if tok.is_punct(',') {
@@ -1036,14 +1043,14 @@ func read_declarator(rname *string, basetype *Ctype, params []*Ast, ctx int) (*C
 		var rtok *Token
 		rtok = read_token()
 
-		if ctx == 1 {
+		if ctx == DECL_PARAM {
 			if rtok.is_ident_type() {
 				*rname = tok.sval
 			} else {
 				unget_token(rtok)
 			}
 			ctype = read_array_dimensions(ctype)
-		} else if ctx == 2 {
+		} else if ctx == DECL_PARAM_TYPEONLY {
 			if rtok.is_ident_type() {
 				if rname != nil {
 					*rname = rtok.sval
@@ -1051,7 +1058,7 @@ func read_declarator(rname *string, basetype *Ctype, params []*Ast, ctx int) (*C
 			} else {
 				unget_token(rtok)
 			}
-		} else if ctx == 3 {
+		} else if ctx == DECL_BODY {
 			if rtok.is_punct(';') {
 				return nil, params
 			}
@@ -1251,9 +1258,9 @@ func read_func_param(rtype **Ctype, name *string, optional bool) {
 	basetype, _ := read_decl_spec()
 	var ctx int
 	if optional {
-		ctx = 2
+		ctx = DECL_PARAM_TYPEONLY
 	} else {
-		ctx = 1
+		ctx = DECL_PARAM
 	}
 	basetype,_ = read_declarator(name, basetype, nil, ctx)
 	*rtype = read_array_dimensions(basetype)
@@ -1560,7 +1567,7 @@ func read_funcdef() *Ast {
 	basetype, _ := read_decl_spec()
 	localenv = MakeDict(globalenv)
 	var params []*Ast = make([]*Ast, 0)
-	functype, params := read_declarator(&name, basetype, params, 3)
+	functype, params := read_declarator(&name, basetype, params, DECL_BODY)
 	expect('{')
 	r := read_func_body(functype, name, params)
 	localenv = nil
@@ -1571,7 +1578,7 @@ func read_decl(block []*Ast, make_var MakeVarFn) []*Ast {
 	basetype, sclass := read_decl_spec()
 	for {
 		var name string
-		ctype, _ := read_declarator(&name, basetype, nil, 3)
+		ctype, _ := read_declarator(&name, basetype, nil, DECL_BODY)
 		if ctype == nil {
 			return nil
 		}

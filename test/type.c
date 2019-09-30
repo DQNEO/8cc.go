@@ -54,7 +54,7 @@ int test_pointer() {
 }
 
 int test_unusual_order() {
-    int unsigned const const * const a;
+    int unsigned auto * const * const a;
 }
 
 int test_typedef() {

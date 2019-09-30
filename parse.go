@@ -896,7 +896,7 @@ func read_struct_union_fields() *Dict {
 		for {
 			var tok *Token
 			var name string
-			fieldtype := read_declarator(&tok, basetype)
+			fieldtype := read_declarator(&name, &tok, basetype)
 			if tok.is_ident_type() {
 				name = tok.sval
 			} else {
@@ -1025,7 +1025,10 @@ func read_enum_def() *Ctype {
 	return ctype_int
 }
 
-func read_declarator(rtok **Token, basetype *Ctype) *Ctype {
+func read_declarator(rname *string, rtok **Token, basetype *Ctype) *Ctype {
+	if rname != nil {
+		*rname = ""
+	}
 	ctype := basetype
 	for {
 		tok := read_token()
@@ -1221,7 +1224,7 @@ func read_decl_spec() (*Ctype, int) {
 func read_func_param(rtype **Ctype, rname *string, optional bool) {
 	basetype, _ := read_decl_spec()
 	var tok *Token
-	basetype = read_declarator(&tok, basetype)
+	basetype = read_declarator(rname, &tok, basetype)
 	if tok.is_ident_type() {
 		if rname == nil && !optional {
 			errorf("identifier is not expected, but got %s", tok)
@@ -1536,11 +1539,12 @@ func is_funcdef() bool {
 func read_funcdef() *Ast {
 	basetype, _ := read_decl_spec()
 	var tok *Token
-	rettype := read_declarator(&tok, basetype)
+	var name string
+	rettype := read_declarator(&name, &tok, basetype)
 	if tok.typ != TTYPE_IDENT {
 		errorf("function tok expected, but got %s", tok)
 	}
-	name := tok.sval
+	name = tok.sval
 	localenv = MakeDict(globalenv)
 	expect('(')
 	functype, params := read_func_param_list(rettype, false)
@@ -1555,7 +1559,7 @@ func read_decl(block []*Ast, make_var MakeVarFn) []*Ast {
 	for {
 		var ntok *Token
 		var name string
-		ctype := read_declarator(&ntok, basetype)
+		ctype := read_declarator(&name, &ntok, basetype)
 		if ntok.is_punct(';') {
 			return block
 		}

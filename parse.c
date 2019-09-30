@@ -931,8 +931,7 @@ static Ctype *read_declarator(char **rname, Ctype *basetype, List *params, int c
             if (rtok->type == TTYPE_IDENT) {
                 if (rname == NULL)
                     error("identifier is not expected, but got %s", t2s(rtok));
-                if (rname)
-                    *rname = rtok->sval;
+                *rname = rtok->sval;
             } else {
                 error("identifier expected, but got %s", t2s(rtok));
             }

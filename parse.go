@@ -1050,14 +1050,6 @@ func read_declarator(rname *string, basetype *Ctype, params []*Ast, ctx int) (*C
 				unget_token(rtok)
 			}
 			ctype = read_array_dimensions(ctype)
-		} else if ctx == DECL_PARAM_TYPEONLY {
-			if rtok.is_ident_type() {
-				if rname != nil {
-					*rname = rtok.sval
-				}
-			} else {
-				unget_token(rtok)
-			}
 		} else if ctx == DECL_BODY {
 			if rtok.is_punct(';') {
 				return nil, params
@@ -1071,6 +1063,14 @@ func read_declarator(rname *string, basetype *Ctype, params []*Ast, ctx int) (*C
 				ctype, params = read_func_param_list(ctype, params)
 			} else {
 				ctype = read_array_dimensions(ctype)
+			}
+		} else if ctx == DECL_PARAM_TYPEONLY {
+			if rtok.is_ident_type() {
+				if rname != nil {
+					*rname = rtok.sval
+				}
+			} else {
+				unget_token(rtok)
 			}
 		}
 

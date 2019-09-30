@@ -1043,6 +1043,20 @@ func read_declarator(rname *string, rtok **Token, basetype *Ctype, ctx int) *Cty
 			} else {
 				unget_token(*rtok)
 			}
+		} else if ctx == 2 {
+			optional := true
+			if (*rtok).is_ident_type() {
+				if rname == nil && !optional {
+					errorf("identifier is not expected, but got %s", *rtok)
+				}
+				if rname != nil {
+					*rname = (*rtok).sval
+				}
+			} else if !optional {
+				errorf("identifier expected, but got %s", *rtok)
+			} else {
+				unget_token(*rtok)
+			}
 		} else if ctx == 3 {
 			if (*rtok).typ != TTYPE_IDENT {
 				errorf("function tok expected, but got %s", *rtok)
@@ -1056,6 +1070,20 @@ func read_declarator(rname *string, rtok **Token, basetype *Ctype, ctx int) *Cty
 				errorf("Identifier ntok expected, but got %s", *rtok)
 			}
 			*rname = (*rtok).sval
+		} else if ctx == 12 {
+			optional := false
+			if (*rtok).is_ident_type() {
+				if rname == nil && !optional {
+					errorf("identifier is not expected, but got %s", *rtok)
+				}
+				if rname != nil {
+					*rname = (*rtok).sval
+				}
+			} else if !optional {
+				errorf("identifier expected, but got %s", *rtok)
+			} else {
+				unget_token(*rtok)
+			}
 		}
 
 		return ctype
@@ -1248,18 +1276,6 @@ func read_func_param(rtype **Ctype, rname *string, optional bool) {
 		ctx = 12
 	}
 	basetype = read_declarator(rname, &tok, basetype, ctx)
-	if tok.is_ident_type() {
-		if rname == nil && !optional {
-			errorf("identifier is not expected, but got %s", tok)
-		}
-		if rname != nil {
-			*rname = tok.sval
-		}
-	} else if !optional {
-		errorf("identifier expected, but got %s", tok)
-	} else {
-		unget_token(tok)
-	}
 	*rtype = read_array_dimensions(basetype)
 }
 

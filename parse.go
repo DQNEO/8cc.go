@@ -1025,7 +1025,7 @@ func read_enum_def() *Ctype {
 	return ctype_int
 }
 
-func read_declarator(rname *string, basetype *Ctype, params []*Ast, ctx int) (*Ctype, []*Ast) {
+func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx int) (*Ctype, []*Ast) {
 	if rname != nil {
 		*rname = ""
 	}
@@ -1076,6 +1076,10 @@ func read_declarator(rname *string, basetype *Ctype, params []*Ast, ctx int) (*C
 
 		return ctype, params
 	}
+}
+
+func read_declarator(rname *string, basetype *Ctype, params []*Ast, ctx int) (*Ctype, []*Ast) {
+	return read_direct_declarator1(rname, basetype, params, ctx)
 }
 
 var kconst int

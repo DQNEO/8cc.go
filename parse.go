@@ -1575,10 +1575,10 @@ func is_funcdef() bool {
 }
 
 func read_funcdef() *Ast {
-	basetype, _ := read_decl_spec()
 	var name string
-	rettype := read_declarator(&name, basetype, 3)
+	basetype, _ := read_decl_spec()
 	localenv = MakeDict(globalenv)
+	rettype := read_declarator(&name, basetype, 3)
 	expect('(')
 	functype, params := read_func_param_list(rettype, false)
 	expect('{')

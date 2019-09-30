@@ -1535,16 +1535,17 @@ func is_funcdef() bool {
 
 func read_funcdef() *Ast {
 	basetype, _ := read_decl_spec()
-	var name *Token
-	rettype := read_declarator(&name, basetype)
-	if name.typ != TTYPE_IDENT {
-		errorf("function name expected, but got %s", name)
+	var tok *Token
+	rettype := read_declarator(&tok, basetype)
+	if tok.typ != TTYPE_IDENT {
+		errorf("function tok expected, but got %s", tok)
 	}
+	cname := tok.sval
 	localenv = MakeDict(globalenv)
 	expect('(')
 	functype, params := read_func_param_list(rettype, false)
 	expect('{')
-	r := read_func_body(functype, name.sval, params)
+	r := read_func_body(functype, cname, params)
 	localenv = nil
 	return r
 }
@@ -1552,36 +1553,38 @@ func read_funcdef() *Ast {
 func read_decl(block []*Ast, make_var MakeVarFn) []*Ast {
 	basetype, sclass := read_decl_spec()
 	for {
-		var name *Token
-		ctype := read_declarator(&name, basetype)
-		if name.is_punct(';') {
+		var ntok *Token
+		var name string
+		ctype := read_declarator(&ntok, basetype)
+		if ntok.is_punct(';') {
 			return block
 		}
-		if !name.is_ident_type() {
-			errorf("Identifier name expected, but got %s", name)
+		if !ntok.is_ident_type() {
+			errorf("Identifier ntok expected, but got %s", ntok)
 		}
+		name = ntok.sval
 		ctype = read_array_dimensions(ctype)
 		tok := read_token()
 		if tok.is_punct('=') {
 			if sclass == S_TYPEDEF {
 				errorf("= after typedef")
 			}
-			gvar := make_var(ctype, name.sval)
+			gvar := make_var(ctype, name)
 			block = append(block, read_decl_init(gvar))
 			tok = read_token()
 		} else if tok.is_punct('(') {
 			ctype, _ = read_func_param_list(ctype, true)
 			if sclass == S_TYPEDEF {
-				typedefs.PutCtype(name.sval, ctype)
+				typedefs.PutCtype(name, ctype)
 			} else {
-				make_var(ctype, name.sval)
+				make_var(ctype, name)
 			}
 			tok = read_token()
 		} else {
 			if sclass == S_TYPEDEF {
-				typedefs.PutCtype(name.sval, ctype)
+				typedefs.PutCtype(name, ctype)
 			} else {
-				gvar := make_var(ctype, name.sval)
+				gvar := make_var(ctype, name)
 				if sclass != S_EXTERN {
 					block = append(block, ast_decl(gvar, nil))
 				}

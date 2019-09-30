@@ -1072,9 +1072,7 @@ func read_declarator(rname *string, basetype *Ctype, params []*Ast, ctx int) (*C
 				if rname == nil {
 					errorf("identifier is not expected, but got %s", rtok)
 				}
-				if rname != nil {
-					*rname = rtok.sval
-				}
+				*rname = rtok.sval
 			} else {
 				errorf("identifier expected, but got %s", rtok)
 			}

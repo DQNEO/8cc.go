@@ -896,12 +896,7 @@ func read_struct_union_fields() *Dict {
 		for {
 			var tok *Token
 			var name string
-			fieldtype := read_declarator(&name, &tok, basetype)
-			if tok.is_ident_type() {
-				name = tok.sval
-			} else {
-				unget_token(tok)
-			}
+			fieldtype := read_declarator(&name, &tok, basetype, 1)
 			fieldtype = read_array_dimensions(fieldtype)
 			r.PutCtype(name, fieldtype)
 			tok = read_token()
@@ -1025,7 +1020,7 @@ func read_enum_def() *Ctype {
 	return ctype_int
 }
 
-func read_declarator(rname *string, rtok **Token, basetype *Ctype) *Ctype {
+func read_declarator(rname *string, rtok **Token, basetype *Ctype, ctx int) *Ctype {
 	if rname != nil {
 		*rname = ""
 	}
@@ -1041,6 +1036,15 @@ func read_declarator(rname *string, rtok **Token, basetype *Ctype) *Ctype {
 		}
 		unget_token(tok)
 		*rtok = read_token()
+
+		if ctx == 1 {
+			if (*rtok).is_ident_type() {
+				*rname = tok.sval
+			} else {
+				unget_token(*rtok)
+			}
+		}
+
 		return ctype
 	}
 }
@@ -1224,7 +1228,13 @@ func read_decl_spec() (*Ctype, int) {
 func read_func_param(rtype **Ctype, rname *string, optional bool) {
 	basetype, _ := read_decl_spec()
 	var tok *Token
-	basetype = read_declarator(rname, &tok, basetype)
+	var ctx int
+	if optional {
+		ctx = 2
+	} else {
+		ctx = 12
+	}
+	basetype = read_declarator(rname, &tok, basetype, ctx)
 	if tok.is_ident_type() {
 		if rname == nil && !optional {
 			errorf("identifier is not expected, but got %s", tok)
@@ -1540,7 +1550,7 @@ func read_funcdef() *Ast {
 	basetype, _ := read_decl_spec()
 	var tok *Token
 	var name string
-	rettype := read_declarator(&name, &tok, basetype)
+	rettype := read_declarator(&name, &tok, basetype, 3)
 	if tok.typ != TTYPE_IDENT {
 		errorf("function tok expected, but got %s", tok)
 	}
@@ -1559,7 +1569,7 @@ func read_decl(block []*Ast, make_var MakeVarFn) []*Ast {
 	for {
 		var ntok *Token
 		var name string
-		ctype := read_declarator(&name, &ntok, basetype)
+		ctype := read_declarator(&name, &ntok, basetype, 4)
 		if ntok.is_punct(';') {
 			return block
 		}

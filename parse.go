@@ -894,8 +894,8 @@ func read_struct_union_fields() *Dict {
 		}
 		basetype, _ := read_decl_spec()
 		for {
-			fieldtype := read_declarator(basetype)
-			tok := read_token()
+			var tok *Token
+			fieldtype := read_declarator(&tok, basetype)
 			var name string
 			if tok.is_ident_type() {
 				name = tok.sval
@@ -1025,7 +1025,7 @@ func read_enum_def() *Ctype {
 	return ctype_int
 }
 
-func read_declarator(basetype *Ctype) *Ctype {
+func read_declarator(rname **Token, basetype *Ctype) *Ctype {
 	ctype := basetype
 	for {
 		tok := read_token()
@@ -1037,6 +1037,7 @@ func read_declarator(basetype *Ctype) *Ctype {
 			continue
 		}
 		unget_token(tok)
+		*rname = read_token()
 		return ctype
 	}
 }
@@ -1219,8 +1220,8 @@ func read_decl_spec() (*Ctype, int) {
 
 func read_func_param(rtype **Ctype, name *string, optional bool) {
 	basetype, _ := read_decl_spec()
-	basetype = read_declarator(basetype)
-	tok := read_token()
+	var tok *Token
+	basetype = read_declarator(&tok, basetype)
 	if tok.is_ident_type() {
 		if name == nil && !optional {
 			errorf("identifier is not expected, but got %s", tok)
@@ -1534,8 +1535,8 @@ func is_funcdef() bool {
 
 func read_funcdef() *Ast {
 	basetype, _ := read_decl_spec()
-	rettype := read_declarator(basetype)
-	name := read_token()
+	var name *Token
+	rettype := read_declarator(&name, basetype)
 	if name.typ != TTYPE_IDENT {
 		errorf("function name expected, but got %s", name)
 	}
@@ -1551,8 +1552,8 @@ func read_funcdef() *Ast {
 func read_decl(block []*Ast, make_var MakeVarFn) []*Ast {
 	basetype, sclass := read_decl_spec()
 	for {
-		ctype := read_declarator(basetype)
-		name := read_token()
+		var name *Token
+		ctype := read_declarator(&name, basetype)
 		if name.is_punct(';') {
 			return block
 		}

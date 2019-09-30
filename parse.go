@@ -1044,16 +1044,10 @@ func read_declarator(rname *string, basetype *Ctype, params []*Ast, ctx int) (*C
 			}
 			ctype = read_array_dimensions(ctype)
 		} else if ctx == 2 {
-			optional := true
 			if rtok.is_ident_type() {
-				if rname == nil && !optional {
-					errorf("identifier is not expected, but got %s", rtok)
-				}
 				if rname != nil {
 					*rname = rtok.sval
 				}
-			} else if !optional {
-				errorf("identifier expected, but got %s", rtok)
 			} else {
 				unget_token(rtok)
 			}
@@ -1074,18 +1068,15 @@ func read_declarator(rname *string, basetype *Ctype, params []*Ast, ctx int) (*C
 			*rname = rtok.sval
 			ctype = read_array_dimensions(ctype)
 		} else if ctx == 12 {
-			optional := false
 			if rtok.is_ident_type() {
-				if rname == nil && !optional {
+				if rname == nil {
 					errorf("identifier is not expected, but got %s", rtok)
 				}
 				if rname != nil {
 					*rname = rtok.sval
 				}
-			} else if !optional {
-				errorf("identifier expected, but got %s", rtok)
 			} else {
-				unget_token(rtok)
+				errorf("identifier expected, but got %s", rtok)
 			}
 		}
 

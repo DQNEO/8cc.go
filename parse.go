@@ -894,7 +894,7 @@ func read_struct_union_fields() *Dict {
 		}
 		basetype, _ := read_decl_spec()
 		for {
-			ctype := read_declarator(basetype)
+			fieldtype := read_declarator(basetype)
 			tok := read_token()
 			var name string
 			if tok.is_ident_type() {
@@ -902,8 +902,8 @@ func read_struct_union_fields() *Dict {
 			} else {
 				unget_token(tok)
 			}
-			ctype = read_array_dimensions(ctype)
-			r.PutCtype(name, ctype)
+			fieldtype = read_array_dimensions(fieldtype)
+			r.PutCtype(name, fieldtype)
 			tok = read_token()
 			if tok.is_punct(',') {
 				continue

@@ -1025,7 +1025,7 @@ func read_declarator(rname *string, basetype *Ctype, ctx int) *Ctype {
 	ctype := basetype
 	for {
 		tok := read_token()
-		if tok.is_ident("static") || tok.is_ident("const") {
+		if tok.is_ident("const") || tok.is_ident("volatiles") {
 			continue
 		}
 		if tok.is_punct('*') {

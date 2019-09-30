@@ -1048,6 +1048,14 @@ func read_declarator(rname *string, rtok **Token, basetype *Ctype, ctx int) *Cty
 				errorf("function tok expected, but got %s", *rtok)
 			}
 			*rname = (*rtok).sval
+		} else if ctx == 4 {
+			if (*rtok).is_punct(';') {
+				return nil
+			}
+			if !(*rtok).is_ident_type() {
+				errorf("Identifier ntok expected, but got %s", *rtok)
+			}
+			*rname = (*rtok).sval
 		}
 
 		return ctype
@@ -1571,13 +1579,9 @@ func read_decl(block []*Ast, make_var MakeVarFn) []*Ast {
 		var ntok *Token
 		var name string
 		ctype := read_declarator(&name, &ntok, basetype, 4)
-		if ntok.is_punct(';') {
-			return block
+		if ctype == nil {
+			return nil
 		}
-		if !ntok.is_ident_type() {
-			errorf("Identifier ntok expected, but got %s", ntok)
-		}
-		name = ntok.sval
 		ctype = read_array_dimensions(ctype)
 		tok := read_token()
 		if tok.is_punct('=') {

@@ -44,7 +44,7 @@ static Ctype *read_func_param_list(List *rparams, Ctype *rettype);
 static Ast *read_decl_init_val(Ctype *ctype);
 static void read_func_param(Ctype **rtype, char **name, bool optional);
 static void read_decl(List *block, MakeVarFn make_var);
-static Ctype *read_declarator(char **name, Ctype *basetype, int ctx);
+static Ctype *read_declarator(char **name, Ctype *basetype, List *params, int ctx);
 static void read_decl_spec(Ctype **rtype, int *sclass);
 static Ctype *read_array_dimensions(Ctype *basetype);
 
@@ -792,7 +792,7 @@ static Dict *read_struct_union_fields(void) {
         read_decl_spec(&basetype, &dummy);
         for (;;) {
             char *name;
-            Ctype *fieldtype = read_declarator(&name, basetype, 1);
+            Ctype *fieldtype = read_declarator(&name, basetype, NULL, 1);
             dict_put(r, name, make_struct_field_type(fieldtype, 0));
             tok = read_token();
             if (is_punct(tok, ','))
@@ -886,7 +886,7 @@ static Ctype *read_enum_def(void) {
     return ctype_int;
 }
 
-static Ctype *read_declarator(char **rname, Ctype *basetype, int ctx) {
+static Ctype *read_declarator(char **rname, Ctype *basetype, List *params, int ctx) {
     if (rname) *rname = NULL;
     Ctype *ctype = basetype;
     for (;;) {
@@ -1126,7 +1126,7 @@ static void read_func_param(Ctype **rtype, char **name, bool optional) {
     Ctype *basetype;
     int sclass;
     read_decl_spec(&basetype, &sclass);
-    basetype = read_declarator(name, basetype, optional ? 2 : 12);
+    basetype = read_declarator(name, basetype, NULL, optional ? 2 : 12);
     *rtype = read_array_dimensions(basetype);
 }
 
@@ -1302,7 +1302,7 @@ static Ast *read_funcdef(void) {
     List *params = make_list();
     read_decl_spec(&basetype, &sclass);
     localenv = make_dict(globalenv);
-    Ctype *rettype = read_declarator(&name, basetype, 3);
+    Ctype *rettype = read_declarator(&name, basetype, params, 3);
     Ctype *functype = read_func_param_list(params, rettype);
     expect('{');
     Ast *r = read_func_body(functype, name, params);
@@ -1316,7 +1316,7 @@ static void read_decl(List *block, MakeVarFn make_var) {
     read_decl_spec(&basetype, &sclass);
     for (;;) {
         char *name = NULL;
-        Ctype *ctype = read_declarator(&name, basetype, 4);
+        Ctype *ctype = read_declarator(&name, basetype, NULL, 4);
         if (!ctype) return;
         Token *tok = read_token();
         if (is_punct(tok, '=')) {

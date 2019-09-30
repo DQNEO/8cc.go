@@ -1070,6 +1070,7 @@ func read_declarator(rname *string, basetype *Ctype, ctx int) *Ctype {
 				errorf("Identifier ntok expected, but got %s", rtok)
 			}
 			*rname = rtok.sval
+			ctype = read_array_dimensions(ctype)
 		} else if ctx == 12 {
 			optional := false
 			if rtok.is_ident_type() {
@@ -1595,7 +1596,6 @@ func read_decl(block []*Ast, make_var MakeVarFn) []*Ast {
 		if ctype == nil {
 			return nil
 		}
-		ctype = read_array_dimensions(ctype)
 		tok := read_token()
 		if tok.is_punct('=') {
 			if sclass == S_TYPEDEF {

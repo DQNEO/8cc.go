@@ -894,9 +894,8 @@ func read_struct_union_fields() *Dict {
 		}
 		basetype, _ := read_decl_spec()
 		for {
-			var tok *Token
 			var name string
-			fieldtype := read_declarator(&name, &tok, basetype, 1)
+			fieldtype := read_declarator(&name, basetype, 1)
 			fieldtype = read_array_dimensions(fieldtype)
 			r.PutCtype(name, fieldtype)
 			tok = read_token()
@@ -1020,7 +1019,7 @@ func read_enum_def() *Ctype {
 	return ctype_int
 }
 
-func read_declarator(rname *string, rtok **Token, basetype *Ctype, ctx int) *Ctype {
+func read_declarator(rname *string, basetype *Ctype, ctx int) *Ctype {
 	if rname != nil {
 		*rname = ""
 	}
@@ -1035,54 +1034,55 @@ func read_declarator(rname *string, rtok **Token, basetype *Ctype, ctx int) *Cty
 			continue
 		}
 		unget_token(tok)
-		*rtok = read_token()
+		var rtok *Token
+		rtok = read_token()
 
 		if ctx == 1 {
-			if (*rtok).is_ident_type() {
+			if rtok.is_ident_type() {
 				*rname = tok.sval
 			} else {
-				unget_token(*rtok)
+				unget_token(rtok)
 			}
 		} else if ctx == 2 {
 			optional := true
-			if (*rtok).is_ident_type() {
+			if rtok.is_ident_type() {
 				if rname == nil && !optional {
-					errorf("identifier is not expected, but got %s", *rtok)
+					errorf("identifier is not expected, but got %s", rtok)
 				}
 				if rname != nil {
-					*rname = (*rtok).sval
+					*rname = rtok.sval
 				}
 			} else if !optional {
-				errorf("identifier expected, but got %s", *rtok)
+				errorf("identifier expected, but got %s", rtok)
 			} else {
-				unget_token(*rtok)
+				unget_token(rtok)
 			}
 		} else if ctx == 3 {
-			if (*rtok).typ != TTYPE_IDENT {
-				errorf("function tok expected, but got %s", *rtok)
+			if rtok.typ != TTYPE_IDENT {
+				errorf("function tok expected, but got %s", rtok)
 			}
-			*rname = (*rtok).sval
+			*rname = rtok.sval
 		} else if ctx == 4 {
-			if (*rtok).is_punct(';') {
+			if rtok.is_punct(';') {
 				return nil
 			}
-			if !(*rtok).is_ident_type() {
-				errorf("Identifier ntok expected, but got %s", *rtok)
+			if !rtok.is_ident_type() {
+				errorf("Identifier ntok expected, but got %s", rtok)
 			}
-			*rname = (*rtok).sval
+			*rname = rtok.sval
 		} else if ctx == 12 {
 			optional := false
-			if (*rtok).is_ident_type() {
+			if rtok.is_ident_type() {
 				if rname == nil && !optional {
-					errorf("identifier is not expected, but got %s", *rtok)
+					errorf("identifier is not expected, but got %s", rtok)
 				}
 				if rname != nil {
-					*rname = (*rtok).sval
+					*rname = rtok.sval
 				}
 			} else if !optional {
-				errorf("identifier expected, but got %s", *rtok)
+				errorf("identifier expected, but got %s", rtok)
 			} else {
-				unget_token(*rtok)
+				unget_token(rtok)
 			}
 		}
 
@@ -1268,14 +1268,13 @@ func read_decl_spec() (*Ctype, int) {
 
 func read_func_param(rtype **Ctype, rname *string, optional bool) {
 	basetype, _ := read_decl_spec()
-	var tok *Token
 	var ctx int
 	if optional {
 		ctx = 2
 	} else {
 		ctx = 12
 	}
-	basetype = read_declarator(rname, &tok, basetype, ctx)
+	basetype = read_declarator(rname, basetype, ctx)
 	*rtype = read_array_dimensions(basetype)
 }
 
@@ -1577,9 +1576,8 @@ func is_funcdef() bool {
 
 func read_funcdef() *Ast {
 	basetype, _ := read_decl_spec()
-	var tok *Token
 	var name string
-	rettype := read_declarator(&name, &tok, basetype, 3)
+	rettype := read_declarator(&name, basetype, 3)
 	localenv = MakeDict(globalenv)
 	expect('(')
 	functype, params := read_func_param_list(rettype, false)
@@ -1592,9 +1590,8 @@ func read_funcdef() *Ast {
 func read_decl(block []*Ast, make_var MakeVarFn) []*Ast {
 	basetype, sclass := read_decl_spec()
 	for {
-		var ntok *Token
 		var name string
-		ctype := read_declarator(&name, &ntok, basetype, 4)
+		ctype := read_declarator(&name, basetype, 4)
 		if ctype == nil {
 			return nil
 		}

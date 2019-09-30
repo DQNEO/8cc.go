@@ -56,6 +56,13 @@ enum {
     S_REGISTER,
 };
 
+enum {
+    DECL_BODY = 1,
+    DECL_PARAM,
+    DECL_PARAM_TYPEONLY,
+    DECL_CAST,
+};
+
 static Ast *ast_uop(int type, Ctype *ctype, Ast *operand) {
     Ast *r = malloc(sizeof(Ast));
     r->type = type;
@@ -792,7 +799,7 @@ static Dict *read_struct_union_fields(void) {
         read_decl_spec(&basetype, &dummy);
         for (;;) {
             char *name;
-            Ctype *fieldtype = read_declarator(&name, basetype, NULL, 1);
+            Ctype *fieldtype = read_declarator(&name, basetype, NULL, DECL_PARAM);
             dict_put(r, name, make_struct_field_type(fieldtype, 0));
             tok = read_token();
             if (is_punct(tok, ','))
@@ -900,13 +907,13 @@ static Ctype *read_declarator(char **rname, Ctype *basetype, List *params, int c
         unget_token(tok);
         Token *rtok = read_token();
 
-        if (ctx == 1) {
+        if (ctx == DECL_PARAM) {
             if (rtok->type == TTYPE_IDENT)
                 *rname = rtok->sval;
             else
                 unget_token(rtok);
             ctype = read_array_dimensions(ctype);
-        } else if (ctx == 3) {
+        } else if (ctx == DECL_BODY) {
             if (is_punct(rtok, ';'))
                 return NULL;
             if (rtok->type != TTYPE_IDENT)
@@ -918,7 +925,7 @@ static Ctype *read_declarator(char **rname, Ctype *basetype, List *params, int c
             } else {
             ctype = read_array_dimensions(ctype);
             }
-        } else if (ctx == 2 )  { // optional= true
+        } else if (ctx == DECL_PARAM_TYPEONLY )  { // optional= true
             if (rtok->type == TTYPE_IDENT) {
                 if (rname)
                     *rname = rtok->sval;
@@ -1107,7 +1114,7 @@ static void read_func_param(Ctype **rtype, char **name, bool optional) {
     Ctype *basetype;
     int sclass;
     read_decl_spec(&basetype, &sclass);
-    basetype = read_declarator(name, basetype, NULL, optional ? 2 : 1);
+    basetype = read_declarator(name, basetype, NULL, optional ? DECL_PARAM_TYPEONLY : DECL_PARAM);
     *rtype = read_array_dimensions(basetype);
 }
 
@@ -1283,7 +1290,7 @@ static Ast *read_funcdef(void) {
     List *params = make_list();
     read_decl_spec(&basetype, &sclass);
     localenv = make_dict(globalenv);
-    Ctype *functype = read_declarator(&name, basetype, params, 3);
+    Ctype *functype = read_declarator(&name, basetype, params, DECL_BODY);
     expect('{');
     Ast *r = read_func_body(functype, name, params);
     localenv = NULL;
@@ -1296,7 +1303,7 @@ static void read_decl(List *block, MakeVarFn make_var) {
     read_decl_spec(&basetype, &sclass);
     for (;;) {
         char *name = NULL;
-        Ctype *ctype = read_declarator(&name, basetype, NULL, 3);
+        Ctype *ctype = read_declarator(&name, basetype, NULL, DECL_BODY);
         if (!ctype) return;
         Token *tok = read_token();
         if (is_punct(tok, '=')) {

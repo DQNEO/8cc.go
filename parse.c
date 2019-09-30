@@ -891,7 +891,7 @@ static Ctype *read_declarator(char **rname, Ctype *basetype, int ctx) {
     Ctype *ctype = basetype;
     for (;;) {
         Token *tok = read_token();
-        if (is_ident(tok, "const"))
+        if (is_ident(tok, "const") || is_ident(tok, "volatile"))
             continue;
         if (is_punct(tok, '*')) {
             ctype = make_ptr_type(ctype);
@@ -910,12 +910,15 @@ static Ctype *read_declarator(char **rname, Ctype *basetype, int ctx) {
             if (rtok->type != TTYPE_IDENT)
                 error("function tok expected, but got %s", t2s(rtok));
             *rname = rtok->sval;
+            expect('(');
+
         } else if (ctx == 4) {
             if (is_punct(rtok, ';'))
                 return NULL;
             if (rtok->type != TTYPE_IDENT)
                 error("Identifier expected, but got %s", t2s(rtok));
             *rname = rtok->sval;
+            ctype = read_array_dimensions(ctype);
         } else if (ctx == 2 )  { // optional= true
             bool optional = true;
             if (rtok->type == TTYPE_IDENT) {
@@ -1294,16 +1297,13 @@ static bool is_funcdef(void) {
 
 static Ast *read_funcdef(void) {
     Ctype *basetype;
-    Ctype *functype;
     int sclass;
-
     char *name;
     List *params = make_list();
     read_decl_spec(&basetype, &sclass);
     localenv = make_dict(globalenv);
     Ctype *rettype = read_declarator(&name, basetype, 3);
-    expect('(');
-    functype = read_func_param_list(params, rettype);
+    Ctype *functype = read_func_param_list(params, rettype);
     expect('{');
     Ast *r = read_func_body(functype, name, params);
     localenv = NULL;
@@ -1318,7 +1318,6 @@ static void read_decl(List *block, MakeVarFn make_var) {
         char *name = NULL;
         Ctype *ctype = read_declarator(&name, basetype, 4);
         if (!ctype) return;
-        ctype = read_array_dimensions(ctype);
         Token *tok = read_token();
         if (is_punct(tok, '=')) {
             if (sclass == S_TYPEDEF)

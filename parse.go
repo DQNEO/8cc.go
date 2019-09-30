@@ -1043,6 +1043,11 @@ func read_declarator(rname *string, rtok **Token, basetype *Ctype, ctx int) *Cty
 			} else {
 				unget_token(*rtok)
 			}
+		} else if ctx == 3 {
+			if (*rtok).typ != TTYPE_IDENT {
+				errorf("function tok expected, but got %s", *rtok)
+			}
+			*rname = (*rtok).sval
 		}
 
 		return ctype
@@ -1551,10 +1556,6 @@ func read_funcdef() *Ast {
 	var tok *Token
 	var name string
 	rettype := read_declarator(&name, &tok, basetype, 3)
-	if tok.typ != TTYPE_IDENT {
-		errorf("function tok expected, but got %s", tok)
-	}
-	name = tok.sval
 	localenv = MakeDict(globalenv)
 	expect('(')
 	functype, params := read_func_param_list(rettype, false)

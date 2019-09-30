@@ -1266,7 +1266,7 @@ func read_decl_spec() (*Ctype, int) {
 	return nil, 0
 }
 
-func read_func_param(rtype **Ctype, rname *string, optional bool) {
+func read_func_param(rtype **Ctype, name *string, optional bool) {
 	basetype, _ := read_decl_spec()
 	var ctx int
 	if optional {
@@ -1274,7 +1274,7 @@ func read_func_param(rtype **Ctype, rname *string, optional bool) {
 	} else {
 		ctx = 12
 	}
-	basetype = read_declarator(rname, basetype, ctx)
+	basetype = read_declarator(name, basetype, ctx)
 	*rtype = read_array_dimensions(basetype)
 }
 

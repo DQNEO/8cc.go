@@ -1025,7 +1025,7 @@ func read_enum_def() *Ctype {
 	return ctype_int
 }
 
-func read_declarator(rname **Token, basetype *Ctype) *Ctype {
+func read_declarator(rtok **Token, basetype *Ctype) *Ctype {
 	ctype := basetype
 	for {
 		tok := read_token()
@@ -1037,7 +1037,7 @@ func read_declarator(rname **Token, basetype *Ctype) *Ctype {
 			continue
 		}
 		unget_token(tok)
-		*rname = read_token()
+		*rtok = read_token()
 		return ctype
 	}
 }

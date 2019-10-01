@@ -574,8 +574,10 @@ func emit_expr(ast *Ast) {
 		emit("jmp %s", begin)
 		emit("%s:", end)
 	case AST_RETURN:
-		emit_expr(ast.retval)
-		emit_save_convert(ast.ctype, ast.retval.ctype)
+		if ast.retval != nil {
+			emit_expr(ast.retval)
+			emit_save_convert(ast.ctype, ast.retval.ctype)
+		}
 		emit("leave")
 		emit("ret")
 		break

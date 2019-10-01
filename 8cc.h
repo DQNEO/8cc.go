@@ -92,6 +92,8 @@ enum {
     CTYPE_PTR,
     CTYPE_STRUCT,
     CTYPE_FUNC,
+    // used only in parser
+    CTYPE_STUB,
 };
 
 typedef struct Ctype {

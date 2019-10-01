@@ -1070,30 +1070,27 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 		ctype := make_ptr_type(basetype)
 		return read_direct_declarator1(rname, ctype, params, ctx)
 	}
-	unget_token(tok)
-	var rtok *Token
-	rtok = read_token()
 
 	if ctx == DECL_PARAM {
-		if rtok.is_ident_type() {
+		if tok.is_ident_type() {
 			*rname = tok.sval
 		} else {
-			unget_token(rtok)
+			unget_token(tok)
 		}
 	} else if ctx == DECL_BODY {
-		if rtok.is_punct(';') {
+		if tok.is_punct(';') {
 			return nil, params
 		}
-		if rtok.is_ident_type() {
-			*rname = rtok.sval
+		if tok.is_ident_type() {
+			*rname = tok.sval
 		} else {
-			errorf("function tok expected, but got %s", rtok)
+			errorf("function tok expected, but got %s", tok)
 		}
 	} else if ctx == DECL_PARAM_TYPEONLY {
-		if rtok.is_ident_type() {
-			*rname = rtok.sval
+		if tok.is_ident_type() {
+			*rname = tok.sval
 		} else {
-			unget_token(rtok)
+			unget_token(tok)
 		}
 		return basetype, params
 	}

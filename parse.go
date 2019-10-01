@@ -1078,9 +1078,6 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 			unget_token(tok)
 		}
 	} else if ctx == DECL_BODY {
-		if tok.is_punct(';') {
-			return nil, params
-		}
 		if tok.is_ident_type() {
 			*rname = tok.sval
 		} else {

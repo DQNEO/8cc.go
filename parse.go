@@ -1626,14 +1626,12 @@ func read_decl(block []*Ast, make_var MakeVarFn) []*Ast {
 				make_var(ctype, name)
 			}
 			tok = read_token()
+		} else if sclass == S_TYPEDEF {
+			typedefs.PutCtype(name, ctype)
 		} else {
-			if sclass == S_TYPEDEF {
-				typedefs.PutCtype(name, ctype)
-			} else {
-				gvar := make_var(ctype, name)
-				if sclass != S_EXTERN {
-					block = append(block, ast_decl(gvar, nil))
-				}
+			gvar := make_var(ctype, name)
+			if sclass != S_EXTERN {
+				block = append(block, ast_decl(gvar, nil))
 			}
 		}
 

@@ -1026,7 +1026,13 @@ func read_enum_def() *Ctype {
 }
 
 func read_direct_declarator2(basetype *Ctype) *Ctype {
-	return read_array_dimensions(basetype)
+	tok := read_token()
+	if tok.is_punct('[') {
+		unget_token(tok)
+		return read_array_dimensions(basetype)
+	}
+	unget_token(tok)
+	return basetype
 }
 
 func skip_type_qualifiers() {

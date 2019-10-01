@@ -1604,6 +1604,11 @@ func read_funcdef() *Ast {
 
 func read_decl(block []*Ast, make_var MakeVarFn) []*Ast {
 	basetype, sclass := read_decl_spec()
+	tok := read_token()
+	if tok.is_punct(';') {
+		return nil
+	}
+	unget_token(tok)
 	for {
 		var name string
 		ctype, _ := read_declarator(&name, basetype, nil, DECL_BODY)

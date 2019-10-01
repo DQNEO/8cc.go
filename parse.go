@@ -1071,25 +1071,19 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 		return read_direct_declarator1(rname, ctype, params, ctx)
 	}
 
-	if ctx == DECL_PARAM {
-		if tok.is_ident_type() {
-			*rname = tok.sval
-		} else {
-			unget_token(tok)
+	if tok.is_ident_type() {
+		*rname = tok.sval
+		if ctx == DECL_PARAM_TYPEONLY {
+			return basetype, params
 		}
-	} else if ctx == DECL_BODY {
-		if tok.is_ident_type() {
-			*rname = tok.sval
-		} else {
+	} else {
+		unget_token(tok)
+		if ctx == DECL_BODY {
 			errorf("function tok expected, but got %s", tok)
 		}
-	} else if ctx == DECL_PARAM_TYPEONLY {
-		if tok.is_ident_type() {
-			*rname = tok.sval
-		} else {
-			unget_token(tok)
+		if ctx == DECL_PARAM_TYPEONLY {
+			return basetype, params
 		}
-		return basetype, params
 	}
 
 	ctype, params := read_direct_declarator2(basetype, params)

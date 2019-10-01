@@ -1025,14 +1025,19 @@ func read_enum_def() *Ctype {
 	return ctype_int
 }
 
-func read_direct_declarator2(basetype *Ctype, params []*Ast) *Ctype {
+func read_direct_declarator2(basetype *Ctype, params []*Ast) (*Ctype, []*Ast) {
 	tok := read_token()
 	if tok.is_punct('[') {
 		unget_token(tok)
-		return read_array_dimensions(basetype)
+		return read_array_dimensions(basetype), params
 	}
+	if tok.is_punct('(') && params != nil {
+		basetype, params = read_func_param_list(basetype, params)
+		return basetype, params
+	}
+
 	unget_token(tok)
-	return basetype
+	return basetype, params
 }
 
 func skip_type_qualifiers() {
@@ -1076,11 +1081,6 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 				errorf("function tok expected, but got %s", rtok)
 			}
 			*rname = rtok.sval
-			if params != nil {
-				expect('(')
-				ctype, params = read_func_param_list(ctype, params)
-				return ctype, params
-			}
 		} else if ctx == DECL_PARAM_TYPEONLY {
 			if rtok.is_ident_type() {
 				if rname != nil {
@@ -1092,7 +1092,7 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 			return ctype, params
 		}
 
-		ctype = read_direct_declarator2(ctype, params)
+		ctype, params = read_direct_declarator2(ctype, params)
 		return ctype, params
 	}
 }

@@ -1615,7 +1615,7 @@ func read_decl(block []*Ast, make_var MakeVarFn) []*Ast {
 		if ctype == nil {
 			return nil
 		}
-		tok := read_token()
+		tok = read_token()
 		if tok.is_punct('=') {
 			if sclass == S_TYPEDEF {
 				errorf("= after typedef")

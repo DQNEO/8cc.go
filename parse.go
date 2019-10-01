@@ -1096,13 +1096,16 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 	}
 
 	if tok.is_ident_type() {
-		*rname = tok.sval
-	} else {
-		unget_token(tok)
-		if ctx == DECL_BODY {
-			errorf("function tok expected, but got %s", tok)
+		if ctx == DECL_CAST {
+			errorf("identifier is NOT expected, but got %s", tok)
 		}
+		*rname = tok.sval
+		return read_direct_declarator2(basetype, params)
 	}
+	if ctx == DECL_BODY || ctx == DECL_PARAM {
+		errorf("identifier, ( or * are expected, but got %s", tok)
+	}
+	unget_token(tok)
 
 	return read_direct_declarator2(basetype, params)
 }

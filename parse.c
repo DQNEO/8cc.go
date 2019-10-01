@@ -893,8 +893,17 @@ static Ctype *read_enum_def(void) {
     return ctype_int;
 }
 
-static Ctype *read_direct_declarator2(Ctype *basetype) {
-    return read_array_dimensions(basetype);
+static Ctype *read_direct_declarator2(Ctype *basetype, List *params) {
+    Token *tok = read_token();
+    if (is_punct(tok, '[')) {
+        unget_token(tok);
+        return read_array_dimensions(basetype);
+    }
+    if (is_punct(tok, '(') && params) {
+        return read_func_param_list(params, basetype);
+    }
+    unget_token(tok);
+    return basetype;
 }
 
 static void skip_type_qualifiers(void) {
@@ -932,11 +941,6 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
             if (rtok->type != TTYPE_IDENT)
                 error("function tok expected, but got %s", t2s(rtok));
             *rname = rtok->sval;
-            if (params) {
-                expect('(');
-                ctype = read_func_param_list(params, ctype);
-                return ctype;
-            }
         } else if (ctx == DECL_PARAM_TYPEONLY )  { // optional= true
             if (rtok->type == TTYPE_IDENT) {
                 if (rname)
@@ -947,7 +951,7 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
             return ctype;
         }
 
-        return read_direct_declarator2(ctype);
+        return read_direct_declarator2(ctype, params);
     }
 }
 

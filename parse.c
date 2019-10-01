@@ -814,7 +814,6 @@ static Dict *read_struct_union_fields(void) {
             expect(';');
             break;
         }
-
     }
     expect('}');
     return r;
@@ -916,7 +915,7 @@ static Ctype *read_direct_declarator2(Ctype *basetype, List *params) {
             error("array of functions");
         return make_array_type(t, len);
     }
-    if (is_punct(tok, '(') && params) {
+    if (is_punct(tok, '(')) {
         return read_func_param_list(params, basetype);
     }
     unget_token(tok);
@@ -951,17 +950,11 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
 
     if (tok->type == TTYPE_IDENT) {
         *rname = tok->sval;
-        if (ctx == DECL_PARAM_TYPEONLY)  {
-            return basetype;
-        }
         return read_direct_declarator2(basetype, params);
     }
     unget_token(tok);
     if (ctx == DECL_BODY) {
         error("function tok expected, but got %s", t2s(tok));
-    }
-    if (ctx == DECL_PARAM_TYPEONLY)  {
-        return basetype;
     }
 
     return read_direct_declarator2(basetype, params);
@@ -1349,15 +1342,10 @@ static void read_decl(List *block, MakeVarFn make_var) {
             Ast *var = make_var(ctype, name);
             list_push(block, read_decl_init(var));
             tok = read_token();
-        } else if (is_punct(tok, '(')) {
-            ctype = read_func_param_list(NULL, ctype);
-            if (sclass == S_TYPEDEF)
-                dict_put(typedefs, name, ctype);
-            else
-                make_var(ctype, name);
-            tok = read_token();
         } else if (sclass == S_TYPEDEF) {
             dict_put(typedefs, name, ctype);
+        } else if (ctype->type == CTYPE_FUNC) {
+            make_var(ctype, name);
         } else {
             Ast *var = make_var(ctype, name);
             if (sclass != S_EXTERN)

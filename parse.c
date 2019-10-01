@@ -917,42 +917,36 @@ static void skip_type_qualifiers(void) {
 }
 
 static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *params, int ctx) {
-    if (rname) *rname = NULL;
-    Ctype *ctype = basetype;
-
-    for (;;) {
-        skip_type_qualifiers();
-        Token *tok = read_token();
-        if (is_punct(tok, '*')) {
-            ctype = make_ptr_type(ctype);
-            continue;
-        }
-        unget_token(tok);
-        Token *rtok = read_token();
-
-        if (ctx == DECL_PARAM) {
-            if (rtok->type == TTYPE_IDENT)
-                *rname = rtok->sval;
-            else
-                unget_token(rtok);
-        } else if (ctx == DECL_BODY) {
-            if (is_punct(rtok, ';'))
-                return NULL;
-            if (rtok->type != TTYPE_IDENT)
-                error("function tok expected, but got %s", t2s(rtok));
-            *rname = rtok->sval;
-        } else if (ctx == DECL_PARAM_TYPEONLY )  { // optional= true
-            if (rtok->type == TTYPE_IDENT) {
-                if (rname)
-                    *rname = rtok->sval;
-            } else {
-                unget_token(rtok);
-            }
-            return ctype;
-        }
-
-        return read_direct_declarator2(ctype, params);
+    skip_type_qualifiers();
+    Token *tok = read_token();
+    if (is_punct(tok, '*')) {
+        Ctype *ctype = make_ptr_type(basetype);
+        return read_direct_declarator1(rname, ctype, params, ctx);
     }
+    unget_token(tok);
+    Token *rtok = read_token();
+
+    if (ctx == DECL_PARAM) {
+        if (rtok->type == TTYPE_IDENT)
+            *rname = rtok->sval;
+        else
+            unget_token(rtok);
+    } else if (ctx == DECL_BODY) {
+        if (is_punct(rtok, ';'))
+            return NULL;
+        if (rtok->type != TTYPE_IDENT)
+            error("function tok expected, but got %s", t2s(rtok));
+        *rname = rtok->sval;
+    } else if (ctx == DECL_PARAM_TYPEONLY )  { // optional= true
+        if (rtok->type == TTYPE_IDENT) {
+            *rname = rtok->sval;
+        } else {
+            unget_token(rtok);
+        }
+        return basetype;
+    }
+
+    return read_direct_declarator2(basetype, params);
 }
 
 static Ctype *read_declarator(char **rname, Ctype *basetype, List *params, int ctx) {

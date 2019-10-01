@@ -1104,8 +1104,7 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 		}
 	}
 
-	ctype, params := read_direct_declarator2(basetype, params)
-	return ctype, params
+	return read_direct_declarator2(basetype, params)
 }
 
 func fix_array_size(t *Ctype) {

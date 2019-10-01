@@ -1052,9 +1052,6 @@ func skip_type_qualifiers() {
 }
 
 func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx int) (*Ctype, []*Ast) {
-	if rname != nil {
-		*rname = ""
-	}
 	ctype := basetype
 
 	skip_type_qualifiers()
@@ -1083,9 +1080,7 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 		*rname = rtok.sval
 	} else if ctx == DECL_PARAM_TYPEONLY {
 		if rtok.is_ident_type() {
-			if rname != nil {
-				*rname = rtok.sval
-			}
+			*rname = rtok.sval
 		} else {
 			unget_token(rtok)
 		}

@@ -304,6 +304,13 @@ func make_func_type(rettype *Ctype, paramtypes []*Ctype, has_vaargs bool) *Ctype
 	return r
 }
 
+func make_stub_type() *Ctype {
+	r := &Ctype{}
+	r.typ = CTYPE_STUB
+	r.size = 0
+	return r
+}
+
 func is_inttype(ctype *Ctype) bool {
 	return ctype.typ == CTYPE_CHAR || ctype.typ == CTYPE_SHORT ||
 		ctype.typ == CTYPE_INT || ctype.typ == CTYPE_LONG || ctype.typ == CTYPE_LLONG
@@ -1065,6 +1072,15 @@ func skip_type_qualifiers() {
 
 func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx int) (*Ctype, []*Ast) {
 	tok := read_token()
+	next := peek_token()
+	if tok.is_punct('(') && !is_type_keyword(next) && !next.is_punct(')') {
+		stub := make_stub_type()
+		t, params := read_direct_declarator1(rname, stub, params, ctx)
+		expect(')')
+		ctype, params := read_direct_declarator2(basetype, params)
+		*stub = *ctype
+		return t, params
+	}
 	if tok.is_punct('*') {
 		skip_type_qualifiers()
 		ctype := make_ptr_type(basetype)

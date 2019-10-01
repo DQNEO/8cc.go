@@ -903,6 +903,10 @@ static void skip_type_qualifiers(void) {
     }
 }
 
+static Ctype *read_direct_declarator2(Ctype *basetype) {
+    return read_array_dimensions(basetype);
+}
+
 static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *params, int ctx) {
     if (rname) *rname = NULL;
     Ctype *ctype = basetype;
@@ -922,7 +926,7 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
                 *rname = rtok->sval;
             else
                 unget_token(rtok);
-            ctype = read_array_dimensions(ctype);
+            ctype = read_direct_declarator2(ctype);
         } else if (ctx == DECL_BODY) {
             if (is_punct(rtok, ';'))
                 return NULL;
@@ -933,7 +937,7 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
                 expect('(');
                 ctype = read_func_param_list(params, ctype);
             } else {
-            ctype = read_array_dimensions(ctype);
+            ctype = read_direct_declarator2(ctype);
             }
         } else if (ctx == DECL_PARAM_TYPEONLY )  { // optional= true
             if (rtok->type == TTYPE_IDENT) {

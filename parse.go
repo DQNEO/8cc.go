@@ -1050,7 +1050,7 @@ func read_direct_declarator2(basetype *Ctype, params []*Ast) (*Ctype, []*Ast) {
 		}
 		return make_array_type(t, length), params
 	}
-	if tok.is_punct('(') && params != nil {
+	if tok.is_punct('(') {
 		basetype, params = read_func_param_list(basetype, params)
 		return basetype, params
 	}
@@ -1624,16 +1624,10 @@ func read_decl(block []*Ast, make_var MakeVarFn) []*Ast {
 			gvar := make_var(ctype, name)
 			block = append(block, read_decl_init(gvar))
 			tok = read_token()
-		} else if tok.is_punct('(') {
-			ctype, _ = read_func_param_list(ctype, nil)
-			if sclass == S_TYPEDEF {
-				typedefs.PutCtype(name, ctype)
-			} else {
-				make_var(ctype, name)
-			}
-			tok = read_token()
 		} else if sclass == S_TYPEDEF {
 			typedefs.PutCtype(name, ctype)
+		} else if ctype.typ == CTYPE_FUNC {
+			make_var(ctype, name)
 		} else {
 			gvar := make_var(ctype, name)
 			if sclass != S_EXTERN {

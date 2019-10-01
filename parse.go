@@ -1057,43 +1057,43 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 	}
 	ctype := basetype
 
-		skip_type_qualifiers()
-		tok := read_token()
-		if tok.is_punct('*') {
-			ctype = make_ptr_type(ctype)
-			return read_direct_declarator1(rname, ctype, params, ctx)
-		}
-		unget_token(tok)
-		var rtok *Token
-		rtok = read_token()
+	skip_type_qualifiers()
+	tok := read_token()
+	if tok.is_punct('*') {
+		ctype = make_ptr_type(ctype)
+		return read_direct_declarator1(rname, ctype, params, ctx)
+	}
+	unget_token(tok)
+	var rtok *Token
+	rtok = read_token()
 
-		if ctx == DECL_PARAM {
-			if rtok.is_ident_type() {
-				*rname = tok.sval
-			} else {
-				unget_token(rtok)
-			}
-		} else if ctx == DECL_BODY {
-			if rtok.is_punct(';') {
-				return nil, params
-			}
-			if !rtok.is_ident_type() {
-				errorf("function tok expected, but got %s", rtok)
-			}
-			*rname = rtok.sval
-		} else if ctx == DECL_PARAM_TYPEONLY {
-			if rtok.is_ident_type() {
-				if rname != nil {
-					*rname = rtok.sval
-				}
-			} else {
-				unget_token(rtok)
-			}
-			return ctype, params
+	if ctx == DECL_PARAM {
+		if rtok.is_ident_type() {
+			*rname = tok.sval
+		} else {
+			unget_token(rtok)
 		}
-
-		ctype, params = read_direct_declarator2(ctype, params)
+	} else if ctx == DECL_BODY {
+		if rtok.is_punct(';') {
+			return nil, params
+		}
+		if !rtok.is_ident_type() {
+			errorf("function tok expected, but got %s", rtok)
+		}
+		*rname = rtok.sval
+	} else if ctx == DECL_PARAM_TYPEONLY {
+		if rtok.is_ident_type() {
+			if rname != nil {
+				*rname = rtok.sval
+			}
+		} else {
+			unget_token(rtok)
+		}
 		return ctype, params
+	}
+
+	ctype, params = read_direct_declarator2(ctype, params)
+	return ctype, params
 }
 
 func read_declarator(rname *string, basetype *Ctype, params []*Ast, ctx int) (*Ctype, []*Ast) {

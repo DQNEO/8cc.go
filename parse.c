@@ -944,8 +944,10 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
     }
     if (is_punct(tok, '*')) {
         skip_type_qualifiers();
-        Ctype *ctype = make_ptr_type(basetype);
-        return read_direct_declarator1(rname, ctype, params, ctx);
+        Ctype *stub = make_stub_type();
+        Ctype *t = read_direct_declarator1(rname, stub, params, ctx);
+        *stub = *make_ptr_type(basetype);
+        return t;
     }
 
     if (tok->type == TTYPE_IDENT) {
@@ -960,8 +962,21 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
     return read_direct_declarator2(basetype, params);
 }
 
+static void fix_array_size(Ctype *t) {
+    assert(t->type != CTYPE_STUB);
+    if (t->type == CTYPE_ARRAY) {
+        fix_array_size(t->ptr);
+        t->size = t->len * t->ptr->size;
+    } else if (t->type == CTYPE_PTR) {
+        fix_array_size(t->ptr);
+    } else if (t->type == CTYPE_FUNC) {
+        fix_array_size(t->rettype);
+    }
+}
+
 static Ctype *read_declarator(char **rname, Ctype *basetype, List *params, int ctx) {
     Ctype *t = read_direct_declarator1(rname, basetype, params, ctx);
+    fix_array_size(t);
     return t;
 }
 

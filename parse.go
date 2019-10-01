@@ -1025,7 +1025,7 @@ func read_enum_def() *Ctype {
 	return ctype_int
 }
 
-func read_direct_declarator2(basetype *Ctype) *Ctype {
+func read_direct_declarator2(basetype *Ctype, params []*Ast) *Ctype {
 	tok := read_token()
 	if tok.is_punct('[') {
 		unget_token(tok)
@@ -1092,7 +1092,7 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 			return ctype, params
 		}
 
-		ctype = read_direct_declarator2(ctype)
+		ctype = read_direct_declarator2(ctype, params)
 		return ctype, params
 	}
 }

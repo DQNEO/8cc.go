@@ -933,26 +933,19 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
         Ctype *ctype = make_ptr_type(basetype);
         return read_direct_declarator1(rname, ctype, params, ctx);
     }
-    unget_token(tok);
-    Token *rtok = read_token();
 
-    if (ctx == DECL_PARAM) {
-        if (rtok->type == TTYPE_IDENT)
-            *rname = rtok->sval;
-        else
-            unget_token(rtok);
-    } else if (ctx == DECL_BODY) {
-        if (is_punct(rtok, ';'))
-            return NULL;
-        if (rtok->type == TTYPE_IDENT)
-            *rname = rtok->sval;
-        else
-            error("function tok expected, but got %s", t2s(rtok));
-    } else if (ctx == DECL_PARAM_TYPEONLY )  { // optional= true
-        if (rtok->type == TTYPE_IDENT)
-            *rname = rtok->sval;
-        else
-            unget_token(rtok);
+    if (tok->type == TTYPE_IDENT) {
+        *rname = tok->sval;
+        if (ctx == DECL_PARAM_TYPEONLY)  {
+            return basetype;
+        }
+        return read_direct_declarator2(basetype, params);
+    }
+    unget_token(tok);
+    if (ctx == DECL_BODY) {
+        error("function tok expected, but got %s", t2s(tok));
+    }
+    if (ctx == DECL_PARAM_TYPEONLY)  {
         return basetype;
     }
 

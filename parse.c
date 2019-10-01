@@ -893,13 +893,23 @@ static Ctype *read_enum_def(void) {
     return ctype_int;
 }
 
-static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *params, int ctx) {
-    if (rname) *rname = NULL;
-    Ctype *ctype = basetype;
+static void skip_type_qualifiers(void) {
     for (;;) {
         Token *tok = read_token();
         if (is_ident(tok, "const") || is_ident(tok, "volatile"))
             continue;
+        unget_token(tok);
+        return;
+    }
+}
+
+static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *params, int ctx) {
+    if (rname) *rname = NULL;
+    Ctype *ctype = basetype;
+
+    for (;;) {
+        skip_type_qualifiers();
+        Token *tok = read_token();
         if (is_punct(tok, '*')) {
             ctype = make_ptr_type(ctype);
             continue;

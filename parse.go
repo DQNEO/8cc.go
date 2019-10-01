@@ -1028,8 +1028,20 @@ func read_enum_def() *Ctype {
 func read_direct_declarator2(basetype *Ctype, params []*Ast) (*Ctype, []*Ast) {
 	tok := read_token()
 	if tok.is_punct('[') {
-		unget_token(tok)
-		return read_array_dimensions(basetype), params
+		var length int
+		tok = read_token()
+		if tok.is_punct(']') {
+			length = -1
+		} else {
+			unget_token(tok)
+			length = eval_intexpr(read_expr())
+			expect(']')
+		}
+		t, params := read_direct_declarator2(basetype, params)
+		if t.typ == CTYPE_FUNC {
+			errorf("array of functions")
+		}
+		return make_array_type(t, length), params
 	}
 	if tok.is_punct('(') && params != nil {
 		basetype, params = read_func_param_list(basetype, params)

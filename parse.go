@@ -1612,9 +1612,6 @@ func read_decl(block []*Ast, make_var MakeVarFn) []*Ast {
 	for {
 		var name string
 		ctype, _ := read_declarator(&name, basetype, nil, DECL_BODY)
-		if ctype == nil {
-			return nil
-		}
 		tok = read_token()
 		if tok.is_punct('=') {
 			if sclass == S_TYPEDEF {

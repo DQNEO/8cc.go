@@ -1025,16 +1025,25 @@ func read_enum_def() *Ctype {
 	return ctype_int
 }
 
+func skip_type_qualifiers() {
+	for {
+		tok := read_token()
+		if tok.is_ident("const") || tok.is_ident("volatiles") {
+			continue
+		}
+		unget_token(tok)
+		return
+	}
+}
+
 func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx int) (*Ctype, []*Ast) {
 	if rname != nil {
 		*rname = ""
 	}
 	ctype := basetype
 	for {
+		skip_type_qualifiers()
 		tok := read_token()
-		if tok.is_ident("const") || tok.is_ident("volatiles") {
-			continue
-		}
 		if tok.is_punct('*') {
 			ctype = make_ptr_type(ctype)
 			continue

@@ -1083,8 +1083,10 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 	}
 	if tok.is_punct('*') {
 		skip_type_qualifiers()
-		ctype := make_ptr_type(basetype)
-		return read_direct_declarator1(rname, ctype, params, ctx)
+		stub := make_stub_type()
+		t, params := read_direct_declarator1(rname, stub, params, ctx)
+		*stub = *make_ptr_type(basetype)
+		return t, params
 	}
 
 	if tok.is_ident_type() {
@@ -1100,8 +1102,22 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 	return ctype, params
 }
 
+func fix_array_size(t *Ctype) {
+	assert(t.typ != CTYPE_STUB)
+	if t.typ == CTYPE_ARRAY {
+		fix_array_size(t.ptr)
+		t.size = t.len * t.ptr.size
+	} else if t.typ == CTYPE_PTR {
+		fix_array_size(t.ptr)
+	} else if t.typ == CTYPE_FUNC {
+		fix_array_size(t.rettype)
+	}
+}
+
 func read_declarator(rname *string, basetype *Ctype, params []*Ast, ctx int) (*Ctype, []*Ast) {
-	return read_direct_declarator1(rname, basetype, params, ctx)
+	t, params := read_direct_declarator1(rname, basetype, params, ctx)
+	fix_array_size(t)
+	return t, params
 }
 
 var kconst int

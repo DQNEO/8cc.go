@@ -46,7 +46,6 @@ static void read_func_param(Ctype **rtype, char **name, bool optional);
 static void read_decl(List *block, MakeVarFn make_var);
 static Ctype *read_declarator(char **name, Ctype *basetype, List *params, int ctx);
 static void read_decl_spec(Ctype **rtype, int *sclass);
-static Ctype *read_array_dimensions(Ctype *basetype);
 
 enum {
     S_TYPEDEF = 1,
@@ -609,7 +608,7 @@ static Ast *get_sizeof_size(bool allow_typename) {
     unget_token(tok);
     Ast *expr = read_unary_expr();
     if (expr->ctype->size == 0)
-        error("invalid operand for sizeof(): %s", a2s(expr));
+        error("invalid operand for sizeof(): %s type=%s size=%d", a2s(expr), c2s(expr->ctype), expr->ctype->size);
     return ast_inttype(ctype_long, expr->ctype->size);
 }
 
@@ -896,8 +895,19 @@ static Ctype *read_enum_def(void) {
 static Ctype *read_direct_declarator2(Ctype *basetype, List *params) {
     Token *tok = read_token();
     if (is_punct(tok, '[')) {
-        unget_token(tok);
-        return read_array_dimensions(basetype);
+        int len;
+        tok = read_token();
+        if (is_punct(tok, ']')) {
+            len = -1;
+        } else {
+            unget_token(tok);
+            len = eval_intexpr(read_expr());
+            expect(']');
+        }
+        Ctype *t = read_direct_declarator2(basetype, params);
+        if (t->type == CTYPE_FUNC)
+            error("array of functions");
+        return make_array_type(t, len);
     }
     if (is_punct(tok, '(') && params) {
         return read_func_param_list(params, basetype);
@@ -917,9 +927,9 @@ static void skip_type_qualifiers(void) {
 }
 
 static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *params, int ctx) {
-    skip_type_qualifiers();
     Token *tok = read_token();
     if (is_punct(tok, '*')) {
+        skip_type_qualifiers();
         Ctype *ctype = make_ptr_type(basetype);
         return read_direct_declarator1(rname, ctype, params, ctx);
     }
@@ -934,15 +944,15 @@ static Ctype *read_direct_declarator1(char **rname, Ctype *basetype, List *param
     } else if (ctx == DECL_BODY) {
         if (is_punct(rtok, ';'))
             return NULL;
-        if (rtok->type != TTYPE_IDENT)
-            error("function tok expected, but got %s", t2s(rtok));
-        *rname = rtok->sval;
-    } else if (ctx == DECL_PARAM_TYPEONLY )  { // optional= true
-        if (rtok->type == TTYPE_IDENT) {
+        if (rtok->type == TTYPE_IDENT)
             *rname = rtok->sval;
-        } else {
+        else
+            error("function tok expected, but got %s", t2s(rtok));
+    } else if (ctx == DECL_PARAM_TYPEONLY )  { // optional= true
+        if (rtok->type == TTYPE_IDENT)
+            *rname = rtok->sval;
+        else
             unget_token(rtok);
-        }
         return basetype;
     }
 
@@ -1317,11 +1327,14 @@ static void read_decl(List *block, MakeVarFn make_var) {
     Ctype *basetype;
     int sclass;
     read_decl_spec(&basetype, &sclass);
+    Token *tok = read_token();
+    if (is_punct(tok, ';'))
+        return;
+    unget_token(tok);
     for (;;) {
         char *name = NULL;
         Ctype *ctype = read_declarator(&name, basetype, NULL, DECL_BODY);
-        if (!ctype) return;
-        Token *tok = read_token();
+        tok = read_token();
         if (is_punct(tok, '=')) {
             if (sclass == S_TYPEDEF)
                 error("= after typedef");
@@ -1335,14 +1348,12 @@ static void read_decl(List *block, MakeVarFn make_var) {
             else
                 make_var(ctype, name);
             tok = read_token();
+        } else if (sclass == S_TYPEDEF) {
+            dict_put(typedefs, name, ctype);
         } else {
-            if (sclass == S_TYPEDEF) {
-                dict_put(typedefs, name, ctype);
-            } else {
-                Ast *var = make_var(ctype, name);
-                if (sclass != S_EXTERN)
-                    list_push(block, ast_decl(var, NULL));
-            }
+            Ast *var = make_var(ctype, name);
+            if (sclass != S_EXTERN)
+                list_push(block, ast_decl(var, NULL));
         }
         if (is_punct(tok, ';'))
             return;

@@ -1025,6 +1025,10 @@ func read_enum_def() *Ctype {
 	return ctype_int
 }
 
+func read_direct_declarator2(basetype *Ctype) *Ctype {
+	return read_array_dimensions(basetype)
+}
+
 func skip_type_qualifiers() {
 	for {
 		tok := read_token()
@@ -1034,10 +1038,6 @@ func skip_type_qualifiers() {
 		unget_token(tok)
 		return
 	}
-}
-
-func read_direct_declarator2(basetype *Ctype) *Ctype {
-	return read_array_dimensions(basetype)
 }
 
 func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx int) (*Ctype, []*Ast) {
@@ -1062,7 +1062,6 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 			} else {
 				unget_token(rtok)
 			}
-			ctype = read_direct_declarator2(ctype)
 		} else if ctx == DECL_BODY {
 			if rtok.is_punct(';') {
 				return nil, params
@@ -1074,8 +1073,7 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 			if params != nil {
 				expect('(')
 				ctype, params = read_func_param_list(ctype, params)
-			} else {
-				ctype = read_direct_declarator2(ctype)
+				return ctype, params
 			}
 		} else if ctx == DECL_PARAM_TYPEONLY {
 			if rtok.is_ident_type() {
@@ -1085,8 +1083,10 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 			} else {
 				unget_token(rtok)
 			}
+			return ctype, params
 		}
 
+		ctype = read_direct_declarator2(ctype)
 		return ctype, params
 	}
 }

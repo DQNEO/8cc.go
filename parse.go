@@ -1052,12 +1052,10 @@ func skip_type_qualifiers() {
 }
 
 func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx int) (*Ctype, []*Ast) {
-	ctype := basetype
-
 	skip_type_qualifiers()
 	tok := read_token()
 	if tok.is_punct('*') {
-		ctype = make_ptr_type(ctype)
+		ctype := make_ptr_type(basetype)
 		return read_direct_declarator1(rname, ctype, params, ctx)
 	}
 	unget_token(tok)
@@ -1084,10 +1082,10 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 		} else {
 			unget_token(rtok)
 		}
-		return ctype, params
+		return basetype, params
 	}
 
-	ctype, params = read_direct_declarator2(ctype, params)
+	ctype, params := read_direct_declarator2(basetype, params)
 	return ctype, params
 }
 

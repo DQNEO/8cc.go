@@ -677,7 +677,7 @@ func get_sizeof_size(allow_typename bool) *Ast {
 	unget_token(tok)
 	expr := read_unary_expr()
 	if expr.ctype.size == 0 {
-		errorf("invalid operand for sizeof(): %s", expr)
+		errorf("invalid operand for sizeof(): %s type=%s size=%d", expr, expr.ctype, expr.ctype.size)
 	}
 	return ast_inttype(ctype_long, expr.ctype.size)
 }

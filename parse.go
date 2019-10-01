@@ -1036,6 +1036,10 @@ func skip_type_qualifiers() {
 	}
 }
 
+func read_direct_declarator2(basetype *Ctype) *Ctype {
+	return read_array_dimensions(basetype)
+}
+
 func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx int) (*Ctype, []*Ast) {
 	if rname != nil {
 		*rname = ""
@@ -1058,7 +1062,7 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 			} else {
 				unget_token(rtok)
 			}
-			ctype = read_array_dimensions(ctype)
+			ctype = read_direct_declarator2(ctype)
 		} else if ctx == DECL_BODY {
 			if rtok.is_punct(';') {
 				return nil, params
@@ -1071,7 +1075,7 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 				expect('(')
 				ctype, params = read_func_param_list(ctype, params)
 			} else {
-				ctype = read_array_dimensions(ctype)
+				ctype = read_direct_declarator2(ctype)
 			}
 		} else if ctx == DECL_PARAM_TYPEONLY {
 			if rtok.is_ident_type() {

@@ -1051,6 +1051,12 @@ func read_direct_declarator2(basetype *Ctype, params []*Ast) (*Ctype, []*Ast) {
 		return make_array_type(t, length), params
 	}
 	if tok.is_punct('(') {
+		if basetype.typ == CTYPE_FUNC {
+			errorf("function returning an function")
+		}
+		if basetype.typ == CTYPE_ARRAY {
+			errorf("function returning an array")
+		}
 		basetype, params = read_func_param_list(basetype, params)
 		return basetype, params
 	}

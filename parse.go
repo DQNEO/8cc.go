@@ -1084,10 +1084,11 @@ func read_direct_declarator1(rname *string, basetype *Ctype, params []*Ast, ctx 
 		if rtok.is_punct(';') {
 			return nil, params
 		}
-		if !rtok.is_ident_type() {
+		if rtok.is_ident_type() {
+			*rname = rtok.sval
+		} else {
 			errorf("function tok expected, but got %s", rtok)
 		}
-		*rname = rtok.sval
 	} else if ctx == DECL_PARAM_TYPEONLY {
 		if rtok.is_ident_type() {
 			*rname = rtok.sval

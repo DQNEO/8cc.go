@@ -51,6 +51,7 @@ static __attribute__((constructor)) void init(void) {
     dict_put(macros, "__8cc__", make_obj_macro(make_list1(cpp_token_one)));
     dict_put(macros, "__STDC__", make_obj_macro(make_list1(cpp_token_one)));
     eval("typedef int __builtin_va_list[1];");
+    eval("typedef int size_t;");
 }
 
 static CondIncl *make_cond_incl(CondInclCtx ctx, bool wastrue) {

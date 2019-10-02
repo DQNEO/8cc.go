@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #define N 8
 
 int print_board(int board[][N]) {
